@@ -414,6 +414,10 @@ async function init() {
     biz = data;
   }
   if (!biz) {
+    console.error('[dataService] Negócio não encontrado para este utilizador');
+    return;
+  }
+  if (!biz) {
     const seedSettings = {
       tagline: 'Tradição e estilo, ao teu ritmo.',
       description: 'A Convecta Barbershop é uma barbearia premium no coração de Lisboa. Especialistas em cortes clássicos, barbas trabalhadas e tratamentos de cabelo masculino.',
