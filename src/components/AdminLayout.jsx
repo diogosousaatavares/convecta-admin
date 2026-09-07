@@ -143,7 +143,7 @@ export default function AdminLayout({ children }) {
 
   const toggle = (i) => setExpanded(e => ({ ...e, [i]: !e[i] }));
 
-  const handleLogout = () => { logout(); navigate('/entrar'); };
+  const handleLogout = async () => { await logout(); navigate('/entrar'); };
   const handleSupportSubmit = (event) => {
     event.preventDefault();
     const subject = encodeURIComponent(`Problema no painel Convecta${supportForm.name ? ` - ${supportForm.name}` : ''}`);
