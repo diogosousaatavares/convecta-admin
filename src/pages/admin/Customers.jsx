@@ -129,8 +129,8 @@ export default function Customers() {
                       <td className="text-sm text-gold fw-600">{formatPrice(c.totalSpent)}</td>
                       <td className="text-sm">{c.lastVisit ? formatDateShortNum(c.lastVisit) : '—'}</td>
                       <td>{(c.loyalty?.stamps || 0) > 0 ? <span className="text-sm">{'★'.repeat(Math.min(c.loyalty.stamps, 5))}<span className="text-sec text-xs"> {c.loyalty.stamps}/10</span></span> : <span className="text-sec text-xs">—</span>}</td>
-                      <td onClick={e => e.stopPropagation()}>
-                        <Button size="sm" variant="ghost" onClick={() => openEdit(c)}><Pencil size={13} /></Button>
+                      <td onClick={e => { e.preventDefault(); e.stopPropagation(); }}>
+                        <Button size="sm" variant="ghost" onClick={e => { e.preventDefault(); e.stopPropagation(); openEdit(c); }}><Pencil size={13} /></Button>
                       </td>
                     </tr>
                   ))}
