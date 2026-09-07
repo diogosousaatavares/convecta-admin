@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Users, Search, ArrowUpDown, ArrowUp, ArrowDown, Mail, Phone, Plus, Pencil } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
@@ -14,6 +14,7 @@ const empty = { name: '', email: '', phone: '', birthDate: '' };
 export default function Customers() {
   const data = useStore();
   const toast = useToast();
+  const [customerList, setCustomerList] = useState(data.customers);
   const [q, setQ] = useState('');
   const [selected, setSelected] = useState(null);
   const [sortBy, setSortBy] = useState('name');
@@ -21,6 +22,8 @@ export default function Customers() {
   const [filterTag, setFilterTag] = useState('all');
   const [editing, setEditing] = useState(null); // null | 'new' | id
   const [form, setForm] = useState(empty);
+
+  useEffect(() => { setCustomerList(data.customers); }, [data.customers]);
 
   const openNew = () => { setForm(empty); setEditing('new'); };
   const openEdit = (c) => { setForm({ name: c.name, email: c.email || '', phone: c.phone || '', birthDate: c.birthDate || '' }); setEditing(c.id); };
@@ -36,6 +39,7 @@ export default function Customers() {
         await dataService.updateCustomer(editing, { ...form, name: form.name.trim() });
         toast.success('Cliente atualizado');
       }
+      setCustomerList(await dataService.listCustomers());
       close();
     } catch (err) {
       toast.error('Erro ao guardar: ' + (err.message || err));
@@ -43,7 +47,7 @@ export default function Customers() {
   };
 
   const customers = useMemo(() => {
-    const filtered = data.customers.filter(c => {
+    const filtered = customerList.filter(c => {
       if (q && !c.name.toLowerCase().includes(q.toLowerCase()) && !(c.email || '').toLowerCase().includes(q.toLowerCase()) && !(c.phone || '').includes(q)) return false;
       if (filterTag === 'loyal') return (c.loyalty?.stamps || 0) > 0;
       if (filterTag === 'vip') return (c.totalSpent || 0) >= 100;
@@ -56,7 +60,7 @@ export default function Customers() {
       const comparison = typeof valueA === 'string' ? valueA.localeCompare(valueB) : valueA - valueB;
       return sortDir === 'asc' ? comparison : -comparison;
     });
-  }, [data.customers, q, sortBy, sortDir, filterTag]);
+  }, [customerList, q, sortBy, sortDir, filterTag]);
 
   const handleSort = (column) => {
     if (sortBy === column) setSortDir(direction => direction === 'asc' ? 'desc' : 'asc');
@@ -67,11 +71,11 @@ export default function Customers() {
     : sortDir === 'asc' ? <ArrowUp size={13} style={{ color: '#C9A227', marginLeft: 4 }} /> : <ArrowDown size={13} style={{ color: '#C9A227', marginLeft: 4 }} />;
   const sortLabel = (column, label) => <button className="table-sort-btn" onClick={() => handleSort(column)}>{label}<SortIcon field={column} /></button>;
 
-  const vipCount = data.customers.filter(c => (c.totalSpent || 0) >= 100).length;
-  const loyalCount = data.customers.filter(c => (c.loyalty?.stamps || 0) > 0).length;
-  const inactiveCount = data.customers.filter(c => !c.lastVisit || (new Date() - new Date(c.lastVisit)) / (1000 * 60 * 60 * 24) > 60).length;
+  const vipCount = customerList.filter(c => (c.totalSpent || 0) >= 100).length;
+  const loyalCount = customerList.filter(c => (c.loyalty?.stamps || 0) > 0).length;
+  const inactiveCount = customerList.filter(c => !c.lastVisit || (new Date() - new Date(c.lastVisit)) / (1000 * 60 * 60 * 24) > 60).length;
   const filters = [
-    { key: 'all', label: `Todos (${data.customers.length})` },
+    { key: 'all', label: `Todos (${customerList.length})` },
     { key: 'vip', label: `VIP (${vipCount})` },
     { key: 'loyal', label: `Com carimbos (${loyalCount})` },
     { key: 'inactive', label: `Inativos 60d (${inactiveCount})` }
@@ -89,7 +93,7 @@ export default function Customers() {
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <p style={{ margin: 0 }}>{data.customers.length} clientes registados.</p>
+          <p style={{ margin: 0 }}>{customerList.length} clientes registados.</p>
           <Button variant="primary" onClick={openNew}><Plus size={16} /> Novo cliente</Button>
         </div>
       </div>
