@@ -39,7 +39,7 @@ export default function Customers() {
         await dataService.updateCustomer(editing, { ...form, name: form.name.trim() });
         toast.success('Cliente atualizado');
       }
-      setCustomerList(await dataService.listCustomers());
+      setCustomerList([...(await dataService.listCustomers())]);
       close();
     } catch (err) {
       toast.error('Erro ao guardar: ' + (err.message || err));
