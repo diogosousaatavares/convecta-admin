@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
 .page-info-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: transparent; color: var(--text-sec); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background 150ms, color 150ms; flex-shrink: 0; }
 .page-info-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
 .page-info-popover { position: absolute; z-index: 300; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
@@ -7,9 +9,6 @@
 .page-info-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .page-info-link { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text-sec); }
 @media (max-width: 767px) { .page-info-popover { position: fixed; left: 16px; right: 16px; width: auto; bottom: 16px; } }
-
-/* ===== FONTS ===== */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
