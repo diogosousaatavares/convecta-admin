@@ -1361,3 +1361,99 @@ html.theme-light .admin-layout {
   width: 18px;
   text-align: center;
 }
+/* ===== MOBILE ADMIN OPTIMIZATION (adicionado para otimização mobile) ===== */
+@media (max-width: 767px) {
+
+  /* --- Topbar: esconder search bar, manter hamburger + logo + ações --- */
+  .admin-search-wrap { display: none; }
+  .admin-topbar { margin: 0 -14px 16px; padding: 0 12px; height: 52px; }
+  .admin-topbar-left { gap: 8px; flex: 1; min-width: 0; }
+  .admin-topbar-right { flex-shrink: 0; gap: 6px; }
+  .admin-topbar-logo { font-size: 14px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-topbar-avatar { width: 30px; height: 30px; font-size: 11px; flex-shrink: 0; }
+
+  /* --- Admin content: padding consistente + espaço extra em baixo --- */
+  .admin-content { padding: 0 14px 48px; margin-left: 0 !important; }
+
+  /* --- Page head: título + botão empilham em mobile --- */
+  .page-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+  .page-head .flex.justify-between,
+  .page-head > div { flex-wrap: wrap; gap: 8px; }
+  .page-head h1 { font-size: 22px; }
+  .page-head p { font-size: 13px; margin-top: 4px; }
+
+  /* --- KPI cards: 2 colunas em mobile --- */
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .kpi { padding: 14px; }
+  .kpi .value { font-size: 22px; }
+  .kpi .label { font-size: 11px; }
+
+  /* --- Tabelas: scroll horizontal dentro dos cards --- */
+  .table { min-width: 480px; }
+  .card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Exceção: cards que são só wrappers (não têm tabela) não devem scroll visual indesejado */
+  .kpi.card, .card.card-pad:not(:has(table)):not(:has(.table)) { overflow-x: visible; }
+
+  /* --- Modal: sobe do fundo como bottom-sheet em mobile --- */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal {
+    max-width: 100%;
+    border-radius: 18px 18px 0 0;
+    max-height: 90vh;
+    animation: slideup-sheet 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes slideup-sheet {
+    from { transform: translateY(100%); opacity: 0.6; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  /* --- Toast: ocupa largura total no topo (não sobrepõe botões) --- */
+  .toast-wrap { left: 10px; right: 10px; top: 10px; }
+  .toast { min-width: 0; max-width: 100%; }
+
+  /* --- Período tabs: scroll horizontal se houver muitas --- */
+  .period-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .period-tabs button { white-space: nowrap; }
+
+  /* --- Dash toolbar rows: wrap em mobile --- */
+  .flex.justify-between { flex-wrap: wrap; gap: 8px; }
+  .flex.gap-12 { flex-wrap: wrap; }
+
+  /* --- Botão de nova marcação etc: não truncar --- */
+  .btn { white-space: nowrap; }
+  .btn-sm { padding: 7px 12px; font-size: 12px; }
+
+  /* --- Agenda: grid com scroll horizontal --- */
+  .ag-grid { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .ag-head, .ag-body { min-width: 380px; }
+
+  /* --- Support contacts: 1 coluna em mobile --- */
+  .support-contact-list { grid-template-columns: 1fr; }
+
+  /* --- Evitar overflow horizontal da página toda --- */
+  .admin-layout { overflow-x: hidden; }
+  .admin-content > * { max-width: 100%; box-sizing: border-box; }
+
+  /* --- Charts: garantir scroll se forem largos --- */
+  .chart-box, .dash-chart-panel { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .recharts-wrapper { min-width: 280px; }
+
+  /* --- Dash two col inline style override --- */
+  .dash-two-col { grid-template-columns: 1fr; }
+
+  /* --- Topbar: padding-bottom da zona do topbar sticky --- */
+  .admin-topbar { flex-shrink: 0; }
+}
+
+/* Extra pequenos (≤480px) */
+@media (max-width: 480px) {
+  .admin-topbar-logo { max-width: 80px; }
+  .kpi { padding: 12px; }
+  .kpi .value { font-size: 20px; }
+  .dashboard-kpis-featured { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .btn { padding: 10px 14px; }
+  .modal { max-height: 93vh; }
+  .card-pad { padding: 14px; }
+  .table th, .table td { padding: 8px 10px; font-size: 12px; }
+}
