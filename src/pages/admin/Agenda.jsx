@@ -26,6 +26,7 @@ export default function Agenda() {
   const [selected, setSelected] = useState(null);
   const [quickOpen, setQuickOpen] = useState(false);
   const [quick, setQuick] = useState({ customerId: '', serviceId: '', professionalId: '', startTime: '' });
+  const [quickError, setQuickError] = useState('');
   const [cancelTarget, setCancelTarget] = useState(null);
   const [vendaOpen, setVendaOpen] = useState(false);
 
@@ -112,6 +113,11 @@ export default function Agenda() {
   };
 
   const submitQuick = async () => {
+    setQuickError('');
+    if (!quick.serviceId) {
+      setQuickError('Seleciona um serviço');
+      return;
+    }
     if (!quick.customerId || !quick.serviceId || !quick.professionalId || !quick.startTime) {
       toast.error('Preenche tudo', 'Cliente, serviço, barbeiro e hora são obrigatórios.');
       return;
@@ -275,10 +281,11 @@ export default function Agenda() {
           </div>
           <div className="field">
             <label className="label">Serviço</label>
-            <select className="select" value={quick.serviceId} onChange={e => setQuick(f => ({ ...f, serviceId: e.target.value }))}>
+            <select className="select" value={quick.serviceId} onChange={e => { setQuick(f => ({ ...f, serviceId: e.target.value })); setQuickError(''); }}>
               <option value="">Selecionar…</option>
               {data.services.filter(s => s.isActive).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
+            {quickError && <div className="text-sm mt-8" style={{ color: 'var(--error)' }}>{quickError}</div>}
           </div>
           <div className="field">
             <label className="label">Barbeiro</label>
