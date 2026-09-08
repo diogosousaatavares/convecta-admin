@@ -1457,3 +1457,80 @@ html.theme-light .admin-layout {
   .card-pad { padding: 14px; }
   .table th, .table td { padding: 8px 10px; font-size: 12px; }
 }
+
+/* === Tema e Personalização — layout responsivo === */
+.tema-layout-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 767px) {
+  .tema-layout-grid {
+    grid-template-columns: 1fr;
+  }
+  /* Oculta o painel de pré-visualização no mobile (muito pesado para ecrãs pequenos) */
+  .tema-layout-grid > .card:last-child {
+    display: none;
+  }
+}
+
+/* === Agenda — sidebar aparece acima do calendário no mobile === */
+@media (max-width: 991px) {
+  .agenda-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+  .ag-side {
+    order: -1;
+  }
+  /* Mini-calendário e botões de modo em linha horizontal no mobile */
+  .ag-side {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+  .ag-side > .ag-side-card:first-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 767px) {
+  .ag-side {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ag-side-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .ag-side-actions .ag-side-btn {
+    flex: 1;
+    min-width: 120px;
+    font-size: 12px;
+    padding: 9px 10px;
+  }
+  /* Agenda toolbar melhorado no mobile */
+  .agenda-toolbar {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .ag-tb-left {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .ag-tb-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+  }
+  .ag-date {
+    font-size: 15px !important;
+    text-align: left !important;
+  }
+}

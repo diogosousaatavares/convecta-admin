@@ -74,14 +74,26 @@ export default function Parametros() {
         {row('Prefixo de referência','Prefixo das referências de marcação.',<TextInput value={v('bookingRefPrefix','BC')} onChange={x => save({ bookingRefPrefix:x })} style={{ width:90 }} />)}
       </>}
       {tab === 'notificacoes' && <>
-        {row('Email de confirmação','Enviar email quando a marcação é confirmada.',<Toggle checked={v('emailConfirmation',true)} onChange={x => save({ emailConfirmation:x })} />)}
-        {row('Lembrete 24h antes','Enviar lembrete 24 horas antes.',<Toggle checked={v('reminder24h',true)} onChange={x => save({ reminder24h:x })} />)}
-        {row('Lembrete 1h antes','Enviar lembrete 1 hora antes.',<Toggle checked={v('reminder1h',false)} onChange={x => save({ reminder1h:x })} />)}
-        {row('Notificar admin — nova marcação','Notificação do browser para nova marcação.',<Toggle checked={v('notifyAdminNewBooking',true)} onChange={x => save({ notifyAdminNewBooking:x })} />)}
-        {row('Notificar admin — cancelamento','Notificar quando um cliente cancela.',<Toggle checked={v('notifyAdminCancel',true)} onChange={x => save({ notifyAdminCancel:x })} />)}
-        {row('Alerta caixa não aberta (min)','Minutos após abertura para alertar.',<NumInput value={v('cashOpenAlertMin',30)} min={5} max={120} step={5} onChange={x => save({ cashOpenAlertMin:x })} />)}
-        {row('Alerta caixa não fechada (min)','Minutos após fecho para alertar.',<NumInput value={v('cashCloseAlertMin',30)} min={5} max={120} step={5} onChange={x => save({ cashCloseAlertMin:x })} />)}
-        {row('Intervalo de spam de fecho (min)','Repetir alerta a cada X minutos.',<NumInput value={v('cashCloseSpamIntervalMin',10)} min={1} max={60} onChange={x => save({ cashCloseSpamIntervalMin:x })} />)}
+        <div className="fw-600 text-sm" style={{ color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: .8, paddingBottom: 4, marginBottom: 4 }}>Canais ativos</div>
+        {row('Email','Enviar notificações por email.',<Toggle checked={v('channelEmail',true)} onChange={x => save({ channelEmail:x })} />)}
+        {row('SMS','Enviar por SMS (requer integração com operador).',<Toggle checked={v('channelSms',false)} onChange={x => save({ channelSms:x })} />)}
+        {row('WhatsApp','Enviar por WhatsApp (requer integração).',<Toggle checked={v('channelWhatsapp',false)} onChange={x => save({ channelWhatsapp:x })} />)}
+        {row('Push (browser)','Notificações push no browser do cliente.',<Toggle checked={v('channelPush',true)} onChange={x => save({ channelPush:x })} />)}
+        <div className="fw-600 text-sm" style={{ color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: .8, paddingBottom: 4, marginBottom: 4, marginTop: 20 }}>Notificações para o cliente</div>
+        {row('Confirmação de marcação','Notificar quando a marcação é confirmada.',<Toggle checked={v('emailConfirmation',true)} onChange={x => save({ emailConfirmation:x })} />)}
+        {row('Lembrete 24h antes','Enviar lembrete 24 horas antes da marcação.',<Toggle checked={v('reminder24h',true)} onChange={x => save({ reminder24h:x })} />)}
+        {row('Lembrete 1h antes','Enviar lembrete 1 hora antes da marcação.',<Toggle checked={v('reminder1h',false)} onChange={x => save({ reminder1h:x })} />)}
+        {row('Cancelamento de marcação','Notificar cliente quando a marcação é cancelada.',<Toggle checked={v('notifyClientCancel',true)} onChange={x => save({ notifyClientCancel:x })} />)}
+        {row('Pontos de fidelidade','Notificar quando o cliente ganha pontos ou recompensa.',<Toggle checked={v('notifyLoyalty',false)} onChange={x => save({ notifyLoyalty:x })} />)}
+        {row('Promoções e ofertas','Enviar campanhas promocionais ao cliente.',<Toggle checked={v('notifyPromos',false)} onChange={x => save({ notifyPromos:x })} />)}
+        <div className="fw-600 text-sm" style={{ color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: .8, paddingBottom: 4, marginBottom: 4, marginTop: 20 }}>Notificações para o admin</div>
+        {row('Nova marcação','Notificação quando um cliente faz uma marcação.',<Toggle checked={v('notifyAdminNewBooking',true)} onChange={x => save({ notifyAdminNewBooking:x })} />)}
+        {row('Cancelamento pelo cliente','Notificar quando um cliente cancela.',<Toggle checked={v('notifyAdminCancel',true)} onChange={x => save({ notifyAdminCancel:x })} />)}
+        {row('Entrada em lista de espera','Notificar quando alguém entra na lista de espera.',<Toggle checked={v('notifyAdminWaitlist',false)} onChange={x => save({ notifyAdminWaitlist:x })} />)}
+        <div className="fw-600 text-sm" style={{ color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: .8, paddingBottom: 4, marginBottom: 4, marginTop: 20 }}>Alertas de caixa</div>
+        {row('Alerta caixa não aberta (min)','Minutos após abertura esperada para alertar.',<NumInput value={v('cashOpenAlertMin',30)} min={5} max={120} step={5} onChange={x => save({ cashOpenAlertMin:x })} />)}
+        {row('Alerta caixa não fechada (min)','Minutos após fecho esperado para alertar.',<NumInput value={v('cashCloseAlertMin',30)} min={5} max={120} step={5} onChange={x => save({ cashCloseAlertMin:x })} />)}
+        {row('Intervalo de spam de fecho (min)','Repetir alerta de caixa a cada X minutos.',<NumInput value={v('cashCloseSpamIntervalMin',10)} min={1} max={60} onChange={x => save({ cashCloseSpamIntervalMin:x })} />)}
       </>}
       {tab === 'profissionais' && <>
         {row('Ver agenda dos colegas','Consultar agenda de outros profissionais.',<Toggle checked={v('proSeeOthersAgenda',false)} onChange={x => save({ proSeeOthersAgenda:x })} />)}

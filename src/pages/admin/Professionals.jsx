@@ -40,7 +40,7 @@ export default function Professionals() {
 
   return (
     <AdminLayout>
-      <div className="flex justify-between items-center mb-24">
+      <div className="flex justify-between items-center mb-24" style={{ flexWrap: 'wrap', gap: 12 }}>
         <div className="page-head" style={{ margin: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h1>Profissionais</h1>
