@@ -13,6 +13,7 @@ import ReporSenha from '@/pages/ReporSenha';
 import authService from '@/lib/authService';
 import dataService from '@/lib/dataService';
 import { useStore, useAuth } from '@/hooks/useStore';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 function applySavedTheme(colors) {
   let style = document.getElementById('convecta-theme');
@@ -84,6 +85,9 @@ const Spinner = () => (
 );
 
 function AdminRoute({ children }) {
+  const store = useStore();
+  const businessId = store?.business?.id;
+  useRealtimeNotifications(businessId);
   const { isAuthLoading, isAdmin } = useAuth();
   if (isAuthLoading) return <Spinner />;
   if (!isAdmin) return <Navigate to="/entrar" replace />;
