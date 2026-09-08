@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarDays, Users, UserPlus, CreditCard, TrendingUp, TrendingDown, Wallet, AlertTriangle, Package, Megaphone, Award, Star, ArrowUpRight, ArrowDownRight, Lock, Clock, Repeat, UserX, Filter, MoreHorizontal, ChevronRight } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
@@ -10,6 +10,7 @@ import { formatPrice, formatDate, formatDateNum, todayStr, addDays, getDowShort 
 import { getRevenue, getOccupancy, paidAppointments, netOfPayment, getCancellationCount, getCancellationRate, getNoShowCount, getNoShowRate } from '@/lib/domain/finance';
 import { monthBounds, weekBounds, daysBetween } from '@/lib/domain/dates';
 import { round2 } from '@/lib/domain/money';
+import { listConvectaNotifs, markConvectaNotifRead } from '@/lib/convectaNotifs';
 
 const CHART_GOLD = '#E5E5E5';
 const CHART_COLORS = ['#E5E5E5', '#b0b0b0', '#7a7a7a', '#4a4a4a', '#2a2a2a'];
@@ -22,6 +23,15 @@ export default function Dashboard() {
   const today = todayStr();
   const [period, setPeriod] = useState('month');
   const [custom, setCustom] = useState({ from: addDays(today, -6), to: today });
+  const [convectaNotifs, setConvectaNotifs] = useState([]);
+  useEffect(() => {
+    listConvectaNotifs().then(setConvectaNotifs).catch(() => {});
+  }, []);
+  const unreadNotifs = convectaNotifs.filter(n => !n.read);
+  async function handleDismissNotif(id) {
+    await markConvectaNotifRead(id);
+    setConvectaNotifs(ns => ns.map(n => n.id === id ? { ...n, read: true } : n));
+  }
 
   const range = useMemo(() => {
     if (period === 'today') return { from: today, to: today };
@@ -170,7 +180,27 @@ export default function Dashboard() {
 
       {alerts.length > 0 && <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '12px 0' }}>{alerts.map((a, i) => { const Ico = a.icon; return <button key={i} onClick={() => navigate(a.to)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: a.type === 'warn' ? 'rgba(234,179,8,0.1)' : 'rgba(59,130,246,0.08)', border: `1px solid ${a.type === 'warn' ? 'rgba(234,179,8,0.3)' : 'rgba(59,130,246,0.2)'}`, borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}><Ico size={14} style={{ color: a.type === 'warn' ? '#C9A227' : '#60a5fa' }} /><span className="fw-600">{a.title}</span><span className="text-sec" style={{ fontSize: 11 }}>{a.sub}</span><ArrowUpRight size={13} className="text-sec" /></button>; })}</div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 14 }}>
+      {unreadNotifs.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '12px 0' }}>
+          {unreadNotifs.map(n => {
+            const borderColor = n.type === 'urgente' || n.type === 'pagamento' ? 'rgba(239,68,68,0.4)' : n.type === 'aviso' ? 'rgba(245,158,11,0.4)' : 'rgba(201,168,39,0.4)';
+            const bg = n.type === 'urgente' || n.type === 'pagamento' ? 'rgba(239,68,68,0.06)' : n.type === 'aviso' ? 'rgba(245,158,11,0.06)' : 'rgba(201,168,39,0.06)';
+            const dotColor = n.type === 'urgente' || n.type === 'pagamento' ? '#EF4444' : n.type === 'aviso' ? '#F59E0B' : '#C9A227';
+            return (
+              <div key={n.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', border: `1px solid ${borderColor}`, borderRadius: 10, background: bg }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: dotColor, marginTop: 5, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{n.title}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-sec)', lineHeight: 1.5 }}>{n.body}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-ter)', marginTop: 4 }}>{new Date(n.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} · Convecta</div>
+                </div>
+                <button onClick={() => handleDismissNotif(n.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-ter)', fontSize: 16, padding: '0 4px', lineHeight: 1, flexShrink: 0 }}>×</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 14 }}>
         <Card className="card-pad" style={{ background: 'linear-gradient(135deg, rgba(201,168,39,0.12), rgba(201,168,39,0.03))', border: '1px solid rgba(201,168,39,0.25)' }}><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-gold">RECEITA</span><Wallet size={18} className="text-gold" /></div><div style={{ fontSize: 30, fontWeight: 700, color: '#C9A227', lineHeight: 1 }}>{formatPrice(periodRevenue)}</div>{prevRevenue > 0 && <div className="text-xs mt-10" style={{ color: revDelta >= 0 ? '#22C55E' : '#EF4444' }}>{revDelta >= 0 ? '+' : ''}{revDelta.toFixed(0)}% <span className="text-sec">vs período anterior</span></div>}</Card>
         <Card className="card-pad"><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">MARCAÇÕES</span><CalendarDays size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>{periodActive.length}</div><div className="flex gap-12 mt-10 text-xs"><span style={{ color: '#22C55E' }}>✓ {periodAppts.filter(a => a.status === 'completed').length} concluídas</span><span style={{ color: '#EF4444' }}>✗ {periodCancelled} canceladas</span></div></Card>
         <Card className="card-pad"><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">OCUPAÇÃO</span><TrendingUp size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, color: occupancy >= 70 ? '#22C55E' : occupancy >= 40 ? '#C9A227' : '#EF4444', lineHeight: 1 }}>{occupancy}%</div><div style={{ marginTop: 10, height: 4, borderRadius: 2, background: 'var(--border)' }}><div style={{ height: '100%', width: `${Math.min(occupancy, 100)}%`, background: occupancy >= 70 ? '#22C55E' : occupancy >= 40 ? '#C9A227' : '#EF4444' }} /></div></Card>
