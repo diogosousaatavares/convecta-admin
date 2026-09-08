@@ -51,7 +51,7 @@ export default function Customers() {
       if (q && !c.name.toLowerCase().includes(q.toLowerCase()) && !(c.email || '').toLowerCase().includes(q.toLowerCase()) && !(c.phone || '').includes(q)) return false;
       if (filterTag === 'loyal') return (c.loyalty?.stamps || 0) > 0;
       if (filterTag === 'vip') return (c.totalSpent || 0) >= 100;
-      if (filterTag === 'inactive') return !c.lastVisit || (new Date() - new Date(c.lastVisit)) / (1000 * 60 * 60 * 24) > 60;
+      if (filterTag === 'inactive') return c.lastVisit && (c.totalAppointments || 0) > 0 && (new Date() - new Date(c.lastVisit)) / (1000 * 60 * 60 * 24) > 60;
       return true;
     });
     return [...filtered].sort((a, b) => {
@@ -73,7 +73,7 @@ export default function Customers() {
 
   const vipCount = customerList.filter(c => (c.totalSpent || 0) >= 100).length;
   const loyalCount = customerList.filter(c => (c.loyalty?.stamps || 0) > 0).length;
-  const inactiveCount = customerList.filter(c => !c.lastVisit || (new Date() - new Date(c.lastVisit)) / (1000 * 60 * 60 * 24) > 60).length;
+  const inactiveCount = customerList.filter(c => c.lastVisit && (c.totalAppointments || 0) > 0 && (new Date() - new Date(c.lastVisit)) / (1000 * 60 * 60 * 24) > 60).length;
   const filters = [
     { key: 'all', label: `Todos (${customerList.length})` },
     { key: 'vip', label: `VIP (${vipCount})` },

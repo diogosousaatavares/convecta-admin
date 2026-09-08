@@ -110,6 +110,7 @@ function AppRoutes() {
         <Route path="/" element={<Navigate to="/admin" replace />} />
 
         {/* Admin com layout */}
+        <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
         <Route path="/admin" element={<AdminRoute><Dashboard /></AdminRoute>} />
         <Route path="/admin/agenda" element={<AdminRoute><Agenda /></AdminRoute>} />
         <Route path="/admin/agenda/marcacoes" element={<AdminRoute><AdminAppointments /></AdminRoute>} />
@@ -172,6 +173,7 @@ function AppRoutes() {
         <Route path="/admin/definicoes/anamnese" element={<AdminRoute><AnamneseForms /></AdminRoute>} />
         <Route path="/admin/definicoes/parametros" element={<AdminRoute><Parametros /></AdminRoute>} />
         <Route path="/admin/definicoes/tema" element={<AdminRoute><TemaPersonalizacao /></AdminRoute>} />
+        <Route path="/admin/definicoes/notificacoes" element={<AdminRoute><Notifications /></AdminRoute>} />
         <Route path="/admin/definicoes/:tab" element={<AdminRoute><Definicoes /></AdminRoute>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>

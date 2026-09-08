@@ -710,6 +710,15 @@ const dataService = {
     // Update appointment
     await supabase.from('appointments').update(apptToRow(a)).eq('id', apptId);
     recomputeCustomer(a.customerId);
+    const updCust = state.customers.find(c => c.id === a.customerId);
+    if (updCust) {
+      const updRow = custToRow(updCust);
+      await supabase.from('customers').update({
+        total_visits: updRow.total_visits,
+        total_spent: updRow.total_spent,
+        metadata: updRow.metadata,
+      }).eq('id', a.customerId);
+    }
     addLoyaltyStamp(a, a.payment.at);
     notify(); return a;
   },

@@ -16,7 +16,8 @@ const FILTERS = [
   { key: 'all', label: 'Todas' },
   { key: 'pending', label: 'Pendentes' },
   { key: 'confirmed', label: 'Confirmadas' },
-  { key: 'cancelled', label: 'Canceladas' }
+  { key: 'cancelled', label: 'Canceladas' },
+  { key: 'completed', label: 'Concluídas' }
 ];
 
 const SCOPES = [
@@ -70,6 +71,10 @@ export default function AdminAppointments() {
   };
   const finishCheckout = async (payData) => {
     const a = data.appointments.find(x => x.id === checkout);
+    if (a && a.date > todayStr) {
+      toast.error('Ação não permitida', 'Não é possível concluir uma marcação futura.');
+      return;
+    }
     if (a && a.status === 'confirmed') await dataService.markAttended(checkout);
     await dataService.checkoutAppointment(checkout, payData);
 
@@ -115,7 +120,7 @@ export default function AdminAppointments() {
                 links={['Agenda', 'Clientes', 'Profissionais', 'Financeiro', 'Relatórios']}
               />
             </div>
-            <p>{appts.length} marcações a apresentar.</p>
+            <p>{appts.length} {appts.length === 1 ? 'marcação' : 'marcações'} a apresentar.</p>
           </div>
           <Button variant="primary" onClick={() => navigate('/admin/agenda')}><Plus size={16} /> Nova marcação</Button>
         </div>

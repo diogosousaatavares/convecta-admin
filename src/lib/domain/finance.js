@@ -10,9 +10,11 @@ import { APPT_STATES, appointmentDuration } from './appointments';
 // Receita reconhecida = marcações COMPLETED com pagamento válido.
 // NOTA: uma marcação confirmed (ainda não paga) NÃO conta como receita.
 export function paidAppointments(state, range) {
+  const today = new Date().toISOString().slice(0, 10);
   return state.appointments.filter(a =>
     a.status === APPT_STATES.COMPLETED &&
     a.payment &&
+    a.date <= today &&
     inRange(a.date, range)
   );
 }

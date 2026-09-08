@@ -50,7 +50,7 @@ export default function Professionals() {
               links={['Agenda', 'Horários', 'Comissões', 'Desempenho', 'Serviços']}
             />
           </div>
-          <p>{data.professionals.length} profissionais.</p>
+          <p>{data.professionals.length} {data.professionals.length === 1 ? 'profissional' : 'profissionais'}.</p>
         </div>
         <Button variant="primary" onClick={openNew}><Plus size={16} /> Novo profissional</Button>
       </div>
