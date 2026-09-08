@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/toaster';
 import ScrollToTop from '@/components/ScrollToTop';
 import PageNotFound from '@/lib/PageNotFound';
 import LoginPage from '@/pages/LoginPage';
+import ReporSenha from '@/pages/ReporSenha';
 import authService from '@/lib/authService';
 import dataService from '@/lib/dataService';
 import { useStore, useAuth } from '@/hooks/useStore';
@@ -101,6 +102,7 @@ function AppRoutes() {
     >
       <Routes location={location}>
         <Route path="/entrar" element={<LoginPage adminOnly />} />
+        <Route path="/repor-senha" element={<ReporSenha />} />
         <Route path="/" element={<Navigate to="/admin" replace />} />
 
         {/* Admin com layout */}
