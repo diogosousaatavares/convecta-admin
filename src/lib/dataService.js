@@ -962,6 +962,18 @@ const dataService = {
     } else {
       await supabase.from('config').insert({ business_id: BUSINESS_ID, [section]: newSection });
     }
+    // A confirmacao automatica tem de chegar ao site do cliente, e o site do
+    // cliente nao le a tabela config (nem deve — ha la coisas que nao sao da
+    // conta de quem vai marcar). Espelha-se so este valor no settings da
+    // barbearia, que ja e publico.
+    if (section === 'params' && Object.prototype.hasOwnProperty.call(updates, 'autoConfirm')) {
+      try {
+        const { data: b } = await supabase.from('businesses').select('settings').eq('id', BUSINESS_ID).maybeSingle();
+        await supabase.from('businesses')
+          .update({ settings: { ...(b?.settings || {}), autoConfirm: !!updates.autoConfirm } })
+          .eq('id', BUSINESS_ID);
+      } catch (e) { console.error('confirmacao automatica nao espelhada:', e.message); }
+    }
     notify(); return state.business.config;
   },
 
