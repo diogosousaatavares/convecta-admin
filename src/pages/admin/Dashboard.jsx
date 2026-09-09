@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarDays, Users, UserPlus, CreditCard, TrendingUp, TrendingDown, Wallet, AlertTriangle, Package, Megaphone, Award, Star, ArrowUpRight, ArrowDownRight, Lock, Clock, Repeat, UserX, Filter, MoreHorizontal, ChevronRight } from 'lucide-react';
+import { Bell, CalendarDays, Users, UserPlus, CreditCard, TrendingUp, TrendingDown, Wallet, AlertTriangle, Package, Megaphone, Award, Star, ArrowUpRight, ArrowDownRight, Lock, Clock, Repeat, UserX, Filter, MoreHorizontal, ChevronRight } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { useAuth, useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
@@ -32,6 +32,13 @@ export default function Dashboard() {
     await markConvectaNotifRead(id);
     setConvectaNotifs(ns => ns.map(n => n.id === id ? { ...n, read: true } : n));
   }
+
+  // As marcacoes por confirmar sao o aviso que interessa: chegou gente nova e
+  // ainda ninguem respondeu. Nao ha tabela nenhuma a manter — a lista sai das
+  // proprias marcacoes, por isso nunca fica dessincronizada.
+  const porConfirmar = useMemo(() => (data.appointments || [])
+    .filter(a => a.status === 'pending' && !a.blocked)
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')), [data.appointments]);
 
   const range = useMemo(() => {
     if (period === 'today') return { from: today, to: today };
@@ -179,6 +186,47 @@ export default function Dashboard() {
       </div>
 
       {alerts.length > 0 && <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '12px 0' }}>{alerts.map((a, i) => { const Ico = a.icon; return <button key={i} onClick={() => navigate(a.to)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: a.type === 'warn' ? 'rgba(234,179,8,0.1)' : 'rgba(59,130,246,0.08)', border: `1px solid ${a.type === 'warn' ? 'rgba(234,179,8,0.3)' : 'rgba(59,130,246,0.2)'}`, borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}><Ico size={14} style={{ color: a.type === 'warn' ? '#C9A227' : '#60a5fa' }} /><span className="fw-600">{a.title}</span><span className="text-sec" style={{ fontSize: 11 }}>{a.sub}</span><ArrowUpRight size={13} className="text-sec" /></button>; })}</div>}
+
+      {porConfirmar.length > 0 && (
+        <Card className="mb-16" style={{ borderColor: 'rgba(201,162,39,0.45)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <Bell size={17} style={{ color: '#C9A227' }} />
+            <b style={{ fontSize: 14 }}>
+              {porConfirmar.length === 1 ? '1 marcação por confirmar' : `${porConfirmar.length} marcações por confirmar`}
+            </b>
+            <button className="btn btn-ghost" style={{ marginLeft: 'auto', fontSize: 12 }}
+              onClick={() => navigate('/admin/marcacoes')}>Ver todas <ChevronRight size={13} /></button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {porConfirmar.slice(0, 6).map(a => {
+              const cliente = data.customers.find(c => c.id === a.customerId);
+              const servico = data.services.find(x => x.id === a.serviceId);
+              const pro = data.professionals.find(x => x.id === a.professionalId);
+              return (
+                <button key={a.id} onClick={() => navigate('/admin/marcacoes')}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left',
+                    padding: '10px 12px', borderRadius: 9, cursor: 'pointer',
+                    background: 'rgba(201,162,39,0.06)', border: '1px solid rgba(201,162,39,0.22)' }}>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#C9A227', flexShrink: 0 }} />
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+                      {cliente?.name || a.customerNameSnapshot || 'Cliente'}
+                    </span>
+                    <span style={{ display: 'block', fontSize: 12, color: 'var(--text-sec)' }}>
+                      {servico?.name || a.serviceNameSnapshot || 'Serviço'}
+                      {pro?.name ? ` · ${pro.name}` : ''}
+                    </span>
+                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--text-sec)', whiteSpace: 'nowrap' }}>
+                    {formatDateNum(a.date)} · {a.startTime}
+                  </span>
+                  <ChevronRight size={14} className="text-sec" />
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {unreadNotifs.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '12px 0' }}>

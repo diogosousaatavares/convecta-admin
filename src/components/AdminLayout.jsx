@@ -160,6 +160,9 @@ export default function AdminLayout({ children }) {
     return [...customers, ...services].slice(0, 6);
   }, [data.customers, data.services, query]);
   const unreadNotifications = (data.notifications || []).filter(n => n.read === false).length;
+  // Quantas marcacoes esperam resposta. E o unico numero que o barbeiro
+  // precisa de ver de relance, esteja em que pagina estiver.
+  const porConfirmar = (data.appointments || []).filter(a => a.status === 'pending' && !a.blocked).length;
   const userInitials = (user?.name || user?.email || 'U').split(/\s+/).filter(Boolean).slice(0, 2).map(value => value[0]).join('').toUpperCase();
 
   useEffect(() => {
@@ -289,6 +292,19 @@ export default function AdminLayout({ children }) {
             </div>
           </div>
           <div className="admin-topbar-right">
+            <button className="btn btn-ghost btn-icon" onClick={() => navigate('/admin/marcacoes')}
+              title={porConfirmar ? `${porConfirmar} por confirmar` : 'Marcações'}
+              aria-label={porConfirmar ? `${porConfirmar} marcações por confirmar` : 'Marcações'}
+              style={{ position: 'relative' }}>
+              <Bell size={16} />
+              {porConfirmar > 0 && (
+                <span style={{ position: 'absolute', top: 2, right: 2, minWidth: 15, height: 15,
+                  padding: '0 4px', borderRadius: 8, background: '#C9A227', color: '#100D08',
+                  fontSize: 10, fontWeight: 700, lineHeight: '15px', textAlign: 'center' }}>
+                  {porConfirmar > 9 ? '9+' : porConfirmar}
+                </span>
+              )}
+            </button>
             <div className="admin-topbar-user">
               <div className="admin-topbar-avatar">{(user?.name || user?.email || 'A').charAt(0).toUpperCase()}</div>
             </div>
