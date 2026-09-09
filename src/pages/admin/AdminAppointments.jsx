@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarRange, CheckCircle2, XCircle, Trash2, Plus } from 'lucide-react';
-import { useStore } from '@/hooks/useStore';
+import { useStore, useAuth } from '@/hooks/useStore';
+import AvisoPush from '@/components/AvisoPush';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, Badge, Avatar, Button, EmptyState, Modal } from '@/components/ui';
@@ -30,6 +31,7 @@ function iso(d) { return d.toISOString().slice(0, 10); }
 
 export default function AdminAppointments() {
   const data = useStore();
+  const { user } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
@@ -109,6 +111,9 @@ export default function AdminAppointments() {
 
   return (
     <AdminLayout>
+      <AvisoPush businessId={data.business?.id} userId={user?.id} papel="admin"
+        texto={{ titulo: 'Ligue as notificações',
+                 corpo: 'Assim que entrar uma marcação, recebe um aviso no telemóvel para a confirmar. Sem isto, só a vê quando abrir o painel.' }}/>
       <div className="page-head">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12 }}>
           <div>
