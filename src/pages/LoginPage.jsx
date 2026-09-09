@@ -122,6 +122,7 @@ export default function LoginPage() {
         .cv-grid { display:grid; grid-template-columns:1fr minmax(360px,430px) 1fr; gap:56px;
                    align-items:center; width:100%; max-width:1460px; }
         .cv-entrar { transition:filter .18s, transform .18s }
+        @media (max-width:520px) { .cv-cartao { padding:30px 22px 26px !important } }
         .cv-entrar:hover:not(:disabled) { filter:brightness(1.07); transform:translateY(-1px) }
         .cv-olho:hover { color:#C9A227 !important }
         .cv-esqueci { background:none; border:none; padding:0; cursor:pointer; font-size:13;
@@ -129,23 +130,16 @@ export default function LoginPage() {
         .cv-esqueci:hover { color:#C9A227 }
         @media (max-width:1180px) {
           .cv-grid { grid-template-columns:1fr; justify-items:center; gap:0 }
-          .cv-side { display:none }
+          /* !important porque a coluna da direita traz display:flex inline, que
+             de outra forma ganharia a esta regra e ficava visivel no telemovel. */
+          .cv-side { display:none !important }
         }
-        @media (max-height:820px), (max-width:1180px) { .cv-rodape { display:none } }
+        @media (max-height:820px), (max-width:1180px) { .cv-rodape { display:none !important } }
 
 
       `}</style>
 
       <FundoLogin/>
-
-      {/* Marca no topo */}
-      <div className="cv-rodape" style={{ position:'absolute', top:34, left:38, display:'flex', alignItems:'center', gap:13, zIndex:2 }}>
-        <img src="/convecta-logo.png" alt="" style={{ width:40, height:40, objectFit:'contain' }}/>
-        <div>
-          <div style={{ fontSize:19, fontWeight:700, color:'#EDE8DF', lineHeight:1.1 }}>Convecta</div>
-          <div style={{ fontSize:10, color:'#7E7767', letterSpacing:'.26em', fontWeight:600 }}>ADMIN</div>
-        </div>
-      </div>
 
       <div className="cv-grid" style={{ position:'relative', zIndex:1 }}>
 
@@ -169,7 +163,7 @@ export default function LoginPage() {
         <div style={{ position:'relative', borderRadius:23, padding:1.4,
           background:`linear-gradient(152deg, ${GOLD_HI} 0%, rgba(201,162,39,.42) 16%, rgba(255,255,255,.06) 42%, rgba(255,255,255,.03) 100%)`,
           boxShadow:'0 0 70px rgba(201,162,39,.12), 0 34px 80px rgba(0,0,0,.72)' }}>
-          <div style={{ borderRadius:21.6, padding:'40px 36px 32px',
+          <div className="cv-cartao" style={{ borderRadius:21.6, padding:'40px 36px 32px',
             background:'linear-gradient(168deg, #17140F 0%, #100E0B 100%)' }}>
 
             <div style={{ textAlign:'center', marginBottom:26 }}>
