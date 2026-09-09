@@ -4,7 +4,7 @@ import { useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, Avatar, Badge, Button, EmptyState, Modal, Stars } from '@/components/ui';
-import dataService from '@/lib/dataService';
+import dataService, { uploadProfessionalPhoto } from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 
 const empty = { name: '', role: 'Barber', bio: '', specialties: [], commission: 30 };
@@ -20,16 +20,34 @@ export default function Professionals() {
   const openNew = () => { setForm(empty); setSpecs(''); setEditing('new'); };
   const openEdit = (p) => { setForm({ ...p, commission: p.commission ?? 30 }); setSpecs((p.specialties || []).join(', ')); setEditing(p.id); };
   const close = () => setEditing(null);
-  const handlePhotoChange = (event) => {
+  const [aEnviarFoto, setAEnviarFoto] = useState(false);
+
+  const handlePhotoChange = async (event) => {
     const file = event.target.files?.[0];
+    event.target.value = '';
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setForm(current => ({ ...current, photoUrl: reader.result }));
-    reader.readAsDataURL(file);
+    // Pré-visualização imediata enquanto a foto sobe, para não parecer parado.
+    const previa = URL.createObjectURL(file);
+    setForm(current => ({ ...current, photoUrl: previa }));
+    setAEnviarFoto(true);
+    try {
+      // Um profissional ainda por criar não tem id: usa-se um temporário, e o
+      // ficheiro fica com esse nome. Só muda o nome, não a foto.
+      const id = editing && editing !== 'new' ? editing : 'novo-' + Date.now();
+      const url = await uploadProfessionalPhoto(id, file);
+      setForm(current => ({ ...current, photoUrl: url }));
+    } catch (err) {
+      setForm(current => ({ ...current, photoUrl: '' }));
+      toast.error('Não foi possível enviar a fotografia', err.message);
+    } finally {
+      setAEnviarFoto(false);
+      URL.revokeObjectURL(previa);
+    }
   };
 
   const save = async () => {
     if (!form.name) { toast.error('Nome obrigatório'); return; }
+    if (aEnviarFoto) { toast.error('A fotografia ainda está a subir', 'Espera um instante e grava outra vez.'); return; }
     const payload = { ...form, specialties: specs.split(',').map(s => s.trim()).filter(Boolean) };
     if (editing === 'new') { await dataService.createProfessional(payload); toast.success('Profissional criado'); }
     else { await dataService.updateProfessional(editing, payload); toast.success('Profissional atualizado'); }

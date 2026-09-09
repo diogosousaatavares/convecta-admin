@@ -123,6 +123,43 @@ function recomputeCustomer(customerId) {
   c.lastVisit = stats.lastVisit;
 }
 
+// ─── Imagens ─────────────────────────────────────────────────────────────────
+// As fotografias dos profissionais eram guardadas dentro da base de dados, em
+// texto: uma foto de telemovel de 3 MB ficava com 4 MB numa linha, e o site do
+// cliente descarregava-as todas antes de mostrar seja o que for. Passam a ir
+// para o armazenamento de ficheiros, reduzidas primeiro.
+
+async function reduzirImagem(file, ladoMaximo = 900, qualidade = 0.85) {
+  if (!file.type?.startsWith('image/') || file.type === 'image/svg+xml') return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const escala = Math.min(1, ladoMaximo / Math.max(bitmap.width, bitmap.height));
+    if (escala === 1 && file.size < 300 * 1024) { bitmap.close?.(); return file; }
+    const largura = Math.round(bitmap.width * escala);
+    const altura = Math.round(bitmap.height * escala);
+    const canvas = document.createElement('canvas');
+    canvas.width = largura; canvas.height = altura;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, largura, altura);
+    bitmap.close?.();
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', qualidade));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], 'foto.jpg', { type: 'image/jpeg' });
+  } catch { return file; }
+}
+
+/** Envia a fotografia de um profissional e devolve o endereço público. */
+export async function uploadProfessionalPhoto(professionalId, file) {
+  if (!BUSINESS_ID) throw new Error('Barbearia não identificada.');
+  const reduzida = await reduzirImagem(file);
+  const caminho = `${BUSINESS_ID}/profissional-${professionalId}.jpg`;
+  const { error } = await supabase.storage
+    .from('business-logos')
+    .upload(caminho, reduzida, { upsert: true, contentType: 'image/jpeg' });
+  if (error) throw new Error(error.message);
+  const { data } = supabase.storage.from('business-logos').getPublicUrl(caminho);
+  return data.publicUrl + '?t=' + Date.now();
+}
+
 // ─── ADAPTERS: Supabase row ↔ app format ──────────────────────────────────────
 
 // BUSINESS
