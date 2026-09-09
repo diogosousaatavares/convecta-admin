@@ -4,6 +4,21 @@
 
 import { supabase } from '@/lib/supabase';
 import { enviarPush, EMOJI, corpoDaMarcacao } from '@/lib/push';
+
+// Cada tipo de aviso tem o seu sinal, pela mesma razao das outras
+// notificacoes: distinguir-se antes de ser lido.
+const EMOJI_AVISO = {
+  info: '\u{2139}\u{FE0F}', promo: '\u{1F381}', aviso: '\u{26A0}\u{FE0F}', urgente: '\u{1F6A8}',
+};
+
+function notifFromRow(row) {
+  return {
+    id: row.id, businessId: row.business_id,
+    title: row.title, message: row.message || '',
+    type: row.type || 'info', active: row.is_active !== false,
+    createdAt: row.created_at,
+  };
+}
 import { buildSnapshot, assertNoConflict, canTransition, appointmentDuration } from '@/lib/domain/appointments';
 import { getCustomerStats } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
@@ -1072,11 +1087,65 @@ const dataService = {
   // GALLERY
   listGallery() { return Promise.resolve((state.gallery||[]).sort((a,b) => a.order - b.order)); },
   // NOTIFICATIONS
-  listNotifications() { return Promise.resolve([...(state.notifications||[])].sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))); },
-  createNotification(data) { const n = { id: uid('n'), type: 'info', active: true, createdAt: new Date().toISOString(), readBy: [], ...data }; if (!state.notifications) state.notifications=[]; state.notifications.push(n); notify(); return Promise.resolve(n); },
-  updateNotification(id, updates) { const i = (state.notifications||[]).findIndex(n => n.id === id); if (i >= 0) state.notifications[i] = { ...state.notifications[i], ...updates }; notify(); return Promise.resolve(state.notifications[i]); },
-  toggleNotification(id) { const n = (state.notifications||[]).find(x => x.id === id); if (n) { n.active = !n.active; notify(); } return Promise.resolve(n); },
-  deleteNotification(id) { state.notifications = (state.notifications||[]).filter(n => n.id !== id); notify(); return Promise.resolve(true); },
+  // ── Avisos aos clientes ───────────────────────────────────────────────
+  // Escreviam-se so na memoria deste browser. A app do cliente lia a memoria
+  // do browser do cliente, sempre vazia. Nunca estiveram ligados: era um
+  // mural que so o proprio via. Agora vao para a base de dados, e quem tiver
+  // notificacoes ligadas recebe tambem um aviso no telemovel.
+  async listNotifications() {
+    const { data, error } = await supabase.from('notifications')
+      .select('*').eq('business_id', BUSINESS_ID).order('created_at', { ascending: false });
+    if (error) { console.error('avisos nao carregados:', error.message); return state.notifications || []; }
+    state.notifications = (data || []).map(notifFromRow);
+    return state.notifications;
+  },
+  async createNotification(data) {
+    const { data: criado, error } = await supabase.from('notifications').insert({
+      business_id: BUSINESS_ID,
+      title: data.title, message: data.message || '',
+      type: data.type || 'info', is_active: true,
+    }).select().single();
+    if (error) throw new Error(error.message);
+    const n = notifFromRow(criado);
+    if (!state.notifications) state.notifications = [];
+    state.notifications.unshift(n);
+
+    // Tocar o telemovel de quem ligou as notificacoes. Se falhar, o aviso
+    // fica na mesma na aba Avisos — so nao foi tocada a campainha.
+    enviarPush({
+      businessId: BUSINESS_ID,
+      para: 'customer',
+      titulo: `${EMOJI_AVISO[n.type] || EMOJI_AVISO.info} ${n.title}`,
+      mensagem: n.message,
+      url: '/avisos',
+      tag: 'aviso-' + n.id,
+    }).catch(e => console.warn('aviso não enviado por push:', e.message));
+
+    notify(); return n;
+  },
+  async updateNotification(id, updates) {
+    const linha = {};
+    if (updates.title != null) linha.title = updates.title;
+    if (updates.message != null) linha.message = updates.message;
+    if (updates.type != null) linha.type = updates.type;
+    if (updates.active != null) linha.is_active = updates.active;
+    const { data, error } = await supabase.from('notifications').update(linha).eq('id', id).select().single();
+    if (error) throw new Error(error.message);
+    const i = (state.notifications || []).findIndex(n => n.id === id);
+    if (i >= 0) state.notifications[i] = notifFromRow(data);
+    notify(); return state.notifications[i];
+  },
+  async toggleNotification(id) {
+    const n = (state.notifications || []).find(x => x.id === id);
+    if (!n) return n;
+    return dataService.updateNotification(id, { active: !n.active });
+  },
+  async deleteNotification(id) {
+    const { error } = await supabase.from('notifications').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+    state.notifications = (state.notifications || []).filter(n => n.id !== id);
+    notify(); return true;
+  },
   listNotificationsForCustomer(customerId) { return Promise.resolve((state.notifications||[]).filter(n => n.active).sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||'')).map(n => ({ ...n, read: (n.readBy||[]).includes(customerId) }))); },
   markNotificationRead(customerId, id) { const n = (state.notifications||[]).find(x => x.id === id); if (n && !(n.readBy||[]).includes(customerId)) { n.readBy = [...(n.readBy||[]), customerId]; notify(); } return Promise.resolve(true); },
   markAllNotificationsRead(customerId) { (state.notifications||[]).forEach(n => { if (n.active && !(n.readBy||[]).includes(customerId)) n.readBy = [...(n.readBy||[]), customerId]; }); notify(); return Promise.resolve(true); },
