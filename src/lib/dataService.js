@@ -3,7 +3,7 @@
 // API pública idêntica — componentes não precisam de mudar.
 
 import { supabase } from '@/lib/supabase';
-import { enviarPush } from '@/lib/push';
+import { enviarPush, EMOJI, corpoDaMarcacao } from '@/lib/push';
 import { buildSnapshot, assertNoConflict, canTransition, appointmentDuration } from '@/lib/domain/appointments';
 import { getCustomerStats } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
@@ -711,14 +711,15 @@ const dataService = {
     // Avisar o cliente. Se falhar, a marcação fica confirmada na mesma — ele
     // vê-a no site; só não recebeu o toque no telemóvel.
     if (a.customerId) {
-      const quando = new Date(a.date + 'T' + a.startTime).toLocaleString('pt-PT',
-        { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
       enviarPush({
         businessId: BUSINESS_ID,
         para: 'customer',
         userId: a.customerId,
-        titulo: 'Marcação confirmada',
-        mensagem: `${a.serviceNameSnapshot || 'O teu serviço'} · ${quando}. Até já!`,
+        titulo: `${EMOJI.confirmada} Marcação confirmada`,
+        mensagem: corpoDaMarcacao({
+          quem: state.business?.name, servico: a.serviceNameSnapshot,
+          data: a.date, hora: a.startTime,
+        }),
         url: '/marcacoes',
         tag: 'marcacao-' + id,
       }).catch(e => console.warn('aviso ao cliente não enviado:', e.message));
@@ -746,6 +747,24 @@ const dataService = {
     a.status = 'cancelled'; a.cancelledAt = new Date().toISOString();
     const { error } = await supabase.from('appointments').update(apptToRow(a)).eq('id', id);
     if (error) throw error;
+
+    // Quem cancela sabe; quem fica à espera é que precisa de ser avisado.
+    if (a.customerId) {
+      enviarPush({
+        businessId: BUSINESS_ID,
+        para: 'customer',
+        userId: a.customerId,
+        titulo: `${EMOJI.cancelada} Marcação cancelada`,
+        mensagem: corpoDaMarcacao({
+          quem: state.business?.name, servico: a.serviceNameSnapshot,
+          data: a.date, hora: a.startTime,
+        }),
+        url: '/marcacoes',
+        tag: 'marcacao-' + id,
+        exigeAccao: true,
+      }).catch(e => console.warn('aviso ao cliente não enviado:', e.message));
+    }
+
     notify(); return a;
   },
   async deleteAppointment(id) {

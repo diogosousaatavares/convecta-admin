@@ -141,3 +141,42 @@ export async function enviarPush(payload) {
   });
   if (error) throw new Error(error.message);
 }
+
+/* ── Como se escreve uma notificação da Convecta ─────────────────────────────
+ *
+ * Igual ao da app de cliente, de propósito: as duas mandam notificações para o
+ * mesmo telemóvel e têm de se ler como a mesma coisa.
+ *
+ *   TÍTULO   <emoji> <o que aconteceu>
+ *   CORPO    Quem · O quê
+ *            Quando, por extenso
+ *
+ * O iPhone acrescenta sozinho "from <nome da app>" por baixo do título. Não há
+ * forma de tirar — é o sistema a dizer de onde vem. O título tem de valer por si.
+ */
+export const EMOJI = {
+  novaMarcacao: '\u{1F4C5}',
+  marcacaoAutomatica: '\u{2705}',
+  confirmada: '\u{2705}',
+  cancelada: '\u{274C}',
+  lembrete: '\u{23F0}',
+};
+
+export function quandoPorExtenso(data, hora) {
+  try {
+    const d = new Date(`${data}T${hora}:00`);
+    const t = d.toLocaleString('pt-PT', {
+      weekday: 'long', day: 'numeric', month: 'long',
+      hour: '2-digit', minute: '2-digit',
+    });
+    const limpo = t.replace(/,\s(\d{2}:\d{2})$/, ' às $1');
+    return limpo.charAt(0).toUpperCase() + limpo.slice(1);
+  } catch {
+    return `${data} às ${hora}`;
+  }
+}
+
+export function corpoDaMarcacao({ quem, servico, data, hora }) {
+  const linha1 = [quem, servico].filter(Boolean).join(' \u00B7 ');
+  return `${linha1}\n${quandoPorExtenso(data, hora)}`;
+}
