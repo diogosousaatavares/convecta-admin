@@ -139,11 +139,15 @@ function bizFromRow(row) {
     coords: s.coords || {}, amenities: s.amenities || [],
     social: s.social || {}, openingHours: s.openingHours || [],
     config: s.config || _defaultConfig(),
+    // O Super Admin escreve chaves aqui (theme, loyalty, ...) que este admin
+    // nao conhece. Guardamos o settings original para as devolver intactas
+    // ao gravar - sem isto, gravar o telefone apagava o tema da barbearia.
+    _settings: s,
   };
 }
 function bizToRow(biz) {
-  const { id, name, slug, logoUrl, ...rest } = biz;
-  return { name, slug, logo_url: logoUrl, settings: rest };
+  const { id, name, slug, logoUrl, _settings, ...rest } = biz;
+  return { name, slug, logo_url: logoUrl, settings: { ...(_settings || {}), ...rest } };
 }
 
 // PROFESSIONAL
