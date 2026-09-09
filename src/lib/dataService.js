@@ -92,7 +92,7 @@ function loyaltyCardConfig() {
   catch { return { ...DEFAULT_LOYALTY }; }
 }
 
-function addLoyaltyStamp(appt, at = new Date().toISOString()) {
+async function addLoyaltyStamp(appt, at = new Date().toISOString()) {
   if (!appt?.customerId || appt.loyaltyStamped || !loyaltyCardConfig().enabled) return;
   const customer = state.customers.find(c => c.id === appt.customerId);
   if (!customer) return;
@@ -113,6 +113,18 @@ function addLoyaltyStamp(appt, at = new Date().toISOString()) {
   customer.pendingStamp = { count: displayCount, reward };
   customer.pendingReview = { appointmentId: appt.id, serviceId: appt.serviceId, professionalId: appt.professionalId };
   appt.loyaltyStamped = true;
+  await guardarFidelidade(customer);
+}
+
+// Sem isto o selo so existia na memoria deste browser: fechada a pagina
+// desaparecia, e a app do cliente — que le da base de dados — nunca chegava
+// a ve-lo. Era exactamente o que estava a acontecer.
+async function guardarFidelidade(customer) {
+  const row = custToRow(customer);
+  const { error } = await supabase.from('customers')
+    .update({ loyalty_points: row.loyalty_points, metadata: row.metadata })
+    .eq('id', customer.id);
+  if (error) console.error('cartao de fidelidade nao gravado:', error.message);
 }
 
 function recomputeCustomer(customerId) {
@@ -682,8 +694,8 @@ const dataService = {
     if (i < 0) return null;
     const prev = state.appointments[i].status;
     state.appointments[i] = { ...state.appointments[i], ...updates };
-    if (['confirmed','completed'].includes(state.appointments[i].status) && prev !== state.appointments[i].status) {
-      addLoyaltyStamp(state.appointments[i]);
+    if (state.appointments[i].status === 'completed' && prev !== 'completed') {
+      await addLoyaltyStamp(state.appointments[i]);
     }
     const { error } = await supabase.from('appointments').update(apptToRow(state.appointments[i])).eq('id', id);
     if (error) throw error;
@@ -693,7 +705,6 @@ const dataService = {
     const a = state.appointments.find(x => x.id === id);
     if (!a || a.status !== 'pending' || !canTransition(a.status, 'confirmed')) return a;
     a.status = 'confirmed'; a.confirmedAt = new Date().toISOString();
-    addLoyaltyStamp(a, a.confirmedAt);
     const { error } = await supabase.from('appointments').update(apptToRow(a)).eq('id', id);
     if (error) throw error;
 
@@ -769,6 +780,7 @@ const dataService = {
     // Update appointment
     await supabase.from('appointments').update(apptToRow(a)).eq('id', apptId);
     recomputeCustomer(a.customerId);
+    await addLoyaltyStamp(a, a.payment.at);
     const updCust = state.customers.find(c => c.id === a.customerId);
     if (updCust) {
       const updRow = custToRow(updCust);
@@ -778,7 +790,6 @@ const dataService = {
         metadata: updRow.metadata,
       }).eq('id', a.customerId);
     }
-    addLoyaltyStamp(a, a.payment.at);
     notify(); return a;
   },
   async rescheduleAppointment(id, newDate, newStartTime) {
