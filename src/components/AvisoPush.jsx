@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Bell, BellOff, Smartphone } from 'lucide-react';
-import { estadoPush, ativarPush } from '@/lib/push';
+import { estadoPush, ativarPush, garantirPush } from '@/lib/push';
 
 /*
  * Faixa que pede autorização para as notificações. Só aparece enquanto ela
@@ -15,7 +15,13 @@ export default function AvisoPush({ businessId, userId, papel, texto }) {
   const [aPedir, setAPedir] = useState(false);
   const [erro, setErro] = useState('');
 
-  useEffect(() => { setEstado(estadoPush()); }, []);
+  useEffect(() => {
+    const e = estadoPush();
+    setEstado(e);
+    // Já autorizado noutra altura? Então a faixa não aparece e ninguém carrega
+    // em nada — mas a inscrição pode não existir. Garante-se em silêncio.
+    if (e === 'concedido') garantirPush({ businessId, userId, papel });
+  }, [businessId, userId, papel]);
 
   if (!businessId || !userId) return null;
   if (estado === 'concedido' || estado === 'indisponivel') return null;

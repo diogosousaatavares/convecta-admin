@@ -75,6 +75,28 @@ export async function ativarPush({ businessId, userId, papel }) {
   const permissao = await Notification.requestPermission();
   if (permissao !== 'granted') return permissao === 'denied' ? 'negado' : 'por-pedir';
 
+  await inscrever({ businessId, userId, papel });
+  return 'concedido';
+}
+
+/**
+ * Dizer que sim à pergunta do browser não chega: sem esta inscrição gravada,
+ * o servidor não sabe para onde mandar nada. E a permissão fica guardada no
+ * aparelho para sempre, por isso quem já disse que sim uma vez nunca mais vê
+ * a pergunta — e nunca mais se inscreveria. Daí correr isto sozinho ao abrir,
+ * sempre que a permissão já existe. Não incomoda ninguém: não pergunta nada.
+ */
+export async function garantirPush({ businessId, userId, papel }) {
+  try {
+    if (estadoPush() !== 'concedido') return;
+    if (!businessId || !userId) return;
+    await inscrever({ businessId, userId, papel });
+  } catch (e) {
+    console.warn('push: não foi possível garantir a inscrição', e);
+  }
+}
+
+async function inscrever({ businessId, userId, papel }) {
   const reg = await registarServiceWorker();
   let sub = await reg.pushManager.getSubscription();
   if (!sub) {
@@ -96,8 +118,6 @@ export async function ativarPush({ businessId, userId, papel }) {
     usado_em: new Date().toISOString(),
   }, { onConflict: 'endpoint' });
   if (error) throw new Error(error.message);
-
-  return 'concedido';
 }
 
 /** Deixar de receber neste aparelho. */
