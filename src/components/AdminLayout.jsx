@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog, Clock, Settings, Bell, BarChart3, Menu, X, LogOut, Wallet, Package, Megaphone, Star, ChevronDown, DollarSign, Gift, Repeat, Ticket, ReceiptText, UserPlus, Search, Plus, HelpCircle, Phone, Mail, Send } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
-import useCaixaNotifications from '@/hooks/useCaixaNotifications';
 import { Modal } from '@/components/ui';
 
 const GROUPS = [
@@ -111,7 +110,6 @@ const GROUPS = [
 
 export default function AdminLayout({ children }) {
   const data = useStore();
-  useCaixaNotifications(data.business);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
