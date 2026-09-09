@@ -230,7 +230,7 @@ export default function AdminLayout({ children }) {
         <HelpCircle size={16} /> Apoio ao cliente
       </button>
       <div style={{ padding: '16px 24px', borderTop: '1px solid #243036' }}>
-        <div className="text-xs text-sec mb-8" style={{ color: '#7d8f97' }}>{user?.email}</div>
+        
         <button className="btn btn-ghost btn-sm btn-block" onClick={handleLogout} aria-label="Terminar sessão">
           <LogOut size={16} /> Terminar sessão
         </button>
@@ -293,7 +293,6 @@ export default function AdminLayout({ children }) {
           <div className="admin-topbar-right">
             <div className="admin-topbar-user">
               <div className="admin-topbar-avatar">{(user?.name || user?.email || 'A').charAt(0).toUpperCase()}</div>
-              <span className="admin-topbar-email">{user?.name || user?.email}</span>
             </div>
             <button className="btn btn-ghost btn-icon" onClick={handleLogout} title="Terminar sessão" aria-label="Terminar sessão">
               <LogOut size={16} />
