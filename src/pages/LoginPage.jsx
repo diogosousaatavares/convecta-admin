@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useStore'
-import { supabase } from '@/lib/supabase'
-import Scene3D from '@/components/Scene3D'
+import { supabase, sessaoPersistente, aplicarPreferenciaSessao } from '@/lib/supabase'
+import FundoLogin from '@/components/FundoLogin'
 
 const GOLD = '#C9A227'
 const GOLD_HI = '#F5D66B'
@@ -22,47 +22,11 @@ const IcoUsers = p => <Ico {...p} d={<><circle cx="9" cy="8" r="3.2"/><path d="M
 const IcoScissors = p => <Ico {...p} d={<><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></>}/>
 const IcoShield = p => <Ico {...p} d={<><path d="M12 2.5 20 6v6c0 4.5-3.2 8.4-8 9.5-4.8-1.1-8-5-8-9.5V6Z"/><path d="m9 12 2 2 4-4"/></>}/>
 
-/* ── Fundo decorativo ────────────────────────────────────────────────────── */
-function Fundo() {
-  return (
-    <>
-      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden
-           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-        <defs>
-          <linearGradient id="arcoA" x1="0" y1="1" x2="1" y2="0">
-            <stop offset="0%" stopColor={GOLD} stopOpacity="0"/>
-            <stop offset="42%" stopColor={GOLD_HI} stopOpacity=".9"/>
-            <stop offset="72%" stopColor={GOLD} stopOpacity=".35"/>
-            <stop offset="100%" stopColor={GOLD} stopOpacity="0"/>
-          </linearGradient>
-          <linearGradient id="arcoB" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={GOLD} stopOpacity="0"/>
-            <stop offset="50%" stopColor={GOLD_HI} stopOpacity=".55"/>
-            <stop offset="100%" stopColor={GOLD} stopOpacity="0"/>
-          </linearGradient>
-          <filter id="brilho"><feGaussianBlur stdDeviation="7"/></filter>
-        </defs>
-        <circle cx="1560" cy="90" r="640" fill="none" stroke="url(#arcoA)" strokeWidth="14" opacity=".22" filter="url(#brilho)"/>
-        <circle cx="1560" cy="90" r="640" fill="none" stroke="url(#arcoA)" strokeWidth="2.4"/>
-        <circle cx="1500" cy="30" r="430" fill="none" stroke="url(#arcoA)" strokeWidth="1.3" opacity=".55"/>
-        <circle cx="40" cy="880" r="540" fill="none" stroke="url(#arcoB)" strokeWidth="12" opacity=".16" filter="url(#brilho)"/>
-        <circle cx="40" cy="880" r="540" fill="none" stroke="url(#arcoB)" strokeWidth="2"/>
-        <circle cx="-30" cy="960" r="330" fill="none" stroke="url(#arcoB)" strokeWidth="1.2" opacity=".5"/>
-      </svg>
-      <div aria-hidden style={{ position:'absolute', top:'-22%', right:'-12%', width:760, height:760, borderRadius:'50%',
-        background:'radial-gradient(circle, rgba(201,162,39,.11) 0%, rgba(201,162,39,0) 66%)', pointerEvents:'none' }}/>
-      <div aria-hidden style={{ position:'absolute', bottom:'-28%', left:'-14%', width:640, height:640, borderRadius:'50%',
-        background:'radial-gradient(circle, rgba(201,162,39,.07) 0%, rgba(201,162,39,0) 68%)', pointerEvents:'none' }}/>
-    </>
-  )
-}
-
 /* ── Coluna direita ──────────────────────────────────────────────────────── */
 const FEATURES = [
   { Icon: IcoCal,      titulo: 'Agenda',    sub: 'Marcações sempre à mão' },
   { Icon: IcoUsers,    titulo: 'Clientes',  sub: 'Histórico e fidelização' },
   { Icon: IcoScissors, titulo: 'Serviços',  sub: 'Preços e equipa sob controlo' },
-  { Icon: IcoShield,   titulo: 'Segurança', sub: 'Os seus dados protegidos' },
 ]
 
 function Feature({ Icon, titulo, sub }) {
@@ -91,7 +55,7 @@ export default function LoginPage() {
   const [verPass, setVerPass] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [tilt, setTilt] = useState({ rx: 0, ry: 0 })
+  const [lembrar, setLembrar] = useState(sessaoPersistente)
 
   const [forgotOpen, setForgotOpen] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
@@ -99,13 +63,6 @@ export default function LoginPage() {
   const [forgotSent, setForgotSent] = useState(false)
   const [forgotError, setForgotError] = useState('')
 
-  function aoMover(e) {
-    const r = e.currentTarget.getBoundingClientRect()
-    const px = (e.clientX - r.left) / r.width  - 0.5
-    const py = (e.clientY - r.top)  / r.height - 0.5
-    setTilt({ rx: -py * 10, ry: px * 12 })
-  }
-  const aoSair = () => setTilt({ rx: 0, ry: 0 })
 
   async function submit(e) {
     e.preventDefault()
@@ -115,6 +72,13 @@ export default function LoginPage() {
       const s = await login(email, password)
       if (s.role !== 'admin') {
         setError('Esta conta não tem permissões de administrador.')
+        return
+      }
+      if (lembrar !== sessaoPersistente) {
+        // A sessão muda de sítio, e isso só vale depois de o cliente Supabase
+        // ser criado de novo — daí recarregar em vez de navegar.
+        aplicarPreferenciaSessao(lembrar)
+        window.location.replace('/admin')
         return
       }
       navigate('/admin')
@@ -169,31 +133,10 @@ export default function LoginPage() {
         }
         @media (max-height:820px), (max-width:1180px) { .cv-rodape { display:none } }
 
-        .cv-persp { perspective:1500px; perspective-origin:50% 45% }
-        .cv-tilt  { transform-style:preserve-3d; will-change:transform;
-                    transition:transform .3s cubic-bezier(.2,.7,.3,1) }
-        .cv-3d    { transform-style:preserve-3d }
 
-        @keyframes cvCardIn {
-          from { opacity:0; transform:translateZ(-340px) translateY(34px) scale(.95) }
-          to   { opacity:1; transform:none }
-        }
-        @keyframes cvUp {
-          from { opacity:0; transform:translateY(24px) }
-          to   { opacity:1; transform:none }
-        }
-        .cv-entra-cartao { animation:cvCardIn .95s cubic-bezier(.16,.84,.34,1) both;
-                           transform-style:preserve-3d }
-        .cv-entra { animation:cvUp .75s cubic-bezier(.16,.84,.34,1) both }
-
-        @media (prefers-reduced-motion: reduce) {
-          .cv-entra, .cv-entra-cartao { animation:none }
-          .cv-tilt { transition:none; transform:none !important }
-        }
       `}</style>
 
-      <Fundo/>
-      <Scene3D intensidade={1}/>
+      <FundoLogin/>
 
       {/* Marca no topo */}
       <div className="cv-rodape" style={{ position:'absolute', top:34, left:38, display:'flex', alignItems:'center', gap:13, zIndex:2 }}>
@@ -207,10 +150,10 @@ export default function LoginPage() {
       <div className="cv-grid" style={{ position:'relative', zIndex:1 }}>
 
         {/* Esquerda */}
-        <div className="cv-side cv-entra" style={{ animationDelay:'.12s' }}>
+        <div className="cv-side" style={{ animationDelay:'.12s' }}>
           <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:26 }}>
             <span style={{ width:42, height:1.5, background:GOLD }}/>
-            <span style={{ fontSize:11, letterSpacing:'.24em', color:'#8A8272', fontWeight:600 }}>BEM-VINDO DE VOLTA</span>
+            <span style={{ fontSize:11, letterSpacing:'.24em', color:'#8A8272', fontWeight:600 }}>PLATAFORMA DE GESTÃO</span>
           </div>
           <h1 style={{ margin:0, fontSize:'clamp(40px,4.4vw,62px)', lineHeight:1.08, fontWeight:700,
                        color:'#F2EDE4', letterSpacing:'-.028em' }}>
@@ -222,28 +165,26 @@ export default function LoginPage() {
         </div>
 
         {/* Cartão */}
-        <div className="cv-persp" onMouseMove={aoMover} onMouseLeave={aoSair}>
-        <div className="cv-entra-cartao">
-        <div className="cv-tilt" style={{ transform:`rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)` }}>
-        <div className="cv-3d" style={{ position:'relative', borderRadius:23, padding:1.4,
+        <div>
+        <div style={{ position:'relative', borderRadius:23, padding:1.4,
           background:`linear-gradient(152deg, ${GOLD_HI} 0%, rgba(201,162,39,.42) 16%, rgba(255,255,255,.06) 42%, rgba(255,255,255,.03) 100%)`,
           boxShadow:'0 0 70px rgba(201,162,39,.12), 0 34px 80px rgba(0,0,0,.72)' }}>
-          <div className="cv-3d" style={{ borderRadius:21.6, padding:'40px 36px 32px',
+          <div style={{ borderRadius:21.6, padding:'40px 36px 32px',
             background:'linear-gradient(168deg, #17140F 0%, #100E0B 100%)' }}>
 
-            <div style={{ textAlign:'center', marginBottom:26, transform:'translateZ(55px)' }}>
+            <div style={{ textAlign:'center', marginBottom:26 }}>
               <img src="/convecta-logo.png" alt="" style={{ width:62, height:62, objectFit:'contain', margin:'0 auto 14px', display:'block' }}/>
               <div style={{ fontSize:29, fontWeight:700, color:'#F2EDE4', letterSpacing:'-.022em' }}>Convecta</div>
               <div style={{ fontSize:14, color:'#8A8272', marginTop:4 }}>Painel de Administração</div>
             </div>
 
-            <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24, transform:'translateZ(34px)' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24 }}>
               <span style={{ flex:1, height:1, background:'rgba(201,162,39,.16)' }}/>
               <span style={{ fontSize:12.5, color:'#7E7767' }}>Aceda à sua conta</span>
               <span style={{ flex:1, height:1, background:'rgba(201,162,39,.16)' }}/>
             </div>
 
-            <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:17, transform:'translateZ(26px)' }}>
+            <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:17 }}>
               <div>
                 <label style={{ fontSize:13, color:'#B8B0A0', marginBottom:8, display:'block', fontWeight:500 }}>Email</label>
                 <div style={{ position:'relative' }}>
@@ -270,9 +211,14 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div style={{ display:'flex', justifyContent:'flex-end', marginTop:-4 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, marginTop:-2 }}>
+                <label style={{ display:'flex', alignItems:'center', gap:9, cursor:'pointer', userSelect:'none' }}>
+                  <input type="checkbox" checked={lembrar} onChange={e => setLembrar(e.target.checked)}
+                         style={{ width:16, height:16, accentColor:GOLD, cursor:'pointer' }}/>
+                  <span style={{ fontSize:13, color:'#B8B0A0' }}>Manter sessão iniciada</span>
+                </label>
                 <button type="button" className="cv-esqueci" onClick={() => setForgotOpen(true)}>
-                  Esqueci-me da palavra-passe
+                  Esqueceu-se da password?
                 </button>
               </div>
 
@@ -294,20 +240,18 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div style={{ marginTop:24, display:'flex', alignItems:'center', justifyContent:'center', gap:7, color:'#5E584B', transform:'translateZ(16px)' }}>
+            <div style={{ marginTop:24, display:'flex', alignItems:'center', justifyContent:'center', gap:7, color:'#5E584B' }}>
               <IcoLock size={12}/>
               <span style={{ fontSize:12 }}>Ligação segura e encriptada</span>
             </div>
           </div>
         </div>
         </div>
-        </div>
-        </div>
 
         {/* Direita */}
         <div className="cv-side" style={{ display:'flex', flexDirection:'column', gap:26, justifySelf:'start', paddingLeft:20 }}>
           {FEATURES.map((f, i) => (
-            <div key={f.titulo} className="cv-entra" style={{ animationDelay:`${0.45 + i * 0.1}s` }}>
+            <div key={f.titulo} style={{ animationDelay:`${0.45 + i * 0.1}s` }}>
               <Feature {...f}/>
             </div>
           ))}
@@ -315,13 +259,21 @@ export default function LoginPage() {
       </div>
 
       {/* Rodapés */}
-      <div className="cv-rodape" style={{ position:'absolute', bottom:38, left:38, borderLeft:`2px solid ${GOLD}`, paddingLeft:16, zIndex:2 }}>
-        <div style={{ fontSize:14.5, color:'#C4BCA9', fontWeight:500 }}>Gestão. Visão. Crescimento.</div>
-        <div style={{ fontSize:10.5, color:'#6E6757', letterSpacing:'.28em', marginTop:4, fontWeight:600 }}>CONVECTA</div>
+      <div className="cv-rodape" style={{ position:'absolute', top:44, right:44, textAlign:'right', zIndex:2 }}>
+        <div style={{ fontSize:10.5, color:'#8A8272', letterSpacing:'.26em', lineHeight:2, fontWeight:600 }}>
+          A TUA AGENDA,<br/>SEMPRE<br/>À MÃO.
+        </div>
+        <span style={{ display:'block', width:34, height:1.5, background:GOLD, marginLeft:'auto', marginTop:14 }}/>
       </div>
-      <div className="cv-rodape" style={{ position:'absolute', bottom:38, right:40, textAlign:'right', zIndex:2 }}>
-        <div style={{ fontSize:10.5, color:'#5E584B', letterSpacing:'.26em', lineHeight:1.9, fontWeight:600 }}>
-          MAIS NEGÓCIOS.<br/>MAIS POSSIBILIDADES.
+      <div className="cv-rodape" style={{ position:'absolute', bottom:40, left:38, zIndex:2 }}>
+        <span style={{ display:'block', width:34, height:1.5, background:GOLD, marginBottom:14 }}/>
+        <div style={{ fontSize:10.5, color:'#6E6757', letterSpacing:'.26em', lineHeight:2, fontWeight:600 }}>
+          AGENDA<br/>CLIENTES<br/>RESULTADOS
+        </div>
+      </div>
+      <div className="cv-rodape" style={{ position:'absolute', bottom:40, right:44, textAlign:'right', zIndex:2 }}>
+        <div style={{ fontSize:10.5, color:'#5E584B', letterSpacing:'.26em', lineHeight:2, fontWeight:600 }}>
+          CONVECTA<br/>ADMIN<br/>V1.0
         </div>
       </div>
 
