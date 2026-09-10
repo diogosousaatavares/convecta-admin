@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarRange, CheckCircle2, XCircle, Trash2, Plus } from 'lucide-react';
+import { CalendarRange, CheckCircle2, XCircle, Trash2, Plus, Zap } from 'lucide-react';
 import { useStore, useAuth } from '@/hooks/useStore';
 import AvisoPush from '@/components/AvisoPush';
 import AdminLayout from '@/components/AdminLayout';
@@ -12,6 +12,66 @@ import { sendConfirmationEmail } from '@/lib/bookingEmail';
 import { formatDateShortNum, formatPrice } from '@/lib/format';
 import CheckoutModal from '@/components/admin/CheckoutModal';
 import ConfirmDialog from '@/components/ConfirmDialog';
+
+// A confirmacao automatica vivia enterrada em Parametros → Agendamentos, onde
+// ninguem ia. E uma decisao que se toma a olhar para as marcacoes — "estou
+// farto de aceitar uma a uma" — por isso o interruptor fica aqui.
+function InterruptorAutomatico() {
+  const data = useStore();
+  const toast = useToast();
+  const [aGravar, setAGravar] = useState(false);
+  const params = data.business?.config?.params || {};
+  const ligado = params.autoConfirm === true;
+
+  const trocar = async () => {
+    setAGravar(true);
+    try {
+      await dataService.updateConfig('params', { ...params, autoConfirm: !ligado });
+      toast.success(!ligado ? 'Marcações aceites automaticamente' : 'Voltou a confirmar uma a uma');
+    } catch (e) {
+      toast.error('Não foi possível guardar', e.message);
+    } finally {
+      setAGravar(false);
+    }
+  };
+
+  return (
+    <Card className="mb-16" style={{ borderColor: ligado ? 'rgba(201,162,39,0.45)' : undefined }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+        <span style={{
+          width: 38, height: 38, borderRadius: 11, display: 'grid', placeItems: 'center', flexShrink: 0,
+          background: ligado ? 'rgba(201,162,39,0.14)' : 'var(--elevated)',
+          color: ligado ? '#C9A227' : 'var(--text-sec)',
+        }}>
+          <Zap size={18} />
+        </span>
+        <div style={{ flex: 1, minWidth: 180 }}>
+          <div className="fw-600 text-sm">Aceitar marcações automaticamente</div>
+          <div className="text-sec" style={{ fontSize: 12, marginTop: 2, lineHeight: 1.5 }}>
+            {ligado
+              ? 'As marcações entram já confirmadas. Continua a receber o aviso no telemóvel — só não tem de aceitar.'
+              : 'Cada marcação fica pendente até a confirmar. Ligue se não quiser aceitar uma a uma.'}
+          </div>
+        </div>
+        <button type="button" onClick={trocar} disabled={aGravar}
+          role="switch" aria-checked={ligado}
+          aria-label="Aceitar marcações automaticamente"
+          style={{
+            position: 'relative', width: 46, height: 26, borderRadius: 13, border: 'none',
+            cursor: aGravar ? 'wait' : 'pointer', flexShrink: 0, padding: 0,
+            background: ligado ? '#C9A227' : 'var(--border)',
+            opacity: aGravar ? 0.6 : 1, transition: 'background 180ms ease',
+          }}>
+          <span style={{
+            position: 'absolute', top: 3, left: ligado ? 23 : 3, width: 20, height: 20,
+            borderRadius: '50%', background: '#fff', transition: 'left 180ms ease',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+          }} />
+        </button>
+      </div>
+    </Card>
+  );
+}
 
 const FILTERS = [
   { key: 'all', label: 'Todas' },
@@ -114,6 +174,7 @@ export default function AdminAppointments() {
       <AvisoPush businessId={data.business?.id} userId={user?.id} papel="admin"
         texto={{ titulo: 'Ligue as notificações',
                  corpo: 'Assim que entrar uma marcação, recebe um aviso no telemóvel para a confirmar. Sem isto, só a vê quando abrir o painel.' }}/>
+      <InterruptorAutomatico />
       <div className="page-head">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12 }}>
           <div>
