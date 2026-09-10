@@ -148,6 +148,30 @@ async function addLoyaltyStamp(appt, at = new Date().toISOString()) {
   customer.pendingReview = { appointmentId: appt.id, serviceId: appt.serviceId, professionalId: appt.professionalId };
   appt.loyaltyStamped = true;
   await guardarFidelidade(customer);
+
+  // Avisar o cliente. O carimbo e o momento em que o cartao de fidelidade
+  // deixa de ser uma promessa e passa a ser uma conta que ele leva na cabeca
+  // — e o unico momento em que ele se lembra de que existe, se ninguem lhe
+  // disser nada. A animacao esta la a espera dele quando abrir.
+  if (appt.customerId) {
+    const total = threshold;
+    enviarPush({
+      businessId: BUSINESS_ID,
+      para: 'customer',
+      userId: appt.customerId,
+      titulo: reward
+        ? '\u{1F381} Ganhou um corte grátis!'
+        : `\u{2702}\u{FE0F} Mais um carimbo · ${displayCount}/${total}`,
+      mensagem: reward
+        ? `${state.business?.name || 'A barbearia'}\nO cartão está completo. Abra a app para levantar.`
+        : `${state.business?.name || 'A barbearia'}\nFaltam ${Math.max(0, total - displayCount)} para o corte grátis.`,
+      url: '/marcacoes',
+      tag: 'carimbo-' + appt.id,
+      // Um corte gratis merece ficar no ecra ate ser visto. Um carimbo normal
+      // nao — sao dez por cartao e ninguem quer dez notificacoes presas.
+      exigeAccao: !!reward,
+    }).catch(e => console.warn('aviso do carimbo não enviado:', e.message));
+  }
 }
 
 // Sem isto o selo so existia na memoria deste browser: fechada a pagina
