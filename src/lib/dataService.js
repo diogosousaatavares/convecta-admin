@@ -126,6 +126,24 @@ function loyaltyCardConfig() {
   catch { return { ...DEFAULT_LOYALTY }; }
 }
 
+// ── Validade do cartao ──────────────────────────────────────────────────────
+// O cartao dizia "valido por 6 meses" e nunca expirava nada: era uma promessa
+// escrita que o codigo nao cumpria. A contagem comeca no PRIMEIRO carimbo de
+// cada cartao — nao na data em que a pessoa criou conta, nem no ultimo corte.
+// Quem levou o primeiro corte em Janeiro tem ate Julho para fechar o cartao.
+function mesesDeValidade() {
+  const n = Number(state.business?._settings?.loyalty?.validMonths);
+  // 0 quer dizer sem prazo, e e uma escolha legitima.
+  return Number.isFinite(n) && n >= 0 ? n : 6;
+}
+
+export function cartaoExpirou(loyalty, meses = mesesDeValidade()) {
+  if (!meses || !loyalty?.startedAt) return false;
+  const fim = new Date(loyalty.startedAt);
+  fim.setMonth(fim.getMonth() + meses);
+  return Date.now() > fim.getTime();
+}
+
 async function addLoyaltyStamp(appt, at = new Date().toISOString()) {
   if (!appt?.customerId || appt.loyaltyStamped || !loyaltyCardConfig().enabled) return;
   const customer = state.customers.find(c => c.id === appt.customerId);
@@ -133,6 +151,17 @@ async function addLoyaltyStamp(appt, at = new Date().toISOString()) {
   const cfg = loyaltyCardConfig();
   const threshold = Math.max(3, Math.min(20, Number(state.business?.config?.loyalty?.stampsThreshold ?? cfg.totalStamps ?? 10)));
   if (!customer.loyalty) customer.loyalty = { stamps: 0, totalStamps: 0, rewardsEarned: 0, points: 0 };
+
+  // Cartao fora do prazo: comeca um novo, vazio. O historico de vida
+  // (totalStamps, rewardsEarned) fica — e o que se perde sao os carimbos
+  // deste cartao, que e o que a validade quer dizer.
+  if (cartaoExpirou(customer.loyalty)) {
+    customer.loyalty.stamps = 0;
+    customer.loyalty.startedAt = null;
+  }
+  // Primeiro carimbo deste cartao: e daqui que se conta o prazo.
+  if (!customer.loyalty.stamps) customer.loyalty.startedAt = at;
+
   customer.loyalty.points = (customer.loyalty.points || 0) + 1;
   customer.loyalty.stamps = (customer.loyalty.stamps || 0) + 1;
   customer.loyalty.totalStamps = (customer.loyalty.totalStamps || 0) + 1;
@@ -141,6 +170,8 @@ async function addLoyaltyStamp(appt, at = new Date().toISOString()) {
   let reward = false;
   if (customer.loyalty.stamps >= threshold) {
     customer.loyalty.stamps = 0;
+    // Cartao fechado: o prazo do proximo so comeca no proximo carimbo.
+    customer.loyalty.startedAt = null;
     customer.loyalty.rewardsEarned = (customer.loyalty.rewardsEarned || 0) + 1;
     reward = true; displayCount = threshold;
   }
