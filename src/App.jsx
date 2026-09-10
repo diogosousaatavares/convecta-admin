@@ -98,8 +98,8 @@ function AppRoutes() {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
   return (
-    {/* Comeca visivel: em opacity 0, se a animacao nao corresse a pagina
-        ficava em branco ate se recarregar. */}
+    // Comeca visivel: em opacity 0, se a animacao nao corresse a pagina
+    // ficava em branco ate se recarregar.
     <motion.div
       key={location.pathname}
       initial={{ y: isAdminPage ? 28 : 6 }}
