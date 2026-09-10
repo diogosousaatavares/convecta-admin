@@ -392,6 +392,8 @@ function apptFromRow(row) {
     professionalNameSnapshot: m.professionalNameSnapshot,
     durationSnapshot: m.durationSnapshot,
     loyaltyStamped: m.loyaltyStamped || false,
+    // Marcacao paga com um corte gratis do cartao de fidelidade.
+    usaRecompensa: m.usaRecompensa === true,
     blocked: m.blocked || false,
     createdAt: row.created_at,
     confirmedAt: m.confirmedAt, completedAt: m.completedAt,
@@ -419,6 +421,7 @@ function apptToRow(a) {
       professionalNameSnapshot: a.professionalNameSnapshot,
       durationSnapshot: a.durationSnapshot,
       loyaltyStamped: a.loyaltyStamped,
+      usaRecompensa: !!a.usaRecompensa,
       blocked: a.blocked,
       confirmedAt: a.confirmedAt, completedAt: a.completedAt,
       cancelledAt: a.cancelledAt, attendedAt: a.attendedAt,
@@ -880,7 +883,10 @@ const dataService = {
     if (a.status !== 'confirmed' && a.status !== 'completed') return a;
     const svc = state.services.find(s => s.id === a.serviceId);
     const pro = state.professionals.find(p => p.id === a.professionalId);
-    const base = a.unitPriceSnapshot ?? (svc?.price || 0);
+    // Corte gratis: o cliente escolheu gastar um do cartao ao marcar. O
+    // preco e zero e a recompensa e consumida — se so se descontasse na
+    // cabeca do barbeiro, o mesmo corte gratis era usado tres vezes.
+    const base = a.usaRecompensa ? 0 : (a.unitPriceSnapshot ?? (svc?.price || 0));
     const discountAmount = round2(Number(payData.discountAmount) || 0);
     const net = round2(Math.max(0, base - discountAmount));
     const tip = round2(Number(payData.tip) || 0);
@@ -901,7 +907,18 @@ const dataService = {
     // Update appointment
     await supabase.from('appointments').update(apptToRow(a)).eq('id', apptId);
     recomputeCustomer(a.customerId);
-    await addLoyaltyStamp(a, a.payment.at);
+
+    if (a.usaRecompensa) {
+      const cli = state.customers.find(c => c.id === a.customerId);
+      if (cli?.loyalty) {
+        cli.loyalty.rewardsEarned = Math.max(0, (cli.loyalty.rewardsEarned || 0) - 1);
+        await guardarFidelidade(cli);
+      }
+      // Um corte gratis nao carimba: senao o cartao alimentava-se a si
+      // proprio e o corte gratis dava direito ao seguinte, para sempre.
+    } else {
+      await addLoyaltyStamp(a, a.payment.at);
+    }
     const updCust = state.customers.find(c => c.id === a.customerId);
     if (updCust) {
       const updRow = custToRow(updCust);

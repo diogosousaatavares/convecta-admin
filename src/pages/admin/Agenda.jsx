@@ -227,7 +227,10 @@ export default function Agenda() {
                           <td><div className="flex items-center gap-8"><Avatar name={cust?.name} /><div><div className="fw-600 text-sm">{cust?.name}</div><div className="text-sec text-xs">{a.bookingRef}</div></div></div></td>
                           <td>{svc?.name}</td>
                           <td>{pro?.name}</td>
-                          <td><Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(a)}</Badge></td>
+                          <td>
+                            <Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(a)}</Badge>
+                            {a.usaRecompensa && <Badge variant="gold" style={{ marginLeft: 6 }}>🎁 Grátis</Badge>}
+                          </td>
                           <td>{a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)}>Confirmar</Button>}{a.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(a.id)}>Presença</Button>}</td>
                         </tr>
                       );
@@ -276,6 +279,12 @@ export default function Agenda() {
                 <div className="ag-detail-row"><span className="l">Horário</span><span className="v">{selAppt.startTime} – {selAppt.endTime}</span></div>
                 <div className="ag-detail-row"><span className="l">Referência</span><span className="v">{selAppt.bookingRef}</span></div>
                 <div className="ag-detail-row"><span className="l">Estado</span><span className="v"><Badge variant={selAppt.status === 'pending' ? 'warning' : selAppt.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(selAppt)}</Badge></span></div>
+                {selAppt.usaRecompensa && (
+                  <div className="ag-detail-row">
+                    <span className="l">Pagamento</span>
+                    <span className="v"><Badge variant="gold">🎁 Corte grátis do cartão</Badge></span>
+                  </div>
+                )}
                 <div className="ag-detail-actions">
                   {selAppt.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(selAppt.id)}>Confirmar</Button>}
                   {selAppt.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(selAppt.id)}>Confirmar presença</Button>}

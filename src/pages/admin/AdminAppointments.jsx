@@ -237,7 +237,10 @@ export default function AdminAppointments() {
                     <td className="text-sm">{pro?.name || '—'}</td>
                     <td className="text-sm">{formatDateShortNum(a.date)}</td>
                     <td className="text-sm">{a.startTime}</td>
-                    <td><Badge variant={badgeVariant}>{statusLabel}</Badge></td>
+                    <td>
+                      <Badge variant={badgeVariant}>{statusLabel}</Badge>
+                      {a.usaRecompensa && <Badge variant="gold" style={{ marginLeft: 6 }}>🎁 Grátis</Badge>}
+                    </td>
                     <td>
                       <div className="flex gap-8">
                         {!blocked && a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)} title="Confirmar marcação"><CheckCircle2 size={14} /></Button>}
