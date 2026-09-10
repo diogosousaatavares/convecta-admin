@@ -17,6 +17,20 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
 
+// Uma marcação cancelada pelo cliente e uma cancelada pela barbearia contam-se
+// de maneiras diferentes no fim do mês, e tratam-se de maneiras diferentes no
+// momento. Dizer só "Cancelada" obriga o barbeiro a adivinhar.
+function rotuloEstado(a) {
+  if (a.status === 'confirmed') return 'Confirmada';
+  if (a.status === 'completed') return 'Concluída';
+  if (a.status === 'cancelled') {
+    if (a.cancelledBy === 'cliente') return 'Cancelada pelo cliente';
+    if (a.cancelledBy === 'barbearia') return 'Cancelada pela barbearia';
+    return 'Cancelada';
+  }
+  return 'Pendente';
+}
+
 export default function Agenda() {
   const data = useStore();
   const toast = useToast();
@@ -36,7 +50,11 @@ export default function Agenda() {
     setDate(dateToStr(d));
   };
 
+  // As canceladas continuam na lista de baixo, com a etiqueta a dizer quem
+  // desmarcou, mas saem da grelha das horas: o lugar esta livre e tem de se
+  // ver que esta livre.
   const dayAppts = data.appointments.filter(a => a.date === date);
+  const dayAppstNaGrelha = dayAppts.filter(a => a.status !== 'cancelled');
   const apptsByDate = useMemo(() => {
     const map = {};
     data.appointments.forEach(a => { if (a.blocked || a.status !== 'cancelled') map[a.date] = (map[a.date] || 0) + 1; });
@@ -182,7 +200,7 @@ export default function Agenda() {
           {mode === 'grid' && (
             <AgendaCalendar
               date={date}
-              appts={dayAppts}
+              appts={dayAppstNaGrelha}
               professionals={data.professionals}
               services={data.services}
               customers={data.customers}
@@ -209,7 +227,7 @@ export default function Agenda() {
                           <td><div className="flex items-center gap-8"><Avatar name={cust?.name} /><div><div className="fw-600 text-sm">{cust?.name}</div><div className="text-sec text-xs">{a.bookingRef}</div></div></div></td>
                           <td>{svc?.name}</td>
                           <td>{pro?.name}</td>
-                          <td><Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : a.status === 'completed' ? 'success' : 'success'}>{a.status === 'confirmed' ? 'Confirmada' : a.status === 'completed' ? 'Concluída' : a.status === 'cancelled' ? 'Cancelada' : 'Pendente'}</Badge></td>
+                          <td><Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(a)}</Badge></td>
                           <td>{a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)}>Confirmar</Button>}{a.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(a.id)}>Presença</Button>}</td>
                         </tr>
                       );
@@ -257,7 +275,7 @@ export default function Agenda() {
                 <div className="ag-detail-row"><span className="l">Barbeiro</span><span className="v">{selPro?.name}</span></div>
                 <div className="ag-detail-row"><span className="l">Horário</span><span className="v">{selAppt.startTime} – {selAppt.endTime}</span></div>
                 <div className="ag-detail-row"><span className="l">Referência</span><span className="v">{selAppt.bookingRef}</span></div>
-                <div className="ag-detail-row"><span className="l">Estado</span><span className="v"><Badge variant={selAppt.status === 'pending' ? 'warning' : selAppt.status === 'cancelled' ? 'danger' : 'success'}>{selAppt.status === 'confirmed' ? 'Confirmada' : selAppt.status === 'completed' ? 'Concluída' : selAppt.status === 'cancelled' ? 'Cancelada' : 'Pendente'}</Badge></span></div>
+                <div className="ag-detail-row"><span className="l">Estado</span><span className="v"><Badge variant={selAppt.status === 'pending' ? 'warning' : selAppt.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(selAppt)}</Badge></span></div>
                 <div className="ag-detail-actions">
                   {selAppt.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(selAppt.id)}>Confirmar</Button>}
                   {selAppt.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(selAppt.id)}>Confirmar presença</Button>}

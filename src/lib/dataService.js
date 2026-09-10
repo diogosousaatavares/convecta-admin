@@ -11,6 +11,25 @@ const EMOJI_AVISO = {
   info: '\u{2139}\u{FE0F}', promo: '\u{1F381}', aviso: '\u{26A0}\u{FE0F}', urgente: '\u{1F6A8}',
 };
 
+// O painel fica aberto o dia inteiro no telemovel ou no balcao. Sem isto,
+// carregava os dados uma vez ao abrir e ficava por ali: um cliente cancelava
+// e o barbeiro continuava a ver "Confirmada" ate recarregar a pagina — e a
+// guardar o lugar a alguem que ja nao vinha.
+let _ultimoRefresco = 0;
+async function refrescarSeVelho(minimoSegundos = 45) {
+  if (document.hidden) return;
+  const agora = Date.now();
+  if (agora - _ultimoRefresco < minimoSegundos * 1000) return;
+  _ultimoRefresco = agora;
+  try { await dataService.refreshAppointments(); } catch { /* rede em baixo */ }
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => refrescarSeVelho(5));
+  window.addEventListener('focus', () => refrescarSeVelho(5));
+  setInterval(() => refrescarSeVelho(45), 30000);
+}
+
 function notifFromRow(row) {
   return {
     id: row.id, businessId: row.business_id,
@@ -322,6 +341,8 @@ function apptFromRow(row) {
     createdAt: row.created_at,
     confirmedAt: m.confirmedAt, completedAt: m.completedAt,
     cancelledAt: m.cancelledAt, attendedAt: m.attendedAt,
+    // 'cliente' ou 'barbearia'. Sem isto o barbeiro nao sabia quem desmarcou.
+    cancelledBy: m.cancelledBy || null,
     rescheduleHistory: m.rescheduleHistory,
   };
 }
@@ -346,6 +367,7 @@ function apptToRow(a) {
       blocked: a.blocked,
       confirmedAt: a.confirmedAt, completedAt: a.completedAt,
       cancelledAt: a.cancelledAt, attendedAt: a.attendedAt,
+      cancelledBy: a.cancelledBy || null,
       rescheduleHistory: a.rescheduleHistory,
     },
   };
@@ -742,6 +764,16 @@ const dataService = {
 
     notify(); return a;
   },
+  // Volta a ler as marcacoes. So as marcacoes: e o que muda sozinho enquanto
+  // o painel esta aberto.
+  async refreshAppointments() {
+    const { data, error } = await supabase.from('appointments')
+      .select('*').eq('business_id', BUSINESS_ID);
+    if (error) throw new Error(error.message);
+    state.appointments = (data || []).map(apptFromRow);
+    notify();
+    return state.appointments;
+  },
   async cancelAppointment(id) {
     const a = state.appointments.find(x => x.id === id);
     if (!a || !canTransition(a.status, 'cancelled')) return a;
@@ -759,7 +791,7 @@ const dataService = {
       }
       recomputeCustomer(a.customerId);
     }
-    a.status = 'cancelled'; a.cancelledAt = new Date().toISOString();
+    a.status = 'cancelled'; a.cancelledAt = new Date().toISOString(); a.cancelledBy = 'barbearia';
     const { error } = await supabase.from('appointments').update(apptToRow(a)).eq('id', id);
     if (error) throw error;
 
