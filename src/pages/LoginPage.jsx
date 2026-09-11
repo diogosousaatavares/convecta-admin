@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useStore'
 import { supabase, sessaoPersistente, aplicarPreferenciaSessao } from '@/lib/supabase'
 import FundoLogin from '@/components/FundoLogin'
+import FormularioDemo, { jaPediuDemo } from '@/components/admin/FormularioDemo'
 
 const GOLD = '#C9A227'
 const GOLD_HI = '#F5D66B'
@@ -77,7 +78,9 @@ export default function LoginPage() {
       .catch(() => {})
   }, [])
 
+  const [pedirDados, setPedirDados] = useState(false)
   async function entrarNaDemo() {
+    if (!jaPediuDemo()) { setPedirDados(true); return }
     setError(''); setLoadingDemo(true)
     try {
       const s = await login(demo.adminEmail, demo.adminPassword)
@@ -218,6 +221,10 @@ export default function LoginPage() {
               <div style={{ fontSize:14, color:'#8A8272', marginTop:4 }}>Painel de Administração</div>
             </div>
 
+            {pedirDados && (
+              <FormularioDemo origem="painel" titulo="Antes de veres o painel" onFechar={() => setPedirDados(false)}
+                onConcluido={() => { setPedirDados(false); entrarNaDemo() }} />
+            )}
             {demo && (
               <button type="button" onClick={entrarNaDemo} disabled={loadingDemo || loading}
                 className="cv-entrar"

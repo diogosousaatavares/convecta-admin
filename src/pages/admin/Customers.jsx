@@ -83,7 +83,7 @@ export default function Customers() {
 
   return (
     <AdminLayout>
-      <div className="page-head">
+      <div className="page-head" data-tour="clientes">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <h1>Clientes</h1>
           <PageInfo

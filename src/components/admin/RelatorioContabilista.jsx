@@ -53,7 +53,7 @@ export default function RelatorioContabilista() {
   );
 
   return (
-    <Card className="card-pad">
+    <Card className="card-pad" data-tour="relatorio">
       <div className="flex items-center gap-12 mb-8" style={{ flexWrap: 'wrap' }}>
         <FileSpreadsheet size={18} style={{ color: 'var(--gold)' }} />
         <div className="fw-600">Relatório para o contabilista</div>

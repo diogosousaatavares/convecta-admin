@@ -104,7 +104,7 @@ export default function Cash() {
 
   return (
     <AdminLayout>
-      <div className="page-head">
+      <div className="page-head" data-tour="caixa">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12 }}>
           <div><h1>Caixa &amp; Pagamentos</h1><p>{formatDate(today)}</p></div>
           {session && <Badge variant="success">Caixa aberta · {new Date(session.openedAt).toLocaleTimeString('pt-PT').slice(0, 5)}</Badge>}

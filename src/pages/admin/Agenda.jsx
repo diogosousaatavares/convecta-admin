@@ -196,7 +196,7 @@ export default function Agenda() {
           {/* Eram "Dia / Semana / Mes", com dois botoes que so diziam "em breve".
               Um botao que nao faz nada e pior do que nao existir — sobretudo
               numa demonstracao. Passam a ser as tres vistas que existem mesmo. */}
-          <div className="ag-viewseg">
+          <div className="ag-viewseg" data-tour="agenda-vistas">
             <button className={mode === 'grid' ? 'active' : ''} onClick={() => setMode('grid')}>Dia</button>
             <button className={mode === 'list' ? 'active' : ''} onClick={() => setMode('list')}>Lista</button>
             <button className={mode === 'waitlist' ? 'active' : ''} onClick={() => setMode('waitlist')}>Espera</button>
@@ -208,7 +208,7 @@ export default function Agenda() {
       {/* So no telemovel: o calendario do mes fica escondido e entra a faixa. */}
       <FaixaDias date={date} setDate={setDate} apptsByDate={apptsByDate} blockMode={blockMode} setBlockMode={setBlockMode} />
 
-      <div className="agenda-wrap">
+      <div className="agenda-wrap" data-tour="agenda">
         <div>
           {mode === 'grid' && (
             <AgendaCalendar

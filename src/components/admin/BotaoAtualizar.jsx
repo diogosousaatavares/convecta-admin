@@ -35,7 +35,7 @@ export default function BotaoAtualizar() {
   const ocupado = estaAAtualizar();
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} data-tour="atualizar">
       <span className="text-sec" style={{ fontSize: 12 }}>{hMuito(ultimoRefresco())}</span>
       <button
         type="button"

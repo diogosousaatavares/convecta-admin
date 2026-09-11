@@ -5,6 +5,7 @@ import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
 import { moduloIndisponivel } from '@/lib/modulos';
+import TourDemo from '@/components/admin/TourDemo';
 
 const GROUPS_TODOS = [
   { type: 'item', to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -120,6 +121,23 @@ const GROUPS = GROUPS_TODOS
 // Na demonstracao a conta e publica. Se alguem lhe mudar a palavra-passe ou
 // apagar utilizadores, tranca a demo a toda a gente ate a proxima reposicao.
 export const ESCONDIDOS_EM_DEMO = ['/admin/definicoes/seguranca', '/admin/definicoes/utilizadores'];
+
+// O guia de quem entra na demonstracao como barbeiro. Segue o dia de trabalho:
+// a agenda, confirmar, cobrar, o cliente, e o fim do mes.
+const PASSOS_DEMO = [
+  { rota: '/admin/agenda', alvo: 'agenda', titulo: 'A tua agenda',
+    texto: 'Cada coluna é um barbeiro. As marcações que os clientes fazem pelo site entram aqui sozinhas — e o telemóvel toca.' },
+  { rota: '/admin/agenda', alvo: 'agenda-vistas', titulo: 'Confirmar em dois toques',
+    texto: 'Uma marcação nova chega como Pendente. Toca nela e confirma — o cliente recebe aviso no telemóvel. Ou liga a confirmação automática nos Parâmetros e nem isso precisas.' },
+  { rota: '/admin/financeiro/caixa', alvo: 'caixa', titulo: 'Cobrar',
+    texto: 'No fim do serviço, checkout: método de pagamento, desconto se houver, gorjeta. A comissão do barbeiro e o carimbo do cliente ficam feitos no mesmo toque.' },
+  { rota: '/admin/clientes', alvo: 'clientes', titulo: 'Os teus clientes',
+    texto: 'Histórico, o que gastaram, quantos carimbos têm. Quem chega ao décimo corte tem o próximo grátis — e tu vês isso antes de ele entrar pela porta.' },
+  { rota: '/admin/relatorios', alvo: 'relatorio', titulo: 'O fim do mês',
+    texto: 'Escolhes o mês e descarregas um Excel pronto para o contabilista. Acabou o saco de talões.' },
+  { rota: '/admin', alvo: 'atualizar', titulo: 'É isto',
+    texto: 'Mexe à vontade — marca, confirma, cobra. Tudo o que fizeres aqui desaparece de hora a hora. Quando quiseres isto para a tua barbearia, fala connosco.' },
+];
 function gruposPara(demo) {
   if (!demo) return GROUPS;
   return GROUPS
@@ -287,6 +305,7 @@ export default function AdminLayout({ children }) {
         </form>
       </Modal>
       <main className="admin-content">
+        {emDemo && <TourDemo passos={PASSOS_DEMO} chave="convecta_tour_painel" />}
         {emDemo && (
           <div style={{
             background: 'var(--gold)', color: '#100E0B', fontSize: 13, fontWeight: 700,
