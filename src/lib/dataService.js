@@ -1101,13 +1101,23 @@ const dataService = {
     // cliente nao le a tabela config (nem deve — ha la coisas que nao sao da
     // conta de quem vai marcar). Espelha-se so este valor no settings da
     // barbearia, que ja e publico.
-    if (section === 'params' && Object.prototype.hasOwnProperty.call(updates, 'autoConfirm')) {
+    // Cada um destes e uma decisao do dono da barbearia que muda o que o
+    // cliente ve. Ficarem so aqui era o mesmo que nao existirem: o site
+    // continuava com os valores escritos no codigo.
+    const ESPELHADOS = {
+      autoConfirm: v => v === true,
+      allowClientCancel: v => v !== false,
+      cancelMinHours: v => Math.max(0, Number(v) || 0),
+    };
+    const mudados = Object.keys(ESPELHADOS).filter(k =>
+      Object.prototype.hasOwnProperty.call(updates, k));
+    if (section === 'params' && mudados.length) {
       try {
         const { data: b } = await supabase.from('businesses').select('settings').eq('id', BUSINESS_ID).maybeSingle();
-        await supabase.from('businesses')
-          .update({ settings: { ...(b?.settings || {}), autoConfirm: !!updates.autoConfirm } })
-          .eq('id', BUSINESS_ID);
-      } catch (e) { console.error('confirmacao automatica nao espelhada:', e.message); }
+        const novas = { ...(b?.settings || {}) };
+        mudados.forEach(k => { novas[k] = ESPELHADOS[k](updates[k]); });
+        await supabase.from('businesses').update({ settings: novas }).eq('id', BUSINESS_ID);
+      } catch (e) { console.error('parametros nao espelhados para o site:', e.message); }
     }
     notify(); return state.business.config;
   },
