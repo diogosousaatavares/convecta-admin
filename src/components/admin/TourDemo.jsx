@@ -31,35 +31,45 @@ export default function TourDemo({ passos = [], chave = 'convecta_tour', ativo =
     if (passo.rota && location.pathname !== passo.rota) navigate(passo.rota);
   }, [ativo, passo, location.pathname, navigate]);
 
-  // Medir o elemento apontado. Volta a medir quando a pagina mexe: a agenda
-  // demora a desenhar-se, o telemovel roda, a pessoa faz scroll.
+  // Medir o elemento apontado. O scroll ate ele faz-se UMA vez, ao entrar no
+  // passo; depois so se volta a medir sem mexer na pagina. Fazer scroll dentro
+  // da medicao e medir a cada scroll era um ciclo que encravava o guia.
   useLayoutEffect(() => {
     if (!ativo || !passo) { setRect(null); return; }
+    let vivo = true;
     let tentativas = 0;
     let raf = 0;
     let t = 0;
-    const medir = () => {
-      const el = passo.alvo ? document.querySelector(`[data-tour="${passo.alvo}"]`) : null;
+    const alvo = () => (passo.alvo ? document.querySelector(`[data-tour="${passo.alvo}"]`) : null);
+    const medirSemMexer = () => {
+      if (!vivo) return;
+      const el = alvo();
+      if (!el) { setRect(null); return; }
+      const r = el.getBoundingClientRect();
+      setRect({ top: r.top - 6, left: r.left - 6, width: r.width + 12, height: r.height + 12 });
+    };
+    const entrar = () => {
+      if (!vivo) return;
+      const el = alvo();
       if (!el) {
         setRect(null);
-        if (tentativas++ < 20) t = setTimeout(medir, 150);   // ainda a carregar
+        if (tentativas++ < 25) t = setTimeout(entrar, 150);   // a pagina ainda esta a desenhar-se
         return;
       }
       const r = el.getBoundingClientRect();
-      const foraDoEcra = r.top < 60 || r.bottom > window.innerHeight - 200;
-      if (foraDoEcra && tentativas === 0) {
+      const foraDoEcra = r.top < 70 || r.bottom > window.innerHeight - 220;
+      if (foraDoEcra) {
         el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        tentativas++;
-        t = setTimeout(medir, 400);
-        return;
+        t = setTimeout(medirSemMexer, 450);   // espera o scroll acabar e mede uma vez
+      } else {
+        medirSemMexer();
       }
-      setRect({ top: r.top - 6, left: r.left - 6, width: r.width + 12, height: r.height + 12 });
     };
-    medir();
-    const re = () => { raf = requestAnimationFrame(medir); };
+    entrar();
+    const re = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(medirSemMexer); };
     window.addEventListener('resize', re);
     window.addEventListener('scroll', re, true);
-    return () => { clearTimeout(t); cancelAnimationFrame(raf); window.removeEventListener('resize', re); window.removeEventListener('scroll', re, true); };
+    return () => { vivo = false; clearTimeout(t); cancelAnimationFrame(raf); window.removeEventListener('resize', re); window.removeEventListener('scroll', re, true); };
   }, [ativo, passo, location.pathname]);
 
   if (!ativo || !passo) return null;
@@ -75,6 +85,12 @@ export default function TourDemo({ passos = [], chave = 'convecta_tour', ativo =
 
   return (
     <>
+      {/* Enquanto o guia esta aberto, a pagina por baixo nao recebe toques.
+          O guia e para ver; a unica coisa que se carrega e Seguinte, Anterior
+          ou Saltar. Um toque fora do cartao abria coisas a meio do passo. */}
+      <div aria-hidden="true" onClick={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}
+        style={{ position: 'fixed', inset: 0, zIndex: 1099, background: 'transparent', touchAction: 'none' }} />
+
       {/* O foco: um rectangulo transparente com uma sombra enorme a volta.
           Sem elemento, fica so a sombra a escurecer a pagina. */}
       <div aria-hidden="true" style={{
