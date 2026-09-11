@@ -4,6 +4,7 @@ import { CalendarRange, CheckCircle2, XCircle, Trash2, Plus, Zap } from 'lucide-
 import { useStore, useAuth } from '@/hooks/useStore';
 import AvisoPush from '@/components/AvisoPush';
 import AdminLayout from '@/components/AdminLayout';
+import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, Badge, Avatar, Button, EmptyState, Modal } from '@/components/ui';
 import dataService from '@/lib/dataService';
@@ -188,7 +189,10 @@ export default function AdminAppointments() {
             </div>
             <p>{appts.length} {appts.length === 1 ? 'marcação' : 'marcações'} a apresentar.</p>
           </div>
-          <Button variant="primary" onClick={() => navigate('/admin/agenda')}><Plus size={16} /> Nova marcação</Button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <BotaoAtualizar />
+            <Button variant="primary" onClick={() => navigate('/admin/agenda')}><Plus size={16} /> Nova marcação</Button>
+          </div>
         </div>
       </div>
       <PageInfo page="marcacoes" />

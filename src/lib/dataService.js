@@ -16,18 +16,39 @@ const EMOJI_AVISO = {
 // e o barbeiro continuava a ver "Confirmada" ate recarregar a pagina — e a
 // guardar o lugar a alguem que ja nao vinha.
 let _ultimoRefresco = 0;
-async function refrescarSeVelho(minimoSegundos = 45) {
+let _aAtualizar = false;
+const _ouvintesRefresco = new Set();
+
+export function aoAtualizar(fn) { _ouvintesRefresco.add(fn); return () => _ouvintesRefresco.delete(fn); }
+export function ultimoRefresco() { return _ultimoRefresco; }
+export function estaAAtualizar() { return _aAtualizar; }
+function _avisar() { _ouvintesRefresco.forEach(fn => { try { fn(); } catch {} }); }
+
+// Ir buscar a agenda toda de 30 em 30 segundos, o dia inteiro, era a forma
+// mais cara possivel de quase nunca descobrir nada: quase sempre vinha
+// exactamente o mesmo, e no plano Free os 5 GB de trafego esgotados poem a
+// base de dados em leitura apenas — as marcacoes param de entrar. Agora
+// atualiza quando o barbeiro volta ao painel, e quando ele pede.
+export async function atualizarAgora() {
+  if (_aAtualizar) return;
+  _aAtualizar = true;
+  _avisar();
+  try {
+    await dataService.refreshAppointments();
+    _ultimoRefresco = Date.now();
+  } catch { /* rede em baixo: fica o que ja estava, e o botao volta ao normal */ }
+  finally { _aAtualizar = false; _avisar(); }
+}
+
+async function refrescarSeVelho(minimoSegundos = 15) {
   if (document.hidden) return;
-  const agora = Date.now();
-  if (agora - _ultimoRefresco < minimoSegundos * 1000) return;
-  _ultimoRefresco = agora;
-  try { await dataService.refreshAppointments(); } catch { /* rede em baixo */ }
+  if (Date.now() - _ultimoRefresco < minimoSegundos * 1000) return;
+  await atualizarAgora();
 }
 
 if (typeof document !== 'undefined') {
-  document.addEventListener('visibilitychange', () => refrescarSeVelho(5));
-  window.addEventListener('focus', () => refrescarSeVelho(5));
-  setInterval(() => refrescarSeVelho(45), 30000);
+  document.addEventListener('visibilitychange', () => refrescarSeVelho(15));
+  window.addEventListener('focus', () => refrescarSeVelho(15));
 }
 
 function notifFromRow(row) {

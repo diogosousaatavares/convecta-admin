@@ -1,6 +1,7 @@
 import React from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
+import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 
 const PAGE_BY_TITLE = {
   'Bloqueios': 'bloqueios', 'Encaixes': 'encaixes', 'Lista de Espera': 'listaEspera', 'Aniversários': 'aniversarios',
@@ -27,7 +28,10 @@ export default function AdminPage({ title, subtitle, actions, children, info, pa
             </div>
             {subtitle && <p>{subtitle}</p>}
           </div>
-          {actions}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <BotaoAtualizar />
+            {actions}
+          </div>
         </div>
       </div>
       <PageInfo page={page || PAGE_BY_TITLE[title]} />

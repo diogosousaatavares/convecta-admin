@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
+import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import PageInfo from '@/components/admin/PageInfo';
 import AgendaCalendar from '@/components/admin/AgendaCalendar';
 import AgendaSidebar from '@/components/admin/AgendaSidebar';
@@ -165,8 +166,9 @@ export default function Agenda() {
   return (
     <AdminLayout>
       <div className="page-head">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <h1>Agenda</h1>
+          <div style={{ marginLeft: 'auto' }}><BotaoAtualizar /></div>
           <PageInfo
             description="Vista diária de todas as marcações organizadas por hora e profissional. Permite confirmar marcações, fazer checkout, criar bloqueios, registar encaixes e gerir o fluxo operacional do dia em tempo real."
             impact="A agenda é o coração operacional do negócio. Cada slot vazio é receita perdida. Gerir bem a agenda significa maximizar a ocupação e garantir que nenhum cliente fica esquecido."

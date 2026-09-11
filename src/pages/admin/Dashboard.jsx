@@ -4,6 +4,7 @@ import { Bell, CalendarDays, Users, UserPlus, CreditCard, TrendingUp, TrendingDo
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { useAuth, useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
+import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, Badge, Avatar, EmptyState } from '@/components/ui';
 import { formatPrice, formatDate, formatDateNum, todayStr, addDays, getDowShort } from '@/lib/format';
@@ -175,11 +176,14 @@ export default function Dashboard() {
             <h1 style={{ marginBottom: 2 }}>Dashboard</h1>
             <p style={{ margin: 0 }}>{formatDateNum(range.from)}{range.from !== range.to ? ` → ${formatDateNum(range.to)}` : ''}</p>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <BotaoAtualizar />
           <div className="period-tabs">
             <button className={period === 'today' ? 'active' : ''} onClick={() => setPeriod('today')}>Hoje</button>
             <button className={period === 'week' ? 'active' : ''} onClick={() => setPeriod('week')}>Semana</button>
             <button className={period === 'month' ? 'active' : ''} onClick={() => setPeriod('month')}>Mês</button>
             <button className={period === 'custom' ? 'active' : ''} onClick={() => setPeriod('custom')}>Custom</button>
+          </div>
           </div>
         </div>
         {period === 'custom' && <div className="flex gap-12 mb-16" style={{ flexWrap: 'wrap' }}><div className="field" style={{ marginBottom: 0 }}><label className="label">De</label><input type="date" className="input" value={custom.from} onChange={e => setCustom(f => ({ ...f, from: e.target.value }))} /></div><div className="field" style={{ marginBottom: 0 }}><label className="label">Até</label><input type="date" className="input" value={custom.to} onChange={e => setCustom(f => ({ ...f, to: e.target.value }))} /></div></div>}
