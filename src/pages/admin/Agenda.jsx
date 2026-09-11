@@ -36,7 +36,14 @@ function rotuloEstado(a) {
 export default function Agenda() {
   const data = useStore();
   const toast = useToast();
-  const [date, setDate] = useState(todayStr());
+  const [date, setDate] = useState(() => {
+    // Vindo da demo do site: abre no dia da marcacao que a pessoa fez la.
+    try {
+      const d = sessionStorage.getItem('convecta_agenda_dia');
+      if (d) { sessionStorage.removeItem('convecta_agenda_dia'); return d; }
+    } catch {}
+    return todayStr();
+  });
   const [mode, setMode] = useState('grid');
   const [blockMode, setBlockMode] = useState(false);
   const [selected, setSelected] = useState(null);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useStore'
 import { supabase, sessaoPersistente, aplicarPreferenciaSessao } from '@/lib/supabase'
 import FundoLogin from '@/components/FundoLogin'
@@ -79,6 +79,7 @@ export default function LoginPage() {
   }, [])
 
   const [pedirDados, setPedirDados] = useState(false)
+  const location = useLocation()
   async function entrarNaDemo() {
     if (!jaPediuDemo()) { setPedirDados(true); return }
     setError(''); setLoadingDemo(true)
@@ -90,6 +91,21 @@ export default function LoginPage() {
       setError('A demonstração não está disponível neste momento.')
     } finally { setLoadingDemo(false) }
   }
+
+  // Vindo do site da demo depois de marcar: entra sozinho. O contacto ja foi
+  // deixado la — nao se pede duas vezes.
+  useEffect(() => {
+    if (!demo) return
+    const q = new URLSearchParams(location.search)
+    if (q.get('demo') !== '1') return
+    if (q.get('contacto') === 'ok') { try { localStorage.setItem('convecta_demo_pedido', '1') } catch {} }
+    // A agenda abre no dia da marcacao que a pessoa acabou de fazer no site —
+    // e a marcacao dela que ela quer ver, nao a de hoje.
+    const dia = q.get('dia')
+    if (dia && /^\d{4}-\d{2}-\d{2}$/.test(dia)) { try { sessionStorage.setItem('convecta_agenda_dia', dia) } catch {} }
+    entrarNaDemo()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demo])
 
   const [forgotOpen, setForgotOpen] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
