@@ -6,6 +6,7 @@ import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import PageInfo from '@/components/admin/PageInfo';
 import AgendaCalendar from '@/components/admin/AgendaCalendar';
 import AgendaSidebar from '@/components/admin/AgendaSidebar';
+import FaixaDias from '@/components/admin/FaixaDias';
 import { Card, Badge, Avatar, Button, EmptyState, Modal } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
@@ -180,22 +181,32 @@ export default function Agenda() {
       <PageInfo page="agenda" />
       <div className="agenda-toolbar">
         <div className="ag-tb-left">
-          <button className="ag-nav-btn" aria-label="Dia anterior" onClick={() => shift(-1)} title="Dia anterior"><ChevronLeft size={18} /></button>
-          <button className="ag-nav-btn" aria-label="Dia seguinte" onClick={() => shift(1)} title="Dia seguinte"><ChevronRight size={18} /></button>
-          <Button size="sm" variant="secondary" onClick={() => setDate(todayStr())}>Hoje</Button>
-          <Button size="sm" variant="primary" onClick={() => setQuickOpen(true)}><Plus size={15} /> Encaixe</Button>
-          <button className="btn-gold-pill btn-sm" onClick={() => setVendaOpen(true)}><ShoppingBag size={15} /> Venda</button>
+          <div className="ag-tb-nav">
+            <button className="ag-nav-btn" aria-label="Dia anterior" onClick={() => shift(-1)} title="Dia anterior"><ChevronLeft size={18} /></button>
+            <Button size="sm" variant="secondary" onClick={() => setDate(todayStr())}>Hoje</Button>
+            <button className="ag-nav-btn" aria-label="Dia seguinte" onClick={() => shift(1)} title="Dia seguinte"><ChevronRight size={18} /></button>
+          </div>
+          <div className="ag-tb-actions">
+            <Button size="sm" variant="primary" onClick={() => setQuickOpen(true)}><Plus size={15} /> Encaixe</Button>
+            <button className="btn-gold-pill btn-sm" onClick={() => setVendaOpen(true)}><ShoppingBag size={15} /> Venda</button>
+          </div>
         </div>
         <h2 className="ag-date">{formatDate(date)}</h2>
         <div className="ag-tb-right">
+          {/* Eram "Dia / Semana / Mes", com dois botoes que so diziam "em breve".
+              Um botao que nao faz nada e pior do que nao existir — sobretudo
+              numa demonstracao. Passam a ser as tres vistas que existem mesmo. */}
           <div className="ag-viewseg">
             <button className={mode === 'grid' ? 'active' : ''} onClick={() => setMode('grid')}>Dia</button>
-            <button onClick={() => { setMode('grid'); toast.info('Vista de semana em breve'); }}>Semana</button>
-            <button onClick={() => { setMode('grid'); toast.info('Vista de mês em breve'); }}>Mês</button>
+            <button className={mode === 'list' ? 'active' : ''} onClick={() => setMode('list')}>Lista</button>
+            <button className={mode === 'waitlist' ? 'active' : ''} onClick={() => setMode('waitlist')}>Espera</button>
           </div>
-          <button className="ag-ico-btn" aria-label="Imprimir agenda" onClick={() => window.print()} title="Imprimir agenda"><Printer size={16} /></button>
+          <button className="ag-ico-btn ag-so-desktop" aria-label="Imprimir agenda" onClick={() => window.print()} title="Imprimir agenda"><Printer size={16} /></button>
         </div>
       </div>
+
+      {/* So no telemovel: o calendario do mes fica escondido e entra a faixa. */}
+      <FaixaDias date={date} setDate={setDate} apptsByDate={apptsByDate} blockMode={blockMode} setBlockMode={setBlockMode} />
 
       <div className="agenda-wrap">
         <div>
