@@ -909,12 +909,9 @@ const dataService = {
     recomputeCustomer(a.customerId);
 
     if (a.usaRecompensa) {
-      const cli = state.customers.find(c => c.id === a.customerId);
-      if (cli?.loyalty) {
-        cli.loyalty.rewardsEarned = Math.max(0, (cli.loyalty.rewardsEarned || 0) - 1);
-        await guardarFidelidade(cli);
-      }
-      // Um corte gratis nao carimba: senao o cartao alimentava-se a si
+      // A recompensa ja foi gasta no momento da marcacao, pela base de dados.
+      // Descontar outra vez aqui tirava dois premios por um corte.
+      // Um corte gratis tambem nao carimba: senao o cartao alimentava-se a si
       // proprio e o corte gratis dava direito ao seguinte, para sempre.
     } else {
       await addLoyaltyStamp(a, a.payment.at);
