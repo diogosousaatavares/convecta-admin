@@ -60,6 +60,18 @@ function notifFromRow(row) {
   };
 }
 import { buildSnapshot, assertNoConflict, canTransition, appointmentDuration } from '@/lib/domain/appointments';
+
+// A base de dados tem uma barreira que impede duas marcacoes em cima uma da
+// outra com o mesmo profissional. Quando ela dispara, o Postgres devolve
+// 23P01 e um texto que fala de "exclusion constraint" — que nao diz nada a um
+// barbeiro. Traduz-se aqui, uma vez, para nao andar espalhado pelos ecras.
+function traduzirErro(error) {
+  if (!error) return error;
+  if (error.code === '23P01') {
+    return new Error('Esse horário já está ocupado com esse profissional. Escolhe outra hora.');
+  }
+  return error instanceof Error ? error : new Error(error.message || 'Erro desconhecido');
+}
 import { getCustomerStats } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
 import { localDateStr } from '@/lib/domain/dates';
@@ -703,7 +715,7 @@ const dataService = {
     const merged = { ...state.business, ...updates };
     const row = bizToRow(merged);
     const { data, error } = await supabase.from('businesses').update(row).eq('id', BUSINESS_ID).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     state.business = { ...bizFromRow(data), config: state.business.config };
     notify(); return state.business;
   },
@@ -714,14 +726,14 @@ const dataService = {
   async createProfessional(data) {
     const row = proToRow({ rating: 0, reviewCount: 0, specialties: [], photoUrl: '', commission: 30, ...data });
     const { data: created, error } = await supabase.from('professionals').insert(row).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const p = proFromRow(created); state.professionals.push(p); notify(); return p;
   },
   async updateProfessional(id, updates) {
     const existing = state.professionals.find(p => p.id === id);
     const row = proToRow({ ...existing, ...updates });
     const { data, error } = await supabase.from('professionals').update(row).eq('id', id).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const p = proFromRow(data);
     const i = state.professionals.findIndex(x => x.id === id);
     if (i >= 0) state.professionals[i] = p;
@@ -729,7 +741,7 @@ const dataService = {
   },
   async deleteProfessional(id) {
     const { error } = await supabase.from('professionals').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     state.professionals = state.professionals.filter(p => p.id !== id); notify(); return true;
   },
 
@@ -740,14 +752,14 @@ const dataService = {
   async createService(data) {
     const row = svcToRow({ isActive: true, isPopular: false, ...data });
     const { data: created, error } = await supabase.from('services').insert(row).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const s = svcFromRow(created); state.services.push(s); notify(); return s;
   },
   async updateService(id, updates) {
     const existing = state.services.find(s => s.id === id);
     const row = svcToRow({ ...existing, ...updates });
     const { data, error } = await supabase.from('services').update(row).eq('id', id).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const s = svcFromRow(data);
     const i = state.services.findIndex(x => x.id === id);
     if (i >= 0) state.services[i] = s;
@@ -755,7 +767,7 @@ const dataService = {
   },
   async deleteService(id) {
     const { error } = await supabase.from('services').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     state.services = state.services.filter(s => s.id !== id); notify(); return true;
   },
 
@@ -766,7 +778,7 @@ const dataService = {
   async createCustomer(data) {
     const row = custToRow({ totalAppointments: 0, totalSpent: 0, joinedAt: localDateStr(new Date()), lastVisit: null, loyalty: { stamps: 0, totalStamps: 0, rewardsEarned: 0, points: 0 }, pendingStamp: null, pendingReview: null, balance: 0, ...data });
     const { data: created, error } = await supabase.from('customers').insert(row).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const c = custFromRow(created); state.customers.push(c); notify(); return c;
   },
   async updateCustomer(id, updates) {
@@ -774,7 +786,7 @@ const dataService = {
     const merged = { ...existing, ...updates };
     const row = custToRow(merged);
     const { data, error } = await supabase.from('customers').update(row).eq('id', id).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const c = custFromRow(data);
     const i = state.customers.findIndex(x => x.id === id);
     if (i >= 0) state.customers[i] = c;
@@ -802,7 +814,7 @@ const dataService = {
         })();
     const row = apptToRow(base);
     const { data: created, error } = await supabase.from('appointments').insert(row).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const a = apptFromRow(created); state.appointments.push(a); notify(); return a;
   },
   async updateAppointment(id, updates) {
@@ -814,7 +826,7 @@ const dataService = {
       await addLoyaltyStamp(state.appointments[i]);
     }
     const { error } = await supabase.from('appointments').update(apptToRow(state.appointments[i])).eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     notify(); return state.appointments[i];
   },
   async confirmAppointment(id) {
@@ -822,7 +834,7 @@ const dataService = {
     if (!a || a.status !== 'pending' || !canTransition(a.status, 'confirmed')) return a;
     a.status = 'confirmed'; a.confirmedAt = new Date().toISOString();
     const { error } = await supabase.from('appointments').update(apptToRow(a)).eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
 
     // Avisar o cliente. Se falhar, a marcação fica confirmada na mesma — ele
     // vê-a no site; só não recebeu o toque no telemóvel.
@@ -872,7 +884,7 @@ const dataService = {
     }
     a.status = 'cancelled'; a.cancelledAt = new Date().toISOString(); a.cancelledBy = 'barbearia';
     const { error } = await supabase.from('appointments').update(apptToRow(a)).eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
 
     // Quem cancela sabe; quem fica à espera é que precisa de ser avisado.
     if (a.customerId) {
@@ -895,7 +907,7 @@ const dataService = {
   },
   async deleteAppointment(id) {
     const { error } = await supabase.from('appointments').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     state.appointments = state.appointments.filter(a => a.id !== id); notify(); return true;
   },
   async checkoutAppointment(apptId, payData) {
@@ -957,7 +969,7 @@ const dataService = {
     a.rescheduleHistory = [...(a.rescheduleHistory||[]), { from: { date: a.date, startTime: a.startTime, endTime: a.endTime }, to: { date: newDate, startTime: newStartTime, endTime }, at: new Date().toISOString() }];
     a.date = newDate; a.startTime = newStartTime; a.endTime = endTime;
     const { error } = await supabase.from('appointments').update(apptToRow(a)).eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     notify(); return a;
   },
   markAttended(id) {
@@ -976,7 +988,7 @@ const dataService = {
   async openCashSession(openingBalance) {
     const row = { business_id: BUSINESS_ID, opening_balance: Number(openingBalance)||0, status: 'open', opened_at: new Date().toISOString() };
     const { data, error } = await supabase.from('cash_sessions').insert(row).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const s = csFromRow(data); state.cashSessions.unshift(s); notify(); return s;
   },
   async closeCashSession(id, countedCash, notes) {
@@ -992,12 +1004,12 @@ const dataService = {
   async addCashMovement(data) {
     const row = { business_id: BUSINESS_ID, cash_session_id: data.sessionId || data.cashSessionId, payment_id: data.paymentId || null, type: data.type, amount: data.amount || 0, description: data.description || null };
     const { data: created, error } = await supabase.from('cash_movements').insert(row).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const m = cmFromRow(created); state.cashMovements.push(m); notify(); return m;
   },
   async deleteCashMovement(id) {
     const { error } = await supabase.from('cash_movements').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     state.cashMovements = state.cashMovements.filter(m => m.id !== id); notify(); return true;
   },
 
@@ -1006,14 +1018,14 @@ const dataService = {
   async createProduct(data) {
     const row = prodToRow({ stock: 0, minStock: 5, cost: 0, ...data });
     const { data: created, error } = await supabase.from('products').insert(row).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const p = prodFromRow(created); state.products.push(p); notify(); return p;
   },
   async updateProduct(id, updates) {
     const existing = state.products.find(p => p.id === id);
     const row = prodToRow({ ...existing, ...updates });
     const { data, error } = await supabase.from('products').update(row).eq('id', id).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const p = prodFromRow(data);
     const i = state.products.findIndex(x => x.id === id);
     if (i >= 0) state.products[i] = p;
@@ -1021,7 +1033,7 @@ const dataService = {
   },
   async deleteProduct(id) {
     const { error } = await supabase.from('products').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     state.products = state.products.filter(p => p.id !== id); notify(); return true;
   },
   async adjustStock(id, delta, reason) {
@@ -1044,20 +1056,20 @@ const dataService = {
     const row = { business_id: BUSINESS_ID, name: form.name, fields: form.questions || form.fields || [], is_active: form.active !== false };
     if (existing) {
       const { data, error } = await supabase.from('forms').update(row).eq('id', form.id).select().single();
-      if (error) throw error;
+      if (error) throw traduzirErro(error);
       const f = formFromRow(data);
       const i = state.forms.findIndex(x => x.id === form.id);
       if (i >= 0) state.forms[i] = f;
       notify(); return f;
     } else {
       const { data, error } = await supabase.from('forms').insert(row).select().single();
-      if (error) throw error;
+      if (error) throw traduzirErro(error);
       const f = formFromRow(data); state.forms.push(f); notify(); return f;
     }
   },
   async deleteForm(id) {
     const { error } = await supabase.from('forms').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     state.forms = state.forms.filter(f => f.id !== id); notify(); return true;
   },
 
@@ -1066,14 +1078,14 @@ const dataService = {
   async addWaitlist(data) {
     const row = { business_id: BUSINESS_ID, customer_id: data.customerId || null, service_id: data.serviceId || null, preferred_date: data.preferredDate || null, status: 'waiting', metadata: { priority: data.priority || 'normal' } };
     const { data: created, error } = await supabase.from('waitlist').insert(row).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const w = wlFromRow(created); state.waitlist.push(w); notify(); return w;
   },
   async updateWaitlist(id, updates) {
     const existing = state.waitlist.find(w => w.id === id);
     const merged = { ...existing, ...updates };
     const { data, error } = await supabase.from('waitlist').update({ status: merged.status, preferred_date: merged.preferredDate || null, metadata: { priority: merged.priority } }).eq('id', id).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const w = wlFromRow(data);
     const i = state.waitlist.findIndex(x => x.id === id);
     if (i >= 0) state.waitlist[i] = w;
@@ -1081,7 +1093,7 @@ const dataService = {
   },
   async removeWaitlist(id) {
     const { error } = await supabase.from('waitlist').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     state.waitlist = state.waitlist.filter(w => w.id !== id); notify(); return true;
   },
 
@@ -1089,12 +1101,12 @@ const dataService = {
   listSuppliers() { return Promise.resolve([...state.suppliers]); },
   async createSupplier(data) {
     const { data: created, error } = await supabase.from('suppliers').insert({ business_id: BUSINESS_ID, name: data.name, contact: data.contact || null, email: data.email || null, phone: data.phone || null, is_active: true }).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const s = supFromRow(created); state.suppliers.push(s); notify(); return s;
   },
   async updateSupplier(id, updates) {
     const { data, error } = await supabase.from('suppliers').update({ name: updates.name, contact: updates.contact || null, email: updates.email || null, phone: updates.phone || null }).eq('id', id).select().single();
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     const s = supFromRow(data);
     const i = state.suppliers.findIndex(x => x.id === id);
     if (i >= 0) state.suppliers[i] = s;
@@ -1102,7 +1114,7 @@ const dataService = {
   },
   async deleteSupplier(id) {
     const { error } = await supabase.from('suppliers').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw traduzirErro(error);
     state.suppliers = state.suppliers.filter(s => s.id !== id); notify(); return true;
   },
 
