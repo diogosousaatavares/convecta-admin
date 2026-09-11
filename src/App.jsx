@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { moduloIndisponivel } from '@/lib/modulos';
+import { ESCONDIDOS_EM_DEMO } from '@/components/AdminLayout';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -96,6 +97,9 @@ function AdminRoute({ children }) {
   // Tirar do menu nao chega: um atalho guardado ou um endereco escrito a mao
   // continuava a abrir o modulo. A lista esta em lib/modulos.js.
   if (moduloIndisponivel(location.pathname)) return <Navigate to="/admin" replace />;
+  if (store?.business?._settings?.demo?.ativo === true && ESCONDIDOS_EM_DEMO.includes(location.pathname)) {
+    return <Navigate to="/admin" replace />;
+  }
   return <Suspense fallback={<Spinner />}>{children}</Suspense>;
 }
 

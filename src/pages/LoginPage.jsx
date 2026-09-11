@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useStore'
 import { supabase, sessaoPersistente, aplicarPreferenciaSessao } from '@/lib/supabase'
@@ -66,6 +66,27 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [loadingGoogle, setLoadingGoogle] = useState(false)
   const [lembrar, setLembrar] = useState(sessaoPersistente)
+
+  // A barbearia de demonstracao tem as credenciais no settings publico. Se
+  // existir, aparece um botao; se nao, nada muda neste ecra.
+  const [demo, setDemo] = useState(null)
+  const [loadingDemo, setLoadingDemo] = useState(false)
+  useEffect(() => {
+    supabase.from('businesses_public').select('settings').eq('slug', 'demo').maybeSingle()
+      .then(({ data }) => { const d = data?.settings?.demo; if (d?.ativo && d.adminEmail && d.adminPassword) setDemo(d) })
+      .catch(() => {})
+  }, [])
+
+  async function entrarNaDemo() {
+    setError(''); setLoadingDemo(true)
+    try {
+      const s = await login(demo.adminEmail, demo.adminPassword)
+      if (s.role !== 'admin') throw new Error('A conta de demonstração não está configurada.')
+      navigate('/admin')
+    } catch (err) {
+      setError('A demonstração não está disponível neste momento.')
+    } finally { setLoadingDemo(false) }
+  }
 
   const [forgotOpen, setForgotOpen] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
@@ -196,6 +217,25 @@ export default function LoginPage() {
               <div style={{ fontSize:29, fontWeight:700, color:'#F2EDE4', letterSpacing:'-.022em' }}>Convecta</div>
               <div style={{ fontSize:14, color:'#8A8272', marginTop:4 }}>Painel de Administração</div>
             </div>
+
+            {demo && (
+              <button type="button" onClick={entrarNaDemo} disabled={loadingDemo || loading}
+                className="cv-entrar"
+                style={{
+                  width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10,
+                  padding:'13px 16px', borderRadius:11, marginBottom:12,
+                  border:`1px solid ${GOLD}55`, background:`${GOLD}14`,
+                  color:GOLD_HI, fontSize:14.5, fontWeight:700, cursor: loadingDemo ? 'wait' : 'pointer',
+                  opacity: loadingDemo ? .65 : 1,
+                }}>
+                {loadingDemo ? 'A entrar…' : 'Ver demonstração  →'}
+              </button>
+            )}
+            {demo && (
+              <div style={{ fontSize:12, color:'#8A8272', textAlign:'center', marginBottom:18 }}>
+                Sem registo. Os dados voltam ao início de hora a hora.
+              </div>
+            )}
 
             {/* Botão Google */}
             <button type="button" onClick={loginWithGoogle} disabled={loadingGoogle || loading}

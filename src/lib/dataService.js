@@ -3,7 +3,7 @@
 // API pública idêntica — componentes não precisam de mudar.
 
 import { supabase } from '@/lib/supabase';
-import { enviarPush, EMOJI, corpoDaMarcacao } from '@/lib/push';
+import { enviarPush, EMOJI, corpoDaMarcacao, definirModoDemo } from '@/lib/push';
 
 // Cada tipo de aviso tem o seu sinal, pela mesma razao das outras
 // notificacoes: distinguir-se antes de ser lido.
@@ -315,6 +315,7 @@ function bizFromRow(row) {
     // nao conhece. Guardamos o settings original para as devolver intactas
     // ao gravar - sem isto, gravar o telefone apagava o tema da barbearia.
     _settings: s,
+    demo: s.demo?.ativo === true,
   };
 }
 function bizToRow(biz) {
@@ -625,6 +626,7 @@ async function init() {
   }
   BUSINESS_ID = biz.id;
   state.business = bizFromRow(biz);
+  definirModoDemo(state.business.demo);
 
   // 2. Config (merge into business.config)
   const { data: configRow } = await supabase.from('config').select('*').eq('business_id', BUSINESS_ID).maybeSingle();

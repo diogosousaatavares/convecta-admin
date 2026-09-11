@@ -96,7 +96,13 @@ export async function garantirPush({ businessId, userId, papel }) {
   }
 }
 
+// Na demonstracao a conta de barbeiro e partilhada por toda a gente que
+// experimenta: ninguem quer o telemovel de um estranho a tocar.
+export let modoDemo = false;
+export function definirModoDemo(v) { modoDemo = !!v; }
+
 async function inscrever({ businessId, userId, papel }) {
+  if (modoDemo) return;
   const reg = await registarServiceWorker();
   let sub = await reg.pushManager.getSubscription();
   if (!sub) {

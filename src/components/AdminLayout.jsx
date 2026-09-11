@@ -117,11 +117,23 @@ const GROUPS = GROUPS_TODOS
   .map(g => g.items ? { ...g, items: g.items.filter(it => !moduloIndisponivel(it.to)) } : g)
   .filter(g => !g.items || g.items.length > 0);
 
+// Na demonstracao a conta e publica. Se alguem lhe mudar a palavra-passe ou
+// apagar utilizadores, tranca a demo a toda a gente ate a proxima reposicao.
+export const ESCONDIDOS_EM_DEMO = ['/admin/definicoes/seguranca', '/admin/definicoes/utilizadores'];
+function gruposPara(demo) {
+  if (!demo) return GROUPS;
+  return GROUPS
+    .map(g => g.items ? { ...g, items: g.items.filter(it => !ESCONDIDOS_EM_DEMO.includes(it.to)) } : g)
+    .filter(g => !g.items || g.items.length > 0);
+}
+
 export default function AdminLayout({ children }) {
   const data = useStore();
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const emDemo = data.business?._settings?.demo?.ativo === true;
+  const grupos = gruposPara(emDemo);
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [query, setQuery] = useState('');
@@ -200,7 +212,7 @@ export default function AdminLayout({ children }) {
         <div className="sub">Painel de gestão</div>
       </div>
       <nav className="admin-nav">
-        {GROUPS.map((g, i) => {
+        {grupos.map((g, i) => {
           if (g.type === 'item') {
             const Icon = g.icon;
             return (
@@ -275,6 +287,14 @@ export default function AdminLayout({ children }) {
         </form>
       </Modal>
       <main className="admin-content">
+        {emDemo && (
+          <div style={{
+            background: 'var(--gold)', color: '#100E0B', fontSize: 13, fontWeight: 700,
+            textAlign: 'center', padding: '7px 12px', borderRadius: 8, marginBottom: 14,
+          }}>
+            Demonstração — mexe à vontade. Os dados voltam ao início de hora a hora.
+          </div>
+        )}
         <div className="admin-topbar">
           <div className="admin-topbar-left">
             <button className="btn btn-ghost btn-icon admin-topbar-hamburger" onClick={() => {
