@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
+import { moduloIndisponivel } from '@/lib/modulos';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -86,11 +87,15 @@ const Spinner = () => (
 
 function AdminRoute({ children }) {
   const store = useStore();
+  const location = useLocation();
   const businessId = store?.business?.id;
   useRealtimeNotifications(businessId);
   const { isAuthLoading, isAdmin } = useAuth();
   if (isAuthLoading) return <Spinner />;
   if (!isAdmin) return <Navigate to="/entrar" replace />;
+  // Tirar do menu nao chega: um atalho guardado ou um endereco escrito a mao
+  // continuava a abrir o modulo. A lista esta em lib/modulos.js.
+  if (moduloIndisponivel(location.pathname)) return <Navigate to="/admin" replace />;
   return <Suspense fallback={<Spinner />}>{children}</Suspense>;
 }
 

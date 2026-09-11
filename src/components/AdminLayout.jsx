@@ -4,7 +4,9 @@ import { LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog,
 import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
-const GROUPS = [
+import { moduloIndisponivel } from '@/lib/modulos';
+
+const GROUPS_TODOS = [
   { type: 'item', to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
 
   { type: 'group', label: 'Agenda', icon: CalendarDays, items: [
@@ -107,6 +109,13 @@ const GROUPS = [
     { to: '/admin/definicoes/parametros', label: 'Parâmetros' }
   ]}
 ];
+
+// Os modulos que ainda nao guardam nada nao aparecem no menu. Um grupo que
+// fique sem nenhum item desaparece por inteiro — um cabecalho vazio no menu
+// levanta a mesma pergunta que o modulo levantava.
+const GROUPS = GROUPS_TODOS
+  .map(g => g.items ? { ...g, items: g.items.filter(it => !moduloIndisponivel(it.to)) } : g)
+  .filter(g => !g.items || g.items.length > 0);
 
 export default function AdminLayout({ children }) {
   const data = useStore();
