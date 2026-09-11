@@ -19,9 +19,21 @@ import { useLocation, useNavigate } from 'react-router-dom';
 export default function TourDemo({ passos = [], chave = 'convecta_tour', ativo = true, aoTerminar }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [i, setI] = useState(() => {
-    try { return localStorage.getItem(chave) === 'feito' ? -1 : 0; } catch { return 0; }
+  // O passo actual fica guardado na sessao. No painel, cada pagina embrulha-se
+  // no AdminLayout, e mudar de pagina destroi e recria o layout — e o guia com
+  // ele. Sem isto, passar do passo 2 (agenda) para o 3 (caixa) recomecava no 1.
+  const chavePasso = chave + ':passo';
+  const [i, setIState] = useState(() => {
+    try {
+      if (localStorage.getItem(chave) === 'feito') return -1;
+      const guardado = Number(sessionStorage.getItem(chavePasso));
+      return Number.isInteger(guardado) && guardado >= 0 && guardado < passos.length ? guardado : 0;
+    } catch { return 0; }
   });
+  const setI = (n) => {
+    try { if (n >= 0) sessionStorage.setItem(chavePasso, String(n)); else sessionStorage.removeItem(chavePasso); } catch {}
+    setIState(n);
+  };
   const [rect, setRect] = useState(null);
   const passo = i >= 0 ? passos[i] : null;
 
