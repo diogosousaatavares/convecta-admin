@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
+import RelatorioContabilista from '@/components/admin/RelatorioContabilista';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice } from '@/lib/format';
 import { Card, Button, EmptyState } from '@/components/ui';
@@ -128,6 +129,10 @@ export default function Reports() {
         ))}
       </div>
       <PageInfo page="relatorios" />
+
+      <div style={{ marginBottom: 20 }}>
+        <RelatorioContabilista />
+      </div>
 
       {/* KPIs */}
       <div className="kpi-grid">

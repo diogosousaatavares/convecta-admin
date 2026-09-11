@@ -22,6 +22,15 @@ const IcoUsers = p => <Ico {...p} d={<><circle cx="9" cy="8" r="3.2"/><path d="M
 const IcoScissors = p => <Ico {...p} d={<><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></>}/>
 const IcoShield = p => <Ico {...p} d={<><path d="M12 2.5 20 6v6c0 4.5-3.2 8.4-8 9.5-4.8-1.1-8-5-8-9.5V6Z"/><path d="m9 12 2 2 4-4"/></>}/>
 
+const GoogleIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={{ flexShrink:0 }}>
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+)
+
 /* ── Coluna direita ──────────────────────────────────────────────────────── */
 const FEATURES = [
   { Icon: IcoCal,      titulo: 'Agenda',    sub: 'Marcações sempre à mão' },
@@ -55,6 +64,7 @@ export default function LoginPage() {
   const [verPass, setVerPass] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingGoogle, setLoadingGoogle] = useState(false)
   const [lembrar, setLembrar] = useState(sessaoPersistente)
 
   const [forgotOpen, setForgotOpen] = useState(false)
@@ -102,6 +112,21 @@ export default function LoginPage() {
   }
 
   const closeForgot = () => { setForgotOpen(false); setForgotSent(false); setForgotEmail(''); setForgotError('') }
+
+  async function loginWithGoogle() {
+    setLoadingGoogle(true)
+    setError('')
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + '/admin' },
+      })
+      if (error) setError(error.message || 'Erro ao entrar com Google.')
+    } catch (err) {
+      setError(err.message || 'Erro ao entrar com Google.')
+      setLoadingGoogle(false)
+    }
+  }
 
   const campo = {
     width:'100%', padding:'13px 14px 13px 44px', borderRadius:11,
@@ -172,9 +197,26 @@ export default function LoginPage() {
               <div style={{ fontSize:14, color:'#8A8272', marginTop:4 }}>Painel de Administração</div>
             </div>
 
+            {/* Botão Google */}
+            <button type="button" onClick={loginWithGoogle} disabled={loadingGoogle || loading}
+              className="cv-entrar"
+              style={{
+                width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10,
+                padding:'13px 16px', borderRadius:11, marginBottom:18,
+                border:'1px solid rgba(255,255,255,.10)',
+                background:'rgba(255,255,255,.06)',
+                color:'#EDE8DF', fontSize:14.5, fontWeight:600, cursor: loadingGoogle ? 'wait' : 'pointer',
+                opacity: loadingGoogle ? .65 : 1,
+              }}>
+              {loadingGoogle
+                ? <span style={{ fontSize:14, color:'#8A8272' }}>A redirecionar…</span>
+                : <><GoogleIcon size={18}/> Entrar com Google</>
+              }
+            </button>
+
             <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24 }}>
               <span style={{ flex:1, height:1, background:'rgba(201,162,39,.16)' }}/>
-              <span style={{ fontSize:12.5, color:'#7E7767' }}>Aceda à sua conta</span>
+              <span style={{ fontSize:12, color:'#5E584B' }}>ou com email</span>
               <span style={{ flex:1, height:1, background:'rgba(201,162,39,.16)' }}/>
             </div>
 
