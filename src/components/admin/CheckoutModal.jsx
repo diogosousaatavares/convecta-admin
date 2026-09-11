@@ -3,6 +3,7 @@ import { Banknote, CreditCard, Smartphone, Receipt, Gift, Tag } from 'lucide-rea
 import { Modal, Button } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice } from '@/lib/format';
+import { precoDaMarcacao } from '@/lib/domain/appointments';
 
 const METHODS = [
   { key: 'Dinheiro', icon: Banknote },
@@ -30,7 +31,11 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
     }
   }, [open, appointment?.id]);
 
-  const base = service?.price || 0;
+  // Era service?.price — o preco de HOJE. Se o servico mudou de preco desde a
+  // marcacao, ou se o cliente vem gastar o corte gratis, o ecra mostrava um
+  // valor e a caixa gravava outro.
+  const base = precoDaMarcacao(appointment, service);
+  const cortesGratis = appointment?.usaRecompensa === true;
 
   const voucher = useMemo(() => {
     if (!voucherCode) return null;
@@ -83,7 +88,10 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
             <div className="fw-600">{customer?.name || '—'}</div>
             <div className="text-sec text-xs">{service?.name} · {professional?.name}</div>
           </div>
-          <div className="text-gold fw-600" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>{formatPrice(base)}</div>
+          <div style={{ textAlign: 'right' }}>
+            <div className="text-gold fw-600" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>{formatPrice(base)}</div>
+            {cortesGratis && <div className="text-xs fw-600" style={{ color: 'var(--gold)' }}>🎁 Corte grátis do cartão</div>}
+          </div>
         </div>
 
         <label className="label">Método de pagamento</label>

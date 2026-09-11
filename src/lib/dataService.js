@@ -59,7 +59,7 @@ function notifFromRow(row) {
     createdAt: row.created_at,
   };
 }
-import { buildSnapshot, assertNoConflict, canTransition, appointmentDuration } from '@/lib/domain/appointments';
+import { buildSnapshot, assertNoConflict, canTransition, appointmentDuration, precoDaMarcacao } from '@/lib/domain/appointments';
 
 // A base de dados tem uma barreira que impede duas marcacoes em cima uma da
 // outra com o mesmo profissional. Quando ela dispara, o Postgres devolve
@@ -919,7 +919,7 @@ const dataService = {
     // Corte gratis: o cliente escolheu gastar um do cartao ao marcar. O
     // preco e zero e a recompensa e consumida — se so se descontasse na
     // cabeca do barbeiro, o mesmo corte gratis era usado tres vezes.
-    const base = a.usaRecompensa ? 0 : (a.unitPriceSnapshot ?? (svc?.price || 0));
+    const base = precoDaMarcacao(a, svc);
     const discountAmount = round2(Number(payData.discountAmount) || 0);
     const net = round2(Math.max(0, base - discountAmount));
     const tip = round2(Number(payData.tip) || 0);

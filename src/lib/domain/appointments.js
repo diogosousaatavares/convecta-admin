@@ -76,4 +76,20 @@ export function appointmentDuration(state, a) {
   return svc?.durationMinutes || toMinutes(a.endTime) - toMinutes(a.startTime) || 30;
 }
 
+// Preco a cobrar por uma marcacao. Uma regra so, usada pelo ecra de pagamento
+// e por quem grava — se cada lado decidir por si, o barbeiro ve um valor no
+// ecra e a caixa fica com outro, que foi exactamente o que acontecia:
+//
+//   • corte gratis do cartao -> zero, nao ha nada a cobrar
+//   • ha preco guardado na marcacao -> e esse, mesmo que o servico tenha
+//     mudado de preco entretanto. O que foi combinado com o cliente e o que
+//     estava na altura em que ele marcou
+//   • nao ha -> o preco actual do servico
+export function precoDaMarcacao(a, servico) {
+  if (a?.usaRecompensa) return 0;
+  const guardado = a?.unitPriceSnapshot;
+  if (guardado != null) return Number(guardado) || 0;
+  return Number(servico?.price || 0);
+}
+
 export { toMinutes, toTime };
