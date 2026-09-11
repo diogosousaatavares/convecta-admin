@@ -658,7 +658,7 @@ async function init() {
     fetchAll('waitlist', wlFromRow),
     fetchAll('suppliers', supFromRow),
     fetchAll('stock_movements', smFromRow),
-    fetchAll('commissions', commFromRow),
+    fetchAll('professional_commissions', commFromRow),
   ]);
 
   Object.assign(state, { professionals, services, customers, appointments, products, cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions });
@@ -870,7 +870,7 @@ const dataService = {
     if (!a || !canTransition(a.status, 'cancelled')) return a;
     if (a.status === 'completed' && a.payment) {
       state.commissions = (state.commissions || []).filter(c => c.appointmentId !== id);
-      await supabase.from('commissions').delete().eq('appointment_id', id);
+      await supabase.from('professional_commissions').delete().eq('appointment_id', id);
       if (a.loyaltyStamped) {
         const cust = state.customers.find(c => c.id === a.customerId);
         if (cust?.loyalty) {
@@ -931,12 +931,24 @@ const dataService = {
     a.payment = { ...payData, baseAmount: round2(base), discountAmount, net, tip, total, at: new Date().toISOString() };
     // Persist commission
     const commRow = { business_id: BUSINESS_ID, appointment_id: apptId, professional_id: a.professionalId, base_amount: net, percentage: pct, amount: commissionAmount, status: 'accrued', metadata: { professionalNameSnapshot: a.professionalNameSnapshot || pro?.name, serviceNameSnapshot: a.serviceNameSnapshot, tip } };
-    const { data: commCreated } = await supabase.from('commissions').insert(commRow).select().single();
-    const comm = commFromRow(commCreated);
+    // O erro desta gravacao nunca era lido. A tabela estava trocada com a do
+    // CRM e falhava sempre — nenhuma comissao chegou a ser gravada, e o ecra
+    // de Comissoes mostrava sempre vazio sem nunca dar sinal de nada.
+    const { data: commCreated, error: erroComissao } = await supabase
+      .from('professional_commissions').insert(commRow).select().single();
+    if (erroComissao) {
+      console.error('comissao nao gravada:', erroComissao.message);
+      // O pagamento fica feito; a comissao fica a faltar. Quem esta ao balcao
+      // tem de saber, senao descobre ao fim do mes quando paga a menos.
+      a.payment.comissaoPorGravar = true;
+    }
+    const comm = commCreated ? commFromRow(commCreated) : null;
     if (!state.commissions) state.commissions = [];
-    state.commissions.push(comm);
+    if (comm) state.commissions.push(comm);
+    // A percentagem fica gravada dentro da propria marcacao. Mudar a comissao
+    // de um barbeiro amanha nao altera o que ja foi feito hoje.
     a.payment.commission = { percentage: pct, baseAmount: net, commissionAmount };
-    a.payment.commissionId = comm?.id;
+    a.payment.commissionId = comm?.id || null;
     // Update appointment
     await supabase.from('appointments').update(apptToRow(a)).eq('id', apptId);
     recomputeCustomer(a.customerId);
