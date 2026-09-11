@@ -15,13 +15,20 @@ async function _enrichSession(user) {
     .eq('id', user.id)
     .maybeSingle();
 
+  // Sem linha em public.users nao ha barbearia nem papel: e um cliente do
+  // site, ou uma conta orfa. Antes assumia-se 'admin' e a pessoa entrava num
+  // painel vazio a pensar que estava avariado.
+  if (!userRow || !userRow.business_id) {
+    _session = null;
+    return;
+  }
   _session = {
     id: user.id,
     email: user.email,
-    name: userRow?.name || user.email,
-    role: userRow?.role || 'admin',
+    name: userRow.name || user.email,
+    role: userRow.role,
     type: 'admin',
-    businessId: userRow?.business_id,
+    businessId: userRow.business_id,
   };
 }
 
