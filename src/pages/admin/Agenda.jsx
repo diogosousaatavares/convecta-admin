@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
+import { useIsMobile } from '@/hooks/use-mobile';
 import AdminLayout from '@/components/AdminLayout';
 import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import PageInfo from '@/components/admin/PageInfo';
 import AgendaCalendar from '@/components/admin/AgendaCalendar';
 import AgendaSidebar from '@/components/admin/AgendaSidebar';
 import FaixaDias from '@/components/admin/FaixaDias';
+import AgendaTelemovel from '@/components/admin/AgendaTelemovel';
 import { Card, Badge, Avatar, Button, EmptyState, Modal } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
@@ -35,6 +37,7 @@ function rotuloEstado(a) {
 
 export default function Agenda() {
   const data = useStore();
+  const telemovel = useIsMobile();
   const toast = useToast();
   const [date, setDate] = useState(() => {
     // Vindo da demo do site: abre no dia da marcacao que a pessoa fez la.
@@ -171,8 +174,75 @@ export default function Agenda() {
 
   const sortedList = [...dayAppts].filter(a => !a.blocked).sort((a, b) => a.startTime.localeCompare(b.startTime));
 
+  // Lista e Lista de espera sao iguais no computador e no telemovel:
+  // ficam aqui uma vez so e cada um dos dois desenhos usa-as.
+  const corpoLista = (
+    <>
+            {mode === 'list' && (
+              <Card className="card-pad">
+                {sortedList.length === 0 ? (
+                  <EmptyState icon={() => <Clock />} title="Sem marcações" description="Não há marcações neste dia." />
+                ) : (
+                  <table className="table">
+                    <thead><tr><th>Hora</th><th>Cliente</th><th>Serviço</th><th>Barbeiro</th><th>Estado</th><th></th></tr></thead>
+                    <tbody>
+                      {sortedList.map(a => {
+                        const svc = data.services.find(s => s.id === a.serviceId);
+                        const cust = data.customers.find(c => c.id === a.customerId);
+                        const pro = data.professionals.find(p => p.id === a.professionalId);
+                        return (
+                          <tr key={a.id}>
+                            <td className="fw-600 text-gold">{a.startTime}</td>
+                            <td><div className="flex items-center gap-8"><Avatar name={cust?.name} /><div><div className="fw-600 text-sm">{cust?.name}</div><div className="text-sec text-xs">{a.bookingRef}</div></div></div></td>
+                            <td>{svc?.name}</td>
+                            <td>{pro?.name}</td>
+                            <td>
+                              <Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(a)}</Badge>
+                              {a.usaRecompensa && <Badge variant="gold" style={{ marginLeft: 6 }}>🎁 Grátis</Badge>}
+                            </td>
+                            <td>{a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)}>Confirmar</Button>}{a.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(a.id)}>Presença</Button>}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </Card>
+            )}
+            {mode === 'waitlist' && (
+              <Card className="card-pad">
+                <EmptyState icon={() => <Clock />} title="Lista de espera vazia" description="Quando houver clientes em espera por vagas, aparecem aqui." />
+              </Card>
+            )}
+    </>
+  );
+
   return (
     <AdminLayout>
+      {telemovel ? (
+        /* No telemovel a agenda e outra coisa: um profissional de cada vez,
+           o dia todo a vista, sem grelha larga nem barra lateral. */
+        <AgendaTelemovel
+          date={date}
+          setDate={setDate}
+          shift={shift}
+          appts={dayAppstNaGrelha}
+          apptsByDate={apptsByDate}
+          professionals={data.professionals}
+          services={data.services}
+          customers={data.customers}
+          blockMode={blockMode}
+          setBlockMode={setBlockMode}
+          onBlock={handleBlock}
+          onSelect={(a) => setSelected(a.id)}
+          mode={mode}
+          setMode={setMode}
+          onNovaMarcacao={() => setQuickOpen(true)}
+        >
+          {corpoLista}
+        </AgendaTelemovel>
+      ) : (
+        <>
       <div className="page-head">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <h1>Agenda</h1>
@@ -229,42 +299,7 @@ export default function Agenda() {
               onSelect={(a) => setSelected(a.id)}
             />
           )}
-          {mode === 'list' && (
-            <Card className="card-pad">
-              {sortedList.length === 0 ? (
-                <EmptyState icon={() => <Clock />} title="Sem marcações" description="Não há marcações neste dia." />
-              ) : (
-                <table className="table">
-                  <thead><tr><th>Hora</th><th>Cliente</th><th>Serviço</th><th>Barbeiro</th><th>Estado</th><th></th></tr></thead>
-                  <tbody>
-                    {sortedList.map(a => {
-                      const svc = data.services.find(s => s.id === a.serviceId);
-                      const cust = data.customers.find(c => c.id === a.customerId);
-                      const pro = data.professionals.find(p => p.id === a.professionalId);
-                      return (
-                        <tr key={a.id}>
-                          <td className="fw-600 text-gold">{a.startTime}</td>
-                          <td><div className="flex items-center gap-8"><Avatar name={cust?.name} /><div><div className="fw-600 text-sm">{cust?.name}</div><div className="text-sec text-xs">{a.bookingRef}</div></div></div></td>
-                          <td>{svc?.name}</td>
-                          <td>{pro?.name}</td>
-                          <td>
-                            <Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(a)}</Badge>
-                            {a.usaRecompensa && <Badge variant="gold" style={{ marginLeft: 6 }}>🎁 Grátis</Badge>}
-                          </td>
-                          <td>{a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)}>Confirmar</Button>}{a.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(a.id)}>Presença</Button>}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </Card>
-          )}
-          {mode === 'waitlist' && (
-            <Card className="card-pad">
-              <EmptyState icon={() => <Clock />} title="Lista de espera vazia" description="Quando houver clientes em espera por vagas, aparecem aqui." />
-            </Card>
-          )}
+          {corpoLista}
         </div>
 
         <AgendaSidebar
@@ -277,6 +312,8 @@ export default function Agenda() {
           setBlockMode={setBlockMode}
         />
       </div>
+        </>
+      )}
 
       {/* Detail modal */}
       <Modal open={!!selAppt} onClose={() => setSelected(null)} title={selAppt?.blocked ? 'Horário bloqueado' : 'Detalhe da marcação'}>
