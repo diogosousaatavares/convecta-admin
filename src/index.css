@@ -360,7 +360,7 @@ input, textarea, select { font-family: inherit; }
 }
 
 /* Admin Topbar */
-.admin-topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 60; flex-shrink: 0; margin: 0 -32px 28px; }
+.admin-topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 60; flex-shrink: 0; margin: 0 -32px 28px; width: calc(100% + 64px); max-width: none; }
 .admin-topbar-left, .admin-topbar-right, .admin-topbar-user { display: flex; align-items: center; }
 .admin-topbar-left { gap: 12px; }
 .admin-topbar-right { gap: 8px; }
@@ -391,7 +391,7 @@ input, textarea, select { font-family: inherit; }
 .admin-topbar-email { font-size: 13px; color: var(--text-sec); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 768px) {
   .admin-topbar-email { display: none; }
-  .admin-topbar { margin: 0 -16px 20px; padding: 0 16px; }
+  .admin-topbar { margin: 0 -16px 20px; padding: 0 16px; width: calc(100% + 32px); }
   .admin-topbar-hamburger { display: inline-flex; }
 }
 
@@ -1391,7 +1391,7 @@ html.theme-light .admin-layout {
 
   /* --- Topbar: esconder search bar, manter hamburger + logo + ações --- */
   .admin-search-wrap { display: none; }
-  .admin-topbar { margin: 0 -14px 16px; padding: 0 12px; height: 52px; }
+  .admin-topbar { margin: 0 -14px 16px; padding: 0 12px; height: 52px; width: calc(100% + 28px); }
   .admin-topbar-left { gap: 8px; flex: 1; min-width: 0; }
   .admin-topbar-right { flex-shrink: 0; gap: 6px; }
   .admin-topbar-logo { font-size: 14px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1585,4 +1585,133 @@ html.theme-light .admin-layout {
 @media (max-width: 560px) {
   .aviso-push { flex-wrap: wrap; }
   .aviso-push-btn { width: 100%; }
+}
+
+/* ============================================================
+   PAINEL NO TELEMÓVEL — comportar-se como uma app de telefone
+   (bloco no fim do ficheiro de propósito: ganha aos anteriores)
+   ============================================================ */
+
+/* --- Encaixe do ecrã (iPhone com recorte, barra de gestos) --- */
+.admin-sidebar {
+  padding-top: calc(24px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+.admin-topbar {
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(56px + env(safe-area-inset-top, 0px));
+}
+
+@media (max-width: 767px) {
+  /* .admin-content > * tem max-width:100%, que encolhia a barra de topo e
+     deixava aquela faixa escura do lado direito. Aqui ganha esta regra. */
+  .admin-content > .admin-topbar {
+    height: calc(52px + env(safe-area-inset-top, 0px));
+    width: calc(100% + 28px);
+    max-width: none;
+  }
+
+  .admin-content {
+    padding-left: max(14px, env(safe-area-inset-left, 0px));
+    padding-right: max(14px, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Toque: sem o rectângulo cinzento do Android, sem zoom acidental */
+  * { -webkit-tap-highlight-color: transparent; }
+
+  /* Barras de filtros/ferramentas no topo das paginas: em vez de saltarem
+     para fora do ecra, passam para a linha de baixo. */
+  .admin-content > .flex { flex-wrap: wrap; }
+  .flex.gap-8 { flex-wrap: wrap; }
+
+  /* --- TABELAS VIRAM CARTÕES ---------------------------------
+     Cada linha passa a ser um cartão com etiqueta à esquerda e
+     valor à direita. O data-label é preenchido em tabelaMobile.js
+     a partir do cabeçalho da própria tabela.                    */
+  .card:has(table), .card:has(.table) { overflow-x: visible; }
+  .table-scroll, .table-wrap { overflow-x: visible; }
+  /* o cartao de fora deixa de ter moldura: a lista ja e feita de cartoes */
+  .card:has(> table.table) { padding: 0; background: transparent; border: 0; }
+
+  .table { min-width: 0; width: 100%; display: block; border-collapse: separate; }
+  .table thead { display: none; }
+  .table tbody, .table tfoot { display: block; }
+
+  .table tbody tr,
+  .table tfoot tr {
+    display: block;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .table tbody tr:last-child, .table tfoot tr:last-child { margin-bottom: 0; }
+
+  .table tbody td,
+  .table tfoot td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 14px;
+    width: 100%;
+    min-width: 0;
+    padding: 6px 0;
+    border: 0;
+    text-align: right;
+    white-space: normal;
+    flex-wrap: wrap;
+    font-size: 13px;
+  }
+  /* nada dentro da celula pode sair do cartao */
+  .table tbody td > *, .table tfoot td > * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+  .table tbody td .flex, .table tfoot td .flex { flex-wrap: wrap; min-width: 0; }
+  .table tbody tr > td:first-child, .table tfoot tr > td:first-child { padding-top: 0; }
+  .table tbody tr > td:last-child, .table tfoot tr > td:last-child { padding-bottom: 0; }
+
+  .table tbody td::before,
+  .table tfoot td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    max-width: 45%;
+    color: var(--text-sec);
+    font-size: 12px;
+    font-weight: 500;
+    text-align: left;
+    white-space: normal;
+  }
+  /* Colunas sem título (botões de ação) ocupam a linha toda */
+  .table tbody td[data-label=""]::before,
+  .table tfoot td[data-label=""]::before { display: none; }
+  .table tbody td[data-label=""],
+  .table tfoot td[data-label=""] { justify-content: flex-end; padding-top: 10px; }
+
+  /* Linha de "sem resultados" */
+  .table tbody td[colspan] { justify-content: center; text-align: center; }
+  .table tbody td[colspan]::before { display: none; }
+
+  /* A primeira coluna é o título do cartão */
+  .table tbody tr > td:first-child:not([colspan]) {
+    align-items: flex-start;
+    padding-bottom: 10px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .table tbody tr > td:first-child:not([colspan])::before { display: none; }
+  .table tbody tr > td:first-child:not([colspan]) > * { text-align: left; }
+
+  /* Conteúdo dentro da célula alinha à direita, mas não parte palavras */
+  .table tbody td > .flex { justify-content: flex-end; }
+  .table tbody tr > td:first-child > .flex { justify-content: flex-start; }
+
+  /* Barras de deslocamento não roubam largura */
+  .admin-content, .admin-layout { scrollbar-width: none; }
+  .admin-content::-webkit-scrollbar, .admin-layout::-webkit-scrollbar { width: 0; height: 0; }
+}
+
+@media (max-width: 640px) {
+  /* anula o nowrap herdado, senão os cartões rebentam */
+  .table tbody th, .table tbody td, .table tfoot td { white-space: normal; }
 }

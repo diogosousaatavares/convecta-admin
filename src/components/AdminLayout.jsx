@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui';
 
 import { moduloIndisponivel } from '@/lib/modulos';
 import TourDemo from '@/components/admin/TourDemo';
+import { vigiarTabelas } from '@/lib/tabelaMobile';
 
 const GROUPS_TODOS = [
   { type: 'item', to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -159,6 +160,11 @@ export default function AdminLayout({ children }) {
   const [supportOpen, setSupportOpen] = useState(false);
   const [supportForm, setSupportForm] = useState({ name: '', email: '', message: '' });
   const searchRef = useRef(null);
+  const zonaConteudo = useRef(null);
+
+  // Telemovel: as tabelas viram cartoes e precisam do nome da coluna em cada celula.
+  useEffect(() => vigiarTabelas(zonaConteudo.current), []);
+
 
   const isActive = (it) => {
     if (it.exact) return location.pathname === it.to;
@@ -185,7 +191,7 @@ export default function AdminLayout({ children }) {
     event.preventDefault();
     const subject = encodeURIComponent(`Problema no painel Convecta${supportForm.name ? ` - ${supportForm.name}` : ''}`);
     const body = encodeURIComponent(`Nome: ${supportForm.name}\nEmail: ${supportForm.email}\n\nProblema:\n${supportForm.message}`);
-    window.location.href = `mailto:geral@convceta.pt?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:geral@convecta.pt?subject=${subject}&body=${body}`;
   };
   const searchResults = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -285,7 +291,7 @@ export default function AdminLayout({ children }) {
       <Modal open={supportOpen} onClose={() => setSupportOpen(false)} title="Apoio ao cliente">
         <div className="support-contact-list">
           <a href="tel:912381717" className="support-contact"><Phone size={17} /> <span><strong>Ligar</strong><small>912 381 717</small></span></a>
-          <a href="mailto:geral@convceta.pt" className="support-contact"><Mail size={17} /> <span><strong>Email</strong><small>geral@convceta.pt</small></span></a>
+          <a href="mailto:geral@convecta.pt" className="support-contact"><Mail size={17} /> <span><strong>Email</strong><small>geral@convecta.pt</small></span></a>
         </div>
         <p className="text-sec text-sm" style={{ marginBottom: 16 }}>Encontraste um erro? Envia-nos os detalhes e entraremos em contacto.</p>
         <form onSubmit={handleSupportSubmit}>
@@ -304,7 +310,7 @@ export default function AdminLayout({ children }) {
           <button type="submit" className="btn btn-primary"><Send size={16} /> Enviar email</button>
         </form>
       </Modal>
-      <main className="admin-content">
+      <main className="admin-content" ref={zonaConteudo}>
         {emDemo && <TourDemo passos={PASSOS_DEMO} chave="convecta_tour_painel" />}
         {emDemo && (
           <div style={{
