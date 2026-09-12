@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog, Clock, Settings, Bell, BarChart3, Menu, X, LogOut, Wallet, Package, Megaphone, Star, ChevronDown, DollarSign, Gift, Repeat, Ticket, ReceiptText, UserPlus, Search, Plus, HelpCircle, Phone, Mail, Send } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog, Clock, Settings, Bell, BarChart3, Menu, X, LogOut, Wallet, Package, Megaphone, Star, ChevronDown, DollarSign, Palette, Gift, Repeat, Ticket, ReceiptText, UserPlus, Search, Plus, HelpCircle, Phone, Mail, Send } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
@@ -10,6 +10,9 @@ import { vigiarTabelas } from '@/lib/tabelaMobile';
 
 const GROUPS_TODOS = [
   { type: 'item', to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+
+  // A area de personalizacao: e daqui que o dono desenha o que os clientes veem.
+  { type: 'item', to: '/admin/o-meu-site', label: 'O Meu Site', icon: Palette },
 
   { type: 'group', label: 'Agenda', icon: CalendarDays, items: [
     { to: '/admin/agenda', label: 'Agenda', exact: true },

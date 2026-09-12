@@ -79,6 +79,7 @@ const Definicoes       = lazy(() => import('@/pages/admin/Definicoes'));
 const AnamneseForms    = lazy(() => import('@/pages/admin/AnamneseForms'));
 const Parametros       = lazy(() => import('@/pages/admin/Parametros'));
 const TemaPersonalizacao = lazy(() => import('@/pages/admin/TemaPersonalizacao'));
+const MeuSite = lazy(() => import('@/pages/admin/MeuSite'));
 
 const Spinner = () => (
   <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -183,6 +184,7 @@ function AppRoutes() {
         <Route path="/admin/definicoes/negocio" element={<AdminRoute><Settings /></AdminRoute>} />
         <Route path="/admin/definicoes/anamnese" element={<AdminRoute><AnamneseForms /></AdminRoute>} />
         <Route path="/admin/definicoes/parametros" element={<AdminRoute><Parametros /></AdminRoute>} />
+        <Route path="/admin/o-meu-site" element={<AdminRoute><MeuSite /></AdminRoute>} />
         <Route path="/admin/definicoes/tema" element={<AdminRoute><TemaPersonalizacao /></AdminRoute>} />
         <Route path="/admin/definicoes/notificacoes" element={<AdminRoute><Notifications /></AdminRoute>} />
         <Route path="/admin/definicoes/:tab" element={<AdminRoute><Definicoes /></AdminRoute>} />
