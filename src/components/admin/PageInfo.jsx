@@ -1,6 +1,27 @@
 import React, { useState } from 'react';
 import { Info, X } from 'lucide-react';
 
+/*
+ * Uma caixa de informacao fechada fica fechada.
+ *
+ * Antes o X so a escondia ate mudar de pagina — voltava sempre. Agora o
+ * fecho fica guardado neste aparelho (uma lista com o nome das paginas ja
+ * fechadas). Cada aba tem a sua: fechar a dos Clientes nao fecha a da Agenda.
+ * E por aparelho, nao por conta: quem entrar noutro telemovel volta a ve-las.
+ */
+const CHAVE = 'convecta_painel_info_fechadas';
+
+function lerFechadas() {
+  try {
+    const guardado = window.localStorage.getItem(CHAVE);
+    const lista = guardado ? JSON.parse(guardado) : [];
+    return Array.isArray(lista) ? lista : [];
+  } catch {
+    // Navegacao privada ou armazenamento bloqueado: nao e motivo para rebentar.
+    return [];
+  }
+}
+
 const INFO = {
   dashboard: { impact: 'Centro de comando do teu negócio.', detail: 'Mostra em tempo real as marcações de hoje, receita do período, taxa de ocupação e clientes ativos. Todos os KPIs dependem de marcações com checkout concluído — sem checkout, a receita não conta.', links: 'Agenda (marcações), Financeiro (receita), Clientes (novos), Relatórios (tendências)' },
   agenda: { impact: 'A agenda é o coração operacional — erros aqui afetam receita e experiência do cliente.', detail: 'Cada slot confirmado reserva o profissional e o tempo. O checkout de cada marcação é o que regista receita, comissão e carimbo de fidelização. Marcações sem checkout ficam como "confirmadas" mas não geram valor financeiro.', links: 'Clientes (histórico), Financeiro (caixa), Fidelização (carimbos), Profissionais (disponibilidade)' },
@@ -52,9 +73,15 @@ const INFO = {
 };
 
 export default function PageInfo({ page }) {
-  const [open, setOpen] = useState(true);
+  const [fechadas, setFechadas] = useState(lerFechadas);
   const d = INFO[page];
-  if (!d || !open) return null;
+  if (!d || fechadas.includes(page)) return null;
+
+  const fechar = () => {
+    const novas = fechadas.includes(page) ? fechadas : [...fechadas, page];
+    setFechadas(novas);
+    try { window.localStorage.setItem(CHAVE, JSON.stringify(novas)); } catch {}
+  };
   return (
     <div style={{ background: 'rgba(201,168,39,0.08)', border: '1px solid rgba(201,168,39,0.25)', borderRadius: 10, padding: '14px 18px', marginBottom: 20, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
       <Info size={16} style={{ color: '#C9A227', flexShrink: 0, marginTop: 2 }} />
@@ -63,7 +90,7 @@ export default function PageInfo({ page }) {
         <div style={{ fontSize: 12, color: 'var(--text-sec)', lineHeight: 1.6 }}>{d.detail}</div>
         {d.links && <div style={{ fontSize: 11, color: 'var(--text-sec)', marginTop: 6 }}><span style={{ color: '#C9A227' }}>Ligado a: </span>{d.links}</div>}
       </div>
-      <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-sec)', padding: 0, flexShrink: 0 }} aria-label="Fechar informação"><X size={14} /></button>
+      <button onClick={fechar} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-sec)', padding: 0, flexShrink: 0 }} aria-label="Fechar informação"><X size={14} /></button>
     </div>
   );
 }
