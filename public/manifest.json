@@ -1,7 +1,7 @@
 {
-  "name": "Convecta Admin",
-  "short_name": "Convecta",
-  "description": "Painel de gestão Convecta",
+  "name": "CONVECTA - GESTÃO ONLINE",
+  "short_name": "CONVECTA - GESTÃO ONLINE",
+  "description": "Convecta — gestão online da barbearia: agenda, clientes, caixa e relatórios.",
   "start_url": "/admin",
   "display": "standalone",
   "background_color": "#0A0807",
