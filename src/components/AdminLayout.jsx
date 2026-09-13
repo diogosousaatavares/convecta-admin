@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui';
 
 import { moduloIndisponivel } from '@/lib/modulos';
 import TourDemo from '@/components/admin/TourDemo';
+import AvisoPush from '@/components/AvisoPush';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 
 const GROUPS_TODOS = [
@@ -370,6 +371,10 @@ export default function AdminLayout({ children }) {
             </button>
           </div>
         </div>
+        {/* As notificacoes pedem-se em todas as paginas, nao so na de
+            Marcacoes: quem entra na Agenda e fica por la nunca era sequer
+            perguntado — e ficava sem campainha nenhuma. */}
+        <AvisoPush businessId={data.business?.id} userId={user?.id} papel="admin" comTeste />
         {children}
       </main>
     </div>

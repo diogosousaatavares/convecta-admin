@@ -1938,3 +1938,26 @@ html.theme-light { --linha-agm: rgba(0, 0, 0, 0.13); }
   font-size: 14px; font-weight: 700; overflow: hidden;
 }
 .agm-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ── A linha das notificações, depois de autorizadas ──────────────────
+   Não é um aviso: é um sinal de vida. Deixa o barbeiro distinguir
+   "ninguém marcou" de "isto está partido", com um toque. */
+.push-linha {
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+  margin: 0 0 14px; padding: 9px 13px; border-radius: 10px;
+  background: rgba(34, 197, 94, 0.09);
+  border: 1px solid rgba(34, 197, 94, 0.22);
+  color: var(--text-sec); font-size: 12.5px; line-height: 1.4;
+}
+.push-linha > svg { color: #22C55E; flex-shrink: 0; }
+.push-linha > button {
+  margin-left: auto; border: 1px solid var(--border); background: transparent;
+  color: var(--text); border-radius: 100px; padding: 5px 14px;
+  font-size: 12px; font-weight: 600; cursor: pointer; min-height: 32px;
+}
+.push-linha > button:disabled { opacity: 0.6; cursor: default; }
+.push-linha-ok { color: #22C55E; font-weight: 600; width: 100%; }
+.push-linha-mal { color: #F59E0B; font-weight: 600; width: 100%; }
+@media (max-width: 860px) {
+  .push-linha > button { margin-left: 0; }
+}

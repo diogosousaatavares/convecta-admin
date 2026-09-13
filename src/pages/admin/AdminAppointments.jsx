@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarRange, CheckCircle2, XCircle, Trash2, Plus, Zap } from 'lucide-react';
 import { useStore, useAuth } from '@/hooks/useStore';
-import AvisoPush from '@/components/AvisoPush';
 import AdminLayout from '@/components/AdminLayout';
 import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import PageInfo from '@/components/admin/PageInfo';
@@ -172,9 +171,6 @@ export default function AdminAppointments() {
 
   return (
     <AdminLayout>
-      <AvisoPush businessId={data.business?.id} userId={user?.id} papel="admin"
-        texto={{ titulo: 'Ligue as notificações',
-                 corpo: 'Assim que entrar uma marcação, recebe um aviso no telemóvel para a confirmar. Sem isto, só a vê quando abrir o painel.' }}/>
       <InterruptorAutomatico />
       <div className="page-head">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12 }}>

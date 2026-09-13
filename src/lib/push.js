@@ -138,14 +138,23 @@ export async function desativarPush() {
   } catch { /* já não havia nada */ }
 }
 
-/** Pedir ao servidor que envie uma notificação. */
+/**
+ * Pedir ao servidor que envie uma notificação.
+ *
+ * Devolve o que o servidor respondeu — { enviadas, limpas } ou
+ * { enviadas: 0, aviso }. Isto interessa: quando ninguem tem as notificacoes
+ * ligadas, a funcao responde 200 com enviadas: 0. Sem olhar para o corpo,
+ * quem chama fica convencido de que correu tudo bem e a campainha nunca toca.
+ */
 export async function enviarPush(payload) {
   const { data: { session } } = await supabase.auth.getSession();
-  const { error } = await supabase.functions.invoke('enviar-push', {
+  const { data, error } = await supabase.functions.invoke('enviar-push', {
     body: payload,
     headers: session ? { Authorization: `Bearer ${session.access_token}` } : undefined,
   });
   if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+  return data || { enviadas: 0 };
 }
 
 /* ── Como se escreve uma notificação da Convecta ─────────────────────────────
