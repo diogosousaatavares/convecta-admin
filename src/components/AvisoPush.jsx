@@ -53,9 +53,15 @@ export default function AvisoPush({ businessId, userId, papel, texto, comTeste =
         mensagem: 'Se estas a ler isto no telemovel, as notificacoes estao a funcionar.',
         url: '/admin/agenda', tag: 'teste',
       });
-      setTeste(r.enviadas > 0
-        ? { ok: true, msg: `Enviada para ${r.enviadas} aparelho${r.enviadas > 1 ? 's' : ''}.` }
-        : { ok: false, msg: 'Nenhum aparelho ligado nesta barbearia. Liga as notificações no telemóvel onde as queres receber.' });
+      if (r.enviadas > 0) {
+        setTeste({ ok: true, msg: `Enviada para ${r.enviadas} aparelho${r.enviadas > 1 ? 's' : ''}.` });
+      } else if (r.inscricoes > 0) {
+        // Ha aparelhos inscritos e mesmo assim nao foi: isto e uma avaria,
+        // nao e falta de gente. O motivo vem do servidor.
+        setTeste({ ok: false, msg: `${r.inscricoes} aparelho(s) inscrito(s) mas o envio falhou. ${r.motivos?.[0] || ''} (chave ${r.chavePublica || '?'})` });
+      } else {
+        setTeste({ ok: false, msg: 'Nenhum aparelho ligado nesta barbearia. Liga as notificações no telemóvel onde as queres receber.' });
+      }
     } catch (e) {
       setTeste({ ok: false, msg: e.message });
     }
