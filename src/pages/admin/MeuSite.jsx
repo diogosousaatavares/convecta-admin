@@ -161,6 +161,20 @@ function Comodidades({lista,onChange}){
 // depois reduzido com transform, para as proporções e os tamanhos de letra
 // ficarem iguais aos do aparelho e não a uma versão encolhida à mão.
 const TLM_L=390, TLM_A=844
+
+/*
+ * Largura do telemovel de exemplo quando ele e aberto por cima da pagina,
+ * num telemovel de verdade. Ha duas medidas a respeitar e ganha a mais
+ * apertada: a largura do ecra e a altura, porque um telemovel inteiro com
+ * 844px de altura logica nao cabe num ecra baixo sem se cortar por baixo.
+ */
+function larguraDaPrevia(){
+  if(typeof window==='undefined')return 292
+  const porLargura=window.innerWidth-52
+  const porAltura=Math.floor((window.innerHeight-136)*TLM_L/TLM_A)
+  return Math.max(210,Math.min(300,porLargura,porAltura))
+}
+
 function Telemovel({largura=292,children}){
   const e=largura/TLM_L
   const agora=new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})
@@ -348,6 +362,9 @@ function DesignTab({biz,onGuardado}){
   // Esta pagina nasceu no super admin, que se usa num computador. Aqui e o
   // barbeiro que a abre, e o barbeiro tem o telemovel na mao.
   const telemovel=useIsMobile()
+  // No telemovel a pre-visualizacao abre-se por cima, a pedido.
+  const[previaAberta,setPreviaAberta]=useState(false)
+  const[larguraPrevia,setLarguraPrevia]=useState(()=>larguraDaPrevia())
   const[painel,setPainel]=useState('cores')
   const[tema,setTema]=useState(()=>structuredClone(TEMA_OMISSAO))
   const[info,setInfo]=useState({tagline:'',description:'',coverImageUrl:'',
@@ -402,6 +419,27 @@ function DesignTab({biz,onGuardado}){
   const alterado=guardadoTema&&(JSON.stringify(tema)!==JSON.stringify(guardadoTema)
     ||JSON.stringify(info)!==JSON.stringify(guardadoInfo))
   const endereco=biz.domain||`${biz.slug||'barbearia'}.${DOMINIO_BASE}`
+
+  // Rodar o telemovel com a pre-visualizacao aberta muda o que cabe no ecra.
+  useEffect(()=>{
+    if(!telemovel)return
+    const medir=()=>setLarguraPrevia(larguraDaPrevia())
+    medir()
+    window.addEventListener('resize',medir)
+    window.addEventListener('orientationchange',medir)
+    return()=>{window.removeEventListener('resize',medir);window.removeEventListener('orientationchange',medir)}
+  },[telemovel])
+
+  // Com a folha aberta, a pagina por baixo nao se mexe — senao ao arrastar o
+  // dedo dentro do telemovel de exemplo arrastava-se tambem o formulario.
+  useEffect(()=>{
+    if(!previaAberta)return
+    const antes=document.body.style.overflow
+    document.body.style.overflow='hidden'
+    const aoTeclar=e=>{if(e.key==='Escape')setPreviaAberta(false)}
+    window.addEventListener('keydown',aoTeclar)
+    return()=>{document.body.style.overflow=antes;window.removeEventListener('keydown',aoTeclar)}
+  },[previaAberta])
 
   const cor=(k,v)=>{setTema(t=>({...t,colors:{...t.colors,[k]:v}}));setSucesso(false)}
   const fundo=(patch)=>{setTema(t=>({...t,background:{...t.background,...patch}}));setSucesso(false)}
@@ -719,21 +757,72 @@ function DesignTab({biz,onGuardado}){
           {sucesso&&<span style={{fontSize:13,color:G,fontWeight:600}}>Guardado.</span>}
           {alterado&&!sucesso&&<span style={{fontSize:12.5,color:T3}}>Alterações por guardar</span>}
         </div>
+
+        {/* O botao flutuante fica por cima do fim da pagina; sem este espaco
+            tapava o "Guardar design", que e o ultimo que se carrega. */}
+        {telemovel&&<div style={{height:70}} aria-hidden="true"/>}
       </div>
 
-      {/* No telemovel isto desce para baixo dos controlos e deixa de ser
-          fixo: colado ao topo tapava metade do ecra a quem esta a escrever. */}
-      <div style={telemovel
-        ?{paddingTop:6,borderTop:`1px solid ${BD}`}
-        :{position:'sticky',top:20}}>
-        <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px',margin:telemovel?'14px 0 10px':'0 0 10px'}}>PRÉ-VISUALIZAÇÃO</div>
-        <Telemovel>
-          <Previsualizacao tema={tema} info={info} biz={biz} endereco={endereco}/>
-        </Telemovel>
-        <div style={{fontSize:11.5,color:T3,marginTop:14,lineHeight:1.55,textAlign:'center'}}>
-          Desenhado à largura real de um telemóvel.
+      {/* No computador a pre-visualizacao vive ao lado, sempre a vista.
+          Num telemovel nao existe "ao lado": ou empurra a pagina para fora do
+          ecra, ou obriga a fazer scroll ate ao fim de cada vez que se muda uma
+          cor. Por isso aqui e um botao — abre por cima, ve-se, fecha-se, e
+          volta-se exatamente ao sitio onde se estava. */}
+      {telemovel?(
+        <>
+          <button onClick={()=>setPreviaAberta(true)} aria-label="Ver como fica o site"
+            style={{position:'fixed',right:16,bottom:18,zIndex:80,
+              display:'flex',alignItems:'center',gap:9,padding:'13px 19px',
+              borderRadius:99,border:'none',cursor:'pointer',fontFamily:'inherit',
+              fontSize:13.5,fontWeight:700,color:'#0A0807',
+              background:`linear-gradient(100deg,${YD},${Y})`,
+              boxShadow:'0 10px 30px rgba(0,0,0,.55)'}}>
+            <span style={{width:11,height:17,borderRadius:3,border:'2px solid #0A0807',
+              display:'inline-block',flexShrink:0}}/>
+            Ver como fica
+            {/* ponto pequeno: ha alteracoes que ainda nao viste em telemovel */}
+            {alterado&&<span style={{width:7,height:7,borderRadius:'50%',background:'#0A0807',opacity:.5}}/>}
+          </button>
+
+          {previaAberta&&(
+            <div onClick={ev=>{if(ev.target===ev.currentTarget)setPreviaAberta(false)}}
+              style={{position:'fixed',inset:0,zIndex:400,padding:'14px 16px',
+                background:'rgba(6,5,4,.9)',backdropFilter:'blur(7px)',WebkitBackdropFilter:'blur(7px)',
+                display:'flex',flexDirection:'column',overflowY:'auto'}}>
+              {/* margin auto em vez de justify-content: centra quando ha
+                  espaco e deixa rolar quando nao ha (telemovel deitado). */}
+              <div style={{margin:'auto 0',display:'flex',flexDirection:'column',
+                alignItems:'center',gap:12,width:'100%'}}>
+              <div style={{width:'100%',maxWidth:420,display:'flex',alignItems:'center',
+                justifyContent:'space-between',gap:12}}>
+                <span style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px'}}>PRÉ-VISUALIZAÇÃO</span>
+                <button onClick={()=>setPreviaAberta(false)}
+                  style={{padding:'7px 14px',borderRadius:9,cursor:'pointer',fontFamily:'inherit',
+                    fontSize:12.5,fontWeight:700,color:T,background:'rgba(255,255,255,.09)',
+                    border:'1px solid rgba(255,255,255,.16)'}}>Fechar</button>
+              </div>
+              <Telemovel largura={larguraPrevia}>
+                <Previsualizacao tema={tema} info={info} biz={biz} endereco={endereco}/>
+              </Telemovel>
+              <div style={{fontSize:11.5,color:T3,textAlign:'center',maxWidth:320,lineHeight:1.55}}>
+                É assim que o cliente vê{alterado?', já com o que ainda não gravaste':''}.
+                Fecha, muda o que quiseres, e abre outra vez para comparar.
+              </div>
+              </div>
+            </div>
+          )}
+        </>
+      ):(
+        <div style={{position:'sticky',top:20}}>
+          <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px',marginBottom:10}}>PRÉ-VISUALIZAÇÃO</div>
+          <Telemovel>
+            <Previsualizacao tema={tema} info={info} biz={biz} endereco={endereco}/>
+          </Telemovel>
+          <div style={{fontSize:11.5,color:T3,marginTop:14,lineHeight:1.55,textAlign:'center'}}>
+            Desenhado à largura real de um telemóvel.
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
