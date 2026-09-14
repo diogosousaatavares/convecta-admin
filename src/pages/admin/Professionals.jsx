@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserCog, Plus, Pencil, Trash2 } from 'lucide-react';
+import { UserCog, Plus, Pencil, Trash2, Lock } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
@@ -9,6 +9,10 @@ import { useToast } from '@/components/ui/ToastContext';
 
 const empty = { name: '', role: 'Barber', bio: '', specialties: [], commission: 30 };
 
+// 'profissional' -> 'Profissional'. O nome do plano vem da base de dados em
+// minusculas; aqui e um rotulo que o barbeiro le.
+const nomeDoPlano = p => (p ? p.charAt(0).toUpperCase() + p.slice(1) : '');
+
 export default function Professionals() {
   const data = useStore();
   const toast = useToast();
@@ -16,6 +20,9 @@ export default function Professionals() {
   const [form, setForm] = useState(empty);
   const [specs, setSpecs] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
+  // Quantos lugares o plano da e quantos ja estao ocupados. Le-se a cada
+  // render porque a lista muda debaixo dos pes (criar, apagar, desativar).
+  const lugares = dataService.lugaresDeProfissionais();
 
   const openNew = () => { setForm(empty); setSpecs(''); setEditing('new'); };
   const openEdit = (p) => { setForm({ ...p, commission: p.commission ?? 30 }); setSpecs((p.specialties || []).join(', ')); setEditing(p.id); };
@@ -49,8 +56,15 @@ export default function Professionals() {
     if (!form.name) { toast.error('Nome obrigatório'); return; }
     if (aEnviarFoto) { toast.error('A fotografia ainda está a subir', 'Espera um instante e grava outra vez.'); return; }
     const payload = { ...form, specialties: specs.split(',').map(s => s.trim()).filter(Boolean) };
-    if (editing === 'new') { await dataService.createProfessional(payload); toast.success('Profissional criado'); }
-    else { await dataService.updateProfessional(editing, payload); toast.success('Profissional atualizado'); }
+    try {
+      if (editing === 'new') { await dataService.createProfessional(payload); toast.success('Profissional criado'); }
+      else { await dataService.updateProfessional(editing, payload); toast.success('Profissional atualizado'); }
+    } catch (err) {
+      // Sem isto, o limite do plano rebentava em silêncio e a janela fechava
+      // como se tivesse gravado.
+      toast.error('Não foi possível guardar', err.message);
+      return;
+    }
     close();
   };
 
@@ -68,10 +82,38 @@ export default function Professionals() {
               links={['Agenda', 'Horários', 'Comissões', 'Desempenho', 'Serviços']}
             />
           </div>
-          <p>{data.professionals.length} {data.professionals.length === 1 ? 'profissional' : 'profissionais'}.</p>
+          <p>
+            {lugares.limite == null
+              ? <>{data.professionals.length} {data.professionals.length === 1 ? 'profissional' : 'profissionais'}.</>
+              : <>{lugares.ativos} de {lugares.limite} {lugares.limite === 1 ? 'lugar' : 'lugares'} do plano{lugares.plano ? ` ${nomeDoPlano(lugares.plano)}` : ''}.</>}
+          </p>
         </div>
-        <Button variant="primary" onClick={openNew}><Plus size={16} /> Novo profissional</Button>
+        <Button variant="primary" onClick={openNew} disabled={lugares.cheio}
+          title={lugares.cheio ? 'Chegaste ao limite de profissionais do teu plano' : undefined}>
+          <Plus size={16} /> Novo profissional
+        </Button>
       </div>
+
+      {(lugares.cheio || lugares.acima) && (
+        <Card className="card-pad mb-24" style={{ borderColor: 'var(--gold)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <Lock size={16} style={{ marginTop: 2, flexShrink: 0, color: 'var(--gold)' }} />
+            <div>
+              <div className="fw-600">
+                {lugares.acima
+                  ? `Tens ${lugares.ativos} profissionais ativos e o plano dá para ${lugares.limite}.`
+                  : `Estás no limite do plano: ${lugares.limite} ${lugares.limite === 1 ? 'profissional' : 'profissionais'}.`}
+              </div>
+              <p className="text-sec text-sm mt-8" style={{ margin: '8px 0 0' }}>
+                {lugares.acima
+                  ? 'Ninguém foi desativado — a equipa que já tinhas continua a trabalhar. Só não dá para acrescentar mais sem mudar de plano.'
+                  : 'Para acrescentar outro, desativa um profissional que já não trabalhe contigo ou muda de plano.'}
+                {' '}Falamos pelo «Apoio ao cliente», no menu do lado.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {data.professionals.length === 0 ? (
         <Card className="card-pad"><EmptyState icon={() => <UserCog />} title="Sem profissionais" description="Adiciona o primeiro profissional." /></Card>

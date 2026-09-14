@@ -70,6 +70,11 @@ function traduzirErro(error) {
   if (error.code === '23P01') {
     return new Error('Esse horário já está ocupado com esse profissional. Escolhe outra hora.');
   }
+  // A trava do plano vive na base de dados (gatilho profissionais_dentro_do_plano).
+  // Aqui só se troca a linguagem de servidor por uma frase para o barbeiro.
+  if (typeof error.message === 'string' && error.message.includes('LIMITE_PROFISSIONAIS')) {
+    return new Error('O teu plano não permite mais profissionais ativos. Desativa um, ou fala connosco para mudares de plano.');
+  }
   return error instanceof Error ? error : new Error(error.message || 'Erro desconhecido');
 }
 import { getCustomerStats } from '@/lib/domain/finance';
@@ -303,6 +308,11 @@ function bizFromRow(row) {
   const s = row.settings || {};
   return {
     id: row.id, name: row.name, slug: row.slug,
+    // O plano e o limite sao colunas da tabela, escritas pelo Super Admin.
+    // Vem para aqui so para serem lidos: este painel nunca lhes toca.
+    plan: row.plan || null,
+    billingPeriod: row.billing_period || 'mensal',
+    professionalLimit: row.professional_limit ?? null,
     logoUrl: row.logo_url || s.logoUrl || '',
     coverImageUrl: s.coverImageUrl || '',
     tagline: s.tagline || '', description: s.description || '',
@@ -319,7 +329,10 @@ function bizFromRow(row) {
   };
 }
 function bizToRow(biz) {
-  const { id, name, slug, logoUrl, _settings, ...rest } = biz;
+  // plan / billingPeriod / professionalLimit saem fora de proposito: sao
+  // colunas do contrato, nao definicoes da barbearia. Se ficassem no `rest`
+  // eram copiados para dentro do settings a cada gravacao.
+  const { id, name, slug, logoUrl, _settings, plan, billingPeriod, professionalLimit, ...rest } = biz;
   return { name, slug, logo_url: logoUrl, settings: { ...(_settings || {}), ...rest } };
 }
 
@@ -723,9 +736,32 @@ const dataService = {
   },
 
   // ── PROFESSIONALS ──
+  /**
+   * Quantos profissionais cabem no plano e quantos ja la estao.
+   * `limite` a null significa sem limite (barbearias antigas).
+   * `acima` e o caso de quem ja tinha mais do que o plano permite antes de o
+   * limite existir: nao se apaga ninguem, so nao pode acrescentar.
+   */
+  lugaresDeProfissionais() {
+    const limite = state.business?.professionalLimit ?? null;
+    const ativos = state.professionals.filter(p => p.isActive !== false).length;
+    return {
+      limite, ativos,
+      plano: state.business?.plan || null,
+      cheio: limite != null && ativos >= limite,
+      acima: limite != null && ativos > limite,
+      restam: limite == null ? null : Math.max(0, limite - ativos),
+    };
+  },
   listProfessionals() { return Promise.resolve(state.professionals); },
   getProfessional(id) { return Promise.resolve(state.professionals.find(p => p.id === id)); },
   async createProfessional(data) {
+    // Primeira barreira, para o barbeiro perceber antes de escrever tudo.
+    // A que manda e o gatilho na base de dados.
+    const lugares = dataService.lugaresDeProfissionais();
+    if (lugares.cheio) {
+      throw new Error(`O teu plano permite ${lugares.limite} ${lugares.limite === 1 ? 'profissional' : 'profissionais'} e já tens ${lugares.ativos}. Desativa um, ou fala connosco para mudares de plano.`);
+    }
     const row = proToRow({ rating: 0, reviewCount: 0, specialties: [], photoUrl: '', commission: 30, ...data });
     const { data: created, error } = await supabase.from('professionals').insert(row).select().single();
     if (error) throw traduzirErro(error);
