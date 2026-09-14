@@ -35,7 +35,7 @@ export default function AgendaFitIns() {
     const svc = data.services.find(s => s.id === form.serviceId);
     let profId = form.professionalId;
     if (profId === 'any') { const a = await dataService.assignProfessionalForSlot(date, form.startTime, svc.durationMinutes); profId = a.id; }
-    await dataService.createAppointment({ customerId: form.customerId, serviceId: form.serviceId, professionalId: profId, date, startTime: form.startTime, endTime: toTime(toMin(form.startTime) + svc.durationMinutes), status: 'confirmed' });
+    await dataService.createAppointment({ customerId: form.customerId, serviceId: form.serviceId, professionalId: profId, date, startTime: form.startTime, endTime: toTime(toMin(form.startTime) + svc.durationMinutes), status: 'confirmed', encaixe: true });
     toast.success('Encaixe criado', `${form.startTime} · ${formatDate(date)}`);
     setModal(null);
     setLoading(true); dataService.getAvailableSlots(date, 'any', 30).then(s => { setSlots(s.filter(x => !x.isPast)); setLoading(false); });

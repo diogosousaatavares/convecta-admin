@@ -13,8 +13,16 @@ export function useStore() {
       force();
     });
 
-    // Quando o auth muda (login/logout), reset + re-init com o negócio correto
+    // Quando o auth muda (login/logout), reset + re-init com o negócio correto.
+    // So quando muda a PESSOA: o Supabase tambem dispara este evento ao renovar
+    // o token (de hora a hora) e ao voltar ao separador. Nesses casos tudo era
+    // apagado e recarregado, o Router desmontava-se e o barbeiro perdia o que
+    // tinha a meio — um fecho de conta, um formulario, uma janela aberta.
+    let quem = authService.getCurrentUser()?.id || null;
     const unsub2 = authService.subscribe(async () => {
+      const agora = authService.getCurrentUser()?.id || null;
+      if (agora === quem) { force(); return; }
+      quem = agora;
       if (authService.isAuthenticated()) {
         dataService.reset();
         setLoading(true);

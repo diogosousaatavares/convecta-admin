@@ -400,6 +400,9 @@ function custFromRow(row) {
     pendingStamp: m.pendingStamp || null,
     pendingReview: m.pendingReview || null,
     balance: m.balance || 0,
+    // As notas do barbeiro sobre o cliente ("prefere degrade baixo"). Eram
+    // escritas no ecra e deitadas fora aqui: nunca chegaram a ser gravadas.
+    notes: m.notes || '',
     passwordHash: m.passwordHash || null,
     isActive: row.is_active !== false,
   };
@@ -417,6 +420,7 @@ function custToRow(c) {
       lastVisit: meta.lastVisit, loyalty: meta.loyalty,
       pendingStamp: meta.pendingStamp, pendingReview: meta.pendingReview,
       balance: meta.balance, passwordHash: meta.passwordHash,
+      notes: meta.notes || null,
     },
   };
 }
@@ -447,6 +451,7 @@ function apptFromRow(row) {
     cancelledAt: m.cancelledAt, attendedAt: m.attendedAt,
     // 'cliente' ou 'barbearia'. Sem isto o barbeiro nao sabia quem desmarcou.
     cancelledBy: m.cancelledBy || null,
+    encaixe: m.encaixe === true,
     rescheduleHistory: m.rescheduleHistory,
   };
 }
@@ -474,6 +479,9 @@ function apptToRow(a) {
       cancelledAt: a.cancelledAt, attendedAt: a.attendedAt,
       cancelledBy: a.cancelledBy || null,
       rescheduleHistory: a.rescheduleHistory,
+      // Um encaixe e, por definicao, uma marcacao fora da grelha normal. A
+      // barreira de sobreposicao da base de dados deixa-o passar por isto.
+      encaixe: a.encaixe === true ? true : undefined,
     },
   };
 }
@@ -604,11 +612,10 @@ async function init() {
       biz = data;
     }
   }
-  // Fallback dev: primeiro negócio (quando ainda não há auth / primeiro arranque)
-  if (!biz) {
-    const { data } = await supabase.from('businesses').select('*').limit(1).maybeSingle();
-    biz = data;
-  }
+  // Sem sessão não há barbearia para carregar: o ecrã de entrar não precisa
+  // de nada. O antigo "fallback de desenvolvimento" ia buscar a PRIMEIRA
+  // barbearia da tabela — a quem quer que abrisse o endereço, antes de entrar.
+  if (!authData?.user) return;
   if (!biz) {
     console.error('[dataService] Negócio não encontrado para este utilizador');
     return;
@@ -987,8 +994,21 @@ const dataService = {
     // de um barbeiro amanha nao altera o que ja foi feito hoje.
     a.payment.commission = { percentage: pct, baseAmount: net, commissionAmount };
     a.payment.commissionId = comm?.id || null;
-    // Update appointment
-    await supabase.from('appointments').update(apptToRow(a)).eq('id', apptId);
+    // Update appointment. Este erro nunca era lido: se a gravacao falhasse, o
+    // ecra dizia "concluida", a comissao ja estava gravada e, ao recarregar,
+    // a marcacao voltava a aparecer por fechar — e fechava-se outra vez, com
+    // segunda comissao. Agora, se falha, desfaz-se tudo e diz-se ao balcao.
+    const { error: erroMarcacao } = await supabase
+      .from('appointments').update(apptToRow(a)).eq('id', apptId);
+    if (erroMarcacao) {
+      if (comm?.id) {
+        await supabase.from('professional_commissions').delete().eq('id', comm.id);
+        state.commissions = state.commissions.filter(c => c.id !== comm.id);
+      }
+      a.status = 'confirmed'; a.completedAt = null; a.paymentMethod = null; a.payment = null;
+      notify();
+      throw traduzirErro(erroMarcacao);
+    }
     recomputeCustomer(a.customerId);
 
     if (a.usaRecompensa) {

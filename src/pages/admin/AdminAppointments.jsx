@@ -163,9 +163,15 @@ export default function AdminAppointments() {
     setCheckout(null);
   };
   const remove = async () => {
-    data.appointments = data.appointments.filter(a => a.id !== deleteTarget.id);
-    localStorage.setItem('convecta_data', JSON.stringify(data));
-    toast.success('Marcação eliminada');
+    // Apagava so no ecra (e despejava o estado inteiro no localStorage). Ao
+    // recarregar, a marcacao estava la outra vez. Agora apaga-se na base de
+    // dados, e so depois se diz que foi.
+    try {
+      await dataService.deleteAppointment(deleteTarget.id);
+      toast.success('Marcação eliminada');
+    } catch (e) {
+      toast.error('Não foi possível eliminar', e.message);
+    }
     setDeleteTarget(null);
   };
 

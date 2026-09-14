@@ -33,14 +33,20 @@ async function _enrichSession(user) {
 }
 
 // Supabase dispara INITIAL_SESSION no arranque (e LOGIN/LOGOUT depois)
-supabase.auth.onAuthStateChange(async (_event, session) => {
-  if (session?.user) {
-    await _enrichSession(session.user);
-  } else {
-    _session = null;
-  }
-  _authLoading = false;
-  notify();
+// Nao se chama o Supabase dentro deste callback (a propria biblioteca avisa:
+// pode bloquear-se a si mesma). Sai-se dele primeiro, e so depois se le a
+// tabela users. E se e so o token a renovar para a mesma pessoa, nao se
+// volta a ler nada: os dados sao os mesmos.
+supabase.auth.onAuthStateChange((_event, session) => {
+  setTimeout(async () => {
+    if (session?.user) {
+      if (_session?.id !== session.user.id) await _enrichSession(session.user);
+    } else {
+      _session = null;
+    }
+    _authLoading = false;
+    notify();
+  }, 0);
 });
 
 const authService = {

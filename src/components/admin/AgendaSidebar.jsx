@@ -14,16 +14,20 @@ export default function AgendaSidebar({ date, setDate, apptsByDate, mode, setMod
   const startWeekday = firstDay.getDay();
   const daysInMonth = new Date(vy, vm, 0).getDate();
 
+  // Em hora de verao, a meia-noite local do dia 1 e ainda o dia anterior em
+  // UTC: toISOString() devolvia o mes anterior e a seta "seguinte" nao saia
+  // do sitio entre Marco e Outubro. Conta-se em hora local.
   const shiftMonth = (n) => {
     const d = new Date(vy, vm - 1 + n, 1);
-    setViewMonth(d.toISOString().slice(0, 7));
+    setViewMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
   };
 
   const cells = [];
   for (let i = 0; i < startWeekday; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const hoje = new Date();
+  const today = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
   const pick = (d) => {
     const ds = `${viewMonth}-${String(d).padStart(2, '0')}`;
     setDate(ds);
