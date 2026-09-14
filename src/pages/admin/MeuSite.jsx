@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import { useStore } from '@/hooks/useStore';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Y, YD, TY, W, W2, BG, BD, T, T2, T3, G, R, O, Spin, Btn, Inp, Sel, Lbl, Card,
 } from '@/components/design/ui';
@@ -344,6 +345,9 @@ function PreviaFundo({cor,fundo,intensidade,velocidade}){
 }
 
 function DesignTab({biz,onGuardado}){
+  // Esta pagina nasceu no super admin, que se usa num computador. Aqui e o
+  // barbeiro que a abre, e o barbeiro tem o telemovel na mao.
+  const telemovel=useIsMobile()
   const[painel,setPainel]=useState('cores')
   const[tema,setTema]=useState(()=>structuredClone(TEMA_OMISSAO))
   const[info,setInfo]=useState({tagline:'',description:'',coverImageUrl:'',
@@ -444,8 +448,13 @@ function DesignTab({biz,onGuardado}){
   if(carregando)return<div style={{display:'flex',justifyContent:'center',padding:70}}><Spin size={30}/></div>
 
   return(
-    <div style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) 360px',gap:22,alignItems:'start'}}>
-      <div style={{display:'flex',flexDirection:'column',gap:18}}>
+    // No computador: os controlos a esquerda, o telemovel fixo a direita.
+    // No telemovel: uma coluna so — aquela segunda coluna de 360px fixos era
+    // o que fazia a pagina sair do ecra para o lado.
+    <div style={telemovel
+      ?{display:'flex',flexDirection:'column',gap:22}
+      :{display:'grid',gridTemplateColumns:'minmax(0,1fr) 360px',gap:22,alignItems:'start'}}>
+      <div style={{display:'flex',flexDirection:'column',gap:18,minWidth:0}}>
 
         <Card style={{padding:'18px 20px'}}>
           <div style={{fontSize:12.5,color:T2,fontWeight:600,marginBottom:10}}>Link para dar ao cliente</div>
@@ -458,10 +467,15 @@ function DesignTab({biz,onGuardado}){
           </div>
         </Card>
 
-        <div className="sa-tira" style={{display:'flex',gap:3,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}}>
+        {/* Seis separadores lado a lado num telemovel davam 50px cada: os
+            nomes partiam-se ao meio. Em duas linhas de tres leem-se. */}
+        <div className="sa-tira" style={telemovel
+          ?{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:4,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}
+          :{display:'flex',gap:3,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}}>
           {PAINEIS.map(pn=>(
             <button key={pn.id} onClick={()=>setPainel(pn.id)}
-              style={{flex:1,padding:'9px 6px',borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',
+              style={{flex:telemovel?undefined:1,padding:telemovel?'10px 4px':'9px 6px',
+                borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',
                 fontSize:12.5,fontWeight:painel===pn.id?700:600,
                 background:painel===pn.id?`linear-gradient(100deg,${YD}33,${Y}18)`:'transparent',
                 color:painel===pn.id?Y:T2,transition:'background .15s,color .15s'}}>{pn.l}</button>
@@ -530,7 +544,7 @@ function DesignTab({biz,onGuardado}){
         {painel==='tipo'&&(
           <Card>
             <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:16}}>Tipografia e forma</div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:18}}>
+            <div style={{display:'grid',gridTemplateColumns:telemovel?'1fr':'1fr 1fr',gap:16,marginBottom:18}}>
               <div>
                 <Lbl>Títulos — --font-head</Lbl>
                 <Sel value={tema.fonts.heading} onChange={e=>fonte('heading',e.target.value)}>
@@ -570,7 +584,7 @@ function DesignTab({biz,onGuardado}){
               </div>
               <div>
                 <Lbl>Imagem de capa</Lbl>
-                <div style={{display:'flex',gap:10,alignItems:'center'}}>
+                <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
                   <Largar onFicheiros={enviarCapa} aEnviar={aEnviar} titulo="Larga aqui"
                     style={{flex:1,display:'flex',alignItems:'center',gap:12,padding:8}}>
                     <div style={{width:82,height:52,borderRadius:9,flexShrink:0,border:`1px solid ${BD}`,
@@ -607,7 +621,7 @@ function DesignTab({biz,onGuardado}){
                     Os carimbos já dados ficam guardados.
                   </div>
                 )}
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,
+                <div style={{display:'grid',gridTemplateColumns:telemovel?'1fr':'1fr 1fr',gap:14,
                   opacity:info.loyalty.ativo===false?.4:1,pointerEvents:info.loyalty.ativo===false?'none':'auto'}}>
                   <div>
                     <div style={{fontSize:11.5,color:T3,marginBottom:5}}>Cortes necessários</div>
@@ -621,7 +635,7 @@ function DesignTab({biz,onGuardado}){
                   </div>
                 </div>
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12,paddingTop:12,borderTop:`1px solid ${BD}`}}>
+              <div style={{display:'grid',gridTemplateColumns:telemovel?'1fr':'1fr 1fr 1fr',gap:12,paddingTop:12,borderTop:`1px solid ${BD}`}}>
                 {['instagram','facebook','tiktok'].map(r=>(
                   <div key={r}>
                     <Lbl>{r[0].toUpperCase()+r.slice(1)}</Lbl>
@@ -707,8 +721,12 @@ function DesignTab({biz,onGuardado}){
         </div>
       </div>
 
-      <div style={{position:'sticky',top:20}}>
-        <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px',marginBottom:10}}>PRÉ-VISUALIZAÇÃO</div>
+      {/* No telemovel isto desce para baixo dos controlos e deixa de ser
+          fixo: colado ao topo tapava metade do ecra a quem esta a escrever. */}
+      <div style={telemovel
+        ?{paddingTop:6,borderTop:`1px solid ${BD}`}
+        :{position:'sticky',top:20}}>
+        <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px',margin:telemovel?'14px 0 10px':'0 0 10px'}}>PRÉ-VISUALIZAÇÃO</div>
         <Telemovel>
           <Previsualizacao tema={tema} info={info} biz={biz} endereco={endereco}/>
         </Telemovel>
@@ -902,7 +920,7 @@ export default function MeuSite() {
     <AdminLayout>
       <div className="page-head">
         <h1>O Meu Site</h1>
-        <p>Escolhe as cores, a capa, a tipografia e o que aparece aos teus clientes. Vês tudo ao lado, num telemóvel, antes de publicares.</p>
+        <p>Escolhe as cores, a capa, a tipografia e o que aparece aos teus clientes. Vês tudo num telemóvel antes de publicares.</p>
       </div>
       {/* O DesignTab guarda e mantem o seu proprio estado; nao ha nada para
           recarregar aqui. Fica a funcao porque e o contrato do componente. */}
