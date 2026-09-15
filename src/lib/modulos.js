@@ -24,8 +24,7 @@ export const MODULOS_POR_ACABAR = [
   // Estes dois nao: os movimentos e as recompensas ficam em memoria.
   '/admin/fidelizacao/pontos',
   '/admin/fidelizacao/recompensas',
-  // Categorias de servicos — data.typologies em memoria
-  '/admin/servicos/categorias',
+  // Tipologias soltas — data.typologies em memoria
   '/admin/tipos',
   // Definicoes que gravam num sitio que nenhum ecra le (auditoria de 14/09):
   // slot e antecedencia (o site do cliente nao os usa), metodos de pagamento,

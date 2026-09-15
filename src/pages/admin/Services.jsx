@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Scissors, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
@@ -8,7 +9,8 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice } from '@/lib/format';
 
-const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: 'Corte', isActive: true, isPopular: false };
+const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: '', isActive: true, isPopular: false };
+const SEM_CATEGORIA = 'Outros';
 
 export default function Services() {
   const data = useStore();
@@ -17,7 +19,23 @@ export default function Services() {
   const [form, setForm] = useState(empty);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const openNew = () => { setForm(empty); setEditing('new'); };
+  // Os servicos arrumados pela ordem das categorias do barbeiro. O que nao
+  // tiver categoria (ou tiver uma que ja nao existe) cai em "Outros", no fim
+  // — e a mesma arrumacao que o cliente ve na marcacao.
+  const categorias = data.business?.serviceCategories || [];
+  const grupos = useMemo(() => {
+    const porNome = new Map(categorias.map(c => [c, []]));
+    const outros = [];
+    (data.services || []).forEach(s => {
+      const c = s.category && porNome.has(s.category) ? s.category : null;
+      (c ? porNome.get(c) : outros).push(s);
+    });
+    const lista = [...porNome.entries()].map(([nome, servicos]) => ({ nome, servicos }));
+    if (outros.length) lista.push({ nome: SEM_CATEGORIA, servicos: outros });
+    return lista.filter(g => g.servicos.length);
+  }, [data.services, categorias]);
+
+  const openNew = () => { setForm({ ...empty, category: categorias[0] || '' }); setEditing('new'); };
   const openEdit = (s) => { setForm({ ...s }); setEditing(s.id); };
   const close = () => setEditing(null);
 
@@ -60,8 +78,14 @@ export default function Services() {
       {data.services.length === 0 ? (
         <Card className="card-pad"><EmptyState icon={() => <Scissors />} title="Sem serviços" description="Cria o primeiro serviço." action={<Button variant="primary" onClick={openNew}>Criar serviço</Button>} /></Card>
       ) : (
+        grupos.map(g => (
+        <div key={g.nome} style={{ marginBottom: 26 }}>
+          <div className="flex items-center gap-8" style={{ marginBottom: 10 }}>
+            <h2 style={{ fontSize: 15, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-sec)', margin: 0 }}>{g.nome}</h2>
+            <span className="text-sec text-xs">{g.servicos.length}</span>
+          </div>
         <div className="grid-2">
-          {data.services.map(s => (
+          {g.servicos.map(s => (
             <Card key={s.id} className="card-pad card-hover">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-8">
@@ -74,7 +98,7 @@ export default function Services() {
               <p className="text-sec text-sm mt-8">{s.description}</p>
               <div className="flex items-center justify-between mt-16">
                 <div className="flex gap-12 text-sec text-xs">
-                  <span>{s.durationMinutes} min</span><span>·</span><span>{s.category}</span>
+                  <span>{s.durationMinutes} min</span>{s.category ? <><span>·</span><span>{s.category}</span></> : null}
                 </div>
                 <div className="flex gap-8">
                   <Button size="sm" variant="secondary" aria-label="Editar serviço" title="Editar serviço" onClick={() => openEdit(s)}><Pencil size={14} /></Button>
@@ -84,6 +108,8 @@ export default function Services() {
             </Card>
           ))}
         </div>
+        </div>
+        ))
       )}
 
       <Modal open={!!editing} onClose={close} title={editing === 'new' ? 'Novo serviço' : 'Editar serviço'}
@@ -94,7 +120,19 @@ export default function Services() {
           <div className="field"><label className="label">Duração (min)</label><input className="input" type="number" value={form.durationMinutes} onChange={e => setForm({ ...form, durationMinutes: parseInt(e.target.value) || 0 })} /></div>
           <div className="field"><label className="label">Preço (€)</label><input className="input" type="number" value={form.price} onChange={e => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} /></div>
         </div>
-        <div className="field"><label className="label">Categoria</label><input className="input" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} /></div>
+        <div className="field">
+          <label className="label">Categoria</label>
+          {categorias.length === 0 ? (
+            <p className="text-sec text-sm" style={{ margin: '4px 0 0', lineHeight: 1.6 }}>
+              Ainda não criaste categorias. <Link to="/admin/servicos/categorias" className="text-gold">Cria-as aqui</Link> para arrumares os serviços — o cliente vê-os pela mesma ordem.
+            </p>
+          ) : (
+            <select className="select" value={form.category || ''} onChange={e => setForm({ ...form, category: e.target.value })}>
+              <option value="">Sem categoria</option>
+              {categorias.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          )}
+        </div>
         <div className="flex gap-24 mt-16">
           <label className="flex items-center gap-8 text-sm"><input type="checkbox" checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked })} /> Ativo</label>
           <label className="flex items-center gap-8 text-sm"><input type="checkbox" checked={form.isPopular} onChange={e => setForm({ ...form, isPopular: e.target.checked })} /> Popular</label>

@@ -333,6 +333,12 @@ function bizFromRow(row) {
     config: s.config || _defaultConfig(),
     // O cartao de fidelidade: uma so verdade, a mesma que o site do cliente le.
     loyalty: s.loyalty || {},
+    // As categorias dos servicos, pela ordem que o barbeiro escolheu. Vivem
+    // no settings da barbearia (o site do cliente le-as de la); antes eram
+    // uma lista em memoria que desaparecia ao recarregar a pagina.
+    serviceCategories: Array.isArray(s.serviceCategories) ? s.serviceCategories : [],
+    // O mesmo para os produtos do inventario.
+    productCategories: Array.isArray(s.productCategories) ? s.productCategories : [],
     // O Super Admin escreve chaves aqui (theme, loyalty, ...) que este admin
     // nao conhece. Guardamos o settings original para as devolver intactas
     // ao gravar - sem isto, gravar o telefone apagava o tema da barbearia.

@@ -17,22 +17,30 @@ export default function Inventory() {
   const [delId, setDelId] = useState(null);
   const [form, setForm] = useState({ name: '', category: '', unit: 'un', stock: 0, minStock: 5, cost: 0, price: 0, supplier: '' });
   const [editingId, setEditingId] = useState(null);
+  const [novaCategoria, setNovaCategoria] = useState(false);
+  const categoriasProduto = data.business?.productCategories || [];
   const [adj, setAdj] = useState({ id: '', delta: '', reason: 'Entrada de stock' });
 
   const products = useMemo(() => {
     const q = search.toLowerCase();
-    return data.products.filter(p => !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+    return data.products.filter(p => !q || p.name.toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q));
   }, [data.products, search]);
 
   const lowStock = data.products.filter(p => p.stock <= p.minStock);
   const stockValue = data.products.reduce((sum, p) => sum + p.stock * (p.cost || 0), 0);
 
-  const openNew = () => { setEditingId(null); setForm({ name: '', category: '', unit: 'un', stock: 0, minStock: 5, cost: 0, price: 0, supplier: '' }); setEditModal(true); };
-  const openEdit = (p) => { setEditingId(p.id); setForm({ name: p.name, category: p.category, unit: p.unit, stock: p.stock, minStock: p.minStock, cost: p.cost, price: p.price || 0, supplier: p.supplier || '' }); setEditModal(true); };
+  const openNew = () => { setEditingId(null); setNovaCategoria(false); setForm({ name: '', category: categoriasProduto[0] || '', unit: 'un', stock: 0, minStock: 5, cost: 0, price: 0, supplier: '' }); setEditModal(true); };
+  const openEdit = (p) => { setEditingId(p.id); setNovaCategoria(false); setForm({ name: p.name, category: p.category, unit: p.unit, stock: p.stock, minStock: p.minStock, cost: p.cost, price: p.price || 0, supplier: p.supplier || '' }); setEditModal(true); };
   const openAdj = (p) => { setAdj({ id: p.id, delta: '', reason: 'Entrada de stock' }); setAdjModal(true); };
 
   const save = async () => {
     if (!form.name) { toast.error('Nome obrigatório'); return; }
+    // Uma categoria nova escrita aqui passa a estar na lista da barbearia,
+    // para o proximo produto a poder escolher em vez de a reescrever.
+    const cat = (form.category || '').trim();
+    if (cat && !categoriasProduto.some(c => c.toLowerCase() === cat.toLowerCase())) {
+      try { await dataService.updateBusiness({ productCategories: [...categoriasProduto, cat] }); } catch { /* o produto grava na mesma */ }
+    }
     if (editingId) { await dataService.updateProduct(editingId, { ...form, stock: Number(form.stock), minStock: Number(form.minStock), cost: Number(form.cost), price: Number(form.price) }); toast.success('Produto atualizado'); }
     else { await dataService.createProduct({ ...form, stock: Number(form.stock), minStock: Number(form.minStock), cost: Number(form.cost), price: Number(form.price) }); toast.success('Produto criado'); }
     setEditModal(false);
@@ -107,7 +115,24 @@ export default function Inventory() {
       <Modal open={editModal} onClose={() => setEditModal(false)} title={editingId ? 'Editar produto' : 'Novo produto'}>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
         <div className="grid-2">
-          <div className="field"><label className="label">Categoria</label><input className="input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} /></div>
+          <div className="field">
+            <label className="label">Categoria</label>
+            {/* As categorias dos produtos ficam no settings da barbearia, como as
+                dos servicos. Escreve-se uma nova aqui e ela passa a estar na lista
+                — nao ha uma pagina so para isso. */}
+            <div className="flex gap-8">
+              <select className="select" style={{ flex: 1 }} value={categoriasProduto.includes(form.category) ? form.category : (form.category ? '__nova' : '')}
+                onChange={e => { const v = e.target.value; if (v === '__nova') { setForm(f => ({ ...f, category: '' })); setNovaCategoria(true); } else { setNovaCategoria(false); setForm(f => ({ ...f, category: v })); } }}>
+                <option value="">Sem categoria</option>
+                {categoriasProduto.map(c => <option key={c} value={c}>{c}</option>)}
+                <option value="__nova">+ Nova categoria…</option>
+              </select>
+            </div>
+            {(novaCategoria || (form.category && !categoriasProduto.includes(form.category))) && (
+              <input className="input" style={{ marginTop: 8 }} autoFocus placeholder="Nome da categoria nova"
+                value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} />
+            )}
+          </div>
           <div className="field"><label className="label">Unidade</label><select className="select" value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}><option value="un">un</option><option value="cx">cx</option><option value="pct">pct</option><option value="L">L</option><option value="kg">kg</option></select></div>
         </div>
         <div className="grid-2">
