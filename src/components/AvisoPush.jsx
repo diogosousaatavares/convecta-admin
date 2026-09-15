@@ -19,7 +19,14 @@ import { estadoPush, ativarPush, garantirPush, enviarPush } from '@/lib/push';
  * pedida sozinha ao abrir a pagina, e num iPhone uma recusa so se desfaz
  * nas definicoes do sistema. Por isso nao insistimos.
  */
-export default function AvisoPush({ businessId, userId, papel, texto, comTeste = false }) {
+// A linha "ligadas neste aparelho" so aparece uma vez por dia depois de um
+// teste bem sucedido (o barbeiro nao precisa de a ver em todas as paginas,
+// todos os dias). Em Definicoes aparece sempre, para se poder testar outra vez.
+const CHAVE_TESTE = 'convecta_push_testado_em';
+function hoje() { const d = new Date(); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; }
+function testadoHoje() { try { return localStorage.getItem(CHAVE_TESTE) === hoje(); } catch { return false; } }
+
+export default function AvisoPush({ businessId, userId, papel, texto, comTeste = false, sempre = false }) {
   const [estado, setEstado] = useState('indisponivel');
   const [aPedir, setAPedir] = useState(false);
   const [erro, setErro] = useState('');
@@ -54,6 +61,7 @@ export default function AvisoPush({ businessId, userId, papel, texto, comTeste =
         url: '/admin/agenda', tag: 'teste',
       });
       if (r.enviadas > 0) {
+        try { localStorage.setItem(CHAVE_TESTE, hoje()); } catch {}
         setTeste({ ok: true, msg: `Enviada para ${r.enviadas} aparelho${r.enviadas > 1 ? 's' : ''}.` });
       } else if (r.inscricoes > 0) {
         // Ha aparelhos inscritos e mesmo assim nao foi: isto e uma avaria,
@@ -70,6 +78,7 @@ export default function AvisoPush({ businessId, userId, papel, texto, comTeste =
   /* ── Já autorizado: linha fina, com o botão de teste ──────────────── */
   if (estado === 'concedido') {
     if (!comTeste) return null;
+    if (!sempre && testadoHoje() && !teste) return null;
     return (
       <div className="push-linha">
         <Check size={15} />

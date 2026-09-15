@@ -81,10 +81,7 @@ const GROUPS_TODOS = [
   ]},
 
   { type: 'group', label: 'Fidelização', icon: Gift, items: [
-    { to: '/admin/fidelizacao/programa', label: 'Programa' },
-    { to: '/admin/fidelizacao/pontos', label: 'Pontos' },
-    { to: '/admin/fidelizacao/recompensas', label: 'Recompensas' },
-    { to: '/admin/fidelizacao/cartao', label: 'Cartão de Visitas' }
+    { to: '/admin/fidelizacao/programa', label: 'Cartão de fidelidade' },
   ]},
 
   { type: 'group', label: 'Subscrições', icon: Repeat, items: [
@@ -374,7 +371,9 @@ export default function AdminLayout({ children }) {
         {/* As notificacoes pedem-se em todas as paginas, nao so na de
             Marcacoes: quem entra na Agenda e fica por la nunca era sequer
             perguntado — e ficava sem campainha nenhuma. */}
-        <AvisoPush businessId={data.business?.id} userId={user?.id} papel="admin" comTeste />
+        {/* Pedir para ligar: em todas as paginas. A linha "ligadas, testar":
+            so no Dashboard, e so uma vez por dia — em Definicoes esta sempre. */}
+        <AvisoPush businessId={data.business?.id} userId={user?.id} papel="admin" comTeste={location.pathname === '/admin'} />
         {children}
       </main>
     </div>

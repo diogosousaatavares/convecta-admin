@@ -159,9 +159,19 @@ const DEFAULT_LOYALTY = {
   stampFilledColor: '#C9A84C', stampEmptyColor: 'rgba(255,255,255,0.08)', textColor: '#FFFFFF',
 };
 
+// As regras do cartao vivem em settings.loyalty da barbearia — e o que o
+// site do cliente le. Antes viviam no localStorage deste browser (o
+// "cartao ativo" decidia se o balcao carimbava e mais nada) e no config, e
+// as tres copias discordavam. `enabled` e `totalStamps` ficam com os nomes
+// antigos para o resto do codigo nao mudar.
 function loyaltyCardConfig() {
-  try { return { ...DEFAULT_LOYALTY, ...(JSON.parse(localStorage.getItem('convecta_loyalty_card_config')) || {}) }; }
-  catch { return { ...DEFAULT_LOYALTY }; }
+  const l = state.business?.loyalty || {};
+  return {
+    ...DEFAULT_LOYALTY,
+    enabled: l.ativo !== false,
+    totalStamps: Math.max(3, Math.min(20, Number(l.stampsNeeded) || 10)),
+    reward: l.rewardName || DEFAULT_LOYALTY.reward,
+  };
 }
 
 // ── Validade do cartao ──────────────────────────────────────────────────────
@@ -187,7 +197,7 @@ async function addLoyaltyStamp(appt, at = new Date().toISOString()) {
   const customer = state.customers.find(c => c.id === appt.customerId);
   if (!customer) return;
   const cfg = loyaltyCardConfig();
-  const threshold = Math.max(3, Math.min(20, Number(state.business?.config?.loyalty?.stampsThreshold ?? cfg.totalStamps ?? 10)));
+  const threshold = cfg.totalStamps;
   if (!customer.loyalty) customer.loyalty = { stamps: 0, totalStamps: 0, rewardsEarned: 0, points: 0 };
 
   // Cartao fora do prazo: comeca um novo, vazio. O historico de vida
@@ -321,6 +331,8 @@ function bizFromRow(row) {
     coords: s.coords || {}, amenities: s.amenities || [],
     social: s.social || {}, openingHours: s.openingHours || [],
     config: s.config || _defaultConfig(),
+    // O cartao de fidelidade: uma so verdade, a mesma que o site do cliente le.
+    loyalty: s.loyalty || {},
     // O Super Admin escreve chaves aqui (theme, loyalty, ...) que este admin
     // nao conhece. Guardamos o settings original para as devolver intactas
     // ao gravar - sem isto, gravar o telefone apagava o tema da barbearia.
@@ -689,13 +701,34 @@ async function init() {
 }
 
 // ─── SLOT GENERATION ──────────────────────────────────────────────────────────
-function generateSlotsForDay(dateStr, professionalId, durationMinutes, existingAppointments) {
+// As horas em que um profissional pode ser marcado num dia: o seu horario
+// proprio, se o tiver, senao o da barbearia — e nunca fora do da barbearia.
+// Um profissional so de quarta e quinta deixa de aparecer a segunda.
+function horasDoDia(dateStr, professionalId, st = state) {
   const dow = new Date(dateStr + 'T00:00:00').getDay();
-  const hours = state.business?.openingHours?.find(h => h.day === DAY_NAMES[dow]);
-  if (!hours || !hours.isOpen) return [];
-  const open = toMinutes(hours.open), close = toMinutes(hours.close);
+  const dia = DAY_NAMES[dow];
+  const loja = st.business?.openingHours?.find(h => h.day === dia);
+  if (!loja || !loja.isOpen) return null;
+  const pro = st.professionals?.find(p => p.id === professionalId);
+  if (pro && pro.isActive === false) return null;
+  const proprio = Array.isArray(pro?.schedule) ? pro.schedule.find(h => h.day === dia) : null;
+  if (proprio && !proprio.isOpen) return null;
+  const open = Math.max(toMinutes(loja.open), proprio ? toMinutes(proprio.open) : 0);
+  const close = Math.min(toMinutes(loja.close), proprio ? toMinutes(proprio.close) : 24 * 60);
+  if (close <= open) return null;
+  const pausas = [...(loja.breaks || []), ...(proprio?.breaks || [])]
+    .filter(b => b && b.start && b.end)
+    .map(b => ({ start: toMinutes(b.start), end: toMinutes(b.end) }));
+  return { open, close, pausas };
+}
+
+function generateSlotsForDay(dateStr, professionalId, durationMinutes, existingAppointments) {
+  const horas = horasDoDia(dateStr, professionalId);
+  if (!horas) return [];
+  const { open, close, pausas } = horas;
   const slots = [];
   for (let t = open; t + durationMinutes <= close; t += 30) {
+    if (pausas.some(b => !(t + durationMinutes <= b.start || t >= b.end))) continue;
     const start = toTime(t), end = toTime(t + durationMinutes);
     const conflict = existingAppointments.some(a =>
       a.professionalId === professionalId && a.date === dateStr && a.status !== 'cancelled' &&
@@ -1236,7 +1269,7 @@ const dataService = {
     const appts = state.appointments.filter(a => a.status !== 'cancelled');
     if (professionalId === 'any') {
       const map = new Map();
-      state.professionals.forEach(p => {
+      state.professionals.filter(p => p.isActive !== false).forEach(p => {
         generateSlotsForDay(dateStr, p.id, durationMinutes, appts).forEach(s => {
           if (!s.isBooked && !s.isPast) {
             if (!map.has(s.startTime)) map.set(s.startTime, { ...s, professionalId: 'any', availablePros: [p.id] });
@@ -1251,26 +1284,26 @@ const dataService = {
   assignProfessionalForSlot(dateStr, startTime, durationMinutes) {
     const appts = state.appointments.filter(a => a.status !== 'cancelled');
     let best = null, bestCount = -1;
-    state.professionals.forEach(p => {
+    state.professionals.filter(p => p.isActive !== false).forEach(p => {
       const slots = generateSlotsForDay(dateStr, p.id, durationMinutes, appts);
       const avail = slots.filter(s => !s.isBooked && !s.isPast && s.startTime === startTime);
       const total = slots.filter(s => !s.isBooked && !s.isPast).length;
       if (avail.length > 0 && total > bestCount) { best = p; bestCount = total; }
     });
-    return Promise.resolve(best || state.professionals[0]);
+    return Promise.resolve(best || state.professionals.find(p => p.isActive !== false) || state.professionals[0]);
   },
 
   // ── LOYALTY ──
   getLoyaltyCardConfig() { return loyaltyCardConfig(); },
+  // Guardar e em settings.loyalty, pela pagina Fidelizacao (updateBusiness).
   saveLoyaltyCardConfig(cfg) {
-    const next = { ...loyaltyCardConfig(), ...cfg, totalStamps: Math.max(3, Math.min(20, Number(cfg.totalStamps)||10)) };
-    localStorage.setItem('convecta_loyalty_card_config', JSON.stringify(next));
-    if (state.business) state.business.config = { ...state.business.config, loyalty: { ...(state.business.config.loyalty||{}), stampsThreshold: next.totalStamps, rewardName: next.reward } };
-    notify(); return Promise.resolve(next);
+    return dataService.updateBusiness({ loyalty: { ...(state.business?.loyalty || {}),
+      ativo: cfg.enabled !== false, stampsNeeded: Math.max(3, Math.min(20, Number(cfg.totalStamps) || 10)), rewardName: cfg.reward } })
+      .then(() => loyaltyCardConfig());
   },
   getLoyaltyProgram() {
     const card = loyaltyCardConfig();
-    return { ...(state.business?.config?.loyalty||{}), stampsThreshold: card.totalStamps, rewardName: card.reward };
+    return { ...(state.business?.loyalty||{}), stampsThreshold: card.totalStamps, rewardName: card.reward };
   },
   saveLoyaltyProgram(cfg) {
     const card = loyaltyCardConfig();

@@ -70,9 +70,6 @@ const RepProducts      = lazy(() => import('@/pages/admin/reports/RepProducts'))
 const RepLoyalty       = lazy(() => import('@/pages/admin/reports/RepLoyalty'));
 const RepSubscriptions = lazy(() => import('@/pages/admin/reports/RepSubscriptions'));
 const FidelizacaoPrograma   = lazy(() => import('@/pages/admin/FidelizacaoPrograma'));
-const FidelizacaoPontos     = lazy(() => import('@/pages/admin/FidelizacaoPontos'));
-const FidelizacaoRecompensas= lazy(() => import('@/pages/admin/FidelizacaoRecompensas'));
-const LoyaltyCard       = lazy(() => import('@/pages/admin/LoyaltyCard'));
 const Subscricoes      = lazy(() => import('@/pages/admin/Subscricoes'));
 const Coupons          = lazy(() => import('@/pages/admin/Coupons'));
 const Definicoes       = lazy(() => import('@/pages/admin/Definicoes'));
@@ -173,9 +170,12 @@ function AppRoutes() {
         <Route path="/admin/relatorios/subscricoes" element={<AdminRoute><RepSubscriptions /></AdminRoute>} />
         <Route path="/admin/fidelizacao" element={<AdminRoute><FidelizacaoPrograma /></AdminRoute>} />
         <Route path="/admin/fidelizacao/programa" element={<AdminRoute><FidelizacaoPrograma /></AdminRoute>} />
-        <Route path="/admin/fidelizacao/pontos" element={<AdminRoute><FidelizacaoPontos /></AdminRoute>} />
-        <Route path="/admin/fidelizacao/recompensas" element={<AdminRoute><FidelizacaoRecompensas /></AdminRoute>} />
-        <Route path="/admin/fidelizacao/cartao" element={<AdminRoute><LoyaltyCard /></AdminRoute>} />
+        {/* Pontos, Recompensas e Cartao de Visitas: viviam na memoria do browser
+            ou duplicavam o Programa. Uma pagina so — o que ficar no historico
+            do browser cai la. */}
+        <Route path="/admin/fidelizacao/pontos" element={<Navigate to="/admin/fidelizacao" replace />} />
+        <Route path="/admin/fidelizacao/recompensas" element={<Navigate to="/admin/fidelizacao" replace />} />
+        <Route path="/admin/fidelizacao/cartao" element={<Navigate to="/admin/fidelizacao" replace />} />
         <Route path="/admin/subscricoes" element={<AdminRoute><Subscricoes /></AdminRoute>} />
         <Route path="/admin/subscricoes/:tab" element={<AdminRoute><Subscricoes /></AdminRoute>} />
         <Route path="/admin/promocoes" element={<AdminRoute><Marketing /></AdminRoute>} />

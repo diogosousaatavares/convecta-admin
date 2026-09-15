@@ -27,6 +27,20 @@ export const MODULOS_POR_ACABAR = [
   // Categorias de servicos — data.typologies em memoria
   '/admin/servicos/categorias',
   '/admin/tipos',
+  // Definicoes que gravam num sitio que nenhum ecra le (auditoria de 14/09):
+  // slot e antecedencia (o site do cliente nao os usa), metodos de pagamento,
+  // regras de clientes, permissoes dos profissionais ("estrutura preparada"),
+  // tipos de documentos, seguranca (so mostra a sessao). Voltam quando forem
+  // lidos por alguem.
+  '/admin/definicoes/agenda',
+  '/admin/definicoes/profissionais',
+  '/admin/definicoes/pagamentos',
+  '/admin/definicoes/clientes',
+  '/admin/definicoes/documentos',
+  '/admin/definicoes/utilizadores',
+  '/admin/definicoes/seguranca',
+  // O cartao de visitas vive dentro de Fidelizacao; pontos e recompensas em memoria.
+  '/admin/fidelizacao/cartao',
 ];
 
 // Um caminho esta indisponivel se for um dos de cima ou estiver por baixo de um.

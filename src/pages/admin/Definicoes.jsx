@@ -8,6 +8,7 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import authService from '@/lib/authService';
+import AvisoPush from '@/components/AvisoPush';
 
 const SECTIONS = {
   agenda: { icon: Calendar, title: 'Agenda' },
@@ -44,6 +45,10 @@ export default function Definicoes() {
   return (
     <AdminPage title={SECTIONS[section].title} subtitle="Definições do sistema." page={section === 'agenda' ? 'definicoesAgenda' : section === 'utilizadores' ? 'definicoesUtilizadores' : undefined}>
       <div className="flex items-center gap-12 mb-24"><span className="notif-ico"><SIcon size={20} /></span><span className="text-sec text-sm">Secção: {SECTIONS[section].title}</span></div>
+      {/* Aqui pode-se sempre testar as notificacoes deste aparelho. */}
+      <div style={{ marginBottom: 20 }}>
+        <AvisoPush businessId={data.business?.id} userId={session?.id} papel="admin" comTeste sempre />
+      </div>
 
       {section === 'agenda' && (
         <Card className="card-pad" style={{ maxWidth: 520 }}>

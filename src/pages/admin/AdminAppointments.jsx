@@ -8,7 +8,6 @@ import PageInfo from '@/components/admin/PageInfo';
 import { Card, Badge, Avatar, Button, EmptyState, Modal } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
-import { sendConfirmationEmail } from '@/lib/bookingEmail';
 import { formatDateShortNum, formatPrice } from '@/lib/format';
 import CheckoutModal from '@/components/admin/CheckoutModal';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -118,13 +117,9 @@ export default function AdminAppointments() {
 
   const confirm = async (id) => {
     const a = await dataService.confirmAppointment(id);
+    // O cliente e avisado por notificacao push (dataService.confirmAppointment).
+    // Nao ha email de confirmacao — o aviso "Email enviado" era mentira.
     toast.success('Marcação confirmada');
-    const cust = data.customers.find(c => c.id === a.customerId);
-    const svc = data.services.find(s => s.id === a.serviceId);
-    const pro = data.professionals.find(p => p.id === a.professionalId);
-    const res = await sendConfirmationEmail({ appointment: a, customer: cust, service: svc, professional: pro, business: data.business });
-    if (res.ok) toast.info('Email enviado', `Confirmação enviada para ${cust?.email || ''}`);
-    else if (!res.skipped) toast.error('Email não enviado', res.error);
   };
   const doCancel = async () => {
     await dataService.cancelAppointment(cancelTarget.id);
