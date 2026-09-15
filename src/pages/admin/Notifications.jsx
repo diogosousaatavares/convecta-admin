@@ -5,6 +5,8 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { Modal, EmptyState, Button } from '@/components/ui';
+import AvisoPush from '@/components/AvisoPush';
+import authService from '@/lib/authService';
 
 const TYPE_META = {
   info: { label: 'Informação', icon: Info, cls: '' },
@@ -47,6 +49,13 @@ export default function Notifications() {
       <div className="page-head">
         <h1>Notificações</h1>
         <p>Cria e gere os avisos enviados aos clientes na aplicação.</p>
+      </div>
+
+      {/* O sitio onde se testa se este aparelho recebe, sempre a mao. No
+          Dashboard a linha desaparece depois do primeiro teste do dia; aqui
+          fica. */}
+      <div style={{ marginBottom: 20 }}>
+        <AvisoPush businessId={data.business?.id} userId={authService.getCurrentUser()?.id} papel="admin" comTeste sempre />
       </div>
 
       <div className="flex items-center gap-16 mb-24" style={{ marginBottom: 22, flexWrap: 'wrap' }}>

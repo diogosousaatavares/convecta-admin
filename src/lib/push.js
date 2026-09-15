@@ -113,16 +113,21 @@ async function inscrever({ businessId, userId, papel }) {
   }
 
   const j = sub.toJSON();
-  const { error } = await supabase.from('push_subscriptions').upsert({
-    business_id: businessId,
-    user_id: userId,
-    papel,
-    endpoint: sub.endpoint,
-    p256dh: j.keys?.p256dh || bytesParaBase64(sub.getKey('p256dh')),
-    auth: j.keys?.auth || bytesParaBase64(sub.getKey('auth')),
-    agente: navigator.userAgent.slice(0, 300),
-    usado_em: new Date().toISOString(),
-  }, { onConflict: 'endpoint' });
+  // A inscricao e feita pela base de dados, nao escrita directamente na
+  // tabela. Porque o endereco de entrega e do APARELHO e nao da conta: o
+  // mesmo telemovel usado primeiro por um cliente e depois pelo barbeiro
+  // devolve o mesmo endereco, a linha antiga ja la estava com outro dono, e
+  // a regra de acesso recusava a actualizacao ("violates row-level security
+  // policy (USING expression)"). O erro ia para a consola, ninguem o lia, e
+  // o painel dizia "notificacoes ligadas" com zero aparelhos do outro lado.
+  const { error } = await supabase.rpc('guardar_inscricao_push', {
+    p_business_id: businessId,
+    p_papel: papel,
+    p_endpoint: sub.endpoint,
+    p_p256dh: j.keys?.p256dh || bytesParaBase64(sub.getKey('p256dh')),
+    p_auth: j.keys?.auth || bytesParaBase64(sub.getKey('auth')),
+    p_agente: navigator.userAgent.slice(0, 300),
+  });
   if (error) throw new Error(error.message);
 }
 
@@ -132,7 +137,7 @@ export async function desativarPush() {
     const reg = await navigator.serviceWorker.getRegistration();
     const sub = await reg?.pushManager.getSubscription();
     if (sub) {
-      await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+      await supabase.rpc('apagar_inscricao_push', { p_endpoint: sub.endpoint });
       await sub.unsubscribe();
     }
   } catch { /* já não havia nada */ }
