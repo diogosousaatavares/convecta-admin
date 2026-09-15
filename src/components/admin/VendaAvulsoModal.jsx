@@ -92,16 +92,9 @@ export default function VendaAvulsoModal({ open, onClose }) {
         }
       }
 
-      if (method === 'Dinheiro' && total > 0) {
-        const custName = customerId ? data.customers.find(c => c.id === customerId)?.name || '' : '';
-        await dataService.addCashMovement({
-          sessionId: sessao?.id,
-          type: 'in',
-          amount: total,
-          description: `Venda de produtos${custName ? ` — ${custName}` : ''}`,
-        });
-      }
-
+      // A venda fica escrita em product_sales, com a sessao de caixa. E de la
+      // que a caixa, as receitas e o calendario a leem — nao e preciso (nem
+      // correcto) criar tambem um movimento de caixa: contava duas vezes.
       await dataService.createSale({
         customerId: customerId || null,
         customerName: customerId ? (data.customers.find(c => c.id === customerId)?.name || '') : '',

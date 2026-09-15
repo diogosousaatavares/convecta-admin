@@ -7,6 +7,7 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice, formatDate, todayStr } from '@/lib/format';
+import { getExpectedCash, pagamentosDaSessao, vendasDaSessao } from '@/lib/domain/finance';
 import CheckoutModal from '@/components/admin/CheckoutModal';
 
 const METHODS = ['Dinheiro', 'Cartão', 'MB WAY', 'Transferência', 'Voucher'];
@@ -21,35 +22,40 @@ export default function Cash() {
   const [openModal, setOpenModal] = useState(false);
   const [opening, setOpening] = useState('0');
   const [expModal, setExpModal] = useState(false);
-  const [exp, setExp] = useState({ description: '', amount: '', category: 'Fornecedores' });
+  const [exp, setExp] = useState({ description: '', amount: '', category: 'Fornecedores', method: 'Dinheiro' });
   const [closeModal, setCloseModal] = useState(false);
   const [counted, setCounted] = useState('');
   const [closeNotes, setCloseNotes] = useState('');
   const [charge, setCharge] = useState(null);
 
-  const inSession = (a) => {
-    if (!session) return false;
-    const t = new Date(a.date + 'T' + a.startTime).toISOString();
-    return t >= session.openedAt;
-  };
+  /*
+   * Por cobrar sao as marcacoes DE HOJE ainda por pagar. Antes era "tudo o
+   * que comeca depois de a caixa abrir" — e isso trazia para aqui a agenda
+   * da semana inteira. Cobrava-se sem dar por isso um corte de amanha, o
+   * dinheiro entrava na caixa de hoje e a receita de hoje continuava a zero.
+   */
+  const payable = useMemo(() => data.appointments
+    .filter(a => a.date === today && a.status === 'confirmed' && !a.payment && !a.blocked)
+    .sort((a, b) => a.startTime.localeCompare(b.startTime)), [data.appointments, today]);
 
-  const payable = useMemo(() => data.appointments.filter(a => inSession(a) && a.status === 'confirmed' && !a.payment).sort((a, b) => a.startTime.localeCompare(b.startTime)), [data.appointments, session]);
-  const sales = useMemo(() => data.appointments.filter(a => inSession(a) && a.status === 'completed' && a.payment).sort((a, b) => a.startTime.localeCompare(b.startTime)), [data.appointments, session]);
+  // O que foi COBRADO nesta sessao, pela hora do pagamento — e quando o
+  // dinheiro muda de maos, nao a hora a que a marcacao estava marcada.
+  const sales = useMemo(() => pagamentosDaSessao(data, session)
+    .sort((a, b) => ((a.payment.at || '')).localeCompare(b.payment.at || '')), [data, session]);
+
   const expenses = useMemo(() => (session ? data.expenses.filter(e => e.sessionId === session.id) : []), [data.expenses, session]);
 
-  /*
-   * As vendas de produtos desta sessao. Faltavam aqui: vendia-se um champo
-   * em dinheiro, o dinheiro entrava na gaveta, e a caixa fazia de conta que
-   * nao tinha acontecido nada — ao fechar, acusava uma diferenca que nao
-   * existia. Sao as vendas feitas depois de a caixa abrir; as em dinheiro
-   * trazem a sessao consigo, as outras nao, por isso conta-se pela hora.
-   */
-  const vendasProdutos = useMemo(() => {
+  // As vendas de produtos desta sessao. Faltavam aqui: vendia-se um champo em
+  // dinheiro, o dinheiro entrava na gaveta e a caixa fazia de conta que nao
+  // tinha acontecido nada — ao fechar, acusava uma diferenca que nao existia.
+  const vendasProdutos = useMemo(() => vendasDaSessao(data, session)
+    .sort((a, b) => (a.soldAt || '').localeCompare(b.soldAt || '')), [data, session]);
+
+  // Sangrias e reforcos — o que e mesmo avulso.
+  const movimentos = useMemo(() => {
     if (!session) return [];
-    return (data.sales || [])
-      .filter(v => v.sessionId === session.id || (v.soldAt && v.soldAt >= session.openedAt))
-      .sort((a, b) => (a.soldAt || '').localeCompare(b.soldAt || ''));
-  }, [data.sales, session]);
+    return (data.cashMovements || []).filter(m => (m.createdAt || '') >= session.openedAt);
+  }, [data.cashMovements, session]);
 
   const salesByMethod = useMemo(() => {
     const m = {}; METHODS.forEach(x => m[x] = 0);
@@ -64,13 +70,9 @@ export default function Cash() {
   const totalTips = sales.reduce((s, a) => s + (a.payment.tip || 0), 0);
   const totalDiscounts = sales.reduce((s, a) => s + (a.payment.discountAmount || 0), 0);
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
-  // So o que saiu mesmo da gaveta desconta do numerario: uma despesa paga
-  // por multibanco nao mexe no dinheiro que la esta.
-  const despesasDinheiro = expenses
-    .filter(e => !e.method || e.method === 'Dinheiro')
-    .reduce((s, e) => s + Number(e.amount || 0), 0);
   const netRevenue = totalSales - totalExpenses;
-  const expectedCash = (session ? session.openingBalance : 0) + (salesByMethod['Dinheiro'] || 0) - despesasDinheiro;
+  // Uma conta so, a mesma que o painel e os relatorios usam.
+  const expectedCash = getExpectedCash(data, session);
 
   const history = data.cashSessions.filter(s => s.status === 'closed').slice(0, 10);
 
@@ -82,9 +84,9 @@ export default function Cash() {
 
   const addExpense = async () => {
     if (!exp.description || !exp.amount) { toast.error('Dados incompletos', 'Indica descrição e valor.'); return; }
-    await dataService.addExpense(session.id, { description: exp.description, amount: Number(exp.amount), category: exp.category });
-    toast.success('Despesa registada');
-    setExpModal(false); setExp({ description: '', amount: '', category: 'Fornecedores' });
+    await dataService.addExpense(session.id, { description: exp.description, amount: Number(exp.amount), category: exp.category, method: exp.method });
+    toast.success('Despesa registada', exp.method === 'Dinheiro' ? 'Saiu da caixa.' : 'Não mexe no numerário da caixa.');
+    setExpModal(false); setExp({ description: '', amount: '', category: 'Fornecedores', method: 'Dinheiro' });
   };
 
   const finishCheckout = async (payData) => {
@@ -194,9 +196,9 @@ export default function Cash() {
                       const p = a.payment;
                       return (
                         <tr key={a.id}>
-                          <td className="fw-600 text-gold">{a.startTime}</td>
+                          <td className="fw-600 text-gold">{p.at ? new Date(p.at).toLocaleTimeString('pt-PT').slice(0, 5) : a.startTime}</td>
                           <td>{cust?.name || '—'}</td>
-                          <td>{svc?.name}</td>
+                          <td>{svc?.name}{a.date !== today ? <span className="text-sec text-xs"> · {formatDate(a.date)}</span> : null}</td>
                           <td className="fw-600">{formatPrice(p.total)}</td>
                           <td><Badge variant="default">{p.method}</Badge></td>
                           <td className="text-sec">{p.discountAmount ? `-${formatPrice(p.discountAmount)}` : '—'}</td>
@@ -238,9 +240,24 @@ export default function Cash() {
                     {expenses.map(e => (
                       <div key={e.id} className="flex items-center gap-12" style={{ padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
                         <Badge variant="default">{e.category}</Badge>
-                        <div className="flex-1"><div className="fw-600 text-sm">{e.description}</div><div className="text-sec text-xs">{new Date(e.createdAt).toLocaleTimeString('pt-PT').slice(0, 5)}</div></div>
+                        <div className="flex-1"><div className="fw-600 text-sm">{e.description}</div><div className="text-sec text-xs">{new Date(e.createdAt).toLocaleTimeString('pt-PT').slice(0, 5)} · {e.method || 'Dinheiro'}{(!e.method || e.method === 'Dinheiro') ? '' : ' (não sai da caixa)'}</div></div>
                         <span className="fw-600 text-sm">-{formatPrice(e.amount)}</span>
                         <button className="btn btn-ghost btn-icon" aria-label="Eliminar despesa" title="Eliminar despesa" onClick={() => dataService.deleteExpense(e.id)}><Trash2 size={15} /></button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {movimentos.length > 0 && (
+                <>
+                  <h4 className="mt-24 mb-16" style={{ fontSize: 15 }}>Entradas e saídas avulsas</h4>
+                  <div className="flex-col gap-8">
+                    {movimentos.map(m => (
+                      <div key={m.id} className="flex items-center gap-12" style={{ padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
+                        <Badge variant="default">{m.category || (m.type === 'in' ? 'Entrada' : 'Saída')}</Badge>
+                        <div className="flex-1"><div className="fw-600 text-sm">{m.description || m.notes || '—'}</div><div className="text-sec text-xs">{new Date(m.createdAt).toLocaleTimeString('pt-PT').slice(0, 5)}</div></div>
+                        <span className="fw-600 text-sm" style={{ color: m.type === 'in' ? 'var(--success)' : 'var(--error)' }}>{m.type === 'in' ? '+' : '-'}{formatPrice(m.amount)}</span>
                       </div>
                     ))}
                   </div>
@@ -276,16 +293,11 @@ export default function Cash() {
             <thead><tr><th>Aberta</th><th>Fechada</th><th>Fundo</th><th>Vendas</th><th>Despesas</th><th>Contado</th><th>Diferença</th></tr></thead>
             <tbody>
               {history.map(s => {
-                const sSales = data.appointments.filter(a => a.status === 'completed' && a.payment && new Date(a.date + 'T' + a.startTime).toISOString() >= s.openedAt && new Date(a.date + 'T' + a.startTime).toISOString() <= s.closedAt);
-                const sProd = (data.sales || []).filter(v => v.sessionId === s.id || (v.soldAt && v.soldAt >= s.openedAt && v.soldAt <= s.closedAt));
+                const sSales = pagamentosDaSessao(data, s);
+                const sProd = vendasDaSessao(data, s);
                 const sTotal = sSales.reduce((sum, a) => sum + a.payment.total, 0) + sProd.reduce((sum, v) => sum + Number(v.total || 0), 0);
-                const sExpTodas = data.expenses.filter(e => e.sessionId === s.id);
-                const sExp = sExpTodas.reduce((sum, e) => sum + Number(e.amount || 0), 0);
-                const sExpCash = sExpTodas.filter(e => !e.method || e.method === 'Dinheiro').reduce((sum, e) => sum + Number(e.amount || 0), 0);
-                const expCash = s.openingBalance
-                  + sSales.filter(a => a.payment.method === 'Dinheiro').reduce((sum, a) => sum + a.payment.total, 0)
-                  + sProd.filter(v => v.method === 'Dinheiro').reduce((sum, v) => sum + Number(v.total || 0), 0)
-                  - sExpCash;
+                const sExp = data.expenses.filter(e => e.sessionId === s.id).reduce((sum, e) => sum + Number(e.amount || 0), 0);
+                const expCash = getExpectedCash(data, s);
                 const diff = (s.countedCash || 0) - expCash;
                 return (
                   <tr key={s.id}>
@@ -313,6 +325,13 @@ export default function Cash() {
         <div className="field"><label className="label">Descrição</label><input className="input" value={exp.description} onChange={e => setExp(f => ({ ...f, description: e.target.value }))} /></div>
         <div className="field"><label className="label">Valor (€)</label><input type="number" className="input" value={exp.amount} onChange={e => setExp(f => ({ ...f, amount: e.target.value }))} min="0" step="0.01" /></div>
         <div className="field"><label className="label">Categoria</label><select className="select" value={exp.category} onChange={e => setExp(f => ({ ...f, category: e.target.value }))}>{EXPENSE_CATS.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+        <div className="field">
+          <label className="label">Como foi paga</label>
+          <select className="select" value={exp.method} onChange={e => setExp(f => ({ ...f, method: e.target.value }))}>
+            {METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <p className="text-sec text-xs" style={{ marginTop: 6 }}>Só o que é pago em dinheiro sai do numerário da caixa.</p>
+        </div>
         <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}><Button variant="secondary" onClick={() => setExpModal(false)}>Cancelar</Button><Button variant="primary" onClick={addExpense}>Registar</Button></div>
       </Modal>
 

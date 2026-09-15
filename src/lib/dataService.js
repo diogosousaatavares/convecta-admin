@@ -1371,15 +1371,11 @@ const dataService = {
     if (!state.expenses) state.expenses = [];
     state.expenses.push(e);
 
-    // Dinheiro que sai da gaveta sai tambem da caixa do dia.
-    if (sessionId && (!data.method || data.method === 'Dinheiro') && e.amount > 0) {
-      try {
-        await dataService.addCashMovement({
-          sessionId, type: 'out', amount: e.amount,
-          description: `Despesa — ${e.description}`,
-        });
-      } catch (err) { console.warn('despesa não saiu da caixa:', err.message); }
-    }
+    // A despesa ja esta escrita na tabela das despesas, e e de la que a caixa
+    // a le. Criar tambem um movimento de caixa fazia-a sair duas vezes da
+    // gaveta — uma pela despesa, outra pelo movimento que ela gerava.
+    // Os movimentos de caixa ficam so para o que e mesmo avulso: sangrias e
+    // reforcos de fundo.
     notify(); return e;
   },
   async deleteExpense(id) {

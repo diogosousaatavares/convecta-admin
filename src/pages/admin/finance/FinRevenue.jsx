@@ -5,6 +5,7 @@ import PageInfo from '@/components/admin/PageInfo';
 import { Card, EmptyState, Badge } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
+import { paidAppointments, vendasDeProdutos } from '@/lib/domain/finance';
 
 export default function FinRevenue() {
   const data = useStore();
@@ -13,10 +14,12 @@ export default function FinRevenue() {
 
   const inRange = (d) => d >= from && d <= to;
 
-  const sales = useMemo(() => data.appointments.filter(a => a.status === 'completed' && a.payment && inRange(a.date)), [data.appointments, from, to]);
+  // Pela data do PAGAMENTO, como a caixa e o painel — cobrar hoje um corte de
+  // amanha e receita de hoje, que e quando o dinheiro entra.
+  const sales = useMemo(() => paidAppointments(data, { from, to }), [data, from, to]);
   // As vendas de produtos sao receita e tinham-se perdido: viviam so na
   // memoria do browser e nenhuma pagina as lia.
-  const vendas = useMemo(() => (data.sales || []).filter(v => inRange(v.date || (v.soldAt || '').slice(0, 10))), [data.sales, from, to]);
+  const vendas = useMemo(() => vendasDeProdutos(data, { from, to }), [data, from, to]);
   // As entradas de caixa que vieram de uma venda de produtos ja estao
   // contadas na linha dos produtos; contá-las outra vez em "outras" era
   // somar o mesmo dinheiro duas vezes.

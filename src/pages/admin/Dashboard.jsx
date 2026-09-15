@@ -8,7 +8,7 @@ import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, Badge, Avatar, EmptyState } from '@/components/ui';
 import { formatPrice, formatDate, formatDateNum, todayStr, addDays, getDowShort } from '@/lib/format';
-import { getRevenue, getOccupancy, paidAppointments, netOfPayment, getCancellationCount, getCancellationRate, getNoShowCount, getNoShowRate } from '@/lib/domain/finance';
+import { getRevenue, getProductRevenue, getTotalRevenue, getExpensesTotal, getExpectedCash, getOccupancy, paidAppointments, netOfPayment, getCancellationCount, getCancellationRate, getNoShowCount, getNoShowRate } from '@/lib/domain/finance';
 import { monthBounds, weekBounds, daysBetween } from '@/lib/domain/dates';
 import { round2 } from '@/lib/domain/money';
 import { listConvectaNotifs, markConvectaNotifRead } from '@/lib/convectaNotifs';
@@ -53,7 +53,14 @@ export default function Dashboard() {
   const periodActive = periodAppts.filter(a => a.status !== 'cancelled' && a.status !== 'no_show');
   // RECEITA canónica: só marcações PAGAS (completed + payment), pelo snapshot histórico.
   const paidAppts = paidAppointments(data, range);
-  const periodRevenue = getRevenue(data, range);
+  // A receita do negocio sao os servicos MAIS os produtos vendidos ao balcao.
+  // Os produtos estavam fora de todas as contas do painel: vendiam-se, o
+  // dinheiro entrava na caixa, e aqui nao aparecia nada.
+  const receitaServicos = getRevenue(data, range);
+  const receitaProdutos = getProductRevenue(data, range);
+  const periodRevenue = getTotalRevenue(data, range);
+  const periodExpenses = getExpensesTotal(data, range);
+  const periodResult = round2(periodRevenue - periodExpenses);
   const periodCancelled = getCancellationCount(data, range);
   const periodNoShow = getNoShowCount(data, range);
   const noShowRate = getNoShowRate(data, range);
@@ -74,6 +81,7 @@ export default function Dashboard() {
   // ticket médio do dia (receita paga hoje ÷ marcações pagas hoje)
   const todayPaid = paidAppointments(data, { from: today, to: today });
   const ticketDia = todayPaid.length ? getRevenue(data, { from: today, to: today }) / todayPaid.length : 0;
+  const receitaHoje = getTotalRevenue(data, { from: today, to: today });
 
   // taxa de cancelamento hoje (canceladas ÷ marcações hoje)
   const todayAll = data.appointments.filter(a => a.date === today && !a.blocked);
@@ -93,7 +101,7 @@ export default function Dashboard() {
     const arr = [];
     for (let i = 6; i >= 0; i--) {
       const dStr = addDays(today, -i);
-      const rev = getRevenue(data, { from: dStr, to: dStr });
+      const rev = getTotalRevenue(data, { from: dStr, to: dStr });
       arr.push({ day: getDowShort(new Date(dStr + 'T00:00:00')), rev });
     }
     return arr;
@@ -140,7 +148,7 @@ export default function Dashboard() {
 
   // deltas (vs previous equal-length period)
   const prevRange = { from: addDays(range.from, -rangeDays), to: addDays(range.to, -rangeDays) };
-  const prevRevenue = getRevenue(data, prevRange);
+  const prevRevenue = getTotalRevenue(data, prevRange);
   const revDelta = prevRevenue ? ((periodRevenue - prevRevenue) / prevRevenue) * 100 : 0;
   const previousAppts = data.appointments.filter(a => a.date >= prevRange.from && a.date <= prevRange.to && !a.blocked && !['cancelled', 'no_show'].includes(a.status));
   const newCustomers = data.customers.filter(c => c.joinedAt && inRange(c.joinedAt)).length;
@@ -155,7 +163,9 @@ export default function Dashboard() {
   // alerts
   const lowStock = data.products.filter(p => p.stock <= p.minStock);
   const pendingToday = data.appointments.filter(a => a.date === today && a.status === 'pending').length;
-  const cashOpen = !!data.cashSessions.find(s => s.status === 'open');
+  const sessaoCaixa = data.cashSessions.find(s => s.status === 'open') || null;
+  const cashOpen = !!sessaoCaixa;
+  const numerarioEsperado = getExpectedCash(data, sessaoCaixa);
   const endingPromos = data.promotions.filter(p => p.active && p.endsAt && p.endsAt >= today && p.endsAt <= addDays(today, 7));
   const alerts = [
     ...lowStock.map(p => ({ type: 'warn', icon: Package, title: `Stock baixo: ${p.name}`, sub: `${p.stock} ${p.unit} (mín. ${p.minStock})`, to: '/admin/inventario' })),
@@ -253,13 +263,14 @@ export default function Dashboard() {
         </div>
       )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 14 }}>
-        <Card className="card-pad" style={{ background: 'linear-gradient(135deg, rgba(201,168,39,0.12), rgba(201,168,39,0.03))', border: '1px solid rgba(201,168,39,0.25)' }}><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-gold">RECEITA</span><Wallet size={18} className="text-gold" /></div><div style={{ fontSize: 30, fontWeight: 700, color: '#C9A227', lineHeight: 1 }}>{formatPrice(periodRevenue)}</div>{prevRevenue > 0 && <div className="text-xs mt-10" style={{ color: revDelta >= 0 ? '#22C55E' : '#EF4444' }}>{revDelta >= 0 ? '+' : ''}{revDelta.toFixed(0)}% <span className="text-sec">vs período anterior</span></div>}</Card>
+        <Card className="card-pad" style={{ background: 'linear-gradient(135deg, rgba(201,168,39,0.12), rgba(201,168,39,0.03))', border: '1px solid rgba(201,168,39,0.25)' }}><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-gold">RECEITA</span><Wallet size={18} className="text-gold" /></div><div style={{ fontSize: 30, fontWeight: 700, color: '#C9A227', lineHeight: 1 }}>{formatPrice(periodRevenue)}</div><div className="text-xs mt-10 text-sec">Serviços {formatPrice(receitaServicos)} · Produtos {formatPrice(receitaProdutos)}</div>{prevRevenue > 0 && <div className="text-xs mt-8" style={{ color: revDelta >= 0 ? '#22C55E' : '#EF4444' }}>{revDelta >= 0 ? '+' : ''}{revDelta.toFixed(0)}% <span className="text-sec">vs período anterior</span></div>}</Card>
         <Card className="card-pad"><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">MARCAÇÕES</span><CalendarDays size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>{periodActive.length}</div><div className="flex gap-12 mt-10 text-xs"><span style={{ color: '#22C55E' }}>✓ {periodAppts.filter(a => a.status === 'completed').length} concluídas</span><span style={{ color: '#EF4444' }}>✗ {periodCancelled} canceladas</span></div></Card>
         <Card className="card-pad"><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">OCUPAÇÃO</span><TrendingUp size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, color: occupancy >= 70 ? '#22C55E' : occupancy >= 40 ? '#C9A227' : '#EF4444', lineHeight: 1 }}>{occupancy}%</div><div style={{ marginTop: 10, height: 4, borderRadius: 2, background: 'var(--border)' }}><div style={{ height: '100%', width: `${Math.min(occupancy, 100)}%`, background: occupancy >= 70 ? '#22C55E' : occupancy >= 40 ? '#C9A227' : '#EF4444' }} /></div></Card>
         <Card className="card-pad"><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">TICKET MÉDIO</span><Star size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, color: '#C9A227', lineHeight: 1 }}>{formatPrice(ticketMedio)}</div><div className="text-sec text-xs mt-10">Hoje: <span className="text-sm">{formatPrice(ticketDia)}</span></div></Card>
+        <Card className="card-pad" style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/caixa')}><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">CAIXA</span><Wallet size={18} className="text-sec" /></div>{sessaoCaixa ? (<><div style={{ fontSize: 30, fontWeight: 700, color: '#C9A227', lineHeight: 1 }}>{formatPrice(numerarioEsperado)}</div><div className="text-sec text-xs mt-10">Numerário esperado · aberta às {new Date(sessaoCaixa.openedAt).toLocaleTimeString('pt-PT').slice(0, 5)}</div></>) : (<><div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.2, color: 'var(--text-sec)' }}>Fechada</div><div className="text-sec text-xs mt-10">Receita de hoje: <span className="text-sm">{formatPrice(receitaHoje)}</span></div></>)}</Card>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 20 }}>{[{ label: 'Taxa cancelamento', value: `${cancelRate.toFixed(0)}%`, warn: cancelRate > 15 }, { label: 'Taxa de retorno', value: `${returnRate.toFixed(0)}%`, gold: true }, { label: 'Clientes (período)', value: periodCustomers }, { label: 'Previsão período', value: formatPrice(forecast), gold: true }, { label: 'Cancel. hoje', value: `${cancelRateToday.toFixed(0)}%`, warn: cancelRateToday > 15 }, { label: 'No-shows', value: periodNoShow }].map((k, i) => <Card key={i} style={{ padding: '14px 16px' }}><div className="text-xs text-sec mb-8">{k.label}</div><div style={{ fontSize: 20, fontWeight: 700, color: k.warn ? '#EF4444' : k.gold ? '#C9A227' : 'var(--text)' }}>{k.value}</div></Card>)}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 20 }}>{[{ label: 'Taxa cancelamento', value: `${cancelRate.toFixed(0)}%`, warn: cancelRate > 15 }, { label: 'Taxa de retorno', value: `${returnRate.toFixed(0)}%`, gold: true }, { label: 'Clientes (período)', value: periodCustomers }, { label: 'Previsão período', value: formatPrice(forecast), gold: true }, { label: 'Cancel. hoje', value: `${cancelRateToday.toFixed(0)}%`, warn: cancelRateToday > 15 }, { label: 'No-shows', value: periodNoShow }, { label: 'Despesas (período)', value: formatPrice(periodExpenses) }, { label: 'Resultado', value: formatPrice(periodResult), gold: periodResult >= 0, warn: periodResult < 0 }].map((k, i) => <Card key={i} style={{ padding: '14px 16px' }}><div className="text-xs text-sec mb-8">{k.label}</div><div style={{ fontSize: 20, fontWeight: 700, color: k.warn ? '#EF4444' : k.gold ? '#C9A227' : 'var(--text)' }}>{k.value}</div></Card>)}</div>
 
       <div className="dash-two-col" style={{ marginBottom: 14 }}><Card className="card-pad dash-chart-panel"><div className="dash-panel-head"><h3 style={{ fontSize: 18 }}>Receita — últimos 7 dias</h3><Badge variant="gold">média {formatPrice(avgDaily)}/dia</Badge></div><ResponsiveContainer width="100%" height={220}><AreaChart data={revenue7} margin={{ left: -18, right: 8, top: 8, bottom: 0 }}><defs><linearGradient id="dashboardRevenue" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#C9A227" stopOpacity={0.45} /><stop offset="100%" stopColor="#C9A227" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" /><XAxis dataKey="day" stroke="#8A8272" fontSize={12} tickLine={false} axisLine={false} /><YAxis stroke="#8A8272" fontSize={12} tickLine={false} axisLine={false} /><Tooltip contentStyle={{ background: '#1C1915', border: '1px solid #2a2520', borderRadius: 8 }} /><Area type="monotone" dataKey="rev" stroke="#C9A227" strokeWidth={2.5} fill="url(#dashboardRevenue)" /></AreaChart></ResponsiveContainer></Card><Card className="card-pad"><div className="dash-panel-head"><h3 style={{ fontSize: 18 }}>Agenda de hoje</h3><button className="link-gold text-sm" onClick={() => navigate('/admin/agenda')}>Ver tudo <ArrowUpRight size={14} /></button></div>{todayAppts.length === 0 ? <EmptyState icon={() => <CalendarDays />} title="Dia livre" description="Sem marcações hoje." /> : <div className="dash-list">{todayAppts.slice(0, 7).map(a => { const cust = data.customers.find(c => c.id === a.customerId); const svc = data.services.find(s => s.id === a.serviceId); return <div key={a.id} className="dash-list-row"><Avatar name={cust?.name} /><div className="dash-list-name">{cust?.name || '—'}<div className="text-sec text-xs">{svc?.name || '—'}</div></div><div className="dash-list-time">{a.startTime}</div></div>; })}</div>}</Card></div>
 
@@ -267,181 +278,4 @@ export default function Dashboard() {
     </AdminLayout>
   );
 
-  if (false) {
-    return (
-    <AdminLayout>
-      <div className="page-head">
-        <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h1>Dashboard</h1>
-              <PageInfo
-                description="Centro de controlo que agrega os principais indicadores do negócio em tempo real: receita do período, marcações, ocupação e desempenho da equipa. É a primeira coisa que vês ao entrar e serve para tomares decisões rápidas sem precisares de abrir outras secções."
-                impact="Um dashboard atualizado permite detetar problemas antes que se tornem prejuízo — uma taxa de ocupação baixa, uma queda de receita ou um aumento de cancelamentos são sinais que aparecem aqui primeiro."
-                links={['Agenda', 'Clientes', 'Profissionais', 'Financeiro', 'Relatórios']}
-              />
-            </div>
-            <p>{formatDateNum(range.from)} → {formatDateNum(range.to)}</p>
-          </div>
-          <div className="flex gap-8" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
-            <div className="period-tabs">
-              <button className={period === 'today' ? 'active' : ''} onClick={() => setPeriod('today')}>Hoje</button>
-              <button className={period === 'week' ? 'active' : ''} onClick={() => setPeriod('week')}>Semana</button>
-              <button className={period === 'month' ? 'active' : ''} onClick={() => setPeriod('month')}>Mês</button>
-              <button className={period === 'custom' ? 'active' : ''} onClick={() => setPeriod('custom')}>Personalizado</button>
-            </div>
-          </div>
-        </div>
-        {period === 'custom' && (
-          <div className="flex gap-12 mt-16" style={{ flexWrap: 'wrap' }}>
-            <div className="field" style={{ marginBottom: 0 }}><label className="label">De</label><input type="date" className="input" value={custom.from} onChange={e => setCustom(f => ({ ...f, from: e.target.value }))} /></div>
-            <div className="field" style={{ marginBottom: 0 }}><label className="label">Até</label><input type="date" className="input" value={custom.to} onChange={e => setCustom(f => ({ ...f, to: e.target.value }))} /></div>
-          </div>
-        )}
-      </div>
-      <PageInfo page="dashboard" />
-
-      {/* KPIs */}
-      <div className="dashboard-kpis dashboard-kpis-featured">
-        <Card className="kpi kpi-featured">
-          <button className="btn btn-ghost btn-icon btn-sm kpi-more" aria-label="Mais opções de receita" title="Mais opções"><MoreHorizontal size={18} /></button>
-          <div className="kpi-icon-circle"><CreditCard size={22} /></div>
-          <div className="label">Receita do período</div>
-          <div className="value gold">{formatPrice(periodRevenue)}</div>
-          <div className={`kpi-delta ${revDelta >= 0 ? 'up' : 'down'}`}><>{revDelta >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}</><strong>{revDelta >= 0 ? '+' : ''}{revDelta.toFixed(0)}%</strong><span className="text-sec">{comparisonLabel}</span></div>
-        </Card>
-        <Card className="kpi kpi-featured">
-          <button className="btn btn-ghost btn-icon btn-sm kpi-more" aria-label="Mais opções de marcações" title="Mais opções"><MoreHorizontal size={18} /></button>
-          <div className="kpi-icon-circle"><CalendarDays size={22} /></div>
-          <div className="label">Marcações</div>
-          <div className="value">{periodActive.length}</div>
-          <div className={`kpi-delta ${apptsDelta >= 0 ? 'up' : 'down'}`}><>{apptsDelta >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}</><strong>{apptsDelta >= 0 ? '+' : ''}{apptsDelta.toFixed(0)}%</strong><span className="text-sec">{comparisonLabel}</span></div>
-        </Card>
-        <Card className="kpi kpi-featured">
-          <button className="btn btn-ghost btn-icon btn-sm kpi-more" aria-label="Mais opções de novos clientes" title="Mais opções"><MoreHorizontal size={18} /></button>
-          <div className="kpi-icon-circle"><UserPlus size={22} /></div>
-          <div className="label">Novos clientes</div>
-          <div className="value">{newCustomers}</div>
-          <div className={`kpi-delta ${customersDelta >= 0 ? 'up' : 'down'}`}><>{customersDelta >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}</><strong>{customersDelta >= 0 ? '+' : ''}{customersDelta.toFixed(0)}%</strong><span className="text-sec">{comparisonLabel}</span></div>
-        </Card>
-        <Card className="kpi kpi-featured" title={`${occupancyData.occupied} minutos ocupados de ${occupancyData.available} minutos disponíveis`}>
-          <button className="btn btn-ghost btn-icon btn-sm kpi-more" aria-label="Mais opções de ocupação" title="Mais opções"><MoreHorizontal size={18} /></button>
-          <div className="kpi-icon-circle"><TrendingUp size={22} /></div>
-          <div className="label">Taxa de ocupação</div>
-          <div className="value gold">{occupancy < 1 ? '< 1%' : `${occupancy}%`}</div>
-          <div className={`kpi-delta ${occupancyDelta >= 0 ? 'up' : 'down'}`}><>{occupancyDelta >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}</><strong>{occupancyDelta >= 0 ? '+' : ''}{occupancyDelta.toFixed(0)}%</strong><span className="text-sec">{comparisonLabel}</span></div>
-        </Card>
-      </div>
-
-      <div className="dash-two-col">
-        {/* Revenue trend */}
-        <Card className="card-pad dash-chart-panel">
-          <div className="dash-panel-head">
-            <div><h3 style={{ fontSize: 18 }}>Receita ao longo do tempo</h3><p className="text-sec text-xs">Evolução da receita e marcações</p></div>
-            <button className="period-pill active">Mês</button>
-          </div>
-          <div className="dash-chart-box chart-box">
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={revenue7} margin={{ left: -18, right: 8, top: 8, bottom: 0 }}>
-                <defs><linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={CHART_GOLD} stopOpacity={0.5} /><stop offset="100%" stopColor={CHART_GOLD} stopOpacity={0} /></linearGradient></defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="day" stroke="#8A8272" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#8A8272" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: '#1C1915', border: '1px solid #221E18', borderRadius: 8, fontSize: 13 }} labelStyle={{ color: '#EDE8DF' }} />
-                <Area type="monotone" dataKey="rev" stroke={CHART_GOLD} strokeWidth={2.5} fill="url(#revGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        {/* Services distribution */}
-        <Card className="card-pad dash-chart-panel">
-          <div className="dash-panel-head">
-            <div><h3 style={{ fontSize: 18 }}>Serviços mais vendidos</h3><p className="text-sec text-xs">Distribuição por serviço</p></div>
-            <button className="period-pill">Todos</button>
-          </div>
-          {svcDist.length === 0 ? (
-            <EmptyState icon={() => <Star />} title="Sem dados" />
-          ) : (
-            <div className="flex items-center gap-16" style={{ flexWrap: 'wrap' }}>
-              <div className="service-donut" style={{ width: 170, height: 170 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={svcDist} dataKey="count" nameKey="name" innerRadius={42} outerRadius={75} paddingAngle={2}>
-                      {svcDist.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                    </Pie>
-                    <text x="50%" y="48%" textAnchor="middle" dominantBaseline="middle" fill="#EDE8DF" fontSize="21" fontWeight="700">{serviceTotal}</text>
-                    <text x="50%" y="62%" textAnchor="middle" dominantBaseline="middle" fill="#8A8272" fontSize="10">Marcações</text>
-                    <Tooltip contentStyle={{ background: '#1C1915', border: '1px solid #221E18', borderRadius: 8, fontSize: 13 }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex-col gap-8" style={{ flex: 1, minWidth: 130 }}>
-                {svcDist.map((s, i) => (
-                  <div key={i} className="flex items-center gap-8">
-                    <span style={{ width: 10, height: 10, borderRadius: 3, background: CHART_COLORS[i % CHART_COLORS.length] }} />
-                    <span className="text-sm flex-1">{s.name}</span>
-                    <span className="fw-600 text-sm">{serviceTotal ? Math.round(s.count / serviceTotal * 100) : 0}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </Card>
-
-      </div>
-
-      <div className="dash-two-col dash-lower">
-        {/* Agenda do dia */}
-        <Card className="card-pad">
-          <div className="dash-panel-head">
-            <div><h3 style={{ fontSize: 18 }}>Marcações de hoje</h3><p className="text-sec text-xs">{todayAppts.length} marcações agendadas</p></div>
-            <button className="link-gold text-sm" onClick={() => navigate('/admin/agenda')}>Ver todas <ArrowUpRight size={14} /></button>
-          </div>
-          {todayAppts.length === 0 ? (
-            <EmptyState icon={() => <CalendarDays />} title="Sem marcações hoje" description="O dia está livre." />
-          ) : (
-            <div className="dash-list">
-              {todayAppts.slice(0, 6).map(a => {
-                const svc = data.services.find(s => s.id === a.serviceId);
-                const cust = data.customers.find(c => c.id === a.customerId);
-                const statusLabel = a.status === 'confirmed' ? 'Confirmada' : a.status === 'completed' ? 'Concluída' : a.status === 'pending' ? 'Pendente' : a.status === 'cancelled' ? 'Cancelada' : 'Em espera';
-                const statusVariant = a.status === 'confirmed' || a.status === 'completed' ? 'success' : a.status === 'pending' ? 'warning' : 'default';
-                return (
-                  <div key={a.id} className="dash-list-row">
-                    <Avatar name={cust?.name} />
-                    <div className="dash-list-name">{cust?.name || '—'}</div>
-                    <div className="dash-list-time">{a.startTime}</div>
-                    <div className="dash-list-service text-sec text-xs">{svc?.name || '—'}</div>
-                    <Badge variant={statusVariant}>{statusLabel}</Badge>
-                    <ChevronRight size={16} className="text-sec" />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-
-        <Card className="card-pad">
-          <div className="dash-panel-head">
-            <div><h3 style={{ fontSize: 18 }}>Clientes recentes</h3><p className="text-sec text-xs">Últimos clientes registados</p></div>
-            <button className="link-gold text-sm" onClick={() => navigate('/admin/clientes')}>Ver todos <ArrowUpRight size={14} /></button>
-          </div>
-            {recentCustomers.length === 0 ? <EmptyState icon={() => <Users />} title="Sem clientes" description="Os clientes recentes aparecerão aqui." /> : (
-              <div className="dash-list">
-                {recentCustomers.map(c => (
-                  <div key={c.id} className="dash-list-row">
-                    <Avatar name={c.name} />
-                    <div className="dash-list-name"><div className="text-sm">{c.name}</div><div className="text-sec text-xs">{c.email}</div></div>
-                    <span className="text-sec text-xs dash-list-date">{c.joinedAt ? formatDateNum(c.joinedAt) : '—'}</span>
-                    <ChevronRight size={16} className="text-sec" />
-                  </div>
-                ))}
-              </div>
-            )}
-        </Card>
-      </div>
-    </AdminLayout>
-    );
-  }
 }

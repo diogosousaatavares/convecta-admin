@@ -9,14 +9,27 @@ import { APPT_STATES, appointmentDuration } from './appointments';
 // --- Seleção de marcações pagas (fonte da receita) -------------------------
 // Receita reconhecida = marcações COMPLETED com pagamento válido.
 // NOTA: uma marcação confirmed (ainda não paga) NÃO conta como receita.
+//
+// A receita conta no dia em que o DINHEIRO ENTROU, não no dia da marcação.
+// Cobrar hoje um corte de amanhã punha o dinheiro na caixa de hoje e a
+// receita em lado nenhum: o painel dizia zero enquanto a gaveta tinha lá o
+// dinheiro. É esta data que a caixa, o painel e o relatório passam a usar.
+export function dataDoPagamento(a) {
+  const t = a?.payment?.at || a?.completedAt;
+  if (t) {
+    const d = new Date(t);
+    if (!isNaN(d.getTime())) return localDateStr(d);
+  }
+  return a?.date;
+}
+
 export function paidAppointments(state, range) {
-  const today = new Date().toISOString().slice(0, 10);
-  return state.appointments.filter(a =>
-    a.status === APPT_STATES.COMPLETED &&
-    a.payment &&
-    a.date <= today &&
-    inRange(a.date, range)
-  );
+  const hoje = localDateStr(new Date());
+  return state.appointments.filter(a => {
+    if (a.status !== APPT_STATES.COMPLETED || !a.payment) return false;
+    const d = dataDoPagamento(a);
+    return d && d <= hoje && inRange(d, range);
+  });
 }
 
 export function inRange(dateStr, range) {
@@ -29,6 +42,33 @@ export function inRange(dateStr, range) {
 // Receita de serviços = baseAmount - discountAmount (exclui gorjeta).
 export function getRevenue(state, range) {
   return round2(paidAppointments(state, range).reduce((s, a) => s + netOfPayment(a), 0));
+}
+
+// --- Vendas de produtos ----------------------------------------------------
+// Um champô vendido ao balcão é receita como um corte é receita. Estava fora
+// de todas as contas: entrava na caixa e desaparecia do painel.
+export function vendasDeProdutos(state, range) {
+  const hoje = localDateStr(new Date());
+  return (state.sales || []).filter(v => {
+    const d = v.soldAt ? localDateStr(new Date(v.soldAt)) : v.date;
+    return d && d <= hoje && inRange(d, range);
+  });
+}
+
+export function getProductRevenue(state, range) {
+  return round2(vendasDeProdutos(state, range).reduce((s, v) => s + (Number(v.total) || 0), 0));
+}
+
+// Receita do negócio: serviços + produtos. É este o número do painel.
+export function getTotalRevenue(state, range) {
+  return round2(getRevenue(state, range) + getProductRevenue(state, range));
+}
+
+// Despesas do período, pela data em que foram feitas.
+export function getExpensesTotal(state, range) {
+  return round2((state.expenses || [])
+    .filter(e => inRange(e.date || (e.createdAt || '').slice(0, 10), range))
+    .reduce((s, e) => s + (Number(e.amount) || 0), 0));
 }
 
 // Gorjetas (tratamento separado).
@@ -157,23 +197,61 @@ export function isCashMethod(method) { return method === 'Dinheiro'; }
 // Despesa impacta o caixa físico apenas se paga em numerário.
 export function expenseImpactsCash(e) { return !e.method || isCashMethod(e.method); }
 
-// Numerário esperado = fundo abertura + vendas em dinheiro + entradas em
-// dinheiro - despesas em dinheiro - levantamentos em dinheiro.
-// Pagamentos por cartão/MB WAY NÃO aumentam o numerário físico.
+// As marcações pagas dentro desta sessão de caixa — pela hora do pagamento,
+// que é quando o dinheiro muda de mãos.
+export function pagamentosDaSessao(state, session) {
+  if (!session) return [];
+  const de = session.openedAt;
+  const ate = session.closedAt || null;
+  return state.appointments.filter(a => {
+    if (a.status !== APPT_STATES.COMPLETED || !a.payment) return false;
+    const t = a.payment.at || a.completedAt || '';
+    return t && t >= de && (!ate || t <= ate);
+  });
+}
+
+// As vendas de produtos desta sessão. As em dinheiro trazem a sessão consigo;
+// as outras conta-se pela hora.
+export function vendasDaSessao(state, session) {
+  if (!session) return [];
+  const de = session.openedAt;
+  const ate = session.closedAt || null;
+  return (state.sales || []).filter(v => {
+    if (v.sessionId === session.id) return true;
+    const t = v.soldAt || '';
+    return t && t >= de && (!ate || t <= ate);
+  });
+}
+
+// Numerário esperado = fundo de abertura + tudo o que entrou EM DINHEIRO
+// (serviços, produtos, entradas avulsas) - o que saiu em dinheiro (despesas
+// pagas em numerário e levantamentos). Cartão e MB WAY não mexem na gaveta.
+//
+// Os movimentos de caixa são apenas os avulsos — sangrias e reforços. As
+// despesas e as vendas de produtos deixaram de gerar movimento automático:
+// geravam, e a mesma despesa era descontada duas vezes, uma pela tabela das
+// despesas e outra pelo movimento que ela própria tinha criado.
 export function getExpectedCash(state, session) {
   if (!session) return 0;
-  const since = session.openedAt;
-  const cashSales = state.appointments
-    .filter(a => a.status === APPT_STATES.COMPLETED && a.payment && isCashMethod(a.payment.method) && (a.payment.at || a.completedAt || '') >= since)
+  const de = session.openedAt;
+  const ate = session.closedAt || null;
+  const dentro = (t) => t && t >= de && (!ate || t <= ate);
+
+  const servicosDinheiro = pagamentosDaSessao(state, session)
+    .filter(a => isCashMethod(a.payment.method))
     .reduce((s, a) => s + totalOfPayment(a), 0);
-  const cashExpenses = (state.expenses || [])
+  const produtosDinheiro = vendasDaSessao(state, session)
+    .filter(v => isCashMethod(v.method))
+    .reduce((s, v) => s + Number(v.total || 0), 0);
+  const despesasDinheiro = (state.expenses || [])
     .filter(e => e.sessionId === session.id && expenseImpactsCash(e))
     .reduce((s, e) => s + Number(e.amount || 0), 0);
-  const cashMovesIn = (state.cashMovements || [])
-    .filter(m => m.type === 'in' && isCashMethod(m.method || 'Dinheiro') && (m.createdAt || '') >= since)
+  const entradas = (state.cashMovements || [])
+    .filter(m => m.type === 'in' && dentro(m.createdAt || ''))
     .reduce((s, m) => s + Number(m.amount || 0), 0);
-  const cashMovesOut = (state.cashMovements || [])
-    .filter(m => m.type === 'out' && isCashMethod(m.method || 'Dinheiro') && (m.createdAt || '') >= since)
+  const saidas = (state.cashMovements || [])
+    .filter(m => m.type === 'out' && dentro(m.createdAt || ''))
     .reduce((s, m) => s + Number(m.amount || 0), 0);
-  return round2((session.openingBalance || 0) + cashSales + cashMovesIn - cashExpenses - cashMovesOut);
+
+  return round2((session.openingBalance || 0) + servicosDinheiro + produtosDinheiro + entradas - despesasDinheiro - saidas);
 }

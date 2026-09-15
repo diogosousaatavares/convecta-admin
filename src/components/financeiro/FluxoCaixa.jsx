@@ -12,11 +12,16 @@ export default function FluxoCaixa() {
     const arr = [];
     for (let i = 13; i >= 0; i--) {
       const d = addDays(todayStr(), -i);
+      // Entradas: serviços cobrados, produtos vendidos ao balcão e entradas
+      // avulsas. Os produtos faltavam — o dinheiro entrava e o gráfico não o
+      // via. As despesas já não geram movimento de caixa, por isso deixam de
+      // ser descontadas duas vezes.
       const sales = data.appointments.filter(a => a.date === d && a.status === 'completed' && a.payment).reduce((s, a) => s + a.payment.total, 0);
+      const produtos = (data.sales || []).filter(v => (v.soldAt || '').slice(0, 10) === d || v.date === d).reduce((s, v) => s + Number(v.total || 0), 0);
       const movesIn = (data.cashMovements || []).filter(m => (m.createdAt || '').slice(0, 10) === d && m.type === 'in').reduce((s, m) => s + Number(m.amount || 0), 0);
       const movesOut = (data.cashMovements || []).filter(m => (m.createdAt || '').slice(0, 10) === d && m.type === 'out').reduce((s, m) => s + Number(m.amount || 0), 0);
-      const expenses = data.expenses.filter(e => (e.createdAt || '').slice(0, 10) === d).reduce((s, e) => s + Number(e.amount || 0), 0);
-      arr.push({ day: getDowShort(new Date(d + 'T00:00:00')), entradas: sales + movesIn, saidas: expenses + movesOut });
+      const expenses = data.expenses.filter(e => (e.date || (e.createdAt || '').slice(0, 10)) === d).reduce((s, e) => s + Number(e.amount || 0), 0);
+      arr.push({ day: getDowShort(new Date(d + 'T00:00:00')), entradas: sales + produtos + movesIn, saidas: expenses + movesOut });
     }
     return arr;
   }, [data]);
