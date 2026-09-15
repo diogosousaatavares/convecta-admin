@@ -1200,12 +1200,27 @@ const dataService = {
   async adjustStock(id, delta, reason, opts = {}) {
     const p = state.products.find(x => x.id === id);
     if (!p) return p;
-    p.stock = Math.max(0, p.stock + Number(delta));
+    const d = Number(delta) || 0;
+    const custo = Number(opts.custo) || 0;
+    const antes = Number(p.stock) || 0;
+    p.stock = Math.max(0, antes + d);
+
+    // Uma compra traz o custo consigo. Sem isto, o "valor de stock" ficava
+    // na mesma: compravam-se 10 unidades por 30 euros e o inventario
+    // continuava a valer zero, porque o custo unitario nunca era escrito.
+    // Media ponderada: o que ja la estava ao custo antigo, o que entrou ao novo.
+    if (d > 0 && custo > 0) {
+      const custoAntigo = Number(p.cost) || 0;
+      const novo = (antes > 0 && custoAntigo > 0)
+        ? ((antes * custoAntigo) + custo) / (antes + d)
+        : custo / d;
+      p.cost = Math.round(novo * 100) / 100;
+    }
+
     await supabase.from('products').update(prodToRow(p)).eq('id', id);
     const { data: mv } = await supabase.from('stock_movements').insert({ business_id: BUSINESS_ID, product_id: id, quantity: Math.abs(delta), type: delta >= 0 ? 'in' : 'out', reference: reason || '' }).select().single();
     if (mv) state.stockMovements.push(smFromRow(mv));
 
-    const custo = Number(opts.custo) || 0;
     if (delta > 0 && custo > 0) {
       const sessao = state.cashSessions.find(s => s.status === 'open') || null;
       try {

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Wallet, Plus, Trash2, Lock, Unlock, Banknote, CreditCard, Smartphone, Receipt, TrendingDown, Gift, Coins } from 'lucide-react';
+import { Wallet, Plus, Trash2, Lock, Unlock, Banknote, CreditCard, Smartphone, Receipt, TrendingDown, Gift, Coins, ShoppingBag } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, Badge, Button, EmptyState, Modal } from '@/components/ui';
@@ -37,18 +37,40 @@ export default function Cash() {
   const sales = useMemo(() => data.appointments.filter(a => inSession(a) && a.status === 'completed' && a.payment).sort((a, b) => a.startTime.localeCompare(b.startTime)), [data.appointments, session]);
   const expenses = useMemo(() => (session ? data.expenses.filter(e => e.sessionId === session.id) : []), [data.expenses, session]);
 
+  /*
+   * As vendas de produtos desta sessao. Faltavam aqui: vendia-se um champo
+   * em dinheiro, o dinheiro entrava na gaveta, e a caixa fazia de conta que
+   * nao tinha acontecido nada — ao fechar, acusava uma diferenca que nao
+   * existia. Sao as vendas feitas depois de a caixa abrir; as em dinheiro
+   * trazem a sessao consigo, as outras nao, por isso conta-se pela hora.
+   */
+  const vendasProdutos = useMemo(() => {
+    if (!session) return [];
+    return (data.sales || [])
+      .filter(v => v.sessionId === session.id || (v.soldAt && v.soldAt >= session.openedAt))
+      .sort((a, b) => (a.soldAt || '').localeCompare(b.soldAt || ''));
+  }, [data.sales, session]);
+
   const salesByMethod = useMemo(() => {
     const m = {}; METHODS.forEach(x => m[x] = 0);
-    sales.forEach(a => { m[a.payment.method] += a.payment.total; });
+    sales.forEach(a => { if (m[a.payment.method] != null) m[a.payment.method] += a.payment.total; });
+    vendasProdutos.forEach(v => { if (m[v.method] != null) m[v.method] += v.total; });
     return m;
-  }, [sales]);
+  }, [sales, vendasProdutos]);
 
-  const totalSales = sales.reduce((s, a) => s + a.payment.total, 0);
+  const totalServicos = sales.reduce((s, a) => s + a.payment.total, 0);
+  const totalProdutos = vendasProdutos.reduce((s, v) => s + Number(v.total || 0), 0);
+  const totalSales = totalServicos + totalProdutos;
   const totalTips = sales.reduce((s, a) => s + (a.payment.tip || 0), 0);
   const totalDiscounts = sales.reduce((s, a) => s + (a.payment.discountAmount || 0), 0);
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+  // So o que saiu mesmo da gaveta desconta do numerario: uma despesa paga
+  // por multibanco nao mexe no dinheiro que la esta.
+  const despesasDinheiro = expenses
+    .filter(e => !e.method || e.method === 'Dinheiro')
+    .reduce((s, e) => s + Number(e.amount || 0), 0);
   const netRevenue = totalSales - totalExpenses;
-  const expectedCash = (session ? session.openingBalance : 0) + (salesByMethod['Dinheiro'] || 0) - totalExpenses;
+  const expectedCash = (session ? session.openingBalance : 0) + (salesByMethod['Dinheiro'] || 0) - despesasDinheiro;
 
   const history = data.cashSessions.filter(s => s.status === 'closed').slice(0, 10);
 
@@ -123,6 +145,7 @@ export default function Cash() {
           <div className="kpi-grid">
             <Card className="kpi"><Wallet className="icon" size={22} /><div className="label">Fundo de abertura</div><div className="value">{formatPrice(session.openingBalance)}</div></Card>
             <Card className="kpi"><Receipt className="icon" size={22} /><div className="label">Vendas (total)</div><div className="value gold">{formatPrice(totalSales)}</div></Card>
+            <Card className="kpi"><ShoppingBag className="icon" size={22} /><div className="label">Produtos</div><div className="value gold">{formatPrice(totalProdutos)}</div></Card>
             <Card className="kpi"><Coins className="icon" size={22} /><div className="label">Gorjetas</div><div className="value gold">{formatPrice(totalTips)}</div></Card>
             <Card className="kpi"><TrendingDown className="icon" size={22} /><div className="label">Descontos</div><div className="value">{formatPrice(totalDiscounts)}</div></Card>
             <Card className="kpi"><TrendingDown className="icon" size={22} /><div className="label">Despesas</div><div className="value">{formatPrice(totalExpenses)}</div></Card>
@@ -159,9 +182,9 @@ export default function Cash() {
                   <Button size="sm" variant="danger" onClick={() => setCloseModal(true)}><Lock size={15} /> Fechar caixa</Button>
                 </div>
               </div>
-              {sales.length === 0 ? (
+              {sales.length === 0 && vendasProdutos.length === 0 ? (
                 <EmptyState icon={() => <Receipt />} title="Sem vendas" description="Cobra as marcações por cobrar acima para registar vendas." />
-              ) : (
+              ) : sales.length === 0 ? null : (
                 <table className="table">
                   <thead><tr><th>Hora</th><th>Cliente</th><th>Serviço</th><th>Total</th><th>Método</th><th>Desc.</th><th>Gorjeta</th></tr></thead>
                   <tbody>
@@ -183,6 +206,29 @@ export default function Cash() {
                     })}
                   </tbody>
                 </table>
+              )}
+
+              {vendasProdutos.length > 0 && (
+                <>
+                  <h4 className="mt-24 mb-16" style={{ fontSize: 15 }}>Vendas de produtos</h4>
+                  <table className="table">
+                    <thead><tr><th>Hora</th><th>Cliente</th><th>Produtos</th><th>Total</th><th>Método</th></tr></thead>
+                    <tbody>
+                      {vendasProdutos.map(v => {
+                        const cust = v.customerId ? data.customers.find(c => c.id === v.customerId) : null;
+                        return (
+                          <tr key={v.id}>
+                            <td className="fw-600 text-gold">{new Date(v.soldAt).toLocaleTimeString('pt-PT').slice(0, 5)}</td>
+                            <td>{cust?.name || '—'}</td>
+                            <td className="text-sec text-xs">{(v.items || []).map(i => `${i.name} ×${i.qty}`).join(', ')}</td>
+                            <td className="fw-600">{formatPrice(v.total)}</td>
+                            <td><Badge variant="default">{v.method || '—'}</Badge></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </>
               )}
 
               {expenses.length > 0 && (
@@ -231,9 +277,15 @@ export default function Cash() {
             <tbody>
               {history.map(s => {
                 const sSales = data.appointments.filter(a => a.status === 'completed' && a.payment && new Date(a.date + 'T' + a.startTime).toISOString() >= s.openedAt && new Date(a.date + 'T' + a.startTime).toISOString() <= s.closedAt);
-                const sTotal = sSales.reduce((sum, a) => sum + a.payment.total, 0);
-                const sExp = data.expenses.filter(e => e.sessionId === s.id).reduce((sum, e) => sum + Number(e.amount || 0), 0);
-                const expCash = s.openingBalance + sSales.filter(a => a.payment.method === 'Dinheiro').reduce((sum, a) => sum + a.payment.total, 0) - sExp;
+                const sProd = (data.sales || []).filter(v => v.sessionId === s.id || (v.soldAt && v.soldAt >= s.openedAt && v.soldAt <= s.closedAt));
+                const sTotal = sSales.reduce((sum, a) => sum + a.payment.total, 0) + sProd.reduce((sum, v) => sum + Number(v.total || 0), 0);
+                const sExpTodas = data.expenses.filter(e => e.sessionId === s.id);
+                const sExp = sExpTodas.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+                const sExpCash = sExpTodas.filter(e => !e.method || e.method === 'Dinheiro').reduce((sum, e) => sum + Number(e.amount || 0), 0);
+                const expCash = s.openingBalance
+                  + sSales.filter(a => a.payment.method === 'Dinheiro').reduce((sum, a) => sum + a.payment.total, 0)
+                  + sProd.filter(v => v.method === 'Dinheiro').reduce((sum, v) => sum + Number(v.total || 0), 0)
+                  - sExpCash;
                 const diff = (s.countedCash || 0) - expCash;
                 return (
                   <tr key={s.id}>
