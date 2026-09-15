@@ -585,6 +585,38 @@ function supFromRow(row) {
 }
 
 // STOCK MOVEMENT
+// VENDA DE PRODUTOS
+function vendaFromRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id, businessId: row.business_id,
+    customerId: row.customer_id || null,
+    professionalId: row.professional_id || null,
+    items: Array.isArray(row.items) ? row.items : [],
+    total: Number(row.total) || 0,
+    method: row.method || '',
+    sessionId: row.cash_session_id || null,
+    soldAt: row.sold_at,
+    date: (row.sold_at || '').slice(0, 10),
+    createdAt: row.created_at,
+  };
+}
+
+// DESPESA
+function despFromRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id, businessId: row.business_id,
+    sessionId: row.cash_session_id || null,
+    description: row.description || '',
+    category: row.category || '',
+    amount: Number(row.amount) || 0,
+    method: row.method || '',
+    date: row.spent_at,
+    createdAt: row.created_at,
+  };
+}
+
 function smFromRow(row) {
   if (!row) return null;
   return {
@@ -686,6 +718,7 @@ async function init() {
   const [
     professionals, services, customers, appointments, products,
     cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions,
+    sales, expenses,
   ] = await Promise.all([
     fetchAll('professionals', proFromRow),
     fetchAll('services', svcFromRow),
@@ -699,9 +732,11 @@ async function init() {
     fetchAll('suppliers', supFromRow),
     fetchAll('stock_movements', smFromRow),
     fetchAll('professional_commissions', commFromRow),
+    fetchAll('product_sales', vendaFromRow),
+    fetchAll('expenses', despFromRow),
   ]);
 
-  Object.assign(state, { professionals, services, customers, appointments, products, cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions });
+  Object.assign(state, { professionals, services, customers, appointments, products, cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions, sales, expenses });
   initialized = true;
   notify();
 }
@@ -1145,15 +1180,32 @@ const dataService = {
     if (error) throw traduzirErro(error);
     state.products = state.products.filter(p => p.id !== id); notify(); return true;
   },
-  async adjustStock(id, delta, reason) {
+  /*
+   * Ajustar stock. Quando e uma COMPRA (entrada com custo), fica tambem
+   * registada como despesa — senao o stock sobe, o dinheiro sai da mao do
+   * barbeiro e as contas do mes nao sabem dele.
+   */
+  async adjustStock(id, delta, reason, opts = {}) {
     const p = state.products.find(x => x.id === id);
-    if (p) {
-      p.stock = Math.max(0, p.stock + Number(delta));
-      await supabase.from('products').update(prodToRow(p)).eq('id', id);
-      const { data: mv } = await supabase.from('stock_movements').insert({ business_id: BUSINESS_ID, product_id: id, quantity: Math.abs(delta), type: delta >= 0 ? 'in' : 'out', reference: reason || '' }).select().single();
-      state.stockMovements.push(smFromRow(mv));
-      notify();
+    if (!p) return p;
+    p.stock = Math.max(0, p.stock + Number(delta));
+    await supabase.from('products').update(prodToRow(p)).eq('id', id);
+    const { data: mv } = await supabase.from('stock_movements').insert({ business_id: BUSINESS_ID, product_id: id, quantity: Math.abs(delta), type: delta >= 0 ? 'in' : 'out', reference: reason || '' }).select().single();
+    if (mv) state.stockMovements.push(smFromRow(mv));
+
+    const custo = Number(opts.custo) || 0;
+    if (delta > 0 && custo > 0) {
+      const sessao = state.cashSessions.find(s => s.status === 'open') || null;
+      try {
+        await dataService.addExpense(sessao?.id || null, {
+          description: `Compra de ${p.name} (${Math.abs(delta)} ${p.unit || 'un'})`,
+          category: 'Fornecedores',
+          amount: custo,
+          method: opts.method || null,
+        });
+      } catch (e) { console.warn('compra não registada em despesas:', e.message); }
     }
+    notify();
     return p;
   },
   listStockMovements() { return Promise.resolve([...state.stockMovements].sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))); },
@@ -1266,9 +1318,49 @@ const dataService = {
 
   // ── COMMISSIONS ──
   listCommissions() { return Promise.resolve([...(state.commissions||[])]); },
-  listExpenses(sessionId) { return Promise.resolve((state.expenses||[]).filter(e => e.sessionId === sessionId).sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))); },
-  addExpense(sessionId, data) { const e = { id: uid('exp'), sessionId, createdAt: new Date().toISOString(), ...data }; if (!state.expenses) state.expenses = []; state.expenses.push(e); notify(); return Promise.resolve(e); },
-  deleteExpense(id) { state.expenses = (state.expenses||[]).filter(e => e.id !== id); notify(); return Promise.resolve(true); },
+  /*
+   * Despesas. Viviam na memoria do browser: escrevia-se, fechava-se o
+   * separador, desapareciam. Nao precisam da caixa aberta — uma factura de
+   * fornecedor e uma despesa a qualquer hora; quando a caixa esta aberta e o
+   * pagamento e em dinheiro, fica ligada a sessao e sai tambem da caixa.
+   */
+  listExpenses(sessionId) {
+    const todas = [...(state.expenses || [])].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    return Promise.resolve(sessionId ? todas.filter(e => e.sessionId === sessionId) : todas);
+  },
+  async addExpense(sessionId, data) {
+    const row = {
+      business_id: BUSINESS_ID,
+      cash_session_id: sessionId || null,
+      description: data.description || '',
+      category: data.category || null,
+      amount: Number(data.amount) || 0,
+      method: data.method || null,
+      spent_at: data.date || localDateStr(new Date()),
+    };
+    const { data: created, error } = await supabase.from('expenses').insert(row).select().single();
+    if (error) throw traduzirErro(error);
+    const e = despFromRow(created);
+    if (!state.expenses) state.expenses = [];
+    state.expenses.push(e);
+
+    // Dinheiro que sai da gaveta sai tambem da caixa do dia.
+    if (sessionId && (!data.method || data.method === 'Dinheiro') && e.amount > 0) {
+      try {
+        await dataService.addCashMovement({
+          sessionId, type: 'out', amount: e.amount,
+          description: `Despesa — ${e.description}`,
+        });
+      } catch (err) { console.warn('despesa não saiu da caixa:', err.message); }
+    }
+    notify(); return e;
+  },
+  async deleteExpense(id) {
+    const { error } = await supabase.from('expenses').delete().eq('id', id);
+    if (error) throw traduzirErro(error);
+    state.expenses = (state.expenses || []).filter(e => e.id !== id);
+    notify(); return true;
+  },
 
   // ── SLOTS ──
   getAvailableSlots(dateStr, professionalId, durationMinutes) {
@@ -1419,7 +1511,54 @@ const dataService = {
   updateComanda(id, updates) { const i = (state.comandas||[]).findIndex(c => c.id === id); if (i >= 0) state.comandas[i] = { ...state.comandas[i], ...updates }; notify(); return Promise.resolve(state.comandas[i]); },
   deleteComanda(id) { state.comandas = (state.comandas||[]).filter(c => c.id !== id); notify(); return Promise.resolve(true); },
   // SALES
-  createSale(sale) { const record = { ...sale, id: uid('sale') }; if (!state.sales) state.sales=[]; state.sales.push(record); notify(); return Promise.resolve(record); },
+  /*
+   * Uma venda de produtos deixa tres rastos, porque sao tres perguntas
+   * diferentes: o que foi vendido (product_sales), o que saiu da prateleira
+   * (stock_movements) e o dinheiro que entrou (cash_movements, so quando e
+   * dinheiro e a caixa esta aberta). Antes ficava so na memoria do browser:
+   * o stock descia e mais nada — nem movimento, nem receita, nem historico.
+   */
+  async createSale(sale) {
+    const itens = (sale.items || []).map(i => ({
+      productId: i.productId, name: i.name,
+      unitPrice: Number(i.unitPrice) || 0, qty: Number(i.qty) || 0,
+      subtotal: Number(i.subtotal) || 0,
+    }));
+    const total = Number(sale.total) || itens.reduce((s, i) => s + i.subtotal, 0);
+    const sessao = state.cashSessions.find(s => s.status === 'open') || null;
+
+    const row = {
+      business_id: BUSINESS_ID,
+      customer_id: sale.customerId || null,
+      professional_id: sale.professionalId || null,
+      items: itens, total,
+      method: sale.method || null,
+      cash_session_id: sale.method === 'Dinheiro' ? (sessao?.id || null) : null,
+      sold_at: sale.createdAt || new Date().toISOString(),
+    };
+    const { data: created, error } = await supabase.from('product_sales').insert(row).select().single();
+    if (error) throw traduzirErro(error);
+    const v = vendaFromRow(created);
+    if (!state.sales) state.sales = [];
+    state.sales.push(v);
+
+    // O que saiu da prateleira fica escrito, produto a produto.
+    for (const i of itens) {
+      if (!i.productId || !i.qty) continue;
+      try {
+        const { data: mv } = await supabase.from('stock_movements').insert({
+          business_id: BUSINESS_ID, product_id: i.productId,
+          quantity: i.qty, type: 'out',
+          reference: `Venda${sale.customerName ? ` — ${sale.customerName}` : ''}`,
+        }).select().single();
+        if (mv) state.stockMovements.push(smFromRow(mv));
+      } catch (e) { console.warn('movimento de stock não gravado:', e.message); }
+    }
+
+    notify();
+    return v;
+  },
+  listSales() { return Promise.resolve([...(state.sales || [])].sort((a, b) => (b.soldAt || '').localeCompare(a.soldAt || ''))); },
   // SUBSCRIPTIONS
   listSubscriptionPlans() { return Promise.resolve([...(state.subscriptionPlans||[])]); },
   createSubscriptionPlan(data) { const p = { id: uid('pl'), active: true, ...data }; if (!state.subscriptionPlans) state.subscriptionPlans=[]; state.subscriptionPlans.push(p); notify(); return Promise.resolve(p); },

@@ -19,7 +19,7 @@ export default function Inventory() {
   const [editingId, setEditingId] = useState(null);
   const [novaCategoria, setNovaCategoria] = useState(false);
   const categoriasProduto = data.business?.productCategories || [];
-  const [adj, setAdj] = useState({ id: '', delta: '', reason: 'Entrada de stock' });
+  const [adj, setAdj] = useState({ id: '', delta: '', reason: 'Entrada de stock', custo: '', comoDespesa: true });
 
   const products = useMemo(() => {
     const q = search.toLowerCase();
@@ -31,7 +31,7 @@ export default function Inventory() {
 
   const openNew = () => { setEditingId(null); setNovaCategoria(false); setForm({ name: '', category: categoriasProduto[0] || '', unit: 'un', stock: 0, minStock: 5, cost: 0, price: 0, supplier: '' }); setEditModal(true); };
   const openEdit = (p) => { setEditingId(p.id); setNovaCategoria(false); setForm({ name: p.name, category: p.category, unit: p.unit, stock: p.stock, minStock: p.minStock, cost: p.cost, price: p.price || 0, supplier: p.supplier || '' }); setEditModal(true); };
-  const openAdj = (p) => { setAdj({ id: p.id, delta: '', reason: 'Entrada de stock' }); setAdjModal(true); };
+  const openAdj = (p) => { setAdj({ id: p.id, delta: '', reason: 'Entrada de stock', custo: '', comoDespesa: true }); setAdjModal(true); };
 
   const save = async () => {
     if (!form.name) { toast.error('Nome obrigatório'); return; }
@@ -48,9 +48,15 @@ export default function Inventory() {
 
   const doAdj = async () => {
     if (!adj.delta) { toast.error('Indica a quantidade'); return; }
-    await dataService.adjustStock(adj.id, Number(adj.delta), adj.reason);
-    toast.success('Stock ajustado');
-    setAdjModal(false);
+    const entrada = Number(adj.delta) > 0;
+    const custo = entrada && adj.comoDespesa ? Number(adj.custo) || 0 : 0;
+    try {
+      await dataService.adjustStock(adj.id, Number(adj.delta), adj.reason, { custo });
+      toast.success('Stock ajustado', custo > 0 ? `Registado ${formatPrice(custo)} em despesas.` : undefined);
+      setAdjModal(false);
+    } catch (e) {
+      toast.error('Não foi possível ajustar', e.message);
+    }
   };
 
   const remove = async () => { await dataService.deleteProduct(delId); toast.info('Produto removido'); setDelId(null); };
@@ -166,6 +172,22 @@ export default function Inventory() {
               <option>Entrada de stock</option><option>Venda</option><option>Quebra/Perda</option><option>Uso interno</option><option>Inventário</option>
             </select>
           </div>
+          {/* Uma entrada de stock e uma compra: o dinheiro sai. Registada aqui
+              como despesa, aparece nas contas do mes em vez de desaparecer. */}
+          {Number(adj.delta) > 0 && (
+            <div className="field">
+              <label className="flex items-center gap-8 text-sm" style={{ marginBottom: 8 }}>
+                <input type="checkbox" checked={adj.comoDespesa} onChange={e => setAdj(f => ({ ...f, comoDespesa: e.target.checked }))} />
+                Registar a compra como despesa
+              </label>
+              {adj.comoDespesa && (
+                <input type="number" step="0.01" min="0" className="input" placeholder="Custo total (€)"
+                  value={adj.custo}
+                  onFocus={() => { if (!adj.custo) { const p = data.products.find(x => x.id === adj.id); const sug = (Number(p?.cost) || 0) * Number(adj.delta); if (sug > 0) setAdj(f => ({ ...f, custo: sug.toFixed(2) })); } }}
+                  onChange={e => setAdj(f => ({ ...f, custo: e.target.value }))} />
+              )}
+            </div>
+          )}
           <div className="ag-detail-actions" style={{ justifyContent: 'flex-end' }}>
             <Button variant="secondary" onClick={() => setAdjModal(false)}>Cancelar</Button>
             <Button variant="primary" onClick={doAdj}>Aplicar</Button>

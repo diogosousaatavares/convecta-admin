@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Plus, X, ShoppingBag, Banknote, CreditCard, Smartphone, Receipt, Gift } from 'lucide-react';
 import { Modal, Button } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, todayStr } from '@/lib/format';
 import dataService from '@/lib/dataService';
 
 const METHODS = [
@@ -82,6 +82,8 @@ export default function VendaAvulsoModal({ open, onClose }) {
 
     setSaving(true);
     try {
+      // O stock desce aqui; o movimento de stock e a venda em si sao escritos
+      // por createSale, que e quem sabe gravá-los na base de dados.
       for (const item of items) {
         const prod = data.products.find(p => p.id === item.productId);
         if (prod && prod.stock != null) {
@@ -102,16 +104,19 @@ export default function VendaAvulsoModal({ open, onClose }) {
 
       await dataService.createSale({
         customerId: customerId || null,
+        customerName: customerId ? (data.customers.find(c => c.id === customerId)?.name || '') : '',
         items,
         total,
         method,
-        date: new Date().toISOString().slice(0, 10),
+        date: todayStr(),
         createdAt: new Date().toISOString(),
       });
 
       onClose({ success: true, total, method });
     } catch (e) {
-      setError('Erro ao registar venda. Tenta novamente.');
+      // Dizer "tenta outra vez" a quem tem um problema de permissoes e mandar
+      // a pessoa repetir uma coisa que nunca vai resultar.
+      setError(e?.message || 'Erro ao registar venda. Tenta novamente.');
     } finally {
       setSaving(false);
     }

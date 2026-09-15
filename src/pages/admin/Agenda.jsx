@@ -66,6 +66,11 @@ export default function Agenda() {
   // ver que esta livre.
   const dayAppts = data.appointments.filter(a => a.date === date);
   const dayAppstNaGrelha = dayAppts.filter(a => a.status !== 'cancelled');
+  const vendasDoDia = useMemo(
+    () => (data.sales || []).filter(v => (v.date || (v.soldAt || '').slice(0, 10)) === date)
+      .sort((x, y) => (x.soldAt || '').localeCompare(y.soldAt || '')),
+    [data.sales, date]);
+  const totalVendasDoDia = vendasDoDia.reduce((s, v) => s + Number(v.total || 0), 0);
   const apptsByDate = useMemo(() => {
     const map = {};
     data.appointments.forEach(a => { if (a.blocked || a.status !== 'cancelled') map[a.date] = (map[a.date] || 0) + 1; });
@@ -295,6 +300,28 @@ export default function Agenda() {
             />
           )}
           {corpoLista}
+
+          {/* As vendas de produtos do dia. Nao sao marcacoes — nao ocupam hora
+              nem barbeiro — mas fazem parte do dia e do dinheiro que entrou,
+              por isso aparecem aqui por baixo da agenda. */}
+          {vendasDoDia.length > 0 && (
+            <Card className="card-pad" style={{ marginTop: 16 }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
+                <h3 style={{ fontSize: 15, margin: 0 }}>Vendas de produtos</h3>
+                <span className="text-sec text-sm">{vendasDoDia.length} · {formatPrice(totalVendasDoDia)}</span>
+              </div>
+              <div className="flex-col gap-8">
+                {vendasDoDia.map(v => (
+                  <div key={v.id} className="flex items-center gap-12" style={{ padding: '9px 12px', background: 'var(--elevated)', borderRadius: 8, border: '1px solid var(--border)' }}>
+                    <span className="text-sec text-xs" style={{ whiteSpace: 'nowrap' }}>{(v.soldAt || '').slice(11, 16)}</span>
+                    <span className="flex-1 text-sm">{(v.items || []).map(i => `${i.qty}× ${i.name}`).join(', ')}</span>
+                    <span className="text-sec text-xs">{data.customers.find(c => c.id === v.customerId)?.name || ''}</span>
+                    <span className="fw-600 text-sm" style={{ whiteSpace: 'nowrap' }}>{formatPrice(v.total)}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
 
         <AgendaSidebar
