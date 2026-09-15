@@ -622,6 +622,21 @@ function despFromRow(row) {
   };
 }
 
+// AVALIACAO
+function revFromRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id, businessId: row.business_id,
+    appointmentId: row.appointment_id,
+    customerId: row.customer_id || null,
+    professionalId: row.professional_id || null,
+    rating: Number(row.rating) || 0,
+    comment: row.comment || '',
+    isVisible: row.is_visible === true,
+    createdAt: row.created_at,
+  };
+}
+
 function smFromRow(row) {
   if (!row) return null;
   return {
@@ -723,7 +738,7 @@ async function init() {
   const [
     professionals, services, customers, appointments, products,
     cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions,
-    sales, expenses,
+    sales, expenses, reviews,
   ] = await Promise.all([
     fetchAll('professionals', proFromRow),
     fetchAll('services', svcFromRow),
@@ -739,9 +754,10 @@ async function init() {
     fetchAll('professional_commissions', commFromRow),
     fetchAll('product_sales', vendaFromRow),
     fetchAll('expenses', despFromRow),
+    fetchAll('reviews', revFromRow),
   ]);
 
-  Object.assign(state, { professionals, services, customers, appointments, products, cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions, sales, expenses });
+  Object.assign(state, { professionals, services, customers, appointments, products, cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions, sales, expenses, reviews });
   initialized = true;
   notify();
 }
@@ -1444,14 +1460,32 @@ const dataService = {
   deleteLoyaltyReward(id) { state.loyaltyRewards = (state.loyaltyRewards||[]).filter(r => r.id !== id); notify(); return Promise.resolve(true); },
 
   // ── IN-MEMORY (não migrados nesta fase) ──
-  // REVIEWS
+  /*
+   * AVALIACOES. Eram um cenario: o cliente dava estrelas na app dele, ficava
+   * na memoria do browser dele, e este ecra ficava vazio para sempre. Agora
+   * vem da tabela `reviews` — quem as escreve e o cliente, pela funcao da
+   * base de dados, e aqui so se aprova, esconde ou apaga.
+   */
   listVisibleReviews() { return Promise.resolve((state.reviews||[]).filter(r => r.isVisible)); },
   listReviewsByProfessional(id) { return Promise.resolve((state.reviews||[]).filter(r => r.professionalId === id && r.isVisible)); },
   listAllReviews() { return Promise.resolve([...(state.reviews||[])].sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))); },
-  createReview(data) { const r = { id: uid('r'), createdAt: new Date().toISOString().slice(0,10), isVisible: true, ...data }; (state.reviews||[]).push(r); notify(); return Promise.resolve(r); },
-  submitReview(data) { const r = { id: uid('r'), createdAt: new Date().toISOString().slice(0,10), isVisible: false, ...data }; if (!state.reviews) state.reviews=[]; state.reviews.push(r); notify(); return Promise.resolve(r); },
-  updateReview(id, updates) { const i = (state.reviews||[]).findIndex(r => r.id === id); if (i >= 0) state.reviews[i] = { ...state.reviews[i], ...updates }; notify(); return Promise.resolve(state.reviews[i]); },
-  deleteReview(id) { state.reviews = (state.reviews||[]).filter(r => r.id !== id); notify(); return Promise.resolve(true); },
+  async updateReview(id, updates) {
+    const row = {};
+    if (updates.isVisible !== undefined) row.is_visible = !!updates.isVisible;
+    if (updates.comment !== undefined) row.comment = updates.comment;
+    const { data, error } = await supabase.from('reviews').update(row).eq('id', id).select().single();
+    if (error) throw traduzirErro(error);
+    const r = revFromRow(data);
+    const i = (state.reviews||[]).findIndex(x => x.id === id);
+    if (i >= 0) state.reviews[i] = r;
+    notify(); return r;
+  },
+  async deleteReview(id) {
+    const { error } = await supabase.from('reviews').delete().eq('id', id);
+    if (error) throw traduzirErro(error);
+    state.reviews = (state.reviews||[]).filter(r => r.id !== id);
+    notify(); return true;
+  },
   // GALLERY
   listGallery() { return Promise.resolve((state.gallery||[]).sort((a,b) => a.order - b.order)); },
   // NOTIFICATIONS

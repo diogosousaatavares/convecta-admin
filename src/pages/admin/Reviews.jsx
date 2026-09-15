@@ -21,23 +21,33 @@ export default function Reviews() {
       .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   }, [data.reviews, proFilter, ratingFilter]);
 
+  const porLer = useMemo(() => data.reviews.filter(r => !r.isVisible), [data.reviews]);
   const avg = data.reviews.length ? (data.reviews.reduce((s, r) => s + r.rating, 0) / data.reviews.length) : 0;
   const dist = [5,4,3,2,1].map(stars => data.reviews.filter(r => r.rating === stars).length);
 
-  const toggleVisible = async (r) => { await dataService.updateReview(r.id, { isVisible: !r.isVisible }); toast.info(r.isVisible ? 'Avaliação oculta' : 'Avaliação publicada'); };
-  const remove = async () => { await dataService.deleteReview(delId); toast.info('Avaliação eliminada'); setDelId(null); };
+  const toggleVisible = async (r) => {
+    try {
+      await dataService.updateReview(r.id, { isVisible: !r.isVisible });
+      toast.info(r.isVisible ? 'Avaliação marcada por ler' : 'Avaliação arquivada');
+    } catch (e) { toast.error('Não foi possível guardar', e.message); }
+  };
+  const remove = async () => {
+    try { await dataService.deleteReview(delId); toast.info('Avaliação eliminada'); }
+    catch (e) { toast.error('Não foi possível eliminar', e.message); }
+    setDelId(null);
+  };
 
   return (
     <AdminLayout>
       <div className="page-head">
         <h1>Avaliações</h1>
-        <p>Modera as avaliações dos clientes</p>
+        <p>O que os clientes disseram depois do corte. Só tu as vês — nada disto aparece ao público.</p>
       </div>
 
       <div className="kpi-grid">
         <Card className="kpi"><Star className="icon" size={22} /><div className="label">Avaliação média</div><div className="value gold">{avg.toFixed(1)}</div></Card>
         <Card className="kpi"><MessageSquare className="icon" size={22} /><div className="label">Total avaliações</div><div className="value">{data.reviews.length}</div></Card>
-        <Card className="kpi"><Eye className="icon" size={22} /><div className="label">Publicadas</div><div className="value">{data.reviews.filter(r => r.isVisible).length}</div></Card>
+        <Card className="kpi"><Eye className="icon" size={22} /><div className="label">Por ler</div><div className="value" style={{ color: porLer.length ? 'var(--warning)' : 'inherit' }}>{porLer.length}</div></Card>
       </div>
 
       <Card className="card-pad mb-24">
@@ -72,7 +82,7 @@ export default function Reviews() {
         </div>
 
         {reviews.length === 0 ? (
-          <EmptyState icon={() => <Star />} title="Sem avaliações" description="Ainda não há avaliações com estes filtros." />
+          <EmptyState icon={() => <Star />} title="Sem avaliações" description={data.reviews.length === 0 ? 'Depois de cada corte, o cliente é convidado a avaliar na app. As respostas aparecem aqui.' : 'Nenhuma avaliação com estes filtros.'} />
         ) : (
           <div className="flex-col gap-12">
             {reviews.map(r => {
@@ -86,13 +96,13 @@ export default function Reviews() {
                       <span className="fw-600 text-sm">{cust?.name || 'Cliente'}</span>
                       <Stars rating={r.rating} size={14} />
                       <Badge variant="default">{pro?.name || '—'}</Badge>
-                      {!r.isVisible && <Badge variant="warning">Oculta</Badge>}
+                      {!r.isVisible ? <Badge variant="warning">Por ler</Badge> : <Badge variant="default">Arquivada</Badge>}
                     </div>
-                    <p className="text-sec text-sm mt-8">{r.comment}</p>
+                    {r.comment ? <p className="text-sec text-sm mt-8">{r.comment}</p> : <p className="text-sec text-sm mt-8" style={{ fontStyle: 'italic' }}>Sem comentário — só estrelas.</p>}
                     <span className="text-sec text-xs">{formatDate(r.createdAt)}</span>
                   </div>
                   <div className="flex gap-8">
-                    <button className="btn btn-ghost btn-icon" aria-label={r.isVisible ? 'Ocultar avaliação' : 'Publicar avaliação'} onClick={() => toggleVisible(r)} title={r.isVisible ? 'Ocultar avaliação' : 'Publicar avaliação'}>
+                    <button className="btn btn-ghost btn-icon" aria-label={r.isVisible ? 'Marcar por ler' : 'Arquivar avaliação'} onClick={() => toggleVisible(r)} title={r.isVisible ? 'Marcar por ler' : 'Arquivar (já li)'}>
                       {r.isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                     <button className="btn btn-ghost btn-icon" aria-label="Eliminar avaliação" onClick={() => setDelId(r.id)} title="Eliminar avaliação"><Trash2 size={16} /></button>

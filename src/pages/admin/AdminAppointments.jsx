@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarRange, CheckCircle2, XCircle, Trash2, Plus, Zap } from 'lucide-react';
+import { CalendarRange, CheckCircle2, XCircle, Trash2, Plus, Zap, Star } from 'lucide-react';
 import { useStore, useAuth } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
 import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
@@ -98,6 +98,8 @@ export default function AdminAppointments() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [checkout, setCheckout] = useState(null);
+  // A avaliação de um corte, se o cliente já a tiver deixado.
+  const avaliacaoDe = (apptId) => (data.reviews || []).find(r => r.appointmentId === apptId) || null;
 
   const now = new Date();
   const todayStr = iso(now);
@@ -241,6 +243,12 @@ export default function AdminAppointments() {
                     <td>
                       <Badge variant={badgeVariant}>{statusLabel}</Badge>
                       {a.usaRecompensa && <Badge variant="gold" style={{ marginLeft: 6 }}>🎁 Grátis</Badge>}
+                      {/* A avaliação que o cliente deixou deste corte. */}
+                      {avaliacaoDe(a.id) && (
+                        <span title={avaliacaoDe(a.id).comment || 'Sem comentário'} style={{ marginLeft: 6, display: 'inline-flex', alignItems: 'center', gap: 2, color: 'var(--gold)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                          <Star size={12} fill="currentColor" />{avaliacaoDe(a.id).rating}
+                        </span>
+                      )}
                     </td>
                     <td>
                       <div className="flex gap-8">
