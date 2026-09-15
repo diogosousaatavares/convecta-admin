@@ -72,9 +72,10 @@ export default function VendaAvulsoModal({ open, onClose }) {
     setError('');
     if (items.length === 0) { setError('Adiciona pelo menos um produto.'); return; }
 
+    let sessao = null;
     if (method === 'Dinheiro') {
-      const session = await dataService.getOpenCashSession();
-      if (!session) {
+      sessao = await dataService.getOpenCashSession();
+      if (!sessao) {
         setError('Caixa não aberta. Abre a caixa antes de registar vendas em dinheiro.');
         return;
       }
@@ -94,11 +95,10 @@ export default function VendaAvulsoModal({ open, onClose }) {
       if (method === 'Dinheiro' && total > 0) {
         const custName = customerId ? data.customers.find(c => c.id === customerId)?.name || '' : '';
         await dataService.addCashMovement({
+          sessionId: sessao?.id,
           type: 'in',
           amount: total,
           description: `Venda de produtos${custName ? ` — ${custName}` : ''}`,
-          method: 'Dinheiro',
-          category: 'Venda de produto',
         });
       }
 

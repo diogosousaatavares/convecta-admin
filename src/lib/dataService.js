@@ -72,6 +72,11 @@ function traduzirErro(error) {
   }
   // A trava do plano vive na base de dados (gatilho profissionais_dentro_do_plano).
   // Aqui só se troca a linguagem de servidor por uma frase para o barbeiro.
+  // A caixa fechada e uma situacao normal, nao uma avaria: merece a frase
+  // certa em vez do texto da base de dados.
+  if (typeof error.message === 'string' && error.message.includes('cash_session_id')) {
+    return new Error('A caixa está fechada. Abre a caixa para registar movimentos em dinheiro.');
+  }
   if (typeof error.message === 'string' && error.message.includes('LIMITE_PROFISSIONAIS')) {
     return new Error('O teu plano não permite mais profissionais ativos. Desativa um, ou fala connosco para mudares de plano.');
   }
@@ -1146,7 +1151,14 @@ const dataService = {
   },
   listCashMovements() { return Promise.resolve([...state.cashMovements].sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))); },
   async addCashMovement(data) {
-    const row = { business_id: BUSINESS_ID, cash_session_id: data.sessionId || data.cashSessionId, payment_id: data.paymentId || null, type: data.type, amount: data.amount || 0, description: data.description || null };
+    // Um movimento de caixa pertence sempre a uma sessao — e a base de dados
+    // exige-o. Quem chama nem sempre a tem a mao (a venda avulsa, por
+    // exemplo), por isso vai-se buscar a que esta aberta. Sem nenhuma aberta,
+    // diz-se porque em vez de deixar a base de dados responder em ingles.
+    const sessao = data.sessionId || data.cashSessionId
+      || (state.cashSessions.find(s => s.status === 'open') || {}).id;
+    if (!sessao) throw new Error('A caixa está fechada. Abre a caixa para registar movimentos em dinheiro.');
+    const row = { business_id: BUSINESS_ID, cash_session_id: sessao, payment_id: data.paymentId || null, type: data.type, amount: data.amount || 0, description: data.description || null };
     const { data: created, error } = await supabase.from('cash_movements').insert(row).select().single();
     if (error) throw traduzirErro(error);
     const m = cmFromRow(created); state.cashMovements.push(m); notify(); return m;
