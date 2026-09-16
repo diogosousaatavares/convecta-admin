@@ -364,7 +364,12 @@ function proFromRow(row) {
   if (!row) return null;
   const m = row.metadata || {};
   return {
-    id: row.id, businessId: row.business_id, name: row.name,
+    id: row.id, businessId: row.business_id,
+    // Uma ficha sem nome diz que nao tem nome. Guardar o email no lugar do
+    // nome fazia-o passar por nome, e ninguem o corrigia. O cliente escreve-o
+    // na primeira marcacao; ate la aparece assim.
+    name: (row.name || '').trim() || 'Cliente sem nome',
+    semNome: !((row.name || '').trim()),
     email: row.email || '', phone: row.phone || '',
     role: m.role || '', bio: m.bio || '', photoUrl: m.photoUrl || '',
     rating: m.rating || 0, reviewCount: m.reviewCount || 0,
