@@ -54,18 +54,29 @@ export default function Notifications() {
   const [lembreteAtivo, setLembreteAtivo] = useState(lembretes.ativo === true);
   const [horasAntes, setHorasAntes] = useState(Number(lembretes.horasAntes) || 24);
   const [aGuardar, setAGuardar] = useState(false);
+  /*
+   * Exigir o email confirmado antes de deixar marcar.
+   *
+   * Nasce desligado, e deve mesmo nascer desligado: fecha a porta no minuto
+   * exacto em que a pessoa decidiu marcar, e uma parte dela nao volta do
+   * correio. Quem liga isto esta a trocar marcacoes por certeza de contacto
+   * — e uma escolha legitima, mas tem de ser feita de olhos abertos.
+   */
+  const [exigirEmail, setExigirEmail] = useState(data.business?._settings?.exigirEmailConfirmado === true);
 
   useEffect(() => {
     const r = data.business?._settings?.reminders || {};
     setLembreteAtivo(r.ativo === true);
     setHorasAntes(Number(r.horasAntes) || 24);
-  }, [data.business?._settings?.reminders]);
+    setExigirEmail(data.business?._settings?.exigirEmailConfirmado === true);
+  }, [data.business?._settings?.reminders, data.business?._settings?.exigirEmailConfirmado]);
 
   const guardarLembretes = async () => {
     setAGuardar(true);
     try {
       await dataService.updateBusiness({
         reminders: { ativo: lembreteAtivo, horasAntes: Math.max(1, Math.min(72, Number(horasAntes) || 24)) },
+        exigirEmailConfirmado: exigirEmail,
       });
       toast.success(lembreteAtivo ? 'Lembretes ligados' : 'Lembretes desligados', lembreteAtivo
         ? `Cada cliente é avisado ${horasAntes}h antes — por notificação, ou por email se não tiver notificações.`
@@ -113,6 +124,32 @@ export default function Notifications() {
             <div className="text-sec text-xs" style={{ marginTop: 4 }}>
               24 horas é o habitual: dá tempo de desmarcar e ainda se lembra no próprio dia.
             </div>
+          </div>
+        )}
+
+        <hr style={{ border: 0, borderTop: '1px solid var(--border)', margin: '18px 0' }} />
+
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 14, cursor: 'pointer' }}>
+          <input type="checkbox" checked={exigirEmail} onChange={e => setExigirEmail(e.target.checked)}
+            style={{ width: 18, height: 18, marginTop: 2, accentColor: 'var(--gold)', flexShrink: 0 }} />
+          <span>
+            <span className="fw-600" style={{ display: 'block' }}>Só aceitar marcações de quem confirmou o email</span>
+            <span className="text-sec text-sm">
+              Quem se regista recebe logo um email com um link e não marca enquanto não clicar.
+              Ficas com a certeza de que consegues falar com toda a gente que tem hora marcada.
+            </span>
+          </span>
+        </label>
+
+        {exigirEmail && (
+          <div className="text-sec text-xs" style={{
+            marginTop: 12, padding: '10px 12px', borderRadius: 8,
+            background: 'var(--surface-2, rgba(0,0,0,.04))', lineHeight: 1.6,
+          }}>
+            <strong>Antes de ligares, pesa isto:</strong> é uma porta fechada no momento
+            exacto em que a pessoa decidiu marcar. Uma parte vai ao correio e não volta —
+            ainda por cima porque a primeira mensagem costuma cair no spam.
+            Tu continuas a poder marcar por qualquer cliente a partir da agenda.
           </div>
         )}
 
