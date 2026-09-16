@@ -20,7 +20,8 @@ function InterruptorAutomatico() {
   const toast = useToast();
   const [aGravar, setAGravar] = useState(false);
   const params = data.business?.config?.params || {};
-  const ligado = params.autoConfirm === true;
+  // Ligada por omissao: so fica desligada se o dono a desligar.
+  const ligado = params.autoConfirm !== false;
 
   const trocar = async () => {
     setAGravar(true);

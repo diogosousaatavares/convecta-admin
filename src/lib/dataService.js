@@ -1436,7 +1436,7 @@ const dataService = {
     // cliente ve. Ficarem so aqui era o mesmo que nao existirem: o site
     // continuava com os valores escritos no codigo.
     const ESPELHADOS = {
-      autoConfirm: v => v === true,
+      autoConfirm: v => v !== false,
       allowClientCancel: v => v !== false,
       cancelMinHours: v => Math.max(0, Number(v) || 0),
     };

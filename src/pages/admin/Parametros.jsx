@@ -57,7 +57,7 @@ export default function Parametros() {
     <AdminPage title="Parâmetros" subtitle="As regras das marcações. O que decides aqui é o que o site do cliente cumpre." page="parametros">
       <Card className="card-pad" style={{ maxWidth: 720 }}>
         <div className="fw-600 text-sm" style={{ color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: .8, paddingBottom: 4, marginBottom: 4 }}>Marcações pelo site</div>
-        {row('Confirmação automática', 'Ligado: a marcação do cliente entra já confirmada e és avisado. Desligado: entra «por confirmar» e confirmas tu.', <Toggle checked={v('autoConfirm', false)} onChange={x => save({ autoConfirm: x })} />)}
+        {row('Confirmação automática', 'Ligado: a marcação do cliente entra já confirmada e és avisado. Desligado: entra «por confirmar» e confirmas tu.', <Toggle checked={v('autoConfirm', true)} onChange={x => save({ autoConfirm: x })} />)}
         {row('Cancelamento pelo cliente', 'Se o cliente pode desmarcar pela app.', <Toggle checked={v('allowClientCancel', true)} onChange={x => save({ allowClientCancel: x })} />)}
         {row('Prazo para cancelar (horas)', 'Até quantas horas antes da hora marcada o cliente ainda pode desmarcar. Depois disso só a ligar-te.', <NumInput value={v('cancelMinHours', 2)} min={0} max={72} onChange={x => save({ cancelMinHours: x })} />)}
         <p className="text-sec text-sm" style={{ margin: '16px 0 0', lineHeight: 1.6 }}>
