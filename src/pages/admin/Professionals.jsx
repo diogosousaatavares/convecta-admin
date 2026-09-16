@@ -15,6 +15,12 @@ const nomeDoPlano = p => (p ? p.charAt(0).toUpperCase() + p.slice(1) : '');
 
 export default function Professionals() {
   const data = useStore();
+  // As avaliacoes de um barbeiro: quantas sao e a media delas.
+  const avaliacoesDe = (proId) => {
+    const lista = (data.reviews || []).filter(r => r.professionalId === proId);
+    if (!lista.length) return { total: 0, media: 0 };
+    return { total: lista.length, media: lista.reduce((s, r) => s + (Number(r.rating) || 0), 0) / lista.length };
+  };
   const toast = useToast();
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(empty);
@@ -130,7 +136,14 @@ export default function Professionals() {
               </div>
               <p className="text-sec text-sm mt-16">{p.bio}</p>
               <div className="flex items-center gap-8 mt-16">
-                <Stars rating={p.rating} size={13} /> <span className="text-sec text-xs">{p.rating} · {p.reviewCount} avaliações</span>
+                {/* Estrelas a serio: media das avaliacoes deste barbeiro. Antes vinha
+                    de duas colunas que ninguem escrevia — dizia sempre "0 · 0". */}
+                <Stars rating={avaliacoesDe(p.id).media} size={13} />
+                <span className="text-sec text-xs">
+                  {avaliacoesDe(p.id).total > 0
+                    ? `${avaliacoesDe(p.id).media.toFixed(1)} · ${avaliacoesDe(p.id).total} ${avaliacoesDe(p.id).total === 1 ? 'avaliação' : 'avaliações'}`
+                    : 'Ainda sem avaliações'}
+                </span>
               </div>
               {p.specialties?.length > 0 && (
                 <div className="flex gap-8 flex-wrap mt-16">
