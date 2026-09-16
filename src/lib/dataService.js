@@ -634,6 +634,10 @@ function revFromRow(row) {
     comment: row.comment || '',
     isVisible: row.is_visible === true,
     createdAt: row.created_at,
+    // O ecra escreve datas de calendario ('2026-09-15'); o created_at e um
+    // instante com horas e fuso. Sem esta linha saia "undefined, NaN de
+    // undefined" por baixo de cada avaliacao.
+    date: (row.created_at || '').slice(0, 10),
   };
 }
 
@@ -1476,8 +1480,10 @@ const dataService = {
     const { data, error } = await supabase.from('reviews').update(row).eq('id', id).select().single();
     if (error) throw traduzirErro(error);
     const r = revFromRow(data);
-    const i = (state.reviews||[]).findIndex(x => x.id === id);
-    if (i >= 0) state.reviews[i] = r;
+    // Trocar a lista inteira, e nao so a posicao: o ecra das Avaliacoes so
+    // refaz as contas quando a lista muda de identidade. A mexer na posicao,
+    // a base de dados ficava certa e o ecra continuava a dizer "Por ler".
+    state.reviews = (state.reviews || []).map(x => (x.id === id ? r : x));
     notify(); return r;
   },
   async deleteReview(id) {

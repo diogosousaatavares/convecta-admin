@@ -99,7 +99,7 @@ export default function Reviews() {
                       {!r.isVisible ? <Badge variant="warning">Por ler</Badge> : <Badge variant="default">Arquivada</Badge>}
                     </div>
                     {r.comment ? <p className="text-sec text-sm mt-8">{r.comment}</p> : <p className="text-sec text-sm mt-8" style={{ fontStyle: 'italic' }}>Sem comentário — só estrelas.</p>}
-                    <span className="text-sec text-xs">{formatDate(r.createdAt)}</span>
+                    <span className="text-sec text-xs">{formatDate(r.date || (r.createdAt || '').slice(0, 10))}</span>
                   </div>
                   <div className="flex gap-8">
                     <button className="btn btn-ghost btn-icon" aria-label={r.isVisible ? 'Marcar por ler' : 'Arquivar avaliação'} onClick={() => toggleVisible(r)} title={r.isVisible ? 'Marcar por ler' : 'Arquivar (já li)'}>
