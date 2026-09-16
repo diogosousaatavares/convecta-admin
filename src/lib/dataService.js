@@ -97,7 +97,7 @@ let state = {
   products: [], cashSessions: [], cashMovements: [], forms: [],
   waitlist: [], suppliers: [], stockMovements: [], commissions: [],
   // Ainda em memória (não migrados nesta fase):
-  reviews: [], gallery: [], notifications: [], promotions: [],
+  reviews: [], timeOff: [], gallery: [], notifications: [], promotions: [],
   expenses: [], typologies: _defaultTypologies(), comandas: [], sales: [],
   subscriptionPlans: [], subscriptions: [], subscriptionPayments: [],
   loyaltyMovements: [], loyaltyRewards: [],
@@ -641,6 +641,18 @@ function revFromRow(row) {
   };
 }
 
+// AUSENCIA (ferias)
+function ausFromRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id, businessId: row.business_id,
+    professionalId: row.professional_id,
+    startDate: row.start_date, endDate: row.end_date,
+    reason: row.reason || '',
+    createdAt: row.created_at,
+  };
+}
+
 function smFromRow(row) {
   if (!row) return null;
   return {
@@ -742,7 +754,7 @@ async function init() {
   const [
     professionals, services, customers, appointments, products,
     cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions,
-    sales, expenses, reviews,
+    sales, expenses, reviews, timeOff,
   ] = await Promise.all([
     fetchAll('professionals', proFromRow),
     fetchAll('services', svcFromRow),
@@ -759,9 +771,10 @@ async function init() {
     fetchAll('product_sales', vendaFromRow),
     fetchAll('expenses', despFromRow),
     fetchAll('reviews', revFromRow),
+    fetchAll('time_off', ausFromRow),
   ]);
 
-  Object.assign(state, { professionals, services, customers, appointments, products, cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions, sales, expenses, reviews });
+  Object.assign(state, { professionals, services, customers, appointments, products, cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions, sales, expenses, reviews, timeOff });
   initialized = true;
   notify();
 }
@@ -777,6 +790,8 @@ function horasDoDia(dateStr, professionalId, st = state) {
   if (!loja || !loja.isOpen) return null;
   const pro = st.professionals?.find(p => p.id === professionalId);
   if (pro && pro.isActive === false) return null;
+  // De ferias e de ferias: nesses dias nao ha horas nenhumas com ele.
+  if ((st.timeOff || []).some(f => f.professionalId === professionalId && dateStr >= f.startDate && dateStr <= f.endDate)) return null;
   const proprio = Array.isArray(pro?.schedule) ? pro.schedule.find(h => h.day === dia) : null;
   if (proprio && !proprio.isOpen) return null;
   const open = Math.max(toMinutes(loja.open), proprio ? toMinutes(proprio.open) : 0);
@@ -822,7 +837,7 @@ const dataService = {
       professionals: [], services: [], customers: [], appointments: [],
       products: [], cashSessions: [], cashMovements: [], forms: [],
       waitlist: [], suppliers: [], stockMovements: [], commissions: [],
-      reviews: [], gallery: [], notifications: [], promotions: [],
+      reviews: [], timeOff: [], gallery: [], notifications: [], promotions: [],
       expenses: [], typologies: _defaultTypologies(), comandas: [], sales: [],
       subscriptionPlans: [], subscriptions: [], subscriptionPayments: [],
       loyaltyMovements: [], loyaltyRewards: [],
@@ -1009,7 +1024,7 @@ const dataService = {
     notify();
     return state.appointments;
   },
-  async cancelAppointment(id) {
+  async cancelAppointment(id, opts = {}) {
     const a = state.appointments.find(x => x.id === id);
     if (!a || !canTransition(a.status, 'cancelled')) return a;
     if (a.status === 'completed' && a.payment) {
@@ -1027,6 +1042,7 @@ const dataService = {
       recomputeCustomer(a.customerId);
     }
     a.status = 'cancelled'; a.cancelledAt = new Date().toISOString(); a.cancelledBy = 'barbearia';
+    if (opts.motivo) a.cancelReason = opts.motivo;
     const { error } = await supabase.from('appointments').update(apptToRow(a)).eq('id', id);
     if (error) throw traduzirErro(error);
 
@@ -1040,7 +1056,7 @@ const dataService = {
         mensagem: corpoDaMarcacao({
           quem: state.business?.name, servico: a.serviceNameSnapshot,
           data: a.date, hora: a.startTime,
-        }),
+        }) + (opts.motivo ? ` ${opts.motivo}` : ''),
         url: '/marcacoes',
         tag: 'marcacao-' + id,
         exigeAccao: true,
@@ -1255,6 +1271,74 @@ const dataService = {
     notify();
     return p;
   },
+  /*
+   * FERIAS E AUSENCIAS
+   *
+   * Um periodo de dias inteiros em que o barbeiro nao trabalha. Nesses dias
+   * ele nao tem horas para marcar — nem aqui nem no site do cliente, que le
+   * as mesmas datas pela vista publica.
+   *
+   * Ao criar, as marcacoes que caem dentro sao canceladas e o cliente e
+   * avisado, com o motivo. Sem isto, o barbeiro ia de ferias e os clientes
+   * apareciam a porta fechada.
+   */
+  listTimeOff() {
+    return Promise.resolve([...(state.timeOff || [])]
+      .sort((a, b) => (b.startDate || '').localeCompare(a.startDate || '')));
+  },
+  marcacoesNoPeriodo(professionalId, de, ate) {
+    return (state.appointments || []).filter(a =>
+      a.professionalId === professionalId &&
+      a.date >= de && a.date <= ate &&
+      !a.blocked &&
+      (a.status === 'pending' || a.status === 'confirmed'));
+  },
+  async createTimeOff({ professionalId, startDate, endDate, reason }) {
+    if (!professionalId || !startDate || !endDate) throw new Error('Falta o profissional ou as datas.');
+    if (endDate < startDate) throw new Error('O último dia não pode ser antes do primeiro.');
+    const row = {
+      business_id: BUSINESS_ID, professional_id: professionalId,
+      start_date: startDate, end_date: endDate, reason: (reason || '').trim() || null,
+    };
+    const { data, error } = await supabase.from('time_off').insert(row).select().single();
+    if (error) {
+      if (/ausencias_sem_sobreposicao/.test(error.message || '')) {
+        throw new Error('Este profissional já tem uma ausência marcada que apanha estes dias.');
+      }
+      if (/time_off/.test(error.message || '') && /does not exist|schema cache/.test(error.message || '')) {
+        throw new Error('A base de dados ainda não tem as ausências. Falta correr supabase/FERIAS.sql.');
+      }
+      throw traduzirErro(error);
+    }
+    const f = ausFromRow(data);
+    state.timeOff = [...(state.timeOff || []), f];
+
+    // O que estava marcado para estes dias deixa de poder acontecer.
+    const pro = state.professionals.find(p => p.id === professionalId);
+    const apanhadas = dataService.marcacoesNoPeriodo(professionalId, startDate, endDate);
+    let canceladas = 0, porCancelar = [];
+    for (const a of apanhadas) {
+      try {
+        await dataService.cancelAppointment(a.id, {
+          motivo: `${pro?.name || 'O profissional'} vai estar ausente nesse dia.`,
+        });
+        canceladas++;
+      } catch (e) { porCancelar.push(a); }
+    }
+    notify();
+    return { ferias: f, canceladas, porCancelar };
+  },
+  async deleteTimeOff(id) {
+    const { error } = await supabase.from('time_off').delete().eq('id', id);
+    if (error) throw traduzirErro(error);
+    state.timeOff = (state.timeOff || []).filter(f => f.id !== id);
+    notify(); return true;
+  },
+  // O profissional esta ausente neste dia?
+  ausenciaEm(professionalId, dateStr) {
+    return (state.timeOff || []).find(f => f.professionalId === professionalId && dateStr >= f.startDate && dateStr <= f.endDate) || null;
+  },
+
   listStockMovements() { return Promise.resolve([...state.stockMovements].sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))); },
 
   // ── FORMS ──
@@ -1424,14 +1508,16 @@ const dataService = {
   },
   assignProfessionalForSlot(dateStr, startTime, durationMinutes) {
     const appts = state.appointments.filter(a => a.status !== 'cancelled');
+    // Quem esta de ferias nao entra no sorteio — nem como ultimo recurso.
+    const disponiveis = state.professionals.filter(p => p.isActive !== false && !dataService.ausenciaEm(p.id, dateStr));
     let best = null, bestCount = -1;
-    state.professionals.filter(p => p.isActive !== false).forEach(p => {
+    disponiveis.forEach(p => {
       const slots = generateSlotsForDay(dateStr, p.id, durationMinutes, appts);
       const avail = slots.filter(s => !s.isBooked && !s.isPast && s.startTime === startTime);
       const total = slots.filter(s => !s.isBooked && !s.isPast).length;
       if (avail.length > 0 && total > bestCount) { best = p; bestCount = total; }
     });
-    return Promise.resolve(best || state.professionals.find(p => p.isActive !== false) || state.professionals[0]);
+    return Promise.resolve(best || disponiveis[0] || null);
   },
 
   // ── LOYALTY ──
@@ -1637,7 +1723,7 @@ const dataService = {
   // ── RESET ──
   async resetData() {
     initialized = false;
-    state = { business: null, professionals: [], services: [], customers: [], appointments: [], products: [], cashSessions: [], cashMovements: [], forms: [], waitlist: [], suppliers: [], stockMovements: [], commissions: [], reviews: [], gallery: [], notifications: [], promotions: [], expenses: [], typologies: _defaultTypologies(), comandas: [], sales: [], subscriptionPlans: [], subscriptions: [], subscriptionPayments: [], loyaltyMovements: [], loyaltyRewards: [] };
+    state = { business: null, professionals: [], services: [], customers: [], appointments: [], products: [], cashSessions: [], cashMovements: [], forms: [], waitlist: [], suppliers: [], stockMovements: [], commissions: [], reviews: [], timeOff: [], gallery: [], notifications: [], promotions: [], expenses: [], typologies: _defaultTypologies(), comandas: [], sales: [], subscriptionPlans: [], subscriptions: [], subscriptionPayments: [], loyaltyMovements: [], loyaltyRewards: [] };
     await init();
     return true;
   },

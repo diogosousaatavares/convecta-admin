@@ -31,6 +31,7 @@ const GROUPS_TODOS = [
   { type: 'group', label: 'Profissionais', icon: UserCog, items: [
     { to: '/admin/profissionais', label: 'Profissionais', exact: true },
     { to: '/admin/profissionais/horarios', label: 'Horários' },
+    { to: '/admin/profissionais/ferias', label: 'Férias' },
     { to: '/admin/profissionais/comissoes', label: 'Comissões' },
     { to: '/admin/profissionais/desempenho', label: 'Desempenho' },
     { to: '/admin/avaliacoes', label: 'Avaliações' }
