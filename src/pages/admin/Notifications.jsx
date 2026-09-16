@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, Plus, Trash2, Send, Info, Tag, Megaphone, ArrowRight } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
-import { Modal, EmptyState, Button } from '@/components/ui';
+import { Modal, EmptyState, Button, Card } from '@/components/ui';
 import AvisoPush from '@/components/AvisoPush';
 import authService from '@/lib/authService';
 
@@ -41,6 +41,40 @@ export default function Notifications() {
     toast.success('Notificação criada', 'Está visível para os clientes.');
   };
 
+  /*
+   * LEMBRETES ANTES DO CORTE
+   *
+   * Ligado, o servidor avisa cada cliente umas horas antes: por notificacao
+   * a quem a tem (nao custa nada), por email a quem confirmou o email
+   * (custa cens de cens). Quem nao tem nem uma coisa nem outra fica
+   * registado como "sem canal" — para o barbeiro saber, em vez de julgar
+   * que toda a gente foi avisada.
+   */
+  const lembretes = data.business?._settings?.reminders || {};
+  const [lembreteAtivo, setLembreteAtivo] = useState(lembretes.ativo === true);
+  const [horasAntes, setHorasAntes] = useState(Number(lembretes.horasAntes) || 24);
+  const [aGuardar, setAGuardar] = useState(false);
+
+  useEffect(() => {
+    const r = data.business?._settings?.reminders || {};
+    setLembreteAtivo(r.ativo === true);
+    setHorasAntes(Number(r.horasAntes) || 24);
+  }, [data.business?._settings?.reminders]);
+
+  const guardarLembretes = async () => {
+    setAGuardar(true);
+    try {
+      await dataService.updateBusiness({
+        reminders: { ativo: lembreteAtivo, horasAntes: Math.max(1, Math.min(72, Number(horasAntes) || 24)) },
+      });
+      toast.success(lembreteAtivo ? 'Lembretes ligados' : 'Lembretes desligados', lembreteAtivo
+        ? `Cada cliente é avisado ${horasAntes}h antes — por notificação, ou por email se não tiver notificações.`
+        : 'Os clientes deixam de ser avisados antes do corte.');
+    } catch (e) {
+      toast.error('Não foi possível guardar', e.message);
+    } finally { setAGuardar(false); }
+  };
+
   const toggle = async (id) => { await dataService.toggleNotification(id); toast.info('Estado atualizado'); };
   const remove = async (id) => { await dataService.deleteNotification(id); toast.success('Notificação eliminada'); };
 
@@ -57,6 +91,37 @@ export default function Notifications() {
       <div style={{ marginBottom: 20 }}>
         <AvisoPush businessId={data.business?.id} userId={authService.getCurrentUser()?.id} papel="admin" comTeste sempre />
       </div>
+
+      <Card className="card-pad" style={{ marginBottom: 22, maxWidth: 620 }}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 14, cursor: 'pointer' }}>
+          <input type="checkbox" checked={lembreteAtivo} onChange={e => setLembreteAtivo(e.target.checked)}
+            style={{ width: 18, height: 18, marginTop: 2, accentColor: 'var(--gold)', flexShrink: 0 }} />
+          <span>
+            <span className="fw-600" style={{ display: 'block' }}>Lembrar o cliente antes do corte</span>
+            <span className="text-sec text-sm">
+              Quem tem notificações ligadas recebe notificação. Quem não tem, mas confirmou o email, recebe email.
+              Quem não tem nenhum dos dois fica registado como não avisado — podes ver isso abaixo.
+            </span>
+          </span>
+        </label>
+
+        {lembreteAtivo && (
+          <div className="field" style={{ marginTop: 16, marginBottom: 0 }}>
+            <label className="label" htmlFor="horas-antes">Quantas horas antes</label>
+            <input id="horas-antes" type="number" className="input" min="1" max="72" value={horasAntes}
+              onChange={e => setHorasAntes(e.target.value)} style={{ maxWidth: 110 }} />
+            <div className="text-sec text-xs" style={{ marginTop: 4 }}>
+              24 horas é o habitual: dá tempo de desmarcar e ainda se lembra no próprio dia.
+            </div>
+          </div>
+        )}
+
+        <div style={{ marginTop: 16 }}>
+          <Button variant="primary" onClick={guardarLembretes} disabled={aGuardar}>
+            {aGuardar ? 'A guardar…' : 'Guardar'}
+          </Button>
+        </div>
+      </Card>
 
       <div className="flex items-center gap-16 mb-24" style={{ marginBottom: 22, flexWrap: 'wrap' }}>
         <div className="notif-card" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
