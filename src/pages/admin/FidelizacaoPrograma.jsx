@@ -4,6 +4,7 @@ import AdminPage from '@/components/admin/AdminPage';
 import { Card, Button } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
+import CartaoFidelidadePreview from '@/components/admin/CartaoFidelidadePreview';
 import { useToast } from '@/components/ui/ToastContext';
 
 /*
@@ -19,7 +20,7 @@ import { useToast } from '@/components/ui/ToastContext';
  * aparece ao cliente, o balcao nao carimba e nao ha corte gratis a usar;
  * os carimbos ja dados ficam guardados para quando voltar a ligar.
  */
-const OMISSAO = { ativo: true, stampsNeeded: 10, validMonths: 6, rewardName: 'Corte grátis' };
+const OMISSAO = { ativo: true, stampsNeeded: 10, validMonths: 6, rewardName: 'Corte grátis', cartaoClaro: false };
 
 export default function FidelizacaoPrograma() {
   const data = useStore();
@@ -30,12 +31,17 @@ export default function FidelizacaoPrograma() {
   const [carimbos, setCarimbos] = useState(guardado.stampsNeeded);
   const [validade, setValidade] = useState(guardado.validMonths);
   const [premio, setPremio] = useState(guardado.rewardName);
+  // As cores vêm do tema do site. O que se escolhe aqui é só se o cartão é
+  // escuro ou claro — uma barbearia de marca clara quer o cartão escuro, e
+  // ao contrário. Mais do que isto abria a porta a cartões ilegíveis.
+  const [claro, setClaro] = useState(guardado.cartaoClaro === true);
   const [aGuardar, setAGuardar] = useState(false);
 
   // Se as regras mudarem noutro sitio (super admin), o ecra acompanha.
   useEffect(() => {
     const g = { ...OMISSAO, ...(data.business?.loyalty || {}) };
     setAtivo(g.ativo !== false); setCarimbos(g.stampsNeeded); setValidade(g.validMonths); setPremio(g.rewardName);
+    setClaro(g.cartaoClaro === true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.business?.loyalty]);
 
@@ -46,7 +52,7 @@ export default function FidelizacaoPrograma() {
     setAGuardar(true);
     try {
       await dataService.updateBusiness({
-        loyalty: { ...(data.business?.loyalty || {}), ativo, stampsNeeded: n, validMonths: meses, rewardName: (premio || '').trim() || 'Corte grátis' },
+        loyalty: { ...(data.business?.loyalty || {}), ativo, stampsNeeded: n, validMonths: meses, rewardName: (premio || '').trim() || 'Corte grátis', cartaoClaro: claro },
       });
       toast.success(ativo ? 'Cartão de fidelidade guardado' : 'Cartão desligado', ativo
         ? `${n} carimbos, ${meses ? `válido ${meses} meses` : 'sem prazo'}. Já está no site dos teus clientes.`
@@ -56,7 +62,6 @@ export default function FidelizacaoPrograma() {
     } finally { setAGuardar(false); }
   };
 
-  const slots = Array.from({ length: n });
   const preenchidos = Math.min(3, n - 1);
 
   return (
@@ -84,6 +89,17 @@ export default function FidelizacaoPrograma() {
                 onChange={e => setPremio(e.target.value)} placeholder="Ex: Corte grátis" />
             </div>
             <div className="field">
+              <label className="label">Aspeto do cartão</label>
+              <div className="flex gap-8">
+                <Button variant={claro ? 'secondary' : 'primary'} size="sm" disabled={!ativo} onClick={() => setClaro(false)}>Escuro</Button>
+                <Button variant={claro ? 'primary' : 'secondary'} size="sm" disabled={!ativo} onClick={() => setClaro(true)}>Claro</Button>
+              </div>
+              <div className="text-sec text-xs" style={{ marginTop: 6 }}>
+                As cores são as da tua marca, definidas em «O Meu Site». Aqui escolhes só o fundo.
+              </div>
+            </div>
+
+            <div className="field">
               <label className="label">Validade do cartão (meses)</label>
               <input type="number" className="input" min="0" max="24" value={validade} disabled={!ativo}
                 onChange={e => setValidade(e.target.value)} style={{ maxWidth: 120 }} />
@@ -103,41 +119,22 @@ export default function FidelizacaoPrograma() {
             Como o cliente o vê
           </div>
           {ativo ? (
-            <div style={{ background: '#1a1a2e', borderRadius: 16, padding: '20px 20px 16px', boxShadow: '0 8px 32px rgba(0,0,0,.45)', maxWidth: 340 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-                <div>
-                  <div style={{ color: '#C9A227', fontWeight: 700, fontSize: 16, letterSpacing: '.04em' }}>{data.business?.name || 'A tua barbearia'}</div>
-                  <div style={{ color: 'rgba(255,255,255,.45)', fontSize: 10, marginTop: 2, letterSpacing: '.08em' }}>CARTÃO DE FIDELIDADE</div>
-                </div>
-                <Gift size={18} style={{ color: '#C9A227' }} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(n, 5)}, 1fr)`, gap: 6, marginBottom: 12 }}>
-                {slots.map((_, i) => {
-                  const filled = i < preenchidos;
-                  const isLast = i === n - 1;
-                  return (
-                    <div key={i} style={{
-                      aspectRatio: '1', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: filled ? '#C9A227' : isLast ? 'transparent' : 'rgba(255,255,255,.07)',
-                      border: isLast ? '1.5px dashed #C9A227' : filled ? 'none' : '1.5px solid rgba(255,255,255,.12)',
-                      color: filled ? '#1a1a2e' : '#C9A227', fontSize: 14, fontWeight: 700,
-                    }}>
-                      {filled ? '✓' : isLast ? '★' : ''}
-                    </div>
-                  );
-                })}
-              </div>
-              <div style={{ color: 'rgba(255,255,255,.7)', fontSize: 12 }}>
-                {preenchidos}/{n} cortes · {premio || 'Corte grátis'} ao {n + 1}.º{meses ? ` · válido ${meses} meses` : ''}
-              </div>
-            </div>
+            <CartaoFidelidadePreview
+              nome={data.business?.name || 'A tua barbearia'}
+              carimbos={n}
+              preenchidos={preenchidos}
+              premio={premio}
+              meses={meses}
+              claro={claro}
+              cores={data.business?._settings?.theme?.colors || {}}
+            />
           ) : (
             <Card className="card-pad" style={{ maxWidth: 340 }}>
               <div className="text-sec text-sm">Cartão desligado. O cliente não vê nada e o balcão não carimba.</div>
             </Card>
           )}
           <p className="text-sec text-xs" style={{ marginTop: 12, maxWidth: 340, lineHeight: 1.5 }}>
-            As cores do cartão seguem o tema do site da barbearia (definido em «O Meu Site»).
+            É este o cartão que o cliente vê no telemóvel, com as cores da tua marca. Muda a cor em «O Meu Site» e muda aqui também.
           </p>
         </div>
       </div>
