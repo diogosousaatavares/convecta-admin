@@ -8,7 +8,7 @@ import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
 import RelatorioContabilista from '@/components/admin/RelatorioContabilista';
 import { useStore } from '@/hooks/useStore';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, localDateStr } from '@/lib/format';
 import { Card, Button, EmptyState } from '@/components/ui';
 
 const GOLD = '#C9A227';
@@ -23,7 +23,9 @@ const PERIODS = [
 ];
 
 function daysAgo(n) { const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - n); return d; }
-function dateStr(d) { return d.toISOString().slice(0,10); }
+// Dia de calendario local. Com toISOString, a meia-noite local de 1 de
+// setembro era 31 de agosto em UTC — e "Este mes" comecava no mes anterior.
+function dateStr(d) { return localDateStr(d); }
 function shortLabel(iso) { const d = new Date(iso); return d.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' }); }
 
 export default function Reports() {

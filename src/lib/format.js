@@ -43,8 +43,23 @@ export function getDowShort(date) {
 export function getMonthShort(date) {
   return MONTHS_SHORT[date.getMonth()];
 }
-function localDateStr(d) {
+/*
+ * O dia de calendario de uma data, no fuso de quem esta a olhar.
+ *
+ * `new Date().toISOString().slice(0,10)` da o dia em UTC, que em Portugal no
+ * horario de verao e OUTRO dia entre a meia-noite e a uma da manha — e, pior,
+ * a meia-noite local de qualquer dia ja e o dia anterior em UTC. Era por isso
+ * que "Este mes" nos relatorios comecava no ultimo dia do mes passado.
+ */
+export function localDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+// O dia de calendario em que um instante aconteceu, aqui. Recebe o que a
+// base de dados guarda (ISO com horas e fuso) e devolve '2026-09-16'.
+export function diaLocal(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return isNaN(d.getTime()) ? String(ts).slice(0, 10) : localDateStr(d);
 }
 export function todayStr() {
   return localDateStr(new Date());

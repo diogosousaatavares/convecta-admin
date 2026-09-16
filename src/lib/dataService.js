@@ -85,6 +85,7 @@ function traduzirErro(error) {
 import { getCustomerStats } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
 import { localDateStr } from '@/lib/domain/dates';
+import { diaLocal } from '@/lib/format';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
@@ -607,7 +608,7 @@ function vendaFromRow(row) {
     method: row.method || '',
     sessionId: row.cash_session_id || null,
     soldAt: row.sold_at,
-    date: (row.sold_at || '').slice(0, 10),
+    date: diaLocal(row.sold_at),
     createdAt: row.created_at,
   };
 }
@@ -642,7 +643,7 @@ function revFromRow(row) {
     // O ecra escreve datas de calendario ('2026-09-15'); o created_at e um
     // instante com horas e fuso. Sem esta linha saia "undefined, NaN de
     // undefined" por baixo de cada avaliacao.
-    date: (row.created_at || '').slice(0, 10),
+    date: diaLocal(row.created_at),
   };
 }
 
@@ -1719,11 +1720,11 @@ const dataService = {
   updateSubscriptionPlan(id, updates) { const i = (state.subscriptionPlans||[]).findIndex(p => p.id === id); if (i >= 0) state.subscriptionPlans[i] = { ...state.subscriptionPlans[i], ...updates }; notify(); return Promise.resolve(state.subscriptionPlans[i]); },
   deleteSubscriptionPlan(id) { state.subscriptionPlans = (state.subscriptionPlans||[]).filter(p => p.id !== id); notify(); return Promise.resolve(true); },
   listSubscriptions() { return Promise.resolve([...(state.subscriptions||[])]); },
-  createSubscription(data) { const s = { id: uid('sub'), status: 'active', startedAt: new Date().toISOString().slice(0,10), ...data }; if (!state.subscriptions) state.subscriptions=[]; state.subscriptions.push(s); notify(); return Promise.resolve(s); },
+  createSubscription(data) { const s = { id: uid('sub'), status: 'active', startedAt: localDateStr(new Date()), ...data }; if (!state.subscriptions) state.subscriptions=[]; state.subscriptions.push(s); notify(); return Promise.resolve(s); },
   updateSubscription(id, updates) { const i = (state.subscriptions||[]).findIndex(s => s.id === id); if (i >= 0) state.subscriptions[i] = { ...state.subscriptions[i], ...updates }; notify(); return Promise.resolve(state.subscriptions[i]); },
   deleteSubscription(id) { state.subscriptions = (state.subscriptions||[]).filter(s => s.id !== id); notify(); return Promise.resolve(true); },
   listSubscriptionPayments() { return Promise.resolve([...(state.subscriptionPayments||[])].sort((a,b) => (b.paidAt||b.createdAt||'').localeCompare(a.paidAt||a.createdAt||''))); },
-  addSubscriptionPayment(data) { const p = { id: uid('sp'), status: 'paid', paidAt: new Date().toISOString().slice(0,10), ...data }; if (!state.subscriptionPayments) state.subscriptionPayments=[]; state.subscriptionPayments.push(p); notify(); return Promise.resolve(p); },
+  addSubscriptionPayment(data) { const p = { id: uid('sp'), status: 'paid', paidAt: localDateStr(new Date()), ...data }; if (!state.subscriptionPayments) state.subscriptionPayments=[]; state.subscriptionPayments.push(p); notify(); return Promise.resolve(p); },
 
   // ── RESET ──
   async resetData() {

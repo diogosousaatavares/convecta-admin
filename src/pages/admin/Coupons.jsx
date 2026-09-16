@@ -6,9 +6,9 @@ import { Card, Button, EmptyState, Modal, Badge } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
-import { formatDate } from '@/lib/format';
+import { formatDate, todayStr } from '@/lib/format';
 
-const blank = { name: '', type: 'percent', value: 10, code: '', startsAt: new Date().toISOString().slice(0, 10), endsAt: '', active: true, description: '' };
+const blank = { name: '', type: 'percent', value: 10, code: '', startsAt: todayStr(), endsAt: '', active: true, description: '' };
 
 const normalizeCouponType = (type) => {
   if (type === 'discount') return 'percent';

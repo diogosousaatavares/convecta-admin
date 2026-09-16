@@ -8,7 +8,7 @@ import PageInfo from '@/components/admin/PageInfo';
 import { Card, Badge, Avatar, Button, EmptyState, Modal } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
-import { formatDateShortNum, formatPrice } from '@/lib/format';
+import { formatDateShortNum, formatPrice, localDateStr } from '@/lib/format';
 import CheckoutModal from '@/components/admin/CheckoutModal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
@@ -86,7 +86,9 @@ const SCOPES = [
   { key: 'week', label: 'Esta semana' }
 ];
 
-function iso(d) { return d.toISOString().slice(0, 10); }
+// Dia local, nao o dia em UTC: os filtros "Hoje" e "Esta semana"
+// apanhavam o dia errado durante o horario de verao.
+function iso(d) { return localDateStr(d); }
 
 export default function AdminAppointments() {
   const data = useStore();

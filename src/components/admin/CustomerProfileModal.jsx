@@ -4,7 +4,7 @@ import { Modal, Button, Avatar, Badge, EmptyState } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
-import { formatDateNum, formatDateShortNum, formatPrice } from '@/lib/format';
+import { formatDateNum, formatDateShortNum, formatPrice, todayStr } from '@/lib/format';
 
 export default function CustomerProfileModal({ customer, onClose }) {
   const data = useStore();
@@ -29,7 +29,7 @@ export default function CustomerProfileModal({ customer, onClose }) {
     return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([id, n]) => ({ name: data.services.find(s => s.id === id)?.name || '—', n }));
   }, [history, data.services]);
 
-  const upcoming = history.find(a => a.status !== 'cancelled' && (a.date + a.startTime) >= (new Date().toISOString().slice(0, 10) + new Date().toTimeString().slice(0, 5)));
+  const upcoming = history.find(a => a.status !== 'cancelled' && (a.date + a.startTime) >= (todayStr() + new Date().toTimeString().slice(0, 5)));
 
   if (!customer) return null;
 

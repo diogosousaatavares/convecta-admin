@@ -6,7 +6,7 @@ import { Card, Badge, Button, EmptyState, Modal } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
-import { formatDate } from '@/lib/format';
+import { formatDate, todayStr } from '@/lib/format';
 
 const TYPES = [
   { key: 'discount', label: 'Desconto', icon: Percent },
@@ -20,7 +20,7 @@ export default function Marketing() {
   const [filter, setFilter] = useState('all');
   const [editModal, setEditModal] = useState(false);
   const [delId, setDelId] = useState(null);
-  const blank = { name: '', type: 'discount', value: 10, code: '', startsAt: new Date().toISOString().slice(0,10), endsAt: '', active: true, description: '' };
+  const blank = { name: '', type: 'discount', value: 10, code: '', startsAt: todayStr(), endsAt: '', active: true, description: '' };
   const [form, setForm] = useState(blank);
   const [editingId, setEditingId] = useState(null);
 
@@ -73,7 +73,7 @@ export default function Marketing() {
             {promos.map(p => {
               const T = TYPES.find(t => t.key === p.type) || TYPES[0];
               const Ico = T.icon;
-              const ended = p.endsAt && p.endsAt < new Date().toISOString().slice(0,10);
+              const ended = p.endsAt && p.endsAt < todayStr();
               return (
                 <Card key={p.id} className="meg-card card-hover">
                   <div className="flex justify-between items-center mb-16">
