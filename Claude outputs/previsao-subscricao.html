@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Subscrição — pré-visualização</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#0A0807; --surface:#141210; --elevated:#1C1915; --gold:#C9A227;
+    --text:#EDE8DF; --text-sec:#8A8272; --text-ter:#524F49; --border:#221E18;
+    --success:#22C55E; --warn:#F59E0B; --error:#EF4444;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:14px; line-height:1.5;
+  }
+  .wrap{max-width:1060px; margin:0 auto; padding:24px 16px 80px}
+
+  .nota{
+    background:var(--elevated); border:1px solid var(--border); border-radius:10px;
+    padding:14px 16px; margin-bottom:28px; font-size:13px; color:var(--text-sec);
+  }
+  .nota strong{color:var(--text)}
+
+  .abas{display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap}
+  .aba{
+    padding:8px 15px; border-radius:999px; font-size:13px; font-weight:600;
+    border:1px solid var(--border); background:transparent; color:var(--text-sec);
+    cursor:pointer; font-family:inherit;
+  }
+  .aba[aria-selected="true"]{background:var(--gold); border-color:var(--gold); color:#111}
+  .aba:focus-visible{outline:2px solid var(--gold); outline-offset:2px}
+
+  .cabeca{margin-bottom:20px}
+  .cabeca h1{font-size:22px; margin:0 0 4px; font-weight:700}
+  .cabeca p{margin:0; color:var(--text-sec); font-size:13px}
+
+  .cartao{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:20px;
+  }
+  .cartao + .cartao{margin-top:16px}
+
+  .linha{display:flex; gap:12px; align-items:flex-start}
+  .ic{flex-shrink:0; margin-top:2px}
+  .rotulo{font-size:11px; color:var(--text-sec); text-transform:uppercase; letter-spacing:.8px}
+  .estado{font-size:20px; font-weight:700; margin-top:4px}
+  .sec{color:var(--text-sec); font-size:13px}
+  .div{border-top:1px solid var(--border); margin-top:16px; padding-top:16px}
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:10px 16px; border-radius:9px; font-size:13px; font-weight:600;
+    background:var(--gold); color:#111; border:1px solid var(--gold);
+    cursor:pointer; font-family:inherit;
+  }
+  .btn.ghost{background:transparent; color:var(--text-sec); border-color:var(--border)}
+  .btn.bloco{width:100%}
+  .btn:focus-visible{outline:2px solid var(--gold); outline-offset:2px}
+
+  .planos{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); margin-top:16px}
+  .plano{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; display:flex; flex-direction:column}
+  .plano h3{margin:0; font-size:17px; font-weight:600}
+  .preco{margin:16px 0 4px}
+  .preco b{font-size:28px; font-weight:700; font-variant-numeric:tabular-nums}
+  .poupa{font-size:12px; color:var(--gold)}
+  .feats{margin:16px 0; display:flex; flex-direction:column; gap:7px}
+  .feat{display:flex; gap:8px; align-items:flex-start; font-size:13px}
+  .botoes{margin-top:auto; display:flex; flex-direction:column; gap:8px; padding-top:12px}
+
+  .oculto{display:none}
+  svg{display:block}
+  @media (max-width:640px){ .wrap{padding:16px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="nota">
+    <strong>Isto é só um desenho</strong> — não está ligado a nada, os botões não fazem nada.
+    Serve para veres o ecrã antes de o publicares. Carrega nas bolas em cima para veres cada estado.
+  </div>
+
+  <div class="abas" role="tablist">
+    <button class="aba" role="tab" aria-selected="true"  data-v="sem">Sem cartão</button>
+    <button class="aba" role="tab" aria-selected="false" data-v="teste">Em experiência</button>
+    <button class="aba" role="tab" aria-selected="false" data-v="activa">Activa</button>
+    <button class="aba" role="tab" aria-selected="false" data-v="atraso">Pagamento em atraso</button>
+  </div>
+
+  <div class="cabeca">
+    <h1>Subscrição</h1>
+    <p>O teu plano na Convecta. Sem fidelização — cancelas quando quiseres.</p>
+  </div>
+
+  <!-- ══ SEM CARTÃO ══ -->
+  <section id="v-sem">
+    <div class="cartao">
+      <div class="linha">
+        <svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        <div>
+          <div style="font-weight:600">7 dias à experiência, e só depois é que pagas</div>
+          <div class="sec" style="margin-top:4px">
+            O cartão fica registado hoje, mas não é cobrado nada durante sete dias.
+            Avisamos-te antes de a primeira cobrança sair. Se cancelares até lá, não pagas nada —
+            e cancelas sozinho aqui no painel, sem telefonemas.
+          </div>
+          <div class="sec" style="font-size:12px; margin-top:8px">
+            O cartão é escrito numa página do Stripe. Nós nunca o vemos nem o guardamos.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="abas" style="margin:20px 0 0">
+      <button class="aba periodo" aria-selected="true"  data-p="mensal">Mensal</button>
+      <button class="aba periodo" aria-selected="false" data-p="anual">Anual (mais barato)</button>
+    </div>
+
+    <div class="planos" id="planos"></div>
+  </section>
+
+  <!-- ══ EM EXPERIÊNCIA ══ -->
+  <section id="v-teste" class="oculto">
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap">
+        <div>
+          <div class="rotulo">Estado</div>
+          <div class="estado" style="color:var(--gold)">Em experiência</div>
+          <div class="sec" style="margin-top:6px">Plano <strong style="color:var(--text)">profissional</strong> · mensal · até 5 profissionais</div>
+        </div>
+        <button class="btn">Gerir subscrição
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+        </button>
+      </div>
+      <div class="div linha">
+        <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <div>
+          A experiência acaba a <strong>24 de setembro de 2026</strong> (faltam 7 dias).
+          Se não cancelares até lá, o cartão é cobrado nesse dia.
+          <div class="sec" style="font-size:12px; margin-top:4px">
+            Cancelar durante a experiência não custa nada — não é cobrado nenhum valor.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ACTIVA ══ -->
+  <section id="v-activa" class="oculto">
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap">
+        <div>
+          <div class="rotulo">Estado</div>
+          <div class="estado" style="color:var(--success)">Activa</div>
+          <div class="sec" style="margin-top:6px">Plano <strong style="color:var(--text)">profissional</strong> · mensal · até 5 profissionais</div>
+        </div>
+        <button class="btn">Gerir subscrição
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+        </button>
+      </div>
+      <div class="div sec">Próxima cobrança a <strong style="color:var(--text)">17 de outubro de 2026</strong>.</div>
+    </div>
+  </section>
+
+  <!-- ══ EM ATRASO ══ -->
+  <section id="v-atraso" class="oculto">
+    <div class="cartao">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap">
+        <div>
+          <div class="rotulo">Estado</div>
+          <div class="estado" style="color:var(--warn)">Pagamento em atraso</div>
+          <div class="sec" style="margin-top:6px">Plano <strong style="color:var(--text)">profissional</strong> · mensal · até 5 profissionais</div>
+        </div>
+        <button class="btn">Gerir subscrição
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+        </button>
+      </div>
+      <div class="div linha">
+        <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <div>
+          O último pagamento não passou. <strong>A barbearia continua a funcionar normalmente</strong> —
+          vamos tentar cobrar outra vez nos próximos dias.
+          <div class="sec" style="font-size:12px; margin-top:4px">
+            Se o cartão expirou ou mudou, actualiza-o em «Gerir subscrição» e fica resolvido.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// Os mesmos números que estão no Stripe. Aqui são só para o desenho.
+const PLANOS = [
+  { nome:'Convecta Essencial',
+    desc:'Agenda e marcações online para 1 profissional. Site de marcações próprio da barbearia, avisos automáticos ao cliente antes do corte, ficha de cliente e caixa. Sem custo por mensagem.',
+    mensal:1999, anual:20390,
+    feats:['Marcações online 24 horas por dia','Site de marcações próprio da barbearia','Avisos ao cliente antes do corte, sem custo por mensagem','Ficha de cliente e histórico','Caixa e relatórios','1 profissional'] },
+  { nome:'Convecta Profissional',
+    desc:'Tudo o do Essencial, para uma equipa até 5 profissionais: agenda por profissional, comissões e relatórios.',
+    mensal:2999, anual:30590,
+    feats:['Marcações online 24 horas por dia','Site de marcações próprio da barbearia','Avisos ao cliente antes do corte, sem custo por mensagem','Ficha de cliente e histórico','Agenda por profissional','Comissões e relatórios','Até 5 profissionais'] },
+  { nome:'Convecta Business',
+    desc:'Tudo o do Profissional, até 15 profissionais, mais personalização completa do site da barbearia.',
+    mensal:5999, anual:61190,
+    feats:['Marcações online 24 horas por dia','Site de marcações próprio da barbearia','Avisos ao cliente antes do corte, sem custo por mensagem','Ficha de cliente e histórico','Agenda por profissional','Comissões e relatórios','Personalização completa do site da barbearia','Até 15 profissionais'] },
+];
+
+const euros = c => (c/100).toFixed(2).replace('.',',') + ' €';
+const check = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><path d="M20 6 9 17l-5-5"/></svg>';
+const cartao = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></svg>';
+
+let periodo = 'mensal';
+
+function desenhar(){
+  document.getElementById('planos').innerHTML = PLANOS.map(p => {
+    const valor = periodo === 'anual' ? p.anual : p.mensal;
+    const poupa = periodo === 'anual' ? p.mensal*12 - p.anual : 0;
+    return `<article class="plano">
+      <h3>${p.nome}</h3>
+      <div class="sec" style="font-size:12px;margin-top:6px">${p.desc}</div>
+      <div class="preco"><b>${euros(valor)}</b><span class="sec"> ${periodo==='anual'?'/ano':'/mês'}</span></div>
+      ${poupa ? `<div class="poupa">Poupas ${euros(poupa)} por ano</div>` : ''}
+      <div class="feats">${p.feats.map(f=>`<div class="feat">${check}<span>${f}</span></div>`).join('')}</div>
+      <div class="botoes">
+        <button class="btn bloco">${cartao} Experimentar 7 dias</button>
+        <button class="btn bloco ghost">Pagar já e ficar despachado</button>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+document.querySelectorAll('.aba[data-v]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.aba[data-v]').forEach(x => x.setAttribute('aria-selected', x === b));
+  ['sem','teste','activa','atraso'].forEach(v =>
+    document.getElementById('v-' + v).classList.toggle('oculto', v !== b.dataset.v));
+}));
+
+document.querySelectorAll('.periodo').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.periodo').forEach(x => x.setAttribute('aria-selected', x === b));
+  periodo = b.dataset.p;
+  desenhar();
+}));
+
+desenhar();
+</script>
+</body>
+</html>
