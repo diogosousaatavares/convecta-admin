@@ -8,19 +8,59 @@ function notify() { listeners.forEach(fn => fn()); }
 let _session = null;
 let _authLoading = true; // true até Supabase confirmar estado de auth
 
-async function _enrichSession(user) {
-  const { data: userRow } = await supabase
+// O ultimo motivo pelo qual uma conta valida nao entrou. O ecra de login
+// mostra-o em vez de "credenciais invalidas", que seria mentira.
+let _motivoSemSessao = '';
+
+async function _linhaDoUtilizador(id) {
+  const { data } = await supabase
     .from('users')
     .select('role, business_id, name')
-    .eq('id', user.id)
+    .eq('id', id)
     .maybeSingle();
+  return data;
+}
 
-  // Sem linha em public.users nao ha barbearia nem papel: e um cliente do
-  // site, ou uma conta orfa. Antes assumia-se 'admin' e a pessoa entrava num
-  // painel vazio a pensar que estava avariado.
+/*
+ * A barbearia nasce aqui, na primeira entrada.
+ *
+ * Quem se regista no site cria so a conta; a barbearia so existe depois de
+ * o email estar confirmado e a pessoa entrar. Este e o momento: ha sessao,
+ * ha email confirmado, e ainda nao ha linha em `users`. Chama-se a funcao
+ * `registar-barbearia`, que le o formulario guardado no registo e cria tudo
+ * numa transaccao. E idempotente — chamar duas vezes devolve a mesma.
+ *
+ * Tem de ser AQUI e nao mais tarde (no dataService.init), porque sem linha
+ * em `users` a sessao nunca chega a existir e o painel nunca arranca.
+ */
+async function _nascerSePreciso(user) {
+  const { data, error } = await supabase.functions.invoke('registar-barbearia', { body: {} });
+  if (error) {
+    let motivo = '';
+    try { motivo = (await error.context?.json())?.erro || ''; } catch { motivo = ''; }
+    console.error('[auth] registar-barbearia:', motivo || error.message);
+    return motivo || 'Não foi possível criar a tua barbearia. Tenta outra vez daqui a um minuto.';
+  }
+  if (data?.business_id) console.info('[auth] barbearia criada à primeira entrada:', data.slug);
+  return '';
+}
+
+async function _enrichSession(user) {
+  _motivoSemSessao = '';
+  let userRow = await _linhaDoUtilizador(user.id);
+
+  // Conta sem barbearia: ou acabou de se registar no site (a barbearia nasce
+  // agora), ou e um cliente do site / conta orfa (nao nasce nada e diz-se
+  // porque). Antes assumia-se 'admin' e a pessoa entrava num painel vazio a
+  // pensar que estava avariado.
   if (!userRow || !userRow.business_id) {
-    _session = null;
-    return;
+    const motivo = await _nascerSePreciso(user);
+    userRow = await _linhaDoUtilizador(user.id);
+    if (!userRow || !userRow.business_id) {
+      _session = null;
+      _motivoSemSessao = motivo || 'Esta conta não tem nenhuma barbearia associada.';
+      return;
+    }
   }
   _session = {
     id: user.id,
@@ -61,6 +101,12 @@ const authService = {
       await _enrichSession(data.user);
       _authLoading = false;
       notify();
+      // Entrou no Supabase mas nao ha painel para esta conta: diz-se o
+      // motivo em vez de devolver null e deixar o ecra rebentar em `.role`.
+      if (!_session) {
+        await supabase.auth.signOut();
+        throw new Error(_motivoSemSessao || 'Esta conta não tem nenhuma barbearia associada.');
+      }
       return _session;
     }
 
