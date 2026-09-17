@@ -80,6 +80,19 @@ function traduzirErro(error) {
   if (typeof error.message === 'string' && error.message.includes('LIMITE_PROFISSIONAIS')) {
     return new Error('O teu plano não permite mais profissionais ativos. Desativa um, ou fala connosco para mudares de plano.');
   }
+  /*
+   * A trava da subscricao (gatilho marcacao_exige_subscricao). Ao barbeiro
+   * diz-se a verdade inteira — e a barbearia dele, e o dinheiro e dele.
+   *
+   * A frase nao pede desculpa nem envergonha: ele pode ver o painel todo e
+   * preparar a casa sem pagar nada, e isso e de proposito. So as marcacoes e
+   * que esperam pelo cartao. E diz-se-lhe exactamente onde carregar.
+   */
+  if (typeof error.message === 'string' && error.message.includes('SEM_SUBSCRICAO')) {
+    const e = new Error('Para começares a receber marcações falta registar o cartão. São 7 dias à experiência e só depois é que pagas — vai a Subscrição, no fim do menu.');
+    e.semSubscricao = true;
+    return e;
+  }
   return error instanceof Error ? error : new Error(error.message || 'Erro desconhecido');
 }
 import { getCustomerStats } from '@/lib/domain/finance';

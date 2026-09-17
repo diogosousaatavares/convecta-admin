@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui';
 import { moduloIndisponivel } from '@/lib/modulos';
 import TourDemo from '@/components/admin/TourDemo';
 import AvisoPush from '@/components/AvisoPush';
+import AvisoSubscricao from '@/components/AvisoSubscricao';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 
 const GROUPS_TODOS = [
@@ -386,6 +387,12 @@ export default function AdminLayout({ children }) {
         {/* Pedir para ligar: em todas as paginas. A linha "ligadas, testar":
             so no Dashboard, e so uma vez por dia — em Definicoes esta sempre. */}
         <AvisoPush businessId={data.business?.id} userId={user?.id} papel="admin" comTeste={location.pathname === '/admin'} />
+        {/* A subscricao vem DEPOIS das notificacoes de proposito: a campainha
+            e o que faz o produto funcionar no primeiro dia; o cartao e o que
+            o faz durar. Por esta ordem, e nao ao contrario. Na propria pagina
+            da subscricao a faixa nao aparece — seria dizer-lhe para ir onde
+            ja esta. */}
+        {location.pathname !== '/admin/subscricao' && <AvisoSubscricao />}
         {children}
       </main>
     </div>
