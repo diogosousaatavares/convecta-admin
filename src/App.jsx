@@ -31,6 +31,7 @@ const Customers        = lazy(() => import('@/pages/admin/Customers'));
 const Services         = lazy(() => import('@/pages/admin/Services'));
 const Professionals    = lazy(() => import('@/pages/admin/Professionals'));
 const Hours            = lazy(() => import('@/pages/admin/Hours'));
+const Subscricao       = lazy(() => import('@/pages/admin/Subscricao'));
 const Settings         = lazy(() => import('@/pages/admin/Settings'));
 const Notifications    = lazy(() => import('@/pages/admin/Notifications'));
 const Reports          = lazy(() => import('@/pages/admin/Reports'));
@@ -186,6 +187,7 @@ function AppRoutes() {
         <Route path="/admin/definicoes/negocio" element={<AdminRoute><Settings /></AdminRoute>} />
         <Route path="/admin/definicoes/anamnese" element={<AdminRoute><AnamneseForms /></AdminRoute>} />
         <Route path="/admin/definicoes/parametros" element={<AdminRoute><Parametros /></AdminRoute>} />
+        <Route path="/admin/subscricao" element={<AdminRoute><Subscricao /></AdminRoute>} />
         <Route path="/admin/o-meu-site" element={<AdminRoute><MeuSite /></AdminRoute>} />
         <Route path="/admin/definicoes/tema" element={<AdminRoute><TemaPersonalizacao /></AdminRoute>} />
         <Route path="/admin/definicoes/notificacoes" element={<AdminRoute><Notifications /></AdminRoute>} />

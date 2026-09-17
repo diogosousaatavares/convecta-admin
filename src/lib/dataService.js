@@ -1436,7 +1436,7 @@ const dataService = {
     // cliente ve. Ficarem so aqui era o mesmo que nao existirem: o site
     // continuava com os valores escritos no codigo.
     const ESPELHADOS = {
-      autoConfirm: v => v !== false,
+      autoConfirm: v => v === true,
       allowClientCancel: v => v !== false,
       cancelMinHours: v => Math.max(0, Number(v) || 0),
     };
@@ -1725,6 +1725,103 @@ const dataService = {
   deleteSubscription(id) { state.subscriptions = (state.subscriptions||[]).filter(s => s.id !== id); notify(); return Promise.resolve(true); },
   listSubscriptionPayments() { return Promise.resolve([...(state.subscriptionPayments||[])].sort((a,b) => (b.paidAt||b.createdAt||'').localeCompare(a.paidAt||a.createdAt||''))); },
   addSubscriptionPayment(data) { const p = { id: uid('sp'), status: 'paid', paidAt: localDateStr(new Date()), ...data }; if (!state.subscriptionPayments) state.subscriptionPayments=[]; state.subscriptionPayments.push(p); notify(); return Promise.resolve(p); },
+
+  /*
+   * ── A SUBSCRIÇÃO DA BARBEARIA NA CONVECTA ────────────────────────────
+   *
+   * Nada disto tem a ver com os planos de assinatura que a barbearia vende
+   * aos clientes dela (isso é o modulo `Assinaturas`). Isto é o que ELA
+   * paga a nós.
+   *
+   * Le-se sempre da base de dados, nunca do `state`: quem escreve estes
+   * campos e o webhook do Stripe, do lado do servidor, e a copia que o
+   * browser tem pode ter minutos. Um barbeiro que acabou de pagar e ve
+   * "sem cartao" liga-nos.
+   */
+  async subscricao() {
+    if (!BUSINESS_ID) return null;
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('plan, billing_period, professional_limit, subscricao_estado, trial_ends_at, current_period_end, stripe_customer_id')
+      .eq('id', BUSINESS_ID).maybeSingle();
+    if (error) {
+      // SQL por correr: nao se assusta ninguem com um erro vermelho por causa
+      // de colunas que ainda nao existem.
+      if (/subscricao_estado/.test(error.message || '')) return null;
+      throw new Error(error.message);
+    }
+    if (!data) return null;
+    return {
+      plano: data.plan || null,
+      periodo: data.billing_period || 'mensal',
+      limiteProfissionais: data.professional_limit ?? null,
+      estado: data.subscricao_estado || 'sem_cartao',
+      fimDoTeste: data.trial_ends_at || null,
+      fimDoPeriodo: data.current_period_end || null,
+      temCliente: !!data.stripe_customer_id,
+    };
+  },
+
+  /*
+   * Os planos, como estao no Stripe neste momento.
+   *
+   * Nao ha aqui nenhuma tabela de precos de proposito. A regra da casa e que
+   * nenhum numero de dinheiro se escreve a mao fora de `planos.js` e do site;
+   * o painel seria um terceiro sitio, e um terceiro sitio com precos e um
+   * sitio que um dia mostra 29,99 € a quem vai ser cobrado 34,99 €.
+   *
+   * Entao pergunta-se ao Stripe, que e quem vai cobrar.
+   */
+  async listarPlanos() {
+    const { data, error } = await supabase.functions.invoke('listar-planos', { body: {} });
+    if (error) {
+      let motivo = '';
+      try { motivo = (await error.context?.json())?.erro || ''; } catch { motivo = ''; }
+      throw new Error(motivo || error.message || 'Não foi possível ler os planos.');
+    }
+    return data?.planos || [];
+  },
+
+  /*
+   * Abre o checkout do Stripe. Devolve o endereco; quem manda la o barbeiro
+   * e o ecra, com um `window.location`.
+   *
+   * `invoke` e nao um fetch escrito a mao: o porteiro do Supabase exige o
+   * cabecalho `apikey` em todos os pedidos as funcoes, alem do token da
+   * sessao. Montar o pedido a mao sem ele da um "Bad Request" seco ANTES de
+   * a funcao ser chamada, e os registos dela nao mostram nada. Ja custou
+   * duas horas uma vez.
+   */
+  async abrirCheckout(lookupKey, comTeste = true) {
+    const { data, error } = await supabase.functions.invoke('criar-sessao-pagamento', {
+      body: { lookupKey, comTeste },
+    });
+    if (error) {
+      let motivo = '';
+      try { motivo = (await error.context?.json())?.erro || ''; } catch { motivo = ''; }
+      throw new Error(motivo || error.message || 'Não foi possível abrir o pagamento.');
+    }
+    if (!data?.url) throw new Error('O Stripe não devolveu um endereço de pagamento.');
+    return data.url;
+  },
+
+  /*
+   * Abre o portal do cliente do Stripe: mudar cartao, ver facturas, cancelar.
+   *
+   * O cancelamento vive la e nao aqui de proposito. E o sitio onde um bug
+   * nosso continuava a cobrar a quem ja cancelou — e isso nao e um cliente
+   * perdido, e uma queixa no banco.
+   */
+  async abrirPortal() {
+    const { data, error } = await supabase.functions.invoke('abrir-portal', { body: {} });
+    if (error) {
+      let motivo = '';
+      try { motivo = (await error.context?.json())?.erro || ''; } catch { motivo = ''; }
+      throw new Error(motivo || error.message || 'Não foi possível abrir o portal.');
+    }
+    if (!data?.url) throw new Error('O Stripe não devolveu um endereço do portal.');
+    return data.url;
+  },
 
   // ── RESET ──
   async resetData() {

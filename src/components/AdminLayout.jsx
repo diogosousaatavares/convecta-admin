@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog, Clock, Settings, Bell, BarChart3, Menu, X, LogOut, Wallet, Package, Megaphone, Star, ChevronDown, DollarSign, Palette, Gift, Repeat, Ticket, ReceiptText, UserPlus, Search, Plus, HelpCircle, Phone, Mail, Send } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog, Clock, Settings, Bell, BarChart3, Menu, X, LogOut, Wallet, Package, Megaphone, Star, ChevronDown, DollarSign, Palette, Gift, Repeat, Ticket, ReceiptText, UserPlus, Search, Plus, HelpCircle, Phone, Mail, Send, MessageCircle } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
@@ -293,7 +293,15 @@ export default function AdminLayout({ children }) {
       {open && <div onClick={() => setOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:99 }} />}
       <Modal open={supportOpen} onClose={() => setSupportOpen(false)} title="Apoio ao cliente">
         <div className="support-contact-list">
-          <a href="tel:912381717" className="support-contact"><Phone size={17} /> <span><strong>Ligar</strong><small>912 381 717</small></span></a>
+          <a href="tel:914874725" className="support-contact"><Phone size={17} /> <span><strong>Ligar</strong><small>914 874 725</small></span></a>
+          {/* O WhatsApp logo a seguir ao telefone, e de proposito: um barbeiro a
+              meio de um corte nao atende nem escreve um email, mas manda uma
+              mensagem entre clientes. O texto ja vai escrito para ele nao ter
+              de comecar do zero com a maquina na mao. */}
+          <a href={`https://wa.me/351914874725?text=${encodeURIComponent('Olá, preciso de ajuda com o painel.')}`}
+             target="_blank" rel="noopener noreferrer" className="support-contact">
+            <MessageCircle size={17} /> <span><strong>WhatsApp</strong><small>914 874 725</small></span>
+          </a>
           <a href="mailto:geral@convecta.pt" className="support-contact"><Mail size={17} /> <span><strong>Email</strong><small>geral@convecta.pt</small></span></a>
         </div>
         <p className="text-sec text-sm" style={{ marginBottom: 16 }}>Encontraste um erro? Envia-nos os detalhes e entraremos em contacto.</p>
