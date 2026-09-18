@@ -80,10 +80,7 @@ export default function BemVindo() {
       titulo: <>A tua barbearia<br />está no ar.</>,
       corpo: (
         <>
-          <p className="bv-p">
-            Acabaste de a criar e ela já existe, com o teu nome, num endereço só teu.
-            Ainda ninguém a vê — só tu. Prepara-a com calma.
-          </p>
+          <p className="bv-p">Já existe, com o teu nome, num endereço só teu.</p>
           {endereco && (
             <a className="bv-endereco" href={`https://${endereco}`} target="_blank" rel="noreferrer">
               <span>{endereco}</span> <ExternalLink size={16} />
@@ -91,7 +88,6 @@ export default function BemVindo() {
           )}
           <ul className="bv-lista">
             <li><Check size={16} /> Agenda, clientes, caixa e comissões — tudo já cá está.</li>
-            <li><Check size={16} /> Podes mudar serviços, horários e cores quando quiseres.</li>
           </ul>
         </>
       ),
@@ -102,16 +98,13 @@ export default function BemVindo() {
       titulo: <>Para receber marcações,<br />precisas do cartão.</>,
       corpo: (
         <>
-          <p className="bv-p">
-            Sem cartão vês e preparas tudo, mas a agenda fica fechada aos clientes.
-            Com cartão, abre no mesmo minuto — e são <strong>7 dias sem pagar nada</strong>.
-          </p>
+          <p className="bv-p">Com cartão, a agenda abre hoje. <strong>Os primeiros 7 dias são grátis.</strong></p>
           <div className="bv-tempo">
-            <div className="bv-tempo-i"><b>Hoje</b><span>Registas o cartão. Pagas 0 €.</span></div>
-            <div className="bv-tempo-i"><b>7 dias</b><span>Usas tudo. Continuas a pagar 0 €.</span></div>
-            <div className="bv-tempo-i"><b>Dia 8</b><span>Primeira cobrança — só se ficares. Avisamos-te antes.</span></div>
+            <div className="bv-tempo-i"><b>Hoje</b><span>0 €</span></div>
+            <div className="bv-tempo-i"><b>7 dias</b><span>0 €</span></div>
+            <div className="bv-tempo-i"><b>Dia 8</b><span>Primeira cobrança, só se ficares</span></div>
           </div>
-          <p className="bv-p bv-mini">Cancelas sozinho, no painel, sem telefonemas. O cartão é escrito no Stripe; nós nunca o vemos.</p>
+          <p className="bv-p bv-mini">Cancelas sozinho, aqui no painel.</p>
         </>
       ),
       botao: 'Percebi',
@@ -120,10 +113,7 @@ export default function BemVindo() {
       olho: 'Como queres começar?',
       titulo: <>Abre a agenda hoje.<br />Decide daqui a 7 dias.</>,
       corpo: (
-        <p className="bv-p">
-          A escolha é tua. Se activares agora, os clientes já marcam esta noite. Se preferires
-          ver primeiro o painel, a faixa dourada lembra-te — está lá quando quiseres.
-        </p>
+        <p className="bv-p">Se activares agora, os clientes já marcam esta noite.</p>
       ),
       botao: 'Activar com 7 dias grátis',
       icone: <CreditCard size={18} />,

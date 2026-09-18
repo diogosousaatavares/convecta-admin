@@ -6,6 +6,7 @@ import { useAuth, useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
 import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import PageInfo from '@/components/admin/PageInfo';
+import LinkDaBarbearia from '@/components/LinkDaBarbearia';
 import { Card, Badge, Avatar, EmptyState } from '@/components/ui';
 import { formatPrice, formatDate, formatDateNum, todayStr, addDays, getDowShort } from '@/lib/format';
 import { getRevenue, getProductRevenue, getTotalRevenue, getExpensesTotal, getExpectedCash, getOccupancy, paidAppointments, netOfPayment, getCancellationCount, getCancellationRate, getNoShowCount, getNoShowRate } from '@/lib/domain/finance';
@@ -198,6 +199,8 @@ export default function Dashboard() {
         </div>
         {period === 'custom' && <div className="flex gap-12 mb-16" style={{ flexWrap: 'wrap' }}><div className="field" style={{ marginBottom: 0 }}><label className="label">De</label><input type="date" className="input" value={custom.from} onChange={e => setCustom(f => ({ ...f, from: e.target.value }))} /></div><div className="field" style={{ marginBottom: 0 }}><label className="label">Até</label><input type="date" className="input" value={custom.to} onChange={e => setCustom(f => ({ ...f, to: e.target.value }))} /></div></div>}
       </div>
+
+      <LinkDaBarbearia />
 
       {alerts.length > 0 && <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '12px 0' }}>{alerts.map((a, i) => { const Ico = a.icon; return <button key={i} onClick={() => navigate(a.to)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: a.type === 'warn' ? 'rgba(234,179,8,0.1)' : 'rgba(59,130,246,0.08)', border: `1px solid ${a.type === 'warn' ? 'rgba(234,179,8,0.3)' : 'rgba(59,130,246,0.2)'}`, borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}><Ico size={14} style={{ color: a.type === 'warn' ? '#C9A227' : '#60a5fa' }} /><span className="fw-600">{a.title}</span><span className="text-sec" style={{ fontSize: 11 }}>{a.sub}</span><ArrowUpRight size={13} className="text-sec" /></button>; })}</div>}
 

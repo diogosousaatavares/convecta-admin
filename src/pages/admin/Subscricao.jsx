@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
-  CreditCard, ShieldCheck, Check, ExternalLink, AlertTriangle, Clock,
-  Lock, Zap, CalendarCheck, ChevronDown, CalendarDays, MessageCircle, Sparkles,
+  CreditCard, Check, ExternalLink, AlertTriangle, Clock,
+  ChevronDown, MessageCircle, Sparkles,
 } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import { Card, Button, Spinner } from '@/components/ui';
@@ -109,16 +109,17 @@ const CSS = `
   50%      { box-shadow: 0 0 0 12px rgba(201,162,39,0), var(--shadow-gold); }
 }
 
-/* O cartão desenhado. Sem imagem nenhuma: é CSS, pesa zero e segue o tema. */
-.sub-cartoes { position: relative; height: 200px; max-width: 340px; margin: 0 auto; }
-.sub-cartao { position: absolute; inset: 0; border-radius: 16px; transform: rotate(-8deg); }
-.sub-cartao.ouro { background: linear-gradient(135deg, #E8C547, #B8901E); transform: rotate(-14deg) translate(18px, -14px); opacity: .95; }
-.sub-cartao.preto { background: linear-gradient(135deg, #2A2621, #0F0D0B); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 24px 50px -20px rgba(0,0,0,.8); }
-.sub-cartao .chip { position: absolute; left: 24px; top: 26px; width: 42px; height: 30px; border-radius: 6px; background: linear-gradient(135deg, #F1D36B, #C9A227); }
-.sub-cartao .num { position: absolute; left: 24px; bottom: 44px; font-size: 15px; letter-spacing: .18em; color: rgba(255,255,255,.75); font-variant-numeric: tabular-nums; }
-.sub-cartao .nome { position: absolute; left: 24px; bottom: 20px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.5); }
-.sub-cartao .zero { position: absolute; right: 22px; top: 22px; font-family: var(--font-head); font-size: 26px; color: var(--gold); }
-.sub-cartao .zero small { display: block; font-family: var(--font-body); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.55); text-align: right; }
+/* O cartão desenhado. Sem imagem nenhuma: é CSS, pesa zero e segue o tema.
+   Só no ecrã largo — no telemóvel empurrava o botão para fora do primeiro
+   ecrã, e o botão vale mais do que o desenho. */
+.sub-cartoes { position: relative; height: 190px; max-width: 320px; margin: 0 auto; }
+.sub-cartao { position: absolute; inset: 0; border-radius: 16px; }
+.sub-cartao.ouro { background: linear-gradient(135deg, #E8C547, #B8901E); transform: rotate(-9deg) translate(14px, -10px); opacity: .9; }
+.sub-cartao.preto { background: linear-gradient(135deg, #2A2621, #0F0D0B); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 24px 50px -20px rgba(0,0,0,.8); transform: rotate(-4deg); }
+.sub-cartao .chip { position: absolute; left: 24px; top: 24px; width: 40px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, #F1D36B, #C9A227); }
+.sub-cartao .zero { position: absolute; left: 24px; bottom: 46px; font-family: var(--font-head); font-size: 34px; line-height: 1; color: #F1D36B; }
+.sub-cartao .zero small { display: block; font-family: var(--font-body); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-bottom: 6px; }
+.sub-cartao .nome { position: absolute; left: 24px; right: 24px; bottom: 18px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .sub-linha { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
 .sub-passo { position: relative; padding: 16px 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
@@ -154,7 +155,7 @@ const CSS = `
 
 @media (max-width: 860px) {
   .sub-hero { grid-template-columns: 1fr; gap: 18px; }
-  .sub-cartoes { height: 150px; max-width: 260px; order: -1; margin: 6px auto 0; }
+  .sub-cartoes { display: none; }
   .sub-chips { grid-template-columns: 1fr; }
   .sub-cta-btn { width: 100%; }
   .sub-linha { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -171,8 +172,7 @@ function Cartoes({ nome }) {
       <div className="sub-cartao ouro" />
       <div className="sub-cartao preto">
         <div className="chip" />
-        <div className="zero"><small>Hoje pagas</small>0,00 €</div>
-        <div className="num">•••• •••• •••• 7 dias</div>
+        <div className="zero"><small>Hoje pagas</small>0 €</div>
         <div className="nome">{nome || 'A tua barbearia'}</div>
       </div>
     </div>
@@ -180,22 +180,10 @@ function Cartoes({ nome }) {
 }
 
 const PERGUNTAS = [
-  {
-    q: 'Quando é que sou cobrado?',
-    r: 'Só no 8.º dia. Hoje o Stripe guarda o cartão e não tira nada. Recebes um email uns dias antes da primeira cobrança, com o valor e a data.',
-  },
-  {
-    q: 'Posso cancelar quando quiser?',
-    r: 'Sim, sozinho, aqui no painel, em «Gerir subscrição». Se cancelares durante os 7 dias, não pagas nada. Depois disso, cancelas e não há mês seguinte. Sem telefonemas nem justificações.',
-  },
-  {
-    q: 'É seguro dar o cartão?',
-    r: 'O cartão é escrito numa página do Stripe — a mesma empresa que trata dos pagamentos da Shopify, da Uber ou da Amazon. Nós nunca vemos nem guardamos o número.',
-  },
-  {
-    q: 'E se ainda não tiver tudo pronto?',
-    r: 'Não faz mal. O cartão abre as marcações; o resto — serviços, horários, cores — continuas a mudar quando quiseres. Muitos começam pela agenda e afinam o resto na primeira semana.',
-  },
+  { q: 'Quando é que sou cobrado?', r: 'Só no 8.º dia. Hoje o Stripe guarda o cartão e não tira nada. Avisamos-te por email antes.' },
+  { q: 'Posso cancelar quando quiser?', r: 'Sim, aqui no painel, sozinho. Durante os 7 dias não pagas nada; depois, cancelas e não há mês seguinte.' },
+  { q: 'É seguro dar o cartão?', r: 'O cartão é escrito numa página do Stripe. Nós nunca o vemos nem o guardamos.' },
+  { q: 'E se ainda não tiver tudo pronto?', r: 'Não faz mal. O cartão abre as marcações; serviços, horários e cores mudas quando quiseres.' },
 ];
 
 export default function Subscricao() {
@@ -325,7 +313,7 @@ export default function Subscricao() {
     <AdminPage
       title="Subscrição"
       subtitle={precisaDeCartao
-        ? 'A tua barbearia está montada. Falta abrir a porta.'
+        ? 'Sem fidelização. Cancelas quando quiseres.'
         : 'O teu plano na Convecta. Sem fidelização — cancelas quando quiseres.'}
     >
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
@@ -430,26 +418,21 @@ export default function Subscricao() {
                 {sub?.estado === 'cancelada' ? 'Volta a receber marcações.' : 'Activa as marcações.'}
               </h2>
               <p className="sub-hero-sub">
-                Regista o cartão, tens 7 dias grátis, e a tua agenda abre hoje.
+                Regista o cartão e a tua agenda abre hoje. Os primeiros 7 dias são grátis.
               </p>
               <p className="sub-hero-p">
-                Hoje pagas <strong style={{ color: 'var(--text)' }}>0 €</strong>. A primeira cobrança é a{' '}
-                <strong style={{ color: 'var(--text)' }}>{diaDaCobranca}</strong>
-                {precoDaCasa ? <> — {euros(precoDaCasa.centimos)} do plano {nomeDoPlano}{periodo === 'anual' ? ' por ano' : ' por mês'}</> : null}.
-                Avisamos-te por email antes. Se cancelares até lá, não pagas nada — e cancelas sozinho, aqui.
+                Hoje pagas <strong style={{ color: 'var(--text)' }}>0 €</strong>.
+                {precoDaCasa
+                  ? <> A partir de <strong style={{ color: 'var(--text)' }}>{diaDaCobranca}</strong>, {euros(precoDaCasa.centimos)}{periodo === 'anual' ? ' por ano' : ' por mês'}.</>
+                  : <> A primeira cobrança é a <strong style={{ color: 'var(--text)' }}>{diaDaCobranca}</strong>.</>}
+                {' '}Cancelas sozinho, aqui, quando quiseres.
               </p>
-
-              <div className="sub-chips">
-                <div className="sub-chip"><div className="sub-chip-ico"><Lock size={16} /></div><div><b>Pagamento seguro</b><span>Pela Stripe. Nunca vemos o cartão.</span></div></div>
-                <div className="sub-chip"><div className="sub-chip-ico"><Zap size={16} /></div><div><b>2 minutos</b><span>Uma página, e está.</span></div></div>
-                <div className="sub-chip"><div className="sub-chip-ico"><CalendarCheck size={16} /></div><div><b>0 € durante 7 dias</b><span>Só pagas se ficares.</span></div></div>
-              </div>
 
               <div className="sub-cta">
                 {precoDaCasa ? (
                   <button className="sub-cta-btn" onClick={() => assinar(precoDaCasa, true)} disabled={!!aAbrir}>
                     <CreditCard size={18} />
-                    {aAbrir ? 'A abrir o Stripe…' : `Activar com 7 dias grátis`}
+                    {aAbrir ? 'A abrir…' : 'Activar · 7 dias grátis'}
                   </button>
                 ) : (
                   <button className="sub-cta-btn" onClick={irAosPlanos}>
@@ -462,7 +445,7 @@ export default function Subscricao() {
                   className="sub-cta-nota"
                   style={{ background: 'none', border: 0, cursor: 'pointer', textDecoration: 'underline', color: 'var(--text-sec)', font: 'inherit', fontSize: 13 }}
                 >
-                  {precoDaCasa ? `Plano ${nomeDoPlano} · ${euros(precoDaCasa.centimos)}${periodo === 'anual' ? '/ano' : '/mês'} · ver os outros` : 'Ver os planos'}
+                  {precoDaCasa ? `Plano ${nomeDoPlano} · ver os outros` : 'Ver os planos'}
                 </button>
               </div>
             </div>
@@ -472,42 +455,32 @@ export default function Subscricao() {
           {/* 2. A linha do tempo, com datas a sério. «Dia 7» é abstracto;
                  «25 de setembro» é um dia na vida dele. */}
           <div className="sub-linha">
-            <div className="sub-passo agora"><div className="sub-passo-n">1</div><b>Registas o cartão</b><span>Numa página do Stripe.</span><em>Agora · 2 minutos</em></div>
-            <div className="sub-passo"><div className="sub-passo-n">2</div><b>A agenda abre</b><span>Os clientes já podem marcar pelo teu site.</span><em>Hoje</em></div>
-            <div className="sub-passo"><div className="sub-passo-n">3</div><b>Sete dias à experiência</b><span>Tudo a funcionar. Pagas 0 €.</span><em>Até {daquiA(6)}</em></div>
-            <div className="sub-passo"><div className="sub-passo-n">4</div><b>Primeira cobrança</b><span>Só se ficares. Avisamos-te antes por email.</span><em>{diaDaCobranca}</em></div>
+            <div className="sub-passo agora"><div className="sub-passo-n">1</div><b>Cartão</b><em>Agora · 2 min</em></div>
+            <div className="sub-passo"><div className="sub-passo-n">2</div><b>Agenda aberta</b><em>Hoje</em></div>
+            <div className="sub-passo"><div className="sub-passo-n">3</div><b>0 €</b><em>Até {daquiA(6)}</em></div>
+            <div className="sub-passo"><div className="sub-passo-n">4</div><b>Primeira cobrança</b><em>{diaDaCobranca}</em></div>
           </div>
 
-          {/* 3. O que acontece a seguir + as perguntas que travam a venda. */}
-          <div className="sub-duas">
-            <Card className="card-pad">
-              <div className="sub-titulo"><CalendarDays size={18} /> O que acontece a seguir</div>
-              <ul className="sub-agora">
-                <li><i>1</i><div><b>Carregas em «Activar» e escreves o cartão</b><span>Na página do Stripe. Voltas para aqui sozinho.</span></div></li>
-                <li><i>2</i><div><b>A agenda fica aberta no mesmo minuto</b><span>Partilha o endereço da tua barbearia no Instagram e no WhatsApp. O telemóvel toca a cada marcação.</span></div></li>
-                <li><i>3</i><div><b>Durante 7 dias, usas tudo sem pagar</b><span>Agenda, clientes, caixa, comissões, avisos. Se não for para ti, cancelas e acabou.</span></div></li>
-              </ul>
-            </Card>
-
-            <Card className="card-pad">
-              <div className="sub-titulo"><MessageCircle size={18} /> As perguntas de quem está a decidir</div>
-              <div className="sub-faq">
-                {PERGUNTAS.map(p => (
-                  <details key={p.q}>
-                    <summary>{p.q} <ChevronDown size={16} /></summary>
-                    <p>{p.r}</p>
-                  </details>
-                ))}
-              </div>
-            </Card>
-          </div>
+          {/* 3. As quatro perguntas que travam a venda, fechadas: quem não
+                 as tem não lê nada. */}
+          <Card className="card-pad" style={{ marginTop: 16 }}>
+            <div className="sub-titulo"><MessageCircle size={18} /> Dúvidas</div>
+            <div className="sub-faq">
+              {PERGUNTAS.map(p => (
+                <details key={p.q}>
+                  <summary>{p.q} <ChevronDown size={16} /></summary>
+                  <p>{p.r}</p>
+                </details>
+              ))}
+            </div>
+          </Card>
 
           {/* 4. Os planos. O dele vem marcado; os outros estão lá para quem
                  quiser mudar, não para o fazer hesitar. */}
           <div id="planos" style={{ scrollMarginTop: 80, marginTop: 28 }}>
             <div className="sub-titulo"><Sparkles size={18} /> Os planos</div>
             <div className="text-sec" style={{ fontSize: 13, marginTop: 4 }}>
-              A plataforma é a mesma nos três. O que muda é quantos profissionais cabem.
+              A mesma plataforma nos três. Muda quantos profissionais cabem.
             </div>
 
             {haAnual && (
@@ -566,7 +539,6 @@ export default function Subscricao() {
                       {poupa > 0 && (
                         <div style={{ fontSize: 12, color: 'var(--gold)' }}>Poupas {euros(poupa)} por ano</div>
                       )}
-                      <div className="text-sec" style={{ fontSize: 12, marginTop: 4 }}>Hoje 0 € · primeira cobrança a {diaDaCobranca}</div>
 
                       {plano.caracteristicas?.length > 0 && (
                         <div style={{ margin: '16px 0', display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -586,7 +558,7 @@ export default function Subscricao() {
                           disabled={!!aAbrir}
                           icon={<CreditCard size={16} />}
                         >
-                          {aAbrir === id + ':teste' ? 'A abrir…' : 'Experimentar 7 dias grátis'}
+                          {aAbrir === id + ':teste' ? 'A abrir…' : 'Activar · 7 dias grátis'}
                         </Button>
                         {/* Quem já decidiu não quer um contador de dias a correr.
                             Dar-lhe o caminho curto é respeitar isso. */}
@@ -596,7 +568,7 @@ export default function Subscricao() {
                           onClick={() => assinar(preco, false)}
                           disabled={!!aAbrir}
                         >
-                          {aAbrir === id + ':ja' ? 'A abrir…' : 'Pagar já e ficar despachado'}
+                          {aAbrir === id + ':ja' ? 'A abrir…' : 'Pagar já, sem experiência'}
                         </Button>
                       </div>
                     </Card>
@@ -606,21 +578,6 @@ export default function Subscricao() {
             )}
           </div>
 
-          {/* 5. O fecho. Uma verdade, não uma pressão. */}
-          <Card className="card-pad sub-fecho">
-            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-              <div className="sub-chip-ico" style={{ width: 44, height: 44 }}><ShieldCheck size={20} /></div>
-              <div>
-                <div className="fw-600" style={{ fontSize: 15 }}>Cada dia sem marcações online é um cliente que te liga enquanto estás a cortar.</div>
-                <div className="text-sec" style={{ fontSize: 13, marginTop: 2 }}>Abre a agenda hoje, decide daqui a 7 dias. Precisas de ajuda? Fala connosco pelo WhatsApp.</div>
-              </div>
-            </div>
-            {precoDaCasa && (
-              <button className="sub-cta-btn" style={{ animation: 'none' }} onClick={() => assinar(precoDaCasa, true)} disabled={!!aAbrir}>
-                Activar com 7 dias grátis
-              </button>
-            )}
-          </Card>
         </>
       )}
     </AdminPage>
