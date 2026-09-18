@@ -1805,6 +1805,20 @@ const dataService = {
    * a funcao ser chamada, e os registos dela nao mostram nada. Ja custou
    * duas horas uma vez.
    */
+  /*
+   * Os pagamentos feitos ao Stripe, para a lista na Subscricao. Vem do Stripe
+   * de cada vez — nao ha copia nossa que possa ficar desactualizada.
+   */
+  async listarPagamentos() {
+    const { data, error } = await supabase.functions.invoke('listar-pagamentos', { body: {} });
+    if (error) {
+      let motivo = '';
+      try { motivo = (await error.context?.json())?.erro || ''; } catch { motivo = ''; }
+      throw new Error(motivo || error.message || 'Não foi possível ler os pagamentos.');
+    }
+    return data?.pagamentos || [];
+  },
+
   async abrirCheckout(preco, comTeste = true) {
     // `preco` e o objecto que veio de listarPlanos (tem lookupKey e precoId).
     // Aceita-se tambem uma string, por compatibilidade: e a chave.

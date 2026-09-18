@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   CreditCard, Check, ExternalLink, AlertTriangle, Clock,
-  ChevronDown, ChevronRight, MessageCircle, Lock, Zap, ShieldCheck, CalendarDays, Headphones, ArrowRight,
+  ChevronDown, ChevronRight, MessageCircle, Lock, Zap, ShieldCheck, CalendarDays, Headphones, ArrowRight, Receipt, FileDown,
 } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import AdminLayout from '@/components/AdminLayout';
@@ -46,6 +46,8 @@ const ESTADOS = {
   em_atraso:  { texto: 'Pagamento em atraso',  cor: '#F59E0B' },
   cancelada:  { texto: 'Cancelada',            cor: 'var(--error, #EF4444)' },
 };
+
+const ETIQUETAS = { pago: 'Pago', gratis: 'Grátis', por_pagar: 'Por pagar', falhou: 'Falhou', anulado: 'Anulado', rascunho: '—' };
 
 const NOMES_DOS_PLANOS = { essencial: 'Essencial', profissional: 'Profissional', business: 'Business' };
 
@@ -151,6 +153,21 @@ const CSS = `
 .sub-ajuda span { display: block; font-size: 13px; color: var(--text-sec); }
 .sub-ajuda a { margin-left: auto; flex-shrink: 0; padding: 11px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--elevated); color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
 
+/* 7. Pagamentos */
+.sub-pag { list-style: none; margin: 14px 0 0; padding: 0; display: grid; }
+.sub-pag li { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--border); }
+.sub-pag li:first-child { border-top: 0; padding-top: 0; }
+.sub-pag b { display: block; font-size: 14px; font-variant-numeric: tabular-nums; }
+.sub-pag span { display: block; font-size: 12px; color: var(--text-sec); margin-top: 2px; }
+.sub-pag .valor { text-align: right; font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums; }
+.sub-pag .etq { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.sub-pag .etq.pago, .sub-pag .etq.gratis { background: rgba(34,197,94,.14); color: var(--success, #22C55E); }
+.sub-pag .etq.por_pagar { background: rgba(245,158,11,.14); color: #F59E0B; }
+.sub-pag .etq.falhou { background: rgba(239,68,68,.14); color: var(--error, #EF4444); }
+.sub-pag .etq.anulado { background: var(--elevated); color: var(--text-sec); }
+.sub-pag .links { grid-column: 1 / -1; display: flex; gap: 14px; }
+.sub-pag .links a { font-size: 12px; color: var(--gold); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+
 /* 6. Planos, escondidos até ele pedir */
 .sub-planos { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 14px; }
 .sub-plano { position: relative; display: flex; flex-direction: column; }
@@ -199,6 +216,7 @@ export default function Subscricao() {
   const [aAbrir, setAAbrir] = useState('');
   const [erro, setErro] = useState('');
   const [verPlanos, setVerPlanos] = useState(false);
+  const [pagamentos, setPagamentos] = useState(null);
 
   /*
    * O barbeiro volta do Stripe para aqui. Mas o estado quem o escreve é o
@@ -259,6 +277,15 @@ export default function Subscricao() {
       }
     })();
   }, [aCarregar, sub, planos]);
+
+  // Os pagamentos só interessam a quem já passou pelo Stripe.
+  useEffect(() => {
+    if (aCarregar || !sub?.temCliente || pagamentos) return;
+    (async () => {
+      try { setPagamentos(await dataService.listarPagamentos()); }
+      catch { setPagamentos([]); }
+    })();
+  }, [aCarregar, sub, pagamentos]);
 
   // Só se mostra o interruptor mensal/anual se houver mesmo preços anuais no
   // Stripe. Um botão «Anual» que não faz nada é pior do que não existir.
@@ -399,6 +426,42 @@ export default function Subscricao() {
                 </div>
               </div>
             </div>
+          )}
+        </Card>
+      )}
+
+      {/* ── Os pagamentos, quando já há subscrição ──────────────────────── */}
+      {!precisaDeCartao && sub?.temCliente && (
+        <Card className="card-pad" style={{ maxWidth: 720, marginBottom: 16 }}>
+          <div className="sub-titulo"><Receipt size={18} /> Pagamentos</div>
+          <div className="text-sec" style={{ fontSize: 12, marginTop: 4 }}>
+            Os recibos do Stripe, do mais recente para o mais antigo.
+          </div>
+          {!pagamentos && <div style={{ marginTop: 12 }}><Spinner label="A ler os pagamentos…" /></div>}
+          {pagamentos && pagamentos.length === 0 && (
+            <div className="text-sec text-sm" style={{ marginTop: 12 }}>Ainda não há pagamentos. O primeiro aparece aqui no dia em que for cobrado.</div>
+          )}
+          {pagamentos && pagamentos.length > 0 && (
+            <ul className="sub-pag">
+              {pagamentos.map(p => (
+                <li key={p.id}>
+                  <div>
+                    <b>{dataCurta(p.data)}<span className={`etq ${p.estado}`} style={{ display: 'inline-block', marginTop: 0 }}>{ETIQUETAS[p.estado] || p.estado}</span></b>
+                    <span>
+                      {p.descricao || 'Subscrição'}
+                      {p.periodoInicio && p.periodoFim && p.centimos > 0 ? ` · ${dataCurta(p.periodoInicio)} a ${dataCurta(p.periodoFim)}` : ''}
+                    </span>
+                  </div>
+                  <div className="valor">{euros(p.centimos)}</div>
+                  {(p.recibo || p.pdf) && (
+                    <div className="links">
+                      {p.recibo && <a href={p.recibo} target="_blank" rel="noreferrer"><ExternalLink size={12} /> Ver recibo</a>}
+                      {p.pdf && <a href={p.pdf} target="_blank" rel="noreferrer"><FileDown size={12} /> PDF</a>}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
           )}
         </Card>
       )}
