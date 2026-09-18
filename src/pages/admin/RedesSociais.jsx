@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Download, Share2, Copy, Check, Image as IcImagem, RefreshCw } from 'lucide-react';
+import { Download, Share2, Copy, Check, RefreshCw } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import { Card, Button } from '@/components/ui';
 import { useToast } from '@/components/ui/ToastContext';
 import { getBusiness, DOMINIO_BASE } from '@/lib/designService';
 import {
-  FORMATOS, GUIOES, desenhar, carregarLogo, garantirFontes,
+  MODELO, desenhar, carregarImagem, garantirFonte,
   paraBlob, nomeDoFicheiro, legenda,
 } from '@/lib/carrossel';
 
@@ -20,9 +20,9 @@ import {
  * coisa que não soe a anúncio, e ainda decidir a legenda. São quarenta
  * minutos de um trabalho que ele não sabe fazer, entre dois cortes.
  *
- * Aqui são dois toques. As cores e o logótipo são os que ele já escolheu em
- * «O Meu Site», por isso o post parece dele — e um post que parece dele é um
- * post que ele publica.
+ * Aqui são dois toques. A arte é a mesma para toda a gente, mas sai com o
+ * logótipo dele, o nome dele, o endereço dele e a cor que ele escolheu em
+ * «O Meu Site» — e um post que parece dele é um post que ele publica.
  *
  * ── Descarregar cinco ficheiros de uma vez ───────────────────────────────
  *
@@ -33,69 +33,63 @@ import {
  * bloqueiam o segundo em diante.
  */
 
-const GUIAO = GUIOES.parceria;
-
 export default function RedesSociais() {
   const toast = useToast();
   const [barbearia, setBarbearia] = useState(null);
   const [erro, setErro] = useState('');
-  const [formato, setFormato] = useState(FORMATOS.feed);
   const [copiada, setCopiada] = useState(false);
   const [aDesenhar, setADesenhar] = useState(true);
   const telas = useRef([]);
 
-  // ── Ler a barbearia e preparar o que o desenho precisa ──
   const carregar = useCallback(async () => {
-    setADesenhar(true);
-    setErro('');
+    setADesenhar(true); setErro('');
     try {
       const b = await getBusiness();
       const tema = b?.theme || {};
-      const cores = {
-        bg: tema.colors?.bg || '#0A0807',
-        gold: tema.colors?.gold || '#C9A227',
-        text: tema.colors?.text || '#EDE8DF',
-        textSec: tema.colors?.textSec || '#8A8272',
-      };
-      const fontes = {
-        titulo: tema.fonts?.heading || 'Playfair Display',
-        corpo: tema.fonts?.body || 'Inter',
-      };
-      await garantirFontes([fontes.titulo, fontes.corpo]);
-      const logo = await carregarLogo(b?.logo_url);
+      await garantirFonte();
+      // O logótipo vem de outro domínio (o Storage); sem CORS o canvas ficava
+      // contaminado e o botão de descarregar rebentava.
+      const logo = await carregarImagem(b?.logo_url, true);
+      const slug = b?.slug || 'a-tua-barbearia';
       setBarbearia({
         nome: b?.name || 'A tua barbearia',
-        endereco: b?.domain || (b?.slug ? `${b.slug}.${DOMINIO_BASE}` : 'a-tua-barbearia.' + DOMINIO_BASE),
-        logo, cores, fontes,
+        slug,
+        endereco: b?.domain || `${slug}.${DOMINIO_BASE}`,
+        logo,
+        cor: tema.colors?.gold || '#C9A227',
         semLogo: !logo && !!b?.logo_url,
       });
     } catch (e) {
       setErro(e.message || 'Não foi possível ler os dados da barbearia.');
-    } finally {
-      setADesenhar(false);
     }
   }, []);
 
   useEffect(() => { carregar(); }, [carregar]);
 
-  // ── Desenhar, sempre que a barbearia ou o formato mudam ──
+  // Desenhar: uma imagem de cada vez, para o ecrã ir enchendo em vez de
+  // ficar em branco enquanto as cinco não estão prontas.
   useEffect(() => {
     if (!barbearia) return;
-    GUIAO.ecras.forEach((ecra, i) => {
-      const tela = telas.current[i];
-      if (tela) desenhar(tela, ecra, barbearia, formato);
-    });
-  }, [barbearia, formato]);
+    let vivo = true;
+    (async () => {
+      for (let i = 0; i < MODELO.ecras.length; i++) {
+        const ecra = MODELO.ecras[i];
+        const img = await carregarImagem(MODELO.pasta + ecra.ficheiro);
+        if (!vivo) return;
+        if (!img) { setErro(`Falta o ficheiro ${MODELO.pasta}${ecra.ficheiro}.`); break; }
+        if (telas.current[i]) desenhar(telas.current[i], ecra, img, barbearia);
+      }
+      if (vivo) setADesenhar(false);
+    })();
+    return () => { vivo = false; };
+  }, [barbearia]);
 
-  // ── Guardar ──
   const guardarUma = async (i) => {
     const blob = await paraBlob(telas.current[i]);
     if (!blob) { toast.error('Não deu', 'A imagem não pôde ser gerada.'); return; }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = nomeDoFicheiro(barbearia, i, formato);
-    a.click();
+    a.href = url; a.download = nomeDoFicheiro(barbearia, i); a.click();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   };
 
@@ -103,9 +97,9 @@ export default function RedesSociais() {
 
   const partilharTodas = async () => {
     try {
-      const ficheiros = await Promise.all(GUIAO.ecras.map(async (_, i) => {
+      const ficheiros = await Promise.all(MODELO.ecras.map(async (_, i) => {
         const blob = await paraBlob(telas.current[i]);
-        return new File([blob], nomeDoFicheiro(barbearia, i, formato), { type: 'image/png' });
+        return new File([blob], nomeDoFicheiro(barbearia, i), { type: 'image/png' });
       }));
       if (!navigator.canShare({ files: ficheiros })) {
         toast.info('Este telemóvel não partilha imagens', 'Descarrega uma a uma, aqui em baixo.');
@@ -120,11 +114,8 @@ export default function RedesSociais() {
   const copiarLegenda = async () => {
     try {
       await navigator.clipboard.writeText(legenda(barbearia));
-      setCopiada(true);
-      setTimeout(() => setCopiada(false), 2000);
-    } catch {
-      toast.info('Copia à mão', 'O browser não deixou copiar sozinho.');
-    }
+      setCopiada(true); setTimeout(() => setCopiada(false), 2000);
+    } catch { toast.info('Copia à mão', 'O browser não deixou copiar sozinho.'); }
   };
 
   return (
@@ -137,35 +128,24 @@ export default function RedesSociais() {
 
       {erro && <Card className="card-pad" style={{ borderColor: 'var(--danger)', marginBottom: 16 }}>{erro}</Card>}
 
-      {/* ── O que é ── */}
       <Card className="card-pad" style={{ marginBottom: 16 }}>
-        <div className="rs-cab">
-          <div>
-            <h3 style={{ margin: 0, fontSize: 17 }}>{GUIAO.nome}</h3>
-            <p className="text-sec text-sm" style={{ margin: '6px 0 0', maxWidth: '62ch', lineHeight: 1.6 }}>
-              {GUIAO.resumo} As cores e o logótipo são os que puseste em <strong>O Meu Site</strong> — se mudares lá,
-              muda aqui.
-            </p>
-          </div>
-          <div className="chip-row" style={{ marginBottom: 0 }}>
-            {Object.values(FORMATOS).map(f => (
-              <button key={f.id} className={`chip ${formato.id === f.id ? 'active' : ''}`}
-                onClick={() => setFormato(f)} title={f.descricao}>{f.nome}</button>
-            ))}
-          </div>
-        </div>
+        <h3 style={{ margin: 0, fontSize: 17 }}>{MODELO.nome}</h3>
+        <p className="text-sec text-sm" style={{ margin: '6px 0 0', maxWidth: '64ch', lineHeight: 1.6 }}>
+          {MODELO.resumo} O logótipo, o nome, o endereço e a cor saem do que puseste
+          em <strong>O Meu Site</strong> — se mudares lá, muda aqui.
+        </p>
 
         {barbearia?.semLogo && (
           <div className="rs-aviso">
             Não consegui usar o teu logótipo nestas imagens, por isso entrou a inicial do nome.
-            Acontece quando o ficheiro está noutro sítio que não deixa reutilizá-lo. Volta a carregá-lo
-            em <strong>O Meu Site</strong> e tenta outra vez.
+            Acontece quando o ficheiro está noutro sítio que não deixa reutilizá-lo. Volta a
+            carregá-lo em <strong>O Meu Site</strong> e tenta outra vez.
           </div>
         )}
 
         <div className="rs-botoes">
           {podePartilhar && (
-            <Button variant="primary" onClick={partilharTodas} disabled={!barbearia}>
+            <Button variant="primary" onClick={partilharTodas} disabled={!barbearia || aDesenhar}>
               <Share2 size={16} /> Partilhar as 5 imagens
             </Button>
           )}
@@ -175,18 +155,16 @@ export default function RedesSociais() {
         </div>
       </Card>
 
-      {/* ── As imagens ── */}
       <div className="rs-grelha">
-        {GUIAO.ecras.map((ecra, i) => (
+        {MODELO.ecras.map((ecra, i) => (
           <Card key={i} className="rs-cartao">
-            <div className="rs-tela" style={{ aspectRatio: `${formato.larg} / ${formato.alt}` }}>
+            <div className="rs-tela" style={{ aspectRatio: `${ecra.larg} / ${ecra.alt}` }}>
               <canvas ref={el => { telas.current[i] = el; }} />
-              {aDesenhar && <div className="rs-espera"><IcImagem size={22} /></div>}
             </div>
             <div className="rs-pe">
-              <span className="text-sec text-xs">Imagem {i + 1} de {GUIAO.ecras.length}</span>
-              <button className="btn btn-ghost" onClick={() => guardarUma(i)} disabled={!barbearia}
-                style={{ fontSize: 13 }}>
+              <span className="text-sec text-xs">{i + 1} de {MODELO.ecras.length}</span>
+              <button className="btn btn-ghost" onClick={() => guardarUma(i)}
+                disabled={!barbearia || aDesenhar} style={{ fontSize: 13 }}>
                 <Download size={15} /> Guardar
               </button>
             </div>
@@ -194,7 +172,6 @@ export default function RedesSociais() {
         ))}
       </div>
 
-      {/* ── A legenda, à vista ── */}
       <Card className="card-pad" style={{ marginTop: 16 }}>
         <h3 style={{ margin: 0, fontSize: 15 }}>A legenda</h3>
         <p className="text-sec text-sm" style={{ margin: '6px 0 12px' }}>
@@ -208,32 +185,21 @@ export default function RedesSociais() {
 }
 
 const CSS = `
-.rs-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
 .rs-botoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
-
 .rs-aviso {
   margin-top: 14px; padding: 11px 14px; border-radius: 10px; line-height: 1.55;
   background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25);
   font-size: 13px; color: var(--text-sec);
 }
-
-.rs-grelha { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.rs-grelha { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .rs-cartao { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-.rs-tela { position: relative; width: 100%; border-radius: 10px; overflow: hidden; background: var(--elevated); }
+.rs-tela { width: 100%; border-radius: 10px; overflow: hidden; background: var(--elevated); }
 .rs-tela canvas { width: 100%; height: 100%; display: block; }
-.rs-espera {
-  position: absolute; inset: 0; display: grid; place-items: center;
-  color: var(--text-sec); background: var(--elevated);
-}
 .rs-pe { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-
 .rs-legenda {
   margin: 0; padding: 14px 16px; border-radius: 10px; white-space: pre-wrap; word-break: break-word;
   background: var(--elevated); border: 1px solid var(--border);
   font-family: inherit; font-size: 13.5px; line-height: 1.65; color: var(--text);
 }
-
-@media (max-width: 520px) {
-  .rs-grelha { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+@media (max-width: 520px) { .rs-grelha { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 `;
