@@ -8,6 +8,7 @@ import {
 import {
   DOMINIO_BASE, LIMITE_GALERIA,
   updateBusiness, uploadBusinessAsset, getBusiness,
+  reduzirParaTamanho, tamanhoLegivel,
   listGallery, addGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto, moveGalleryPhoto,
 } from '@/lib/designService';
 
@@ -416,6 +417,10 @@ function DesignTab({biz,onGuardado}){
     loyalty:{...LOYALTY_OMISSAO,...(settingsAtuais.loyalty||{})},
   }:null
   const [iconeAEnviar,setIconeAEnviar]=useState(false)
+  // O que se diz depois de encolher uma foto grande. Sem isto, a pessoa
+  // larga um ficheiro de 4 MB e não percebe porque é que ficou nítido na
+  // mesma — nem que o trabalho foi feito.
+  const [iconeEncolhido,setIconeEncolhido]=useState('')
   const alterado=guardadoTema&&(JSON.stringify(tema)!==JSON.stringify(guardadoTema)
     ||JSON.stringify(info)!==JSON.stringify(guardadoInfo))
   const endereco=biz.domain||`${biz.slug||'barbearia'}.${DOMINIO_BASE}`
@@ -447,20 +452,48 @@ function DesignTab({biz,onGuardado}){
   const raiz=(k,v)=>{setTema(t=>({...t,[k]:v}));setSucesso(false)}
   const inf=(k,v)=>{setInfo(i=>({...i,[k]:v}));setSucesso(false)}
 
+  /*
+   * A capa tinha o mesmo defeito do ícone: recusava acima de 4 MB, e uma
+   * fotografia de telemóvel passa isso à vontade. Pior — o upload já
+   * encolhia a imagem lá dentro, por isso a recusa acontecia por causa de
+   * um tamanho que nunca chegaria a ser enviado.
+   */
   async function enviarCapa(ficheiros){
-    const file=Array.isArray(ficheiros)?ficheiros[0]:ficheiros?.target?.files?.[0]; if(!file)return
-    if(file.size>4*1024*1024)return setErro('A imagem não pode passar dos 4 MB.')
+    const original=Array.isArray(ficheiros)?ficheiros[0]:ficheiros?.target?.files?.[0]; if(!original)return
     setAEnviar(true);setErro('')
-    try{ inf('coverImageUrl',await uploadBusinessAsset(biz.id,file,'capa')) }
+    try{
+      const file=await reduzirParaTamanho(original,4*1024*1024)
+      inf('coverImageUrl',await uploadBusinessAsset(biz.id,file,'capa')) }
     catch(err){setErro('Upload falhou: '+err.message+(/bucket|not found/i.test(err.message)?' — falta correr o STORAGE_SETUP.sql.':''))}
     finally{setAEnviar(false)}
   }
 
+  /*
+   * O ícone.
+   *
+   * Recusava tudo acima de 1 MB — e a fotografia que um barbeiro tira ao
+   * logótipo com o telemóvel tem quatro ou cinco. A pessoa ficava com uma
+   * mensagem a dizer o que estava mal e nenhuma forma de o resolver sem ir
+   * procurar um site de comprimir imagens. A maior parte não vai: desiste
+   * do ícone.
+   *
+   * Agora encolhe-se. E diz-se o que aconteceu, porque um trabalho feito em
+   * silêncio parece um trabalho não feito.
+   */
   async function enviarIcone(ficheiros){
-    const file=Array.isArray(ficheiros)?ficheiros[0]:ficheiros?.target?.files?.[0]; if(!file)return
-    if(file.size>1024*1024)return setErro('O ícone não pode passar de 1 MB.')
-    setIconeAEnviar(true);setErro('')
-    try{ raiz('favicon',await uploadBusinessAsset(biz.id,file,'icone')) }
+    const original=Array.isArray(ficheiros)?ficheiros[0]:ficheiros?.target?.files?.[0]; if(!original)return
+    setIconeAEnviar(true);setErro('');setIconeEncolhido('')
+    try{
+      const file=await reduzirParaTamanho(original,1024*1024)
+      if(file.size>1024*1024){
+        setErro('Não consegui pôr esta imagem abaixo de 1 MB. Tenta uma versão mais pequena.')
+        return
+      }
+      if(file!==original){
+        setIconeEncolhido(`A tua imagem tinha ${tamanhoLegivel(original.size)} e ficou com ${tamanhoLegivel(file.size)}. Não precisas de fazer mais nada.`)
+      }
+      raiz('favicon',await uploadBusinessAsset(biz.id,file,'icone'))
+    }
     catch(err){setErro('Upload falhou: '+err.message+(/bucket|not found/i.test(err.message)?' — falta correr o STORAGE_SETUP.sql.':''))}
     finally{setIconeAEnviar(false)}
   }
@@ -720,9 +753,17 @@ function DesignTab({biz,onGuardado}){
                     <div style={{fontSize:11.5,color:T3,marginTop:8,lineHeight:1.5}}>
                       Larga a imagem no quadrado, ou carrega nele para escolher.{' '}
                       É o ícone que aparece no separador do browser e no ecrã do telemóvel
-                      quando o cliente guarda o site. Quadrado, de preferência 512×512, até 1 MB.
+                      quando o cliente guarda o site. Quadrado, de preferência 512×512.
                       Sem ícone próprio, usa-se o logótipo da Visão Geral.
                     </div>
+                    <div style={{fontSize:11.5,color:T3,marginTop:6,lineHeight:1.5}}>
+                      Larga a fotografia como a tiraste — se tiver mais de 1 MB, é encolhida aqui.
+                    </div>
+                    {iconeEncolhido&&
+                      <div style={{marginTop:10,padding:'9px 11px',borderRadius:9,lineHeight:1.5,
+                        background:`${G}12`,border:`1px solid ${G}35`,fontSize:11.5,color:T2}}>
+                        {iconeEncolhido}
+                      </div>}
                   </div>
                 </div>
               </div>
@@ -1007,7 +1048,7 @@ export default function MeuSite() {
 
   return (
     <AdminLayout>
-      <div className="page-head" data-tour="meu-site">
+      <div className="page-head">
         <h1>O Meu Site</h1>
         <p>Escolhe as cores, a capa, a tipografia e o que aparece aos teus clientes. Vês tudo num telemóvel antes de publicares.</p>
       </div>

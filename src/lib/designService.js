@@ -43,6 +43,89 @@ export async function reduzirImagem(file, ladoMaximo = 1400, qualidade = 0.82) {
   }
 }
 
+/*
+ * Encolhe a imagem até caber num tamanho, em vez de a recusar.
+ *
+ * ── Porque é que isto existe ─────────────────────────────────────────────
+ *
+ * O ícone tinha um limite de 1 MB e, acima disso, uma mensagem a dizer que
+ * não dava. Só que a fotografia que um barbeiro tira ao logótipo com o
+ * telemóvel tem quatro ou cinco megabytes — e a pessoa fica parada num ecrã
+ * que lhe diz o que está mal sem lhe dizer como se resolve. A saída é ir
+ * procurar um site de comprimir imagens, e a maior parte não vai: desiste
+ * do ícone.
+ *
+ * Recusar é fácil de programar e caro de usar. O trabalho é sempre o mesmo —
+ * encolher — e a máquina fá-lo em meio segundo.
+ *
+ * ── Como se encolhe ──────────────────────────────────────────────────────
+ *
+ * Primeiro baixa-se a qualidade, que é quase de graça em termos de aspecto;
+ * só depois se baixa o tamanho em pixéis, que é o que se nota. Entre cada
+ * tentativa mede-se o resultado de verdade, em vez de adivinhar: a mesma
+ * qualidade dá ficheiros muito diferentes conforme a fotografia.
+ *
+ * Um PNG com transparência é convertido para JPEG no caminho — um logótipo
+ * recortado ficaria com fundo branco. Por isso, quando há transparência,
+ * mantém-se PNG e só se encolhe o tamanho.
+ */
+export async function reduzirParaTamanho(file, limiteBytes = 1024 * 1024) {
+  if (!file?.type?.startsWith('image/') || file.type === 'image/svg+xml') return file;
+  if (file.size <= limiteBytes) return file;
+
+  let bitmap;
+  try { bitmap = await createImageBitmap(file); }
+  catch { return file; }   // formato que o browser não abre: segue como veio
+
+  const comTransparencia = file.type === 'image/png' || file.type === 'image/webp';
+  const tipo = comTransparencia ? 'image/png' : 'image/jpeg';
+
+  const desenhar = (lado) => {
+    const escala = Math.min(1, lado / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(bitmap.width * escala));
+    canvas.height = Math.max(1, Math.round(bitmap.height * escala));
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    return canvas;
+  };
+  const paraBlob = (canvas, q) => new Promise(r => canvas.toBlob(r, tipo, q));
+
+  let melhor = null;
+  // Lados e qualidades do mais generoso para o mais apertado. Pára no
+  // primeiro que caiba — o resto não chega a correr.
+  for (const lado of [1024, 768, 512, 384, 256]) {
+    const canvas = desenhar(lado);
+    for (const q of comTransparencia ? [undefined] : [0.86, 0.72, 0.58, 0.45]) {
+      const blob = await paraBlob(canvas, q);
+      if (!blob) continue;
+      melhor = blob;
+      if (blob.size <= limiteBytes) {
+        bitmap.close?.();
+        const ext = tipo === 'image/png' ? 'png' : 'jpg';
+        return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.' + ext, { type: tipo });
+      }
+    }
+  }
+
+  bitmap.close?.();
+  // Nem no mais apertado coube: devolve-se o melhor que se conseguiu, e
+  // quem chamou decide. Devolver o original seria garantir a falha.
+  if (melhor && melhor.size < file.size) {
+    const ext = tipo === 'image/png' ? 'png' : 'jpg';
+    return new File([melhor], file.name.replace(/\.[^.]+$/, '') + '.' + ext, { type: tipo });
+  }
+  return file;
+}
+
+/** «4,2 MB», «380 KB» — para se poder dizer à pessoa o que aconteceu. */
+export function tamanhoLegivel(bytes) {
+  const n = Number(bytes) || 0;
+  if (n >= 1024 * 1024) return (n / (1024 * 1024)).toFixed(1).replace('.', ',') + ' MB';
+  return Math.max(1, Math.round(n / 1024)) + ' KB';
+}
+
 export async function getBusiness() {
   const { data, error } = await supabase
     .from('businesses').select('*').eq('id', idDaBarbearia()).single();
