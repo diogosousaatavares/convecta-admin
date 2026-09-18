@@ -1,7 +1,7 @@
 {
-  "name": "CONVECTA - GESTÃO ONLINE",
-  "short_name": "CONVECTA - GESTÃO ONLINE",
-  "description": "Convecta — gestão online da barbearia: agenda, clientes, caixa e relatórios.",
+  "name": "Gestão Convecta",
+  "short_name": "Gestão Convecta",
+  "description": "A gestão da tua barbearia: agenda, clientes, caixa e relatórios.",
   "start_url": "/admin",
   "display": "standalone",
   "background_color": "#0A0807",
@@ -12,13 +12,25 @@
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
