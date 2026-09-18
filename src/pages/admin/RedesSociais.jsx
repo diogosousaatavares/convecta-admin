@@ -45,7 +45,25 @@ export default function RedesSociais() {
     setADesenhar(true); setErro('');
     try {
       const b = await getBusiness();
-      const tema = b?.theme || {};
+      /*
+       * O TEMA NÃO ESTÁ NO TOPO DA LINHA — está dentro de `settings`.
+       *
+       * `getBusiness()` devolve a linha crua da barbearia, e o tema é uma
+       * chave do JSON `settings`, não uma coluna. Eu tinha escrito
+       * `b.theme`, que é sempre undefined: a cor caía na dourada por
+       * omissão e o logótipo caía no da Visão Geral. Ou seja, mudar a cor
+       * em «O Meu Site» não mudava nada aqui — e não havia erro nenhum a
+       * dizê-lo, porque um valor em falta tem sempre um substituto à mão.
+       *
+       * O `?? t.primaria` existe para as barbearias antigas: houve um
+       * formato anterior, em português, e o «O Meu Site» ainda o aceita.
+       * Se aqui não fosse aceite, uma barbearia mais velha saía com a cor
+       * errada e ninguém saberia porquê.
+       */
+      const def = b?.settings || {};
+      const t = def.theme || {};
+      const cor = t.colors?.gold || t.primaria || t.cores?.primaria || '#C9A227';
+      const logoUrl = t.favicon || b?.logo_url;
       await garantirFonte();
       /*
        * O logótipo é o que ele carregou em «O Meu Site → Marca», e só na
@@ -56,15 +74,15 @@ export default function RedesSociais() {
        * Vem de outro domínio (o Storage); sem CORS o canvas ficava
        * contaminado e o botão de descarregar rebentava.
        */
-      const logo = await carregarImagem(tema.favicon || b?.logo_url, true);
+      const logo = await carregarImagem(logoUrl, true);
       const slug = b?.slug || 'a-tua-barbearia';
       setBarbearia({
         nome: b?.name || 'A tua barbearia',
         slug,
         endereco: b?.domain || `${slug}.${DOMINIO_BASE}`,
         logo,
-        cor: tema.colors?.gold || '#C9A227',
-        semLogo: !logo && !!(tema.favicon || b?.logo_url),
+        cor,
+        semLogo: !logo && !!logoUrl,
       });
     } catch (e) {
       setErro(e.message || 'Não foi possível ler os dados da barbearia.');
