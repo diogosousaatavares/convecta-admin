@@ -91,7 +91,7 @@ export default function Notifications() {
 
   return (
     <AdminLayout>
-      <div className="page-head">
+      <div className="page-head" data-tour="notificacoes">
         <h1>Notificações</h1>
         <p>Cria e gere os avisos enviados aos clientes na aplicação.</p>
       </div>

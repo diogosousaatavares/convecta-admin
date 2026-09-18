@@ -60,7 +60,7 @@ export default function Services() {
   return (
     <AdminLayout>
       <div className="flex justify-between items-center mb-24">
-        <div className="page-head" style={{ margin: 0 }}>
+        <div className="page-head" data-tour="servicos" style={{ margin: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <h1>Serviços</h1>
             <PageInfo

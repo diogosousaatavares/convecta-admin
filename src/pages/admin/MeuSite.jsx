@@ -1007,7 +1007,7 @@ export default function MeuSite() {
 
   return (
     <AdminLayout>
-      <div className="page-head">
+      <div className="page-head" data-tour="meu-site">
         <h1>O Meu Site</h1>
         <p>Escolhe as cores, a capa, a tipografia e o que aparece aos teus clientes. Vês tudo num telemóvel antes de publicares.</p>
       </div>

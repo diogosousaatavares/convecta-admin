@@ -1753,14 +1753,32 @@ const dataService = {
    */
   async subscricao() {
     if (!BUSINESS_ID) return null;
-    const { data, error } = await supabase
+
+    const COLUNAS = 'plan, billing_period, professional_limit, subscricao_estado, trial_ends_at, current_period_end, stripe_customer_id';
+
+    let { data, error } = await supabase
       .from('businesses')
-      .select('plan, billing_period, professional_limit, subscricao_estado, trial_ends_at, current_period_end, stripe_customer_id, cancela_no_fim')
+      .select(COLUNAS + ', cancela_no_fim')
       .eq('id', BUSINESS_ID).maybeSingle();
+
+    /*
+     * A coluna do cancelamento agendado e recente. Se o SQL ainda nao foi
+     * corrido, tenta-se outra vez SEM ela — em vez de devolver null.
+     *
+     * Devolver null aqui era pior do que o problema: `null` quer dizer «esta
+     * barbearia nao tem subscricao», e o painel mostrava o ecra de VENDA a
+     * quem ja esta a pagar. Um cliente a quem se pede o cartao outra vez e um
+     * cliente que liga a perguntar se foi cobrado a dobrar.
+     */
+    if (error && /cancela_no_fim/.test(error.message || '')) {
+      ({ data, error } = await supabase
+        .from('businesses')
+        .select(COLUNAS)
+        .eq('id', BUSINESS_ID).maybeSingle());
+    }
     if (error) {
-      // SQL por correr: nao se assusta ninguem com um erro vermelho por causa
-      // de colunas que ainda nao existem.
-      if (/subscricao_estado|cancela_no_fim/.test(error.message || '')) return null;
+      // As colunas da subscricao inteiras por criar: ai sim, nao ha nada a ler.
+      if (/subscricao_estado/.test(error.message || '')) return null;
       throw new Error(error.message);
     }
     if (!data) return null;

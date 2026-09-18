@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import {
   CreditCard, Check, ExternalLink, AlertTriangle, Clock,
-  ChevronDown, ChevronRight, MessageCircle, Lock, Zap, ShieldCheck, CalendarDays, Headphones, ArrowRight, Receipt, FileDown,
+  ChevronDown, ChevronRight, MessageCircle, Lock, Zap, ShieldCheck, CalendarDays, Headphones, ArrowRight, Receipt, FileDown, PartyPopper,
 } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import AdminLayout from '@/components/AdminLayout';
@@ -79,6 +79,11 @@ const daquiA = (dias) => {
 const CSS = `
 .sub { display: grid; gap: 14px; max-width: 900px; }
 .sub-card { border: 1px solid var(--border); border-radius: 18px; background: var(--surface); padding: 20px; }
+.sub-feito {
+  border-color: var(--gold);
+  background: radial-gradient(420px 220px at 20% 0%, rgba(201,162,39,.16), transparent 70%), var(--surface);
+  margin-bottom: 16px;
+}
 
 /* 1. O cabeçalho da venda */
 .sub-hero { position: relative; overflow: hidden; background:
@@ -354,6 +359,23 @@ export default function Subscricao() {
             </div>
           </div>
         </Card>
+      )}
+
+      {/* Acabou de pagar. É o minuto de maior vontade que ele vai ter — e até
+          agora despejávamo-lo nesta página, que já não tem nada para ele
+          fazer. A seguir ao cartão o que interessa é a barbearia, não a
+          factura: diz-se que está feito e manda-se para os primeiros passos. */}
+      {voltouDoStripe === 'sucesso' && !precisaDeCartao && (
+        <section className="sub-card sub-feito">
+          <div className="sub-ico"><PartyPopper size={24} /></div>
+          <h2 className="sub-hero-h1" style={{ marginTop: 14 }}>A tua agenda está aberta.</h2>
+          <p className="sub-hero-sub" style={{ color: 'var(--text-sec)', fontWeight: 400 }}>
+            Os teus clientes já podem marcar. Falta pôr a barbearia com a tua cara — são cinco minutos.
+          </p>
+          <Link to="/admin" className="sub-btn" style={{ textDecoration: 'none', maxWidth: 360 }}>
+            Ver os primeiros passos <ArrowRight size={20} />
+          </Link>
+        </section>
       )}
 
       {voltouDoStripe === 'cancelado' && precisaDeCartao && (

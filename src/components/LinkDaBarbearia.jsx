@@ -47,7 +47,7 @@ export default function LinkDaBarbearia() {
   };
 
   return (
-    <div style={{
+    <div data-tour="link-barbearia" style={{
       display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
       border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px',
       background: 'var(--surface)', margin: '0 0 14px',

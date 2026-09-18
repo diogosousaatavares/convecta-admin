@@ -5,6 +5,7 @@ import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
 import { moduloIndisponivel } from '@/lib/modulos';
+import dataService from '@/lib/dataService';
 import TourDemo from '@/components/admin/TourDemo';
 import AvisoPush from '@/components/AvisoPush';
 import AvisoSubscricao from '@/components/AvisoSubscricao';
@@ -154,6 +155,37 @@ const PASSOS_DEMO = [
   { rota: '/admin', alvo: 'atualizar', titulo: 'É isto',
     texto: 'Agora é teu: marca, confirma, cobra, experimenta tudo. O que fizeres aqui desaparece de hora a hora. Quando quiseres isto para a tua barbearia, fala connosco.' },
 ];
+/*
+ * A visita guiada de quem JÁ PAGOU.
+ *
+ * Não é a da demonstração. A da demonstração acaba em «fala connosco» e avisa
+ * que tudo desaparece de hora a hora — dizer isso a quem acabou de dar o
+ * cartão era estragar o melhor momento que ele vai ter connosco.
+ *
+ * Esta arranca sozinha no segundo a seguir ao pagamento, porque é aí que a
+ * vontade está toda: a agenda acabou de abrir e ele quer ver o que comprou.
+ * Uma hora depois já fechou o separador.
+ *
+ * Seis passos, e a ordem é a do trabalho dele, não a do nosso menu: primeiro o
+ * que vai partilhar, depois o que tem de confirmar, e só no fim onde as
+ * marcações caem. O último passo devolve-lhe o endereço — é a única coisa que
+ * ele tem mesmo de fazer hoje.
+ */
+const PASSOS_BARBEIRO = [
+  { rota: '/admin', alvo: 'link-barbearia', titulo: 'Este é o teu endereço',
+    texto: 'O site da tua barbearia já está no ar. É este link que vais pôr no Instagram e mandar aos clientes — copia-se com um toque.' },
+  { rota: '/admin/servicos', alvo: 'servicos', titulo: 'Confirma os teus preços',
+    texto: 'Criámos alguns serviços para arrancares. Apaga os que não fazes, muda os preços e a duração de cada um — a duração é o que decide as horas que o cliente vê.' },
+  { rota: '/admin/horarios', alvo: 'horarios', titulo: 'A que horas abres',
+    texto: 'Põe o horário real da barbearia e os dias de folga. Fora disto ninguém consegue marcar.' },
+  { rota: '/admin/o-meu-site', alvo: 'meu-site', titulo: 'Põe a tua cara',
+    texto: 'Logótipo, cores, capa e fotos. Mudas aqui e vês o resultado num telemóvel, ao lado, antes de publicar.' },
+  { rota: '/admin/definicoes/notificacoes', alvo: 'notificacoes', titulo: 'Para o telemóvel tocar',
+    texto: 'Liga as notificações neste telemóvel. É assim que sabes de uma marcação no segundo em que ela entra — sem abrir nada.' },
+  { rota: '/admin/agenda', alvo: 'agenda', titulo: 'É aqui que elas caem',
+    texto: 'Cada coluna é um barbeiro. Agora falta uma coisa só: partilhar o teu link. Sem isso a agenda fica bonita e vazia.' },
+];
+
 function gruposPara(demo) {
   if (!demo) return GROUPS;
   return GROUPS
@@ -167,6 +199,29 @@ export default function AdminLayout({ children }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const emDemo = data.business?._settings?.demo?.ativo === true;
+
+  /*
+   * A visita arranca quando ele passa a ter subscricao e ainda nao a viu.
+   * Como isso acontece no instante em que o Stripe o devolve ao painel, o
+   * efeito pratico e: paga, volta, e o guia comeca.
+   *
+   * A pergunta ao localStorage vem PRIMEIRO de proposito: depois de a visita
+   * estar feita, isto nunca mais toca na rede — e este componente volta a
+   * montar-se a cada mudanca de pagina.
+   */
+  const [visitaBarbeiro, setVisitaBarbeiro] = useState(false);
+  useEffect(() => {
+    let vivo = true;
+    try { if (localStorage.getItem('convecta_visita_barbeiro') === 'feito') return; } catch { /* sem memoria: mostra-se */ }
+    (async () => {
+      try {
+        const s = await dataService.subscricao();
+        if (!vivo) return;
+        if (s && ['em_teste', 'activa'].includes(s.estado)) setVisitaBarbeiro(true);
+      } catch { /* sem subscricao legivel, nao se comeca nada */ }
+    })();
+    return () => { vivo = false; };
+  }, []);
   const grupos = gruposPara(emDemo);
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -327,6 +382,8 @@ export default function AdminLayout({ children }) {
       </Modal>
       <main className="admin-content" ref={zonaConteudo}>
         {emDemo && <TourDemo passos={PASSOS_DEMO} chave="convecta_tour_painel" />}
+        {/* Nunca as duas: numa barbearia de demonstracao manda a da demonstracao. */}
+        {!emDemo && <TourDemo passos={PASSOS_BARBEIRO} chave="convecta_visita_barbeiro" ativo={visitaBarbeiro} />}
         {emDemo && (
           <div style={{
             background: 'var(--gold)', color: '#100E0B', fontSize: 13, fontWeight: 700,

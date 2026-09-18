@@ -38,7 +38,7 @@ export default function Hours() {
 
   return (
     <AdminLayout>
-      <div className="page-head">
+      <div className="page-head" data-tour="horarios">
         <h1>Horário de funcionamento</h1>
         <p>Define os horários de abertura, fecho e pausas de cada dia.</p>
       </div>
