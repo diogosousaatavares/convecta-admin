@@ -370,7 +370,9 @@ export default function Subscricao() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <div>
               <div className="text-sec" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: .8 }}>Estado</div>
-              <div className="fw-600" style={{ fontSize: 20, color: estado.cor, marginTop: 4 }}>{estado.texto}</div>
+              <div className="fw-600" style={{ fontSize: 20, color: sub.cancelaNoFim ? 'var(--text-sec)' : estado.cor, marginTop: 4 }}>
+                {sub.cancelaNoFim ? 'A terminar' : estado.texto}
+              </div>
               <div className="text-sec" style={{ fontSize: 13, marginTop: 6 }}>
                 Plano <strong style={{ color: 'var(--text)' }}>{NOMES_DOS_PLANOS[sub.plano] || sub.plano || '—'}</strong>
                 {sub.periodo ? ` · ${sub.periodo}` : ''}
@@ -393,7 +395,25 @@ export default function Subscricao() {
             )}
           </div>
 
-          {sub.estado === 'em_teste' && sub.fimDoTeste && (
+          {/* Cancelou: nada de «o cartão é cobrado nesse dia». Ele já se
+              despediu; o que lhe falta saber é até quando fica, e como
+              volta atrás se mudar de ideias. */}
+          {sub.cancelaNoFim && (
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+              <CalendarDays size={18} style={{ color: 'var(--text-sec)', flexShrink: 0, marginTop: 2 }} />
+              <div className="text-sm">
+                Cancelaste — <strong>não vais ser cobrado</strong>.
+                {(sub.fimDoTeste || sub.fimDoPeriodo)
+                  ? <> A barbearia continua a receber marcações até <strong>{dataCurta(sub.fimDoTeste || sub.fimDoPeriodo)}</strong>, e nesse dia fecha.</>
+                  : <> A barbearia continua a funcionar até ao fim do período pago.</>}
+                <div className="text-sec" style={{ fontSize: 12, marginTop: 4 }}>
+                  Mudaste de ideias? Em «Gerir subscrição» retomas, e fica tudo como estava.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!sub.cancelaNoFim && sub.estado === 'em_teste' && sub.fimDoTeste && (
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
               <Clock size={18} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
               <div className="text-sm">
@@ -409,7 +429,7 @@ export default function Subscricao() {
             </div>
           )}
 
-          {sub.estado === 'activa' && sub.fimDoPeriodo && (
+          {!sub.cancelaNoFim && sub.estado === 'activa' && sub.fimDoPeriodo && (
             <div className="text-sec" style={{ fontSize: 13, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
               Próxima cobrança a <strong style={{ color: 'var(--text)' }}>{dataCurta(sub.fimDoPeriodo)}</strong>.
             </div>

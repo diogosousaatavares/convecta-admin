@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CreditCard, AlertTriangle } from 'lucide-react';
+import { CreditCard, AlertTriangle, CalendarDays } from 'lucide-react';
 import dataService from '@/lib/dataService';
 
 /*
@@ -48,6 +48,14 @@ const AVISOS = {
     texto: 'A barbearia continua a funcionar normalmente. Vamos tentar cobrar outra vez nos próximos dias — se o cartão mudou, actualiza-o.',
     botao: 'Resolver',
   },
+  a_terminar: {
+    cor: 'var(--text-sec)',
+    fundo: 'rgba(255,255,255,0.04)',
+    icone: CalendarDays,
+    titulo: 'A tua subscrição está a terminar',
+    texto: 'Cancelaste e não vais ser cobrado. Até lá está tudo a funcionar — e se mudares de ideias, retomas no mesmo sítio.',
+    botao: 'Ver ou retomar',
+  },
   cancelada: {
     cor: 'var(--error, #EF4444)',
     fundo: 'rgba(239, 68, 68, 0.10)',
@@ -60,13 +68,16 @@ const AVISOS = {
 
 export default function AvisoSubscricao() {
   const [estado, setEstado] = useState(null);
+  const [aTerminar, setATerminar] = useState(false);
 
   useEffect(() => {
     let vivo = true;
     (async () => {
       try {
         const s = await dataService.subscricao();
-        if (vivo) setEstado(s?.estado || null);
+        if (!vivo) return;
+        setEstado(s?.estado || null);
+        setATerminar(!!s?.cancelaNoFim);
       } catch {
         // Um erro a ler a subscricao NAO pode encher o painel de vermelho: na
         // duvida nao se diz nada. A trava a serio esta na base de dados.
@@ -75,7 +86,9 @@ export default function AvisoSubscricao() {
     return () => { vivo = false; };
   }, []);
 
-  const aviso = AVISOS[estado];
+  // Quem cancelou mas ainda usa nao e nenhum dos tres estados: e um quarto
+  // caso, e o unico em que a faixa nao esta a pedir nada — esta a lembrar.
+  const aviso = aTerminar && estado !== 'cancelada' ? AVISOS.a_terminar : AVISOS[estado];
   if (!aviso) return null;
 
   const Icone = aviso.icone;

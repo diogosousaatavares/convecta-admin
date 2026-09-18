@@ -1755,12 +1755,12 @@ const dataService = {
     if (!BUSINESS_ID) return null;
     const { data, error } = await supabase
       .from('businesses')
-      .select('plan, billing_period, professional_limit, subscricao_estado, trial_ends_at, current_period_end, stripe_customer_id')
+      .select('plan, billing_period, professional_limit, subscricao_estado, trial_ends_at, current_period_end, stripe_customer_id, cancela_no_fim')
       .eq('id', BUSINESS_ID).maybeSingle();
     if (error) {
       // SQL por correr: nao se assusta ninguem com um erro vermelho por causa
       // de colunas que ainda nao existem.
-      if (/subscricao_estado/.test(error.message || '')) return null;
+      if (/subscricao_estado|cancela_no_fim/.test(error.message || '')) return null;
       throw new Error(error.message);
     }
     if (!data) return null;
@@ -1772,6 +1772,9 @@ const dataService = {
       fimDoTeste: data.trial_ends_at || null,
       fimDoPeriodo: data.current_period_end || null,
       temCliente: !!data.stripe_customer_id,
+      // Cancelou no portal, mas continua a usar ate ao fim do periodo. Sao
+      // duas coisas diferentes: o estado diz se FUNCIONA, isto diz se ACABA.
+      cancelaNoFim: !!data.cancela_no_fim,
     };
   },
 
