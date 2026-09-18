@@ -313,12 +313,8 @@ export default function Subscricao() {
   // Na venda não há cabeçalho de página nem botão de actualizar: é um ecrã
   // só, limpo, com uma coisa para fazer. Quando já há subscrição, é uma
   // página normal do painel.
-  const Moldura = precisaDeCartao
-    ? ({ children }) => <AdminLayout><div className="sub">{children}</div></AdminLayout>
-    : ({ children }) => <AdminPage title="Subscrição" subtitle="O teu plano na Convecta. Sem fidelização — cancelas quando quiseres.">{children}</AdminPage>;
-
-  return (
-    <Moldura>
+  const conteudo = (
+    <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {erro && (
@@ -426,7 +422,7 @@ export default function Subscricao() {
             </div>
             {precoDaCasa ? (
               <button className="sub-btn" onClick={() => assinar(precoDaCasa, true)} disabled={!!aAbrir}>
-                {aAbrir ? 'A abrir…' : 'Adicionar cartão'} <ArrowRight size={20} />
+                {aAbrir ? 'A abrir…' : 'Activar 7 dias grátis'} <ArrowRight size={20} />
               </button>
             ) : (
               <button className="sub-btn" onClick={() => setVerPlanos(true)}>Escolher o plano <ArrowRight size={20} /></button>
@@ -503,8 +499,8 @@ export default function Subscricao() {
           {/* 2. Os quatro passos. */}
           <section className="sub-card" style={{ padding: '18px 8px 16px' }}>
             <div className="sub-passos">
-              <div className="sub-passo agora"><i>1</i><span>Adicionar cartão</span></div>
-              <div className="sub-passo"><i>2</i><span>Confirmar pagamento</span></div>
+              <div className="sub-passo agora"><i>1</i><span>Activar</span></div>
+              <div className="sub-passo"><i>2</i><span>Confirmar</span></div>
               <div className="sub-passo"><i>3</i><span>Começar a receber</span></div>
               <div className="sub-passo"><i>4</i><span>Primeiro pagamento</span></div>
             </div>
@@ -514,7 +510,7 @@ export default function Subscricao() {
           <section className="sub-card">
             <div className="sub-titulo"><CalendarDays size={18} /> O que vai acontecer agora?</div>
             <ul className="sub-agora">
-              <li><i>1</i><div><b>Adicionas o teu cartão</b><span>De forma segura e em menos de 2 minutos.</span></div></li>
+              <li><i>1</i><div><b>Activas os 7 dias grátis</b><span>Com o cartão, numa página segura. Menos de 2 minutos.</span></div></li>
               <li><i>2</i><div><b>A tua conta fica activa</b><span>Começas a receber marcações imediatamente.</span></div></li>
               <li><i>3</i><div><b>Primeiro pagamento só a {diaDaCobranca}</b><span>Até lá usas tudo, sem pagar nada.</span></div></li>
             </ul>
@@ -538,6 +534,10 @@ export default function Subscricao() {
           </section>
         </>
       )}
-    </Moldura>
+    </>
   );
+
+  return precisaDeCartao
+    ? <AdminLayout><div className="sub">{conteudo}</div></AdminLayout>
+    : <AdminPage title="Subscrição" subtitle="O teu plano na Convecta. Sem fidelização — cancelas quando quiseres.">{conteudo}</AdminPage>;
 }
