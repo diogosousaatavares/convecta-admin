@@ -246,68 +246,15 @@ export default function AdminLayout({ children }) {
     return location.pathname.startsWith(it.to);
   };
 
-  /*
-   * O MENU QUE NÃO FICA SEMPRE ABERTO
-   *
-   * Antes, cada gaveta abria ao clique e ficava aberta. Abrias a Agenda,
-   * depois os Clientes, depois o Financeiro — e ao fim de uns minutos tinhas
-   * quarenta linhas na barra lateral, com a que interessa perdida lá no
-   * meio. Um menu que mostra tudo não mostra nada.
-   *
-   * Agora: passa-se o rato por cima de uma gaveta e ela abre; tira-se o rato
-   * da barra e tudo fecha, menos a gaveta da página onde se está. Essa fica
-   * sempre aberta, porque fechá-la era esconder à pessoa onde ela está.
-   *
-   * ── Porque é que o clique não desapareceu ────────────────────────────
-   *
-   * Num telemóvel não há rato. Se isto passasse a depender só do «passar
-   * por cima», o menu ficava impossível de abrir com o dedo. Por isso o
-   * clique continua a abrir e fechar, e o rato só se mete ao barulho quando
-   * existe mesmo um — `(hover: hover) and (pointer: fine)` é a pergunta que
-   * distingue um rato de um dedo, e um portátil com ecrã táctil responde
-   * «sim» às duas, que é o que queremos.
-   */
-  const temRato = () =>
-    typeof window !== 'undefined'
-    && window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
-
-  // A gaveta da página actual: é o repouso para onde tudo volta.
-  const emRepouso = useMemo(() => {
+  const initialExpanded = useMemo(() => {
     const exp = {};
-    grupos.forEach((g, i) => { if (g.type === 'group' && g.items.some(isActive)) exp[i] = true; });
+    GROUPS.forEach((g, i) => { if (g.type === 'group' && g.items.some(isActive)) exp[i] = true; });
     return exp;
-    /* `grupos` fica DE FORA das dependências de propósito. É um array novo
-       a cada renderização (gruposPara() constrói-o), por isso pô-lo aqui
-       fazia o useMemo recalcular sempre, o useEffect abaixo disparar sempre,
-       e o setExpanded renderizar outra vez — um ciclo sem fim. O que muda
-       mesmo a gaveta em repouso é a página, e é só isso que está aqui. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname, location.search]);
-
-  const [expanded, setExpanded] = useState(emRepouso);
-
-  // Mudar de página fecha o que se andou a espreitar e abre o sítio novo.
-  useEffect(() => { setExpanded(emRepouso); }, [emRepouso]);
+  }, []);
+  const [expanded, setExpanded] = useState(initialExpanded);
 
   const toggle = (i) => setExpanded(e => ({ ...e, [i]: !e[i] }));
-
-  /*
-   * Passar por cima abre — e fecha as outras. Uma de cada vez, senão volta a
-   * ser a lista comprida, só que mais depressa.
-   */
-  const espreitar = (i) => {
-    if (!temRato()) return;
-    // Só esta. Espalhar o repouso por cima deixaria também aberta a gaveta
-    // da página actual — duas abertas ao mesmo tempo, que é metade do
-    // problema que isto veio resolver.
-    setExpanded({ [i]: true });
-  };
-
-  /* Sair da barra devolve tudo ao sítio. */
-  const largar = () => {
-    if (!temRato()) return;
-    setExpanded(emRepouso);
-  };
 
   const handleLogout = async () => { await logout(); navigate('/entrar'); };
   const handleSupportSubmit = (event) => {
@@ -358,7 +305,7 @@ export default function AdminLayout({ children }) {
         <div className="logo">Convecta<span style={{ color: '#C9A227' }}>.</span></div>
         <div className="sub">Painel de gestão</div>
       </div>
-      <nav className="admin-nav" onMouseLeave={largar}>
+      <nav className="admin-nav">
         {grupos.map((g, i) => {
           if (g.type === 'item') {
             const Icon = g.icon;
@@ -370,7 +317,7 @@ export default function AdminLayout({ children }) {
           }
           const isExp = !!expanded[i];
           return (
-            <div className="nav-group" key={g.label} onMouseEnter={() => espreitar(i)}>
+            <div className="nav-group" key={g.label}>
               <button
                 className={`nav-group-head ${isExp ? 'open' : ''}`}
                 onClick={() => toggle(i)}
