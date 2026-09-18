@@ -38,6 +38,7 @@ const Reports          = lazy(() => import('@/pages/admin/Reports'));
 const Cash             = lazy(() => import('@/pages/admin/Cash'));
 const Inventory        = lazy(() => import('@/pages/admin/Inventory'));
 const Marketing        = lazy(() => import('@/pages/admin/Marketing'));
+const RedesSociais     = lazy(() => import('@/pages/admin/RedesSociais'));
 const Reviews          = lazy(() => import('@/pages/admin/Reviews'));
 const Tipos            = lazy(() => import('@/pages/admin/Tipos'));
 const Financeiro       = lazy(() => import('@/pages/admin/Financeiro'));
@@ -147,6 +148,7 @@ function AppRoutes() {
         <Route path="/admin/produtos/movimentos" element={<AdminRoute><ProductMovements /></AdminRoute>} />
         <Route path="/admin/produtos/fornecedores" element={<AdminRoute><Suppliers /></AdminRoute>} />
         <Route path="/admin/marketing" element={<AdminRoute><Marketing /></AdminRoute>} />
+        <Route path="/admin/redes-sociais" element={<AdminRoute><RedesSociais /></AdminRoute>} />
         <Route path="/admin/avaliacoes" element={<AdminRoute><Reviews /></AdminRoute>} />
         <Route path="/admin/tipos" element={<AdminRoute><Tipos /></AdminRoute>} />
         <Route path="/admin/financeiro" element={<AdminRoute><Financeiro /></AdminRoute>} />

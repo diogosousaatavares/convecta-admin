@@ -17,6 +17,7 @@ const GROUPS_TODOS = [
 
   // A area de personalizacao: e daqui que o dono desenha o que os clientes veem.
   { type: 'item', to: '/admin/o-meu-site', label: 'O Meu Site', icon: Palette },
+  { type: 'item', to: '/admin/redes-sociais', label: 'Redes sociais', icon: Megaphone },
 
   { type: 'group', label: 'Agenda', icon: CalendarDays, items: [
     { to: '/admin/agenda', label: 'Agenda', exact: true },
