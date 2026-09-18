@@ -47,9 +47,16 @@ export default function RedesSociais() {
       const b = await getBusiness();
       const tema = b?.theme || {};
       await garantirFonte();
-      // O logótipo vem de outro domínio (o Storage); sem CORS o canvas ficava
-      // contaminado e o botão de descarregar rebentava.
-      const logo = await carregarImagem(b?.logo_url, true);
+      /*
+       * O logótipo é o que ele carregou em «O Meu Site → Marca», e só na
+       * falta desse é que se usa o da Visão Geral. É a mesma ordem que a app
+       * de cliente segue para o ícone — se aqui fosse outra, o post saía com
+       * um logótipo e a app dele com outro, e o barbeiro reparava.
+       *
+       * Vem de outro domínio (o Storage); sem CORS o canvas ficava
+       * contaminado e o botão de descarregar rebentava.
+       */
+      const logo = await carregarImagem(tema.favicon || b?.logo_url, true);
       const slug = b?.slug || 'a-tua-barbearia';
       setBarbearia({
         nome: b?.name || 'A tua barbearia',
@@ -57,7 +64,7 @@ export default function RedesSociais() {
         endereco: b?.domain || `${slug}.${DOMINIO_BASE}`,
         logo,
         cor: tema.colors?.gold || '#C9A227',
-        semLogo: !logo && !!b?.logo_url,
+        semLogo: !logo && !!(tema.favicon || b?.logo_url),
       });
     } catch (e) {
       setErro(e.message || 'Não foi possível ler os dados da barbearia.');
@@ -131,15 +138,15 @@ export default function RedesSociais() {
       <Card className="card-pad" style={{ marginBottom: 16 }}>
         <h3 style={{ margin: 0, fontSize: 17 }}>{MODELO.nome}</h3>
         <p className="text-sec text-sm" style={{ margin: '6px 0 0', maxWidth: '64ch', lineHeight: 1.6 }}>
-          {MODELO.resumo} O logótipo, o nome, o endereço e a cor saem do que puseste
-          em <strong>O Meu Site</strong> — se mudares lá, muda aqui.
+          {MODELO.resumo} O logótipo sai de <strong>O Meu Site → Marca</strong>; o nome, o
+          endereço e a cor saem do resto de «O Meu Site». Se mudares lá, muda aqui.
         </p>
 
         {barbearia?.semLogo && (
           <div className="rs-aviso">
             Não consegui usar o teu logótipo nestas imagens, por isso entrou a inicial do nome.
             Acontece quando o ficheiro está noutro sítio que não deixa reutilizá-lo. Volta a
-            carregá-lo em <strong>O Meu Site</strong> e tenta outra vez.
+            carregá-lo em <strong>O Meu Site → Marca</strong> e tenta outra vez.
           </div>
         )}
 
