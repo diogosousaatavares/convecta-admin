@@ -124,7 +124,7 @@ export default function RedesSociais() {
     try {
       const ficheiros = await Promise.all(MODELO.ecras.map(async (_, i) => {
         const blob = await paraBlob(telas.current[i]);
-        return new File([blob], nomeDoFicheiro(barbearia, i), { type: 'image/png' });
+        return new File([blob], nomeDoFicheiro(barbearia, i), { type: 'image/jpeg' });
       }));
       if (!navigator.canShare({ files: ficheiros })) {
         toast.info('Este telemóvel não partilha imagens', 'Descarrega uma a uma, aqui em baixo.');
