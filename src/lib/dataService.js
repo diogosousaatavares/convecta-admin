@@ -1805,9 +1805,14 @@ const dataService = {
    * a funcao ser chamada, e os registos dela nao mostram nada. Ja custou
    * duas horas uma vez.
    */
-  async abrirCheckout(lookupKey, comTeste = true) {
+  async abrirCheckout(preco, comTeste = true) {
+    // `preco` e o objecto que veio de listarPlanos (tem lookupKey e precoId).
+    // Aceita-se tambem uma string, por compatibilidade: e a chave.
+    const corpo = typeof preco === 'string'
+      ? { lookupKey: preco, comTeste }
+      : { lookupKey: preco?.lookupKey || null, precoId: preco?.precoId || null, comTeste };
     const { data, error } = await supabase.functions.invoke('criar-sessao-pagamento', {
-      body: { lookupKey, comTeste },
+      body: corpo,
     });
     if (error) {
       let motivo = '';

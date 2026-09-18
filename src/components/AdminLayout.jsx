@@ -8,6 +8,7 @@ import { moduloIndisponivel } from '@/lib/modulos';
 import TourDemo from '@/components/admin/TourDemo';
 import AvisoPush from '@/components/AvisoPush';
 import AvisoSubscricao from '@/components/AvisoSubscricao';
+import BemVindo from '@/components/BemVindo';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 
 const GROUPS_TODOS = [
@@ -393,6 +394,9 @@ export default function AdminLayout({ children }) {
             da subscricao a faixa nao aparece — seria dizer-lhe para ir onde
             ja esta. */}
         {location.pathname !== '/admin/subscricao' && <AvisoSubscricao />}
+        {/* A primeira entrada: tres ecras a ocupar o ecra inteiro, uma vez
+            por barbearia. Depois disso e a faixa de cima que lembra. */}
+        <BemVindo />
         {children}
       </main>
     </div>
