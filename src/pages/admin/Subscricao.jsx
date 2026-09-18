@@ -2,9 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   CreditCard, Check, ExternalLink, AlertTriangle, Clock,
-  ChevronDown, MessageCircle, Sparkles,
+  ChevronDown, ChevronRight, MessageCircle, Lock, Zap, ShieldCheck, CalendarDays, Headphones, ArrowRight,
 } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
+import AdminLayout from '@/components/AdminLayout';
+import { DOMINIO_BASE } from '@/lib/designService';
 import { Card, Button, Spinner } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
@@ -73,118 +75,117 @@ const daquiA = (dias) => {
  * painel. Usa os tokens do tema, por isso funciona no escuro e no claro.
  */
 const CSS = `
-.sub-hero {
-  position: relative; overflow: hidden;
-  border: 1px solid var(--border); border-radius: 18px;
-  background:
-    radial-gradient(900px 420px at 100% 0%, rgba(201,162,39,.16), transparent 60%),
-    var(--surface);
-  padding: clamp(22px, 4vw, 40px);
-  display: grid; gap: 28px;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, .9fr);
-  align-items: center;
-}
-.sub-hero-olho { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
-.sub-hero-h1 { font-family: var(--font-head); font-size: clamp(30px, 4.6vw, 46px); line-height: 1.05; margin: 10px 0 0; letter-spacing: -.01em; }
-.sub-hero-sub { font-size: clamp(16px, 2vw, 19px); color: var(--gold); font-weight: 600; margin: 10px 0 0; line-height: 1.35; }
-.sub-hero-p { color: var(--text-sec); font-size: 15px; line-height: 1.55; margin: 14px 0 0; max-width: 56ch; }
-.sub-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
-.sub-chip { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.02); min-width: 0; }
-.sub-chip-ico { width: 34px; height: 34px; border-radius: 10px; background: rgba(201,162,39,.14); color: var(--gold); display: grid; place-items: center; flex-shrink: 0; }
-.sub-chip b { display: block; font-size: 13px; }
-.sub-chip span { display: block; font-size: 12px; color: var(--text-sec); }
-.sub-cta { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 24px; }
-.sub-cta-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  padding: 16px 26px; border-radius: 999px; border: 0; cursor: pointer;
-  background: var(--gold); color: #111; font: inherit; font-weight: 700; font-size: 16px;
-  box-shadow: var(--shadow-gold); animation: subRespira 2.8s ease-in-out infinite;
-  transition: transform .15s ease;
-}
-.sub-cta-btn:hover { transform: translateY(-1px); }
-.sub-cta-btn:disabled { opacity: .7; cursor: default; animation: none; }
-.sub-cta-nota { font-size: 13px; color: var(--text-sec); }
-@keyframes subRespira {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201,162,39,.35), var(--shadow-gold); }
-  50%      { box-shadow: 0 0 0 12px rgba(201,162,39,0), var(--shadow-gold); }
-}
+.sub { display: grid; gap: 14px; max-width: 900px; }
+.sub-card { border: 1px solid var(--border); border-radius: 18px; background: var(--surface); padding: 20px; }
 
-/* O cartão desenhado. Sem imagem nenhuma: é CSS, pesa zero e segue o tema.
-   Só no ecrã largo — no telemóvel empurrava o botão para fora do primeiro
-   ecrã, e o botão vale mais do que o desenho. */
-.sub-cartoes { position: relative; height: 190px; max-width: 320px; margin: 0 auto; }
-.sub-cartao { position: absolute; inset: 0; border-radius: 16px; }
-.sub-cartao.ouro { background: linear-gradient(135deg, #E8C547, #B8901E); transform: rotate(-9deg) translate(14px, -10px); opacity: .9; }
-.sub-cartao.preto { background: linear-gradient(135deg, #2A2621, #0F0D0B); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 24px 50px -20px rgba(0,0,0,.8); transform: rotate(-4deg); }
-.sub-cartao .chip { position: absolute; left: 24px; top: 24px; width: 40px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, #F1D36B, #C9A227); }
-.sub-cartao .zero { position: absolute; left: 24px; bottom: 46px; font-family: var(--font-head); font-size: 34px; line-height: 1; color: #F1D36B; }
-.sub-cartao .zero small { display: block; font-family: var(--font-body); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-bottom: 6px; }
-.sub-cartao .nome { position: absolute; left: 24px; right: 24px; bottom: 18px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 1. O cabeçalho da venda */
+.sub-hero { position: relative; overflow: hidden; background:
+  radial-gradient(520px 260px at 85% 30%, rgba(201,162,39,.18), transparent 65%), var(--surface); }
+.sub-hero-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sub-ico { width: 52px; height: 52px; border-radius: 14px; background: rgba(201,162,39,.16); color: var(--gold); display: grid; place-items: center; }
+.sub-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,.03); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.sub-hero-h1 { font-family: var(--font-body); font-weight: 700; font-size: clamp(26px, 6vw, 34px); line-height: 1.1; margin: 18px 0 0; letter-spacing: -.01em; }
+.sub-hero-sub { font-size: 16px; color: var(--text-sec); line-height: 1.4; margin: 8px 0 0; max-width: 30ch; }
+.sub-linhas { display: grid; gap: 14px; margin-top: 22px; max-width: 360px; position: relative; z-index: 1; }
+.sub-linha { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center; }
+.sub-linha i { width: 44px; height: 44px; border-radius: 999px; border: 1px solid rgba(201,162,39,.45); color: var(--gold); display: grid; place-items: center; }
+.sub-linha b { display: block; font-size: 15px; }
+.sub-linha span { display: block; font-size: 13px; color: var(--text-sec); margin-top: 2px; }
+.sub-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+  margin-top: 22px; padding: 17px 20px; border-radius: 14px; border: 0; cursor: pointer;
+  background: var(--gold); color: #111; font: inherit; font-weight: 700; font-size: 17px;
+  box-shadow: var(--shadow-gold); position: relative; z-index: 1;
+}
+.sub-btn:disabled { opacity: .7; cursor: default; }
+.sub-plano-linha { margin-top: 12px; text-align: center; font-size: 13px; color: var(--text-sec); position: relative; z-index: 1; }
+.sub-plano-linha button { background: none; border: 0; color: var(--gold); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; }
 
-.sub-linha { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
-.sub-passo { position: relative; padding: 16px 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
-.sub-passo-n { width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center; font-weight: 700; font-size: 13px; border: 1px solid var(--border); color: var(--text-sec); }
-.sub-passo.agora .sub-passo-n { background: var(--gold); color: #111; border-color: var(--gold); }
-.sub-passo b { display: block; margin-top: 10px; font-size: 14px; }
-.sub-passo span { display: block; margin-top: 3px; font-size: 12px; color: var(--text-sec); line-height: 1.4; }
-.sub-passo em { display: block; margin-top: 8px; font-style: normal; font-size: 12px; color: var(--gold); font-weight: 600; }
+/* Os cartões desenhados, à direita, atrás das linhas */
+.sub-cartoes { position: absolute; right: -6px; top: 118px; width: 190px; height: 118px; pointer-events: none; }
+.sub-cartao { position: absolute; inset: 0; border-radius: 14px; }
+.sub-cartao.ouro { background: linear-gradient(135deg, #E8C547, #B8901E); transform: rotate(-14deg) translate(26px, -12px); }
+.sub-cartao.preto { background: linear-gradient(135deg, #2A2621, #0F0D0B); border: 1px solid rgba(255,255,255,.1); box-shadow: 0 18px 40px -14px rgba(0,0,0,.9); transform: rotate(-14deg); }
+.sub-cartao .chip { position: absolute; left: 16px; top: 18px; width: 26px; height: 20px; border-radius: 4px; background: linear-gradient(135deg, #F1D36B, #C9A227); }
+.sub-cartao .circ { position: absolute; right: 16px; bottom: 14px; width: 22px; height: 22px; border-radius: 999px; background: #EB001B; opacity: .9; }
+.sub-cartao .circ + .circ { right: 4px; background: #F79E1B; }
 
-.sub-duas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+/* 2. Os quatro passos */
+.sub-passos { display: grid; grid-template-columns: repeat(4, 1fr); padding: 6px 4px 0; }
+.sub-passo { position: relative; text-align: center; }
+.sub-passo i { width: 36px; height: 36px; border-radius: 999px; display: inline-grid; place-items: center; font-style: normal; font-weight: 700; font-size: 14px; background: var(--elevated); color: var(--text-sec); border: 1px solid var(--border); position: relative; z-index: 1; }
+.sub-passo.agora i { background: var(--gold); color: #111; border-color: var(--gold); }
+.sub-passo::after { content: ''; position: absolute; top: 18px; left: 50%; width: 100%; height: 2px; background: var(--border); }
+.sub-passo.agora::after { background: linear-gradient(90deg, var(--gold), var(--border)); }
+.sub-passo:last-child::after { display: none; }
+.sub-passo span { display: block; margin-top: 10px; font-size: 12px; line-height: 1.3; color: var(--text-sec); padding: 0 4px; }
+.sub-passo.agora span { color: var(--text); font-weight: 600; }
+
+/* 3. O que vai acontecer */
 .sub-titulo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; }
 .sub-titulo svg { color: var(--gold); }
-.sub-agora { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 14px; }
-.sub-agora li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; }
-.sub-agora li i { width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 700; border: 1px solid var(--border); color: var(--text-sec); }
+.sub-titulo .dir { margin-left: auto; font-size: 13px; color: var(--text-sec); font-weight: 500; display: inline-flex; align-items: center; gap: 2px; text-decoration: none; }
+.sub-agora { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 0; }
+.sub-agora li { display: grid; grid-template-columns: 36px 1fr; gap: 14px; align-items: start; position: relative; padding-bottom: 18px; }
+.sub-agora li:last-child { padding-bottom: 0; }
+.sub-agora li::before { content: ''; position: absolute; left: 17px; top: 36px; bottom: 0; border-left: 1px dashed var(--border); }
+.sub-agora li:last-child::before { display: none; }
+.sub-agora i { width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; font-style: normal; font-size: 14px; font-weight: 700; background: var(--elevated); color: var(--text-sec); border: 1px solid var(--border); }
 .sub-agora li:first-child i { background: var(--gold); color: #111; border-color: var(--gold); }
-.sub-agora b { display: block; font-size: 14px; }
+.sub-agora b { display: block; font-size: 15px; margin-top: 6px; }
 .sub-agora span { display: block; font-size: 13px; color: var(--text-sec); margin-top: 2px; line-height: 1.45; }
+
+/* 4. Dúvidas */
 .sub-faq { margin-top: 14px; display: grid; gap: 8px; }
-.sub-faq details { border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,.02); }
-.sub-faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; font-size: 14px; font-weight: 600; }
+.sub-faq details { border: 1px solid var(--border); border-radius: 12px; background: var(--elevated); }
+.sub-faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 13px 14px; font-size: 14px; font-weight: 600; }
 .sub-faq summary::-webkit-details-marker { display: none; }
 .sub-faq summary svg { transition: transform .2s; flex-shrink: 0; color: var(--text-sec); }
 .sub-faq details[open] summary svg { transform: rotate(180deg); }
 .sub-faq p { margin: 0; padding: 0 14px 14px; font-size: 13px; color: var(--text-sec); line-height: 1.5; }
 
-.sub-planos { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-top: 16px; }
+/* 5. Ajuda */
+.sub-ajuda { display: flex; align-items: center; gap: 14px; }
+.sub-ajuda .sub-ico { width: 44px; height: 44px; border-radius: 999px; }
+.sub-ajuda b { display: block; font-size: 15px; }
+.sub-ajuda span { display: block; font-size: 13px; color: var(--text-sec); }
+.sub-ajuda a { margin-left: auto; flex-shrink: 0; padding: 11px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--elevated); color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
+
+/* 6. Planos, escondidos até ele pedir */
+.sub-planos { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 14px; }
 .sub-plano { position: relative; display: flex; flex-direction: column; }
 .sub-plano.teu { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
 .sub-plano-etq { position: absolute; top: -11px; left: 16px; padding: 3px 10px; border-radius: 999px; background: var(--gold); color: #111; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 
-.sub-fecho { margin-top: 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
-
-@media (max-width: 860px) {
-  .sub-hero { grid-template-columns: 1fr; gap: 18px; }
-  .sub-cartoes { display: none; }
-  .sub-chips { grid-template-columns: 1fr; }
-  .sub-cta-btn { width: 100%; }
-  .sub-linha { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .sub-duas { grid-template-columns: 1fr; }
+@media (max-width: 480px) {
+  .sub-card { padding: 18px 16px; }
+  .sub-cartoes { width: 160px; height: 100px; top: 124px; right: -12px; }
+  .sub-hero-sub { max-width: 24ch; }
+  .sub-ajuda { flex-wrap: wrap; }
+  .sub-ajuda a { margin-left: 58px; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .sub-cta-btn { animation: none; }
+@media (min-width: 720px) {
+  .sub-cartoes { width: 260px; height: 160px; top: 60px; right: 28px; }
+  .sub-linhas { max-width: 420px; }
 }
 `;
 
-function Cartoes({ nome }) {
+function Cartoes() {
   return (
     <div className="sub-cartoes" aria-hidden="true">
       <div className="sub-cartao ouro" />
-      <div className="sub-cartao preto">
-        <div className="chip" />
-        <div className="zero"><small>Hoje pagas</small>0 €</div>
-        <div className="nome">{nome || 'A tua barbearia'}</div>
-      </div>
+      <div className="sub-cartao preto"><div className="chip" /><div className="circ" /><div className="circ" /></div>
     </div>
   );
 }
 
 const PERGUNTAS = [
-  { q: 'Quando é que sou cobrado?', r: 'Só no 8.º dia. Hoje o Stripe guarda o cartão e não tira nada. Avisamos-te por email antes.' },
+  { q: 'Quando sou cobrado?', r: 'Só no 8.º dia. Hoje o Stripe guarda o cartão e não tira nada. Avisamos-te por email antes.' },
   { q: 'Posso cancelar quando quiser?', r: 'Sim, aqui no painel, sozinho. Durante os 7 dias não pagas nada; depois, cancelas e não há mês seguinte.' },
-  { q: 'É seguro dar o cartão?', r: 'O cartão é escrito numa página do Stripe. Nós nunca o vemos nem o guardamos.' },
-  { q: 'E se ainda não tiver tudo pronto?', r: 'Não faz mal. O cartão abre as marcações; serviços, horários e cores mudas quando quiseres.' },
+  { q: 'É seguro adicionar o meu cartão?', r: 'O cartão é escrito numa página do Stripe. Nós nunca o vemos nem o guardamos.' },
 ];
+
+const WHATSAPP = 'https://wa.me/351914874725?text=' + encodeURIComponent('Olá! Estou a activar a minha barbearia e tenho uma dúvida.');
 
 export default function Subscricao() {
   const toast = useToast();
@@ -197,6 +198,7 @@ export default function Subscricao() {
   const [aCarregar, setACarregar] = useState(true);
   const [aAbrir, setAAbrir] = useState('');
   const [erro, setErro] = useState('');
+  const [verPlanos, setVerPlanos] = useState(false);
 
   /*
    * O barbeiro volta do Stripe para aqui. Mas o estado quem o escreve é o
@@ -294,7 +296,6 @@ export default function Subscricao() {
     }
   };
 
-  const irAosPlanos = () => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   if (aCarregar) {
     return (
@@ -309,13 +310,15 @@ export default function Subscricao() {
   const nomeDoPlano = planoDaCasa?.nome || NOMES_DOS_PLANOS[sub?.plano] || 'o teu plano';
   const diaDaCobranca = daquiA(7);
 
+  // Na venda não há cabeçalho de página nem botão de actualizar: é um ecrã
+  // só, limpo, com uma coisa para fazer. Quando já há subscrição, é uma
+  // página normal do painel.
+  const Moldura = precisaDeCartao
+    ? ({ children }) => <AdminLayout><div className="sub">{children}</div></AdminLayout>
+    : ({ children }) => <AdminPage title="Subscrição" subtitle="O teu plano na Convecta. Sem fidelização — cancelas quando quiseres.">{children}</AdminPage>;
+
   return (
-    <AdminPage
-      title="Subscrição"
-      subtitle={precisaDeCartao
-        ? 'Sem fidelização. Cancelas quando quiseres.'
-        : 'O teu plano na Convecta. Sem fidelização — cancelas quando quiseres.'}
-    >
+    <Moldura>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {erro && (
@@ -407,179 +410,134 @@ export default function Subscricao() {
       {/* ── A venda ─────────────────────────────────────────────────────── */}
       {precisaDeCartao && (
         <>
-          {/* 1. O que ele ganha, o que paga hoje, o que paga depois. Tudo
-                 acima da dobra, tudo em letras grandes. */}
-          <section className="sub-hero">
-            <div>
-              <div className="sub-hero-olho">
-                {sub?.estado === 'cancelada' ? 'Subscrição cancelada' : 'A tua barbearia está no ar'}
-              </div>
-              <h2 className="sub-hero-h1">
-                {sub?.estado === 'cancelada' ? 'Volta a receber marcações.' : 'Activa as marcações.'}
-              </h2>
-              <p className="sub-hero-sub">
-                Regista o cartão e a tua agenda abre hoje. Os primeiros 7 dias são grátis.
-              </p>
-              <p className="sub-hero-p">
-                Hoje pagas <strong style={{ color: 'var(--text)' }}>0 €</strong>.
-                {precoDaCasa
-                  ? <> A partir de <strong style={{ color: 'var(--text)' }}>{diaDaCobranca}</strong>, {euros(precoDaCasa.centimos)}{periodo === 'anual' ? ' por ano' : ' por mês'}.</>
-                  : <> A primeira cobrança é a <strong style={{ color: 'var(--text)' }}>{diaDaCobranca}</strong>.</>}
-                {' '}Cancelas sozinho, aqui, quando quiseres.
-              </p>
-
-              <div className="sub-cta">
-                {precoDaCasa ? (
-                  <button className="sub-cta-btn" onClick={() => assinar(precoDaCasa, true)} disabled={!!aAbrir}>
-                    <CreditCard size={18} />
-                    {aAbrir ? 'A abrir…' : 'Activar · 7 dias grátis'}
-                  </button>
-                ) : (
-                  <button className="sub-cta-btn" onClick={irAosPlanos}>
-                    <CreditCard size={18} /> Escolher o plano
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={irAosPlanos}
-                  className="sub-cta-nota"
-                  style={{ background: 'none', border: 0, cursor: 'pointer', textDecoration: 'underline', color: 'var(--text-sec)', font: 'inherit', fontSize: 13 }}
-                >
-                  {precoDaCasa ? `Plano ${nomeDoPlano} · ver os outros` : 'Ver os planos'}
-                </button>
-              </div>
+          {/* 1. Cabeçalho: o que fazer, porquê, e o botão. */}
+          <section className="sub-card sub-hero">
+            <div className="sub-hero-topo">
+              <div className="sub-ico"><CreditCard size={24} /></div>
+              <div className="sub-pill"><Lock size={13} style={{ color: 'var(--gold)' }} /> Pagamento seguro</div>
             </div>
-            <Cartoes nome={negocio?.name} />
+            <h2 className="sub-hero-h1">{sub?.estado === 'cancelada' ? 'Reactiva a tua conta' : 'Activa a tua conta'}</h2>
+            <p className="sub-hero-sub">Adiciona o teu cartão para começares a receber marcações.</p>
+            <Cartoes />
+            <div className="sub-linhas">
+              <div className="sub-linha"><i><Zap size={18} /></i><div><b>Rápido e simples</b><span>Em menos de 2 minutos.</span></div></div>
+              <div className="sub-linha"><i><ShieldCheck size={18} /></i><div><b>Seguro</b><span>Processado pela Stripe.</span></div></div>
+              <div className="sub-linha"><i><CalendarDays size={18} /></i><div><b>Só depois da experiência</b><span>Primeiro pagamento a {diaDaCobranca}. Hoje, 0 €.</span></div></div>
+            </div>
+            {precoDaCasa ? (
+              <button className="sub-btn" onClick={() => assinar(precoDaCasa, true)} disabled={!!aAbrir}>
+                {aAbrir ? 'A abrir…' : 'Adicionar cartão'} <ArrowRight size={20} />
+              </button>
+            ) : (
+              <button className="sub-btn" onClick={() => setVerPlanos(true)}>Escolher o plano <ArrowRight size={20} /></button>
+            )}
+            {precoDaCasa && (
+              <div className="sub-plano-linha">
+                Plano {nomeDoPlano} · {euros(precoDaCasa.centimos)}{periodo === 'anual' ? '/ano' : '/mês'} · <button type="button" onClick={() => setVerPlanos(v => !v)}>{verPlanos ? 'fechar' : 'mudar'}</button>
+              </div>
+            )}
           </section>
 
-          {/* 2. A linha do tempo, com datas a sério. «Dia 7» é abstracto;
-                 «25 de setembro» é um dia na vida dele. */}
-          <div className="sub-linha">
-            <div className="sub-passo agora"><div className="sub-passo-n">1</div><b>Cartão</b><em>Agora · 2 min</em></div>
-            <div className="sub-passo"><div className="sub-passo-n">2</div><b>Agenda aberta</b><em>Hoje</em></div>
-            <div className="sub-passo"><div className="sub-passo-n">3</div><b>0 €</b><em>Até {daquiA(6)}</em></div>
-            <div className="sub-passo"><div className="sub-passo-n">4</div><b>Primeira cobrança</b><em>{diaDaCobranca}</em></div>
-          </div>
-
-          {/* 3. As quatro perguntas que travam a venda, fechadas: quem não
-                 as tem não lê nada. */}
-          <Card className="card-pad" style={{ marginTop: 16 }}>
-            <div className="sub-titulo"><MessageCircle size={18} /> Dúvidas</div>
-            <div className="sub-faq">
-              {PERGUNTAS.map(p => (
-                <details key={p.q}>
-                  <summary>{p.q} <ChevronDown size={16} /></summary>
-                  <p>{p.r}</p>
-                </details>
-              ))}
-            </div>
-          </Card>
-
-          {/* 4. Os planos. O dele vem marcado; os outros estão lá para quem
-                 quiser mudar, não para o fazer hesitar. */}
-          <div id="planos" style={{ scrollMarginTop: 80, marginTop: 28 }}>
-            <div className="sub-titulo"><Sparkles size={18} /> Os planos</div>
-            <div className="text-sec" style={{ fontSize: 13, marginTop: 4 }}>
-              A mesma plataforma nos três. Muda quantos profissionais cabem.
-            </div>
-
-            {haAnual && (
-              <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-                {['mensal', 'anual'].map(p => (
-                  <button
-                    key={p}
-                    onClick={() => setPeriodo(p)}
-                    className="fw-600"
-                    style={{
+          {/* 6. Os planos, só quando ele pede. */}
+          {verPlanos && (
+            <section id="planos">
+              {haAnual && (
+                <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+                  {['mensal', 'anual'].map(p => (
+                    <button key={p} onClick={() => setPeriodo(p)} className="fw-600" style={{
                       padding: '8px 16px', borderRadius: 999, fontSize: 13, cursor: 'pointer',
                       border: `1px solid ${periodo === p ? 'var(--gold)' : 'var(--border)'}`,
                       background: periodo === p ? 'var(--gold)' : 'transparent',
                       color: periodo === p ? '#111' : 'var(--text-sec)',
-                    }}
-                  >
-                    {p === 'mensal' ? 'Mensal' : 'Anual (mais barato)'}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {!planos && <div style={{ marginTop: 16 }}><Spinner label="A ler os planos…" /></div>}
-
-            {planos && planos.length === 0 && (
-              <Card className="card-pad" style={{ marginTop: 16 }}>
-                <div className="text-sm">
-                  Não foi possível ler os planos. Fala connosco pelo WhatsApp e tratamos disto contigo.
+                    }}>{p === 'mensal' ? 'Mensal' : 'Anual (mais barato)'}</button>
+                  ))}
                 </div>
-              </Card>
-            )}
-
-            {planos && planos.length > 0 && (
-              <div className="sub-planos">
-                {planos.map(plano => {
-                  const preco = plano.precos?.[periodo] || plano.precos?.mensal;
-                  if (!preco) return null;
-                  const ehAnual = !!plano.precos?.[periodo] && periodo === 'anual';
-                  const mensal = plano.precos?.mensal?.centimos;
-                  const poupa = ehAnual && mensal ? mensal * 12 - preco.centimos : 0;
-                  const teu = plano.id === planoDaCasa?.id;
-                  const id = preco.lookupKey || preco.precoId;
-
-                  return (
-                    <Card key={plano.id} className={`card-pad sub-plano${teu ? ' teu' : ''}`}>
-                      {teu && <div className="sub-plano-etq">O teu plano</div>}
-                      <div className="fw-600" style={{ fontSize: 17 }}>{plano.nome}</div>
-                      {plano.descricao && (
-                        <div className="text-sec" style={{ fontSize: 12, marginTop: 6, lineHeight: 1.5 }}>{plano.descricao}</div>
-                      )}
-
-                      <div style={{ margin: '16px 0 4px' }}>
-                        <span className="fw-600" style={{ fontSize: 30 }}>{euros(preco.centimos)}</span>
-                        <span className="text-sec" style={{ fontSize: 13 }}>{ehAnual ? ' /ano' : ' /mês'}</span>
-                      </div>
-                      {poupa > 0 && (
-                        <div style={{ fontSize: 12, color: 'var(--gold)' }}>Poupas {euros(poupa)} por ano</div>
-                      )}
-
-                      {plano.caracteristicas?.length > 0 && (
-                        <div style={{ margin: '16px 0', display: 'flex', flexDirection: 'column', gap: 7 }}>
-                          {plano.caracteristicas.map((c, i) => (
-                            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                              <Check size={15} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
-                              <span className="text-sm">{c}</span>
-                            </div>
-                          ))}
+              )}
+              {!planos && <Spinner label="A ler os planos…" />}
+              {planos && planos.length === 0 && (
+                <div className="sub-card text-sm">Não foi possível ler os planos. Fala connosco pelo WhatsApp e tratamos disto contigo.</div>
+              )}
+              {planos && planos.length > 0 && (
+                <div className="sub-planos">
+                  {planos.map(plano => {
+                    const preco = plano.precos?.[periodo] || plano.precos?.mensal;
+                    if (!preco) return null;
+                    const ehAnual = !!plano.precos?.[periodo] && periodo === 'anual';
+                    const teu = plano.id === planoDaCasa?.id;
+                    const id = preco.lookupKey || preco.precoId;
+                    return (
+                      <div key={plano.id} className={`sub-card sub-plano${teu ? ' teu' : ''}`}>
+                        {teu && <div className="sub-plano-etq">O teu plano</div>}
+                        <div className="fw-600" style={{ fontSize: 17 }}>{plano.nome}</div>
+                        {plano.descricao && <div className="text-sec" style={{ fontSize: 12, marginTop: 6, lineHeight: 1.5 }}>{plano.descricao}</div>}
+                        <div style={{ margin: '14px 0 12px' }}>
+                          <span className="fw-600" style={{ fontSize: 28 }}>{euros(preco.centimos)}</span>
+                          <span className="text-sec" style={{ fontSize: 13 }}>{ehAnual ? ' /ano' : ' /mês'}</span>
                         </div>
-                      )}
-
-                      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 12 }}>
-                        <Button
-                          block
-                          onClick={() => assinar(preco, true)}
-                          disabled={!!aAbrir}
-                          icon={<CreditCard size={16} />}
-                        >
-                          {aAbrir === id + ':teste' ? 'A abrir…' : 'Activar · 7 dias grátis'}
-                        </Button>
-                        {/* Quem já decidiu não quer um contador de dias a correr.
-                            Dar-lhe o caminho curto é respeitar isso. */}
-                        <Button
-                          block
-                          variant="ghost"
-                          onClick={() => assinar(preco, false)}
-                          disabled={!!aAbrir}
-                        >
-                          {aAbrir === id + ':ja' ? 'A abrir…' : 'Pagar já, sem experiência'}
-                        </Button>
+                        {plano.caracteristicas?.length > 0 && (
+                          <div style={{ margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {plano.caracteristicas.map((c, i) => (
+                              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                                <Check size={15} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
+                                <span className="text-sm">{c}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          <Button block onClick={() => assinar(preco, true)} disabled={!!aAbrir} icon={<CreditCard size={16} />}>
+                            {aAbrir === id + ':teste' ? 'A abrir…' : 'Activar · 7 dias grátis'}
+                          </Button>
+                          <Button block variant="ghost" onClick={() => assinar(preco, false)} disabled={!!aAbrir}>
+                            {aAbrir === id + ':ja' ? 'A abrir…' : 'Pagar já, sem experiência'}
+                          </Button>
+                        </div>
                       </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
 
+          {/* 2. Os quatro passos. */}
+          <section className="sub-card" style={{ padding: '18px 8px 16px' }}>
+            <div className="sub-passos">
+              <div className="sub-passo agora"><i>1</i><span>Adicionar cartão</span></div>
+              <div className="sub-passo"><i>2</i><span>Confirmar pagamento</span></div>
+              <div className="sub-passo"><i>3</i><span>Começar a receber</span></div>
+              <div className="sub-passo"><i>4</i><span>Primeiro pagamento</span></div>
+            </div>
+          </section>
+
+          {/* 3. O que vai acontecer. */}
+          <section className="sub-card">
+            <div className="sub-titulo"><CalendarDays size={18} /> O que vai acontecer agora?</div>
+            <ul className="sub-agora">
+              <li><i>1</i><div><b>Adicionas o teu cartão</b><span>De forma segura e em menos de 2 minutos.</span></div></li>
+              <li><i>2</i><div><b>A tua conta fica activa</b><span>Começas a receber marcações imediatamente.</span></div></li>
+              <li><i>3</i><div><b>Primeiro pagamento só a {diaDaCobranca}</b><span>Até lá usas tudo, sem pagar nada.</span></div></li>
+            </ul>
+          </section>
+
+          {/* 4. Dúvidas. */}
+          <section className="sub-card">
+            <div className="sub-titulo"><MessageCircle size={18} /> Dúvidas frequentes <a className="dir" href={WHATSAPP} target="_blank" rel="noreferrer">Perguntar <ChevronRight size={15} /></a></div>
+            <div className="sub-faq">
+              {PERGUNTAS.map(p => (
+                <details key={p.q}><summary>{p.q} <ChevronDown size={16} /></summary><p>{p.r}</p></details>
+              ))}
+            </div>
+          </section>
+
+          {/* 5. Ajuda. */}
+          <section className="sub-card sub-ajuda">
+            <div className="sub-ico"><Headphones size={20} /></div>
+            <div><b>Precisas de ajuda?</b><span>Fala connosco, estamos aqui para ajudar.</span></div>
+            <a href={WHATSAPP} target="_blank" rel="noreferrer">Contactar</a>
+          </section>
         </>
       )}
-    </AdminPage>
+    </Moldura>
   );
 }
