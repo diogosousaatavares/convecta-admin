@@ -359,7 +359,7 @@ export default function AdminLayout({ children }) {
       {open && <div onClick={() => setOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:99 }} />}
       <Modal open={supportOpen} onClose={() => setSupportOpen(false)} title="Apoio ao cliente">
         <div className="support-contact-list">
-          <a href="tel:912381717" className="support-contact"><Phone size={17} /> <span><strong>Ligar</strong><small>912 381 717</small></span></a>
+          <a href="tel:+351914874725" className="support-contact"><Phone size={17} /> <span><strong>Ligar</strong><small>914 874 725</small></span></a>
           <a href="mailto:geral@convecta.pt" className="support-contact"><Mail size={17} /> <span><strong>Email</strong><small>geral@convecta.pt</small></span></a>
         </div>
         <p className="text-sec text-sm" style={{ marginBottom: 16 }}>Encontraste um erro? Envia-nos os detalhes e entraremos em contacto.</p>
