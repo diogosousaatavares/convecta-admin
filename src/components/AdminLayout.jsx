@@ -82,20 +82,16 @@ const GROUPS_TODOS = [
     { to: '/admin/relatorios/financeiro', label: 'Financeiro' },
     { to: '/admin/relatorios/servicos', label: 'Serviços' },
     { to: '/admin/relatorios/produtos', label: 'Produtos & Stock' },
-    { to: '/admin/relatorios/fidelizacao', label: 'Fidelização' },
-    { to: '/admin/relatorios/subscricoes', label: 'Subscrições' }
+    { to: '/admin/relatorios/fidelizacao', label: 'Fidelização' }
   ]},
 
   { type: 'group', label: 'Fidelização', icon: Gift, items: [
     { to: '/admin/fidelizacao/programa', label: 'Cartão de fidelidade' },
   ]},
 
-  { type: 'group', label: 'Subscrições', icon: Repeat, items: [
-    { to: '/admin/subscricoes/planos', label: 'Planos' },
-    { to: '/admin/subscricoes/subscritores', label: 'Subscritores' },
-    { to: '/admin/subscricoes/pagamentos', label: 'Pagamentos' },
-    { to: '/admin/subscricoes/utilizacao', label: 'Utilização' },
-    { to: '/admin/subscricoes/atraso', label: 'Em Atraso' }
+  { type: 'group', label: 'Packs', icon: Repeat, items: [
+    { to: '/admin/packs', label: 'Packs à venda', exact: true },
+    { to: '/admin/packs/clientes', label: 'Clientes com pack' }
   ]},
 
   { type: 'group', label: 'Promoções', icon: Ticket, items: [

@@ -87,6 +87,8 @@ export function appointmentDuration(state, a) {
 //   • nao ha -> o preco actual do servico
 export function precoDaMarcacao(a, servico) {
   if (a?.usaRecompensa) return 0;
+  // Corte de um pack: pago quando o pack foi vendido.
+  if (a?.usaPack) return 0;
   const guardado = a?.unitPriceSnapshot;
   if (guardado != null) return Number(guardado) || 0;
   return Number(servico?.price || 0);

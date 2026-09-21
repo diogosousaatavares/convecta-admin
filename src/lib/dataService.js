@@ -487,6 +487,11 @@ function apptFromRow(row) {
     loyaltyStamped: m.loyaltyStamped || false,
     // Marcacao paga com um corte gratis do cartao de fidelidade.
     usaRecompensa: m.usaRecompensa === true,
+    // Marcacao paga com um corte de um pack (PACK_MENSAL.sql). O corte foi
+    // pago na venda do pack; aqui ja nao ha nada a cobrar.
+    usaPack: m.usaPack === true,
+    pacoteId: m.pacoteId || null,
+    packDevolvido: m.packDevolvido === true,
     blocked: m.blocked || false,
     createdAt: row.created_at,
     confirmedAt: m.confirmedAt, completedAt: m.completedAt,
@@ -516,6 +521,11 @@ function apptToRow(a) {
       durationSnapshot: a.durationSnapshot,
       loyaltyStamped: a.loyaltyStamped,
       usaRecompensa: !!a.usaRecompensa,
+      // Os tres do pack tem de viajar sempre juntos: se uma gravacao os
+      // perdesse, a base de dados ja nao saberia que corte devolver.
+      usaPack: a.usaPack ? true : undefined,
+      pacoteId: a.pacoteId || undefined,
+      packDevolvido: a.packDevolvido ? true : undefined,
       blocked: a.blocked,
       confirmedAt: a.confirmedAt, completedAt: a.completedAt,
       cancelledAt: a.cancelledAt, attendedAt: a.attendedAt,

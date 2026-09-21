@@ -91,6 +91,7 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
           <div style={{ textAlign: 'right' }}>
             <div className="text-gold fw-600" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>{formatPrice(base)}</div>
             {cortesGratis && <div className="text-xs fw-600" style={{ color: 'var(--gold)' }}>🎁 Corte grátis do cartão</div>}
+            {appointment?.usaPack && <div className="text-xs fw-600" style={{ color: 'var(--gold)' }}>Pago com o pack</div>}
           </div>
         </div>
 

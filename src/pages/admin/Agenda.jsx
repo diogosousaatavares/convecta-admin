@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -16,6 +16,7 @@ import { formatDate, dateToStr, todayStr, formatPrice } from '@/lib/format';
 import CheckoutModal from '@/components/admin/CheckoutModal';
 import VendaAvulsoModal from '@/components/admin/VendaAvulsoModal';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { packsActivosDoCliente, saldoParaServico } from '@/lib/packsService';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
@@ -50,7 +51,23 @@ export default function Agenda() {
   const [blockMode, setBlockMode] = useState(false);
   const [selected, setSelected] = useState(null);
   const [quickOpen, setQuickOpen] = useState(false);
-  const [quick, setQuick] = useState({ customerId: '', serviceId: '', professionalId: '', startTime: '' });
+  const [quick, setQuick] = useState({ customerId: '', serviceId: '', professionalId: '', startTime: '', usaPack: false });
+  // Os packs do cliente escolhido no encaixe. Quem tem pack e liga para
+  // marcar tem de o poder usar — senao o barbeiro cobrava-lhe duas vezes.
+  const [packsDoCliente, setPacksDoCliente] = useState([]);
+  useEffect(() => {
+    let vivo = true;
+    if (!quick.customerId) { setPacksDoCliente([]); return; }
+    packsActivosDoCliente(quick.customerId)
+      .then(p => { if (vivo) setPacksDoCliente(p); })
+      .catch(() => { if (vivo) setPacksDoCliente([]); });
+    return () => { vivo = false; };
+  }, [quick.customerId]);
+  const saldoPackEncaixe = quick.serviceId ? saldoParaServico(packsDoCliente, quick.serviceId) : 0;
+  useEffect(() => {
+    // Com saldo, o pack e o normal; sem saldo, nem se oferece.
+    setQuick(f => ({ ...f, usaPack: saldoPackEncaixe > 0 }));
+  }, [saldoPackEncaixe]);
   const [quickError, setQuickError] = useState('');
   const [cancelTarget, setCancelTarget] = useState(null);
   const [vendaOpen, setVendaOpen] = useState(false);
@@ -160,11 +177,14 @@ export default function Agenda() {
       date,
       startTime: quick.startTime,
       endTime: toTime(toMin(quick.startTime) + svc.durationMinutes),
-      status: 'confirmed'
+      status: 'confirmed',
+      usaPack: quick.usaPack && saldoPackEncaixe > 0,
     });
-    toast.success('Encaixe criado', 'Marcação confirmada na agenda.');
+    toast.success('Encaixe criado', quick.usaPack && saldoPackEncaixe > 0
+      ? 'Marcação confirmada — paga com o pack do cliente.'
+      : 'Marcação confirmada na agenda.');
     setQuickOpen(false);
-    setQuick({ customerId: '', serviceId: '', professionalId: '', startTime: '' });
+    setQuick({ customerId: '', serviceId: '', professionalId: '', startTime: '', usaPack: false });
   };
 
   const selAppt = selected ? data.appointments.find(a => a.id === selected) : null;
@@ -199,6 +219,7 @@ export default function Agenda() {
                             <td>
                               <Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(a)}</Badge>
                               {a.usaRecompensa && <Badge variant="gold" style={{ marginLeft: 6 }}>🎁 Grátis</Badge>}
+                              {a.usaPack && <Badge variant="gold" style={{ marginLeft: 6 }}>Pack</Badge>}
                             </td>
                             <td>{a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)}>Confirmar</Button>}{a.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(a.id)}>Presença</Button>}</td>
                           </tr>
@@ -364,6 +385,12 @@ export default function Agenda() {
                     <span className="v"><Badge variant="gold">🎁 Corte grátis do cartão</Badge></span>
                   </div>
                 )}
+                {selAppt.usaPack && (
+                  <div className="ag-detail-row">
+                    <span className="l">Pagamento</span>
+                    <span className="v"><Badge variant="gold">Pago com o pack</Badge></span>
+                  </div>
+                )}
                 <div className="ag-detail-actions">
                   {selAppt.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(selAppt.id)}>Confirmar</Button>}
                   {selAppt.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(selAppt.id)}>Confirmar presença</Button>}
@@ -404,6 +431,12 @@ export default function Agenda() {
             <label className="label">Hora de início</label>
             <input type="time" className="input" value={quick.startTime} onChange={e => setQuick(f => ({ ...f, startTime: e.target.value }))} />
           </div>
+          {saldoPackEncaixe > 0 && (
+            <label className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px' }}>
+              <input type="checkbox" checked={quick.usaPack} onChange={e => setQuick(f => ({ ...f, usaPack: e.target.checked }))} />
+              Usar o pack do cliente ({saldoPackEncaixe} corte{saldoPackEncaixe > 1 ? 's' : ''} por usar) — fica a 0 €
+            </label>
+          )}
           <div className="ag-detail-actions" style={{ justifyContent: 'flex-end' }}>
             <Button size="sm" variant="secondary" onClick={() => setQuickOpen(false)}>Cancelar</Button>
             <Button size="sm" variant="primary" onClick={submitQuick}>Criar encaixe</Button>
