@@ -18,7 +18,7 @@
  * diferente do dashboard, e a partir dai ninguem confia em nenhum dos dois.
  */
 import { descarregarXlsx, dinheiro, data as dataExcel, titulo } from '@/lib/excel';
-import { paidAppointments, netOfPayment } from '@/lib/domain/finance';
+import { paidAppointments, netOfPayment, vendasDePacks } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
 
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
@@ -58,8 +58,25 @@ export function dadosDoRelatorio(state, ano, mes) {
       // Um corte grátis do cartão é um serviço prestado que não foi cobrado. O
       // contabilista precisa de o ver: aparece na lista, com zero.
       gratis: a.usaRecompensa === true,
+      // Corte de pack: já foi pago na venda do pack (folha «Packs»). Aparece
+      // aqui com zero para o contabilista ver o serviço prestado.
+      pack: a.usaPack === true,
     };
   });
+
+  // Os packs vendidos no mês: são receita no dia em que foram pagos.
+  const packs = vendasDePacks(state, range)
+    .slice()
+    .sort((a, b) => String(a.soldAt).localeCompare(String(b.soldAt)))
+    .map(v => ({
+      data: String(v.soldAt || '').slice(0, 10),
+      cliente: nomeDe(state.customers, v.customerId) || '—',
+      pack: v.nome,
+      cortes: v.cortes,
+      total: round2(Number(v.total) || 0),
+      metodo: v.method || '',
+    }));
+  const totalPacks = round2(packs.reduce((s, p) => s + p.total, 0));
 
   const soma = (f) => round2(linhas.reduce((s, l) => s + f(l), 0));
   const porChave = (campo, valor = l => l.total) => {
@@ -80,7 +97,14 @@ export function dadosDoRelatorio(state, ano, mes) {
       gorjetas: soma(l => l.gorjeta),
       total: soma(l => l.total),
     },
-    porMetodo: porChave('metodo'),
+    packs,
+    totalPacks,
+    // Serviços e packs juntos: é o que entrou por cada meio de pagamento.
+    porMetodo: (() => {
+      const m = new Map(porChave('metodo'));
+      for (const p of packs) m.set(p.metodo || '—', round2((m.get(p.metodo || '—') || 0) + p.total));
+      return [...m.entries()].sort((a, b) => b[1] - a[1]);
+    })(),
     porProfissional: porChave('profissional'),
     porServico: porChave('servico'),
   };
@@ -104,7 +128,11 @@ export function exportarRelatorioMensal(state, ano, mes) {
     ['Descontos', dinheiro(-t.descontos)],
     ['Receita de serviços', dinheiro(t.liquido)],
     ['Gorjetas', dinheiro(t.gorjetas)],
-    [titulo('Total cobrado'), dinheiro(t.total)],
+    [titulo('Total cobrado em serviços'), dinheiro(t.total)],
+    ['Packs vendidos', r.packs.length],
+    ['Receita de packs', dinheiro(r.totalPacks)],
+    [titulo('Total cobrado'), dinheiro(round2(t.total + r.totalPacks))],
+    ['Os cortes feitos com pack aparecem a 0 € na folha Serviços: foram pagos na venda do pack.'],
     [],
     [titulo('POR MÉTODO DE PAGAMENTO')],
     ...r.porMetodo.map(([k, v]) => [k, dinheiro(v)]),
@@ -120,12 +148,12 @@ export function exportarRelatorioMensal(state, ano, mes) {
 
   const servicos = [
     ['Data', 'Hora', 'Referência', 'Cliente', 'Serviço', 'Profissional',
-     'Valor', 'Desconto', 'Receita', 'Gorjeta', 'Total', 'Pagamento', 'Grátis']
+     'Valor', 'Desconto', 'Receita', 'Gorjeta', 'Total', 'Pagamento', 'Grátis', 'Pack']
       .map(titulo),
     ...r.linhas.map(l => [
       dataExcel(l.data), l.hora, l.referencia, l.cliente, l.servico, l.profissional,
       dinheiro(l.base), dinheiro(l.desconto), dinheiro(l.liquido),
-      dinheiro(l.gorjeta), dinheiro(l.total), l.metodo, l.gratis ? 'Sim' : '',
+      dinheiro(l.gorjeta), dinheiro(l.total), l.metodo, l.gratis ? 'Sim' : '', l.pack ? 'Sim' : '',
     ]),
   ];
 
@@ -133,7 +161,16 @@ export function exportarRelatorioMensal(state, ano, mes) {
     servicos.push([]);
     servicos.push([titulo('TOTAL'), '', '', '', '', '',
       dinheiro(t.base), dinheiro(t.descontos), dinheiro(t.liquido),
-      dinheiro(t.gorjetas), dinheiro(t.total), '', '']);
+      dinheiro(t.gorjetas), dinheiro(t.total), '', '', '']);
+  }
+
+  const folhaPacks = [
+    ['Data', 'Cliente', 'Pack', 'Cortes', 'Valor', 'Pagamento'].map(titulo),
+    ...r.packs.map(p => [dataExcel(p.data), p.cliente, p.pack, p.cortes, dinheiro(p.total), p.metodo]),
+  ];
+  if (r.packs.length) {
+    folhaPacks.push([]);
+    folhaPacks.push([titulo('TOTAL'), '', '', '', dinheiro(r.totalPacks), '']);
   }
 
   const semAcentos = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
@@ -141,7 +178,8 @@ export function exportarRelatorioMensal(state, ano, mes) {
 
   descarregarXlsx(nomeFicheiro, [
     { nome: 'Resumo', larguras: [38, 18], linhas: resumo },
-    { nome: 'Serviços', larguras: [11, 7, 13, 22, 22, 18, 11, 11, 11, 10, 11, 14, 8], linhas: servicos },
+    { nome: 'Serviços', larguras: [11, 7, 13, 22, 22, 18, 11, 11, 11, 10, 11, 14, 8, 6], linhas: servicos },
+    { nome: 'Packs', larguras: [11, 22, 22, 8, 11, 14], linhas: folhaPacks },
   ]);
 
   return r;

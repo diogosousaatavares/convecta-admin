@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { TrendingUp, ShoppingBag, Package, Repeat, Wallet } from 'lucide-react';
+import { TrendingUp, ShoppingBag, Package, Repeat, Wallet, Scissors } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, EmptyState, Badge } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
-import { paidAppointments, vendasDeProdutos } from '@/lib/domain/finance';
+import { paidAppointments, vendasDeProdutos, vendasDePacks } from '@/lib/domain/finance';
 
 export default function FinRevenue() {
   const data = useStore();
@@ -24,6 +24,8 @@ export default function FinRevenue() {
   // contadas na linha dos produtos; contá-las outra vez em "outras" era
   // somar o mesmo dinheiro duas vezes.
   const idsDeVenda = useMemo(() => new Set(vendas.map(v => v.id)), [vendas]);
+  // Os packs contam no dia em que foram pagos (os cortes com pack ficam a 0 €).
+  const packs = useMemo(() => vendasDePacks(data, { from, to }), [data, from, to]);
   const movesIn = useMemo(() => (data.cashMovements || []).filter(m => m.type === 'in'
     && inRange((m.createdAt || '').slice(0, 10))
     && !/^Venda de produtos/.test(m.description || '')), [data.cashMovements, from, to, idsDeVenda]);
@@ -32,7 +34,8 @@ export default function FinRevenue() {
   const tipsRev = sales.reduce((s, a) => s + (a.payment.tip || 0), 0);
   const produtosRev = vendas.reduce((s, v) => s + Number(v.total || 0), 0);
   const otherRev = movesIn.reduce((s, m) => s + Number(m.amount || 0), 0);
-  const total = servicesRev + tipsRev + produtosRev + otherRev;
+  const packsRev = packs.reduce((s, v) => s + Number(v.total || 0), 0);
+  const total = servicesRev + tipsRev + produtosRev + packsRev + otherRev;
 
   const rows = [
     { icon: ShoppingBag, label: 'Serviços', value: servicesRev },
@@ -52,6 +55,7 @@ export default function FinRevenue() {
         <Card className="kpi"><ShoppingBag className="icon" size={22} /><div className="label">Serviços</div><div className="value">{formatPrice(servicesRev)}</div></Card>
         <Card className="kpi"><Wallet className="icon" size={22} /><div className="label">Gorjetas</div><div className="value">{formatPrice(tipsRev)}</div></Card>
         <Card className="kpi"><Package className="icon" size={22} /><div className="label">Produtos</div><div className="value">{formatPrice(produtosRev)}</div></Card>
+        <Card className="kpi"><Scissors className="icon" size={22} /><div className="label">Packs</div><div className="value">{formatPrice(packsRev)}</div></Card>
         <Card className="kpi"><Repeat className="icon" size={22} /><div className="label">Outras</div><div className="value">{formatPrice(otherRev)}</div></Card>
       </div>
       <Card className="card-pad">
@@ -95,6 +99,25 @@ export default function FinRevenue() {
           </table>
         )}
       </Card>
+      {packs.length > 0 && (
+        <Card className="card-pad" style={{ marginTop: 20 }}>
+          <h3 style={{ fontSize: 18, marginBottom: 16 }}>Packs vendidos no período</h3>
+          <table className="table">
+            <thead><tr><th>Data</th><th>Cliente</th><th>Pack</th><th>Total</th><th>Método</th></tr></thead>
+            <tbody>
+              {packs.map(v => (
+                <tr key={v.id}>
+                  <td className="text-xs">{String(v.soldAt || '').slice(0, 10)}</td>
+                  <td>{data.customers.find(c => c.id === v.customerId)?.name || '—'}</td>
+                  <td className="text-sm">{v.nome} · {v.cortes} cortes</td>
+                  <td className="fw-600">{formatPrice(v.total)}</td>
+                  <td><Badge variant="default">{v.method || '—'}</Badge></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
     </AdminPage>
   );
 }

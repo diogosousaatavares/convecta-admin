@@ -5,7 +5,7 @@ import PageInfo from '@/components/admin/PageInfo';
 import { Card, EmptyState } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
-import { paidAppointments, getProductRevenue, getExpensesTotal } from '@/lib/domain/finance';
+import { paidAppointments, getProductRevenue, getPackRevenue, getExpensesTotal } from '@/lib/domain/finance';
 
 export default function RepFinance() {
   const data = useStore();
@@ -17,7 +17,9 @@ export default function RepFinance() {
   // produtos vendidos ao balcao a contar como receita.
   const sales = useMemo(() => paidAppointments(data, { from, to }), [data, from, to]);
   const produtos = useMemo(() => getProductRevenue(data, { from, to }), [data, from, to]);
-  const revenue = sales.reduce((s, a) => s + (a.payment.total || 0), 0) + produtos;
+  // Packs: receita no dia em que foram pagos.
+  const packs = useMemo(() => getPackRevenue(data, { from, to }), [data, from, to]);
+  const revenue = sales.reduce((s, a) => s + (a.payment.total || 0), 0) + produtos + packs;
   const expenses = getExpensesTotal(data, { from, to });
   const movesIn = (data.cashMovements || []).filter(m => m.type === 'in' && inRange((m.createdAt || '').slice(0, 10))).reduce((s, m) => s + Number(m.amount || 0), 0);
   const movesOut = (data.cashMovements || []).filter(m => m.type === 'out' && inRange((m.createdAt || '').slice(0, 10))).reduce((s, m) => s + Number(m.amount || 0), 0);

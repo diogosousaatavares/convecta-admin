@@ -95,7 +95,7 @@ function traduzirErro(error) {
   }
   return error instanceof Error ? error : new Error(error.message || 'Erro desconhecido');
 }
-import { getCustomerStats } from '@/lib/domain/finance';
+import { getCustomerStats, valorDoCortePack } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
 import { localDateStr } from '@/lib/domain/dates';
 import { diaLocal } from '@/lib/format';
@@ -109,6 +109,9 @@ let state = {
   business: null,
   // Pagamentos por MB WAY enviados pelos clientes (MBWAY.sql).
   pagamentosMbway: [],
+  // Packs vendidos (packs_clientes): entram na Caixa e na receita no dia em
+  // que são pagos, e dão a base da comissão dos cortes de pack.
+  packSales: [],
   professionals: [], services: [], customers: [], appointments: [],
   products: [], cashSessions: [], cashMovements: [], forms: [],
   waitlist: [], suppliers: [], stockMovements: [], commissions: [],
@@ -763,6 +766,23 @@ function mbwayFromRow(r) {
     criadoEm: r.created_at || r.criado_em, resolvidoEm: r.resolvido_em,
   };
 }
+function vendaPackFromRow(r) {
+  return {
+    id: r.id, customerId: r.customer_id, nome: r.nome,
+    total: Number(r.preco_pago) || 0, cortes: r.cortes_total || 0,
+    method: r.metodo || '', soldAt: r.comprado_em,
+    anulado: !!r.anulado_em, anuladoEm: r.anulado_em || null,
+  };
+}
+// Sem o PACK_MENSAL.sql a tabela não existe: lista vazia, sem erro no ecrã.
+async function lerVendasPacks() {
+  const { data, error } = await supabase.from('packs_clientes')
+    .select('id, customer_id, nome, preco_pago, cortes_total, metodo, comprado_em, anulado_em')
+    .eq('business_id', BUSINESS_ID);
+  if (error) return [];
+  return (data || []).map(vendaPackFromRow);
+}
+
 async function lerPagamentosMbway() {
   const { data, error } = await supabase.from('pagamentos_mbway')
     .select('*').eq('business_id', BUSINESS_ID).order('criado_em', { ascending: false }).limit(500);
@@ -864,6 +884,7 @@ async function init() {
   Object.assign(state, { professionals, services, customers, appointments, products, cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions, sales, expenses, reviews, timeOff });
   // Sem o MBWAY.sql corrido, a tabela nao existe: fica vazio e calado.
   state.pagamentosMbway = await lerPagamentosMbway();
+  state.packSales = await lerVendasPacks();
   initialized = true;
   notify();
 }
@@ -1111,6 +1132,7 @@ const dataService = {
     if (error) throw new Error(error.message);
     state.appointments = (data || []).map(apptFromRow);
     state.pagamentosMbway = await lerPagamentosMbway();
+    state.packSales = await lerVendasPacks();
     notify();
     return state.appointments;
   },
@@ -1123,6 +1145,12 @@ const dataService = {
     if (a?.mbway?.estado === 'confirmado') return { estado: 'pago', valor: Number(a.mbway.valor) || 0 };
     const p = (state.pagamentosMbway || []).find(x => x.appointmentId === apptId && x.estado === 'enviado');
     return p ? { estado: 'por-confirmar', valor: p.valor, pagamento: p } : null;
+  },
+  // Depois de vender, confirmar ou anular um pack (Packs, MB WAY): a Caixa e
+  // os relatórios acompanham sem recarregar a página.
+  async recarregarVendasPacks() {
+    state.packSales = await lerVendasPacks();
+    notify(); return state.packSales;
   },
   async recarregarMbway() {
     state.pagamentosMbway = await lerPagamentosMbway();
@@ -1246,12 +1274,17 @@ const dataService = {
     const tip = round2(Number(payData.tip) || 0);
     const total = round2(net + tip);
     const pct = pro?.commission || 0;
-    const commissionAmount = round2(net * pct / 100);
+    // Corte de pack: o cliente pagou o pack à cabeça, e aqui fica a 0 €. O
+    // barbeiro ganha a percentagem dele sobre o valor do corte no pack
+    // (preço pago ÷ cortes) — decisão de 21/09. A receita continua 0: já
+    // contou no dia da venda do pack.
+    const baseComissao = a.usaPack ? valorDoCortePack(state, a) : net;
+    const commissionAmount = round2(baseComissao * pct / 100);
     a.status = 'completed'; a.completedAt = new Date().toISOString();
     a.paymentMethod = payData.method;
     a.payment = { ...payData, baseAmount: round2(base), discountAmount, net, tip, total, at: new Date().toISOString() };
     // Persist commission
-    const commRow = { business_id: BUSINESS_ID, appointment_id: apptId, professional_id: a.professionalId, base_amount: net, percentage: pct, amount: commissionAmount, status: 'accrued', metadata: { professionalNameSnapshot: a.professionalNameSnapshot || pro?.name, serviceNameSnapshot: a.serviceNameSnapshot, tip } };
+    const commRow = { business_id: BUSINESS_ID, appointment_id: apptId, professional_id: a.professionalId, base_amount: baseComissao, percentage: pct, amount: commissionAmount, status: 'accrued', metadata: { professionalNameSnapshot: a.professionalNameSnapshot || pro?.name, serviceNameSnapshot: a.serviceNameSnapshot, tip, ...(a.usaPack ? { pack: true, pacoteId: a.pacoteId } : {}) } };
     // O erro desta gravacao nunca era lido. A tabela estava trocada com a do
     // CRM e falhava sempre — nenhuma comissao chegou a ser gravada, e o ecra
     // de Comissoes mostrava sempre vazio sem nunca dar sinal de nada.
@@ -1268,7 +1301,7 @@ const dataService = {
     if (comm) state.commissions.push(comm);
     // A percentagem fica gravada dentro da propria marcacao. Mudar a comissao
     // de um barbeiro amanha nao altera o que ja foi feito hoje.
-    a.payment.commission = { percentage: pct, baseAmount: net, commissionAmount };
+    a.payment.commission = { percentage: pct, baseAmount: baseComissao, commissionAmount };
     a.payment.commissionId = comm?.id || null;
     // Update appointment. Este erro nunca era lido: se a gravacao falhasse, o
     // ecra dizia "concluida", a comissao ja estava gravada e, ao recarregar,

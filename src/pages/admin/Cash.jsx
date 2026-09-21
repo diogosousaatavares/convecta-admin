@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Wallet, Plus, Trash2, Lock, Unlock, Banknote, CreditCard, Smartphone, Receipt, TrendingDown, Gift, Coins, ShoppingBag } from 'lucide-react';
+import { Wallet, Plus, Trash2, Lock, Unlock, Banknote, CreditCard, Smartphone, Receipt, TrendingDown, Gift, Coins, ShoppingBag, Repeat } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, Badge, Button, EmptyState, Modal } from '@/components/ui';
@@ -7,7 +7,7 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice, formatDate, todayStr } from '@/lib/format';
-import { getExpectedCash, pagamentosDaSessao, vendasDaSessao } from '@/lib/domain/finance';
+import { getExpectedCash, pagamentosDaSessao, vendasDaSessao, packsDaSessao } from '@/lib/domain/finance';
 import CheckoutModal from '@/components/admin/CheckoutModal';
 
 const METHODS = ['Dinheiro', 'Cartão', 'MB WAY', 'Transferência', 'Voucher'];
@@ -51,6 +51,11 @@ export default function Cash() {
   const vendasProdutos = useMemo(() => vendasDaSessao(data, session)
     .sort((a, b) => (a.soldAt || '').localeCompare(b.soldAt || '')), [data, session]);
 
+  // Os packs vendidos nesta sessao. O pack e receita no dia em que e pago;
+  // os cortes feitos com ele ficam a 0 € e nao voltam a contar aqui.
+  const vendasPacks = useMemo(() => packsDaSessao(data, session)
+    .sort((a, b) => (a.soldAt || '').localeCompare(b.soldAt || '')), [data, session]);
+
   // Sangrias e reforcos — o que e mesmo avulso.
   const movimentos = useMemo(() => {
     if (!session) return [];
@@ -61,12 +66,14 @@ export default function Cash() {
     const m = {}; METHODS.forEach(x => m[x] = 0);
     sales.forEach(a => { if (m[a.payment.method] != null) m[a.payment.method] += a.payment.total; });
     vendasProdutos.forEach(v => { if (m[v.method] != null) m[v.method] += v.total; });
+    vendasPacks.forEach(v => { if (m[v.method] != null) m[v.method] += v.total; });
     return m;
-  }, [sales, vendasProdutos]);
+  }, [sales, vendasProdutos, vendasPacks]);
 
   const totalServicos = sales.reduce((s, a) => s + a.payment.total, 0);
   const totalProdutos = vendasProdutos.reduce((s, v) => s + Number(v.total || 0), 0);
-  const totalSales = totalServicos + totalProdutos;
+  const totalPacks = vendasPacks.reduce((s, v) => s + Number(v.total || 0), 0);
+  const totalSales = totalServicos + totalProdutos + totalPacks;
   const totalTips = sales.reduce((s, a) => s + (a.payment.tip || 0), 0);
   const totalDiscounts = sales.reduce((s, a) => s + (a.payment.discountAmount || 0), 0);
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
@@ -148,6 +155,9 @@ export default function Cash() {
             <Card className="kpi"><Wallet className="icon" size={22} /><div className="label">Fundo de abertura</div><div className="value">{formatPrice(session.openingBalance)}</div></Card>
             <Card className="kpi"><Receipt className="icon" size={22} /><div className="label">Vendas (total)</div><div className="value gold">{formatPrice(totalSales)}</div></Card>
             <Card className="kpi"><ShoppingBag className="icon" size={22} /><div className="label">Produtos</div><div className="value gold">{formatPrice(totalProdutos)}</div></Card>
+            {(totalPacks > 0 || data.business?.packs?.ativo === true) && (
+              <Card className="kpi"><Repeat className="icon" size={22} /><div className="label">Packs</div><div className="value gold">{formatPrice(totalPacks)}</div></Card>
+            )}
             <Card className="kpi"><Coins className="icon" size={22} /><div className="label">Gorjetas</div><div className="value gold">{formatPrice(totalTips)}</div></Card>
             <Card className="kpi"><TrendingDown className="icon" size={22} /><div className="label">Descontos</div><div className="value">{formatPrice(totalDiscounts)}</div></Card>
             <Card className="kpi"><TrendingDown className="icon" size={22} /><div className="label">Despesas</div><div className="value">{formatPrice(totalExpenses)}</div></Card>
@@ -184,7 +194,7 @@ export default function Cash() {
                   <Button size="sm" variant="danger" onClick={() => setCloseModal(true)}><Lock size={15} /> Fechar caixa</Button>
                 </div>
               </div>
-              {sales.length === 0 && vendasProdutos.length === 0 ? (
+              {sales.length === 0 && vendasProdutos.length === 0 && vendasPacks.length === 0 ? (
                 <EmptyState icon={() => <Receipt />} title="Sem vendas" description="Cobra as marcações por cobrar acima para registar vendas." />
               ) : sales.length === 0 ? null : (
                 <table className="table">
@@ -223,6 +233,29 @@ export default function Cash() {
                             <td className="fw-600 text-gold">{new Date(v.soldAt).toLocaleTimeString('pt-PT').slice(0, 5)}</td>
                             <td>{cust?.name || '—'}</td>
                             <td className="text-sec text-xs">{(v.items || []).map(i => `${i.name} ×${i.qty}`).join(', ')}</td>
+                            <td className="fw-600">{formatPrice(v.total)}</td>
+                            <td><Badge variant="default">{v.method || '—'}</Badge></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </>
+              )}
+
+              {vendasPacks.length > 0 && (
+                <>
+                  <h4 className="mt-24 mb-16" style={{ fontSize: 15 }}>Packs vendidos</h4>
+                  <table className="table">
+                    <thead><tr><th>Hora</th><th>Cliente</th><th>Pack</th><th>Total</th><th>Método</th></tr></thead>
+                    <tbody>
+                      {vendasPacks.map(v => {
+                        const cust = v.customerId ? data.customers.find(c => c.id === v.customerId) : null;
+                        return (
+                          <tr key={v.id}>
+                            <td className="fw-600 text-gold">{new Date(v.soldAt).toLocaleTimeString('pt-PT').slice(0, 5)}</td>
+                            <td>{cust?.name || '—'}</td>
+                            <td className="text-sm">{v.nome} · {v.cortes} cortes</td>
                             <td className="fw-600">{formatPrice(v.total)}</td>
                             <td><Badge variant="default">{v.method || '—'}</Badge></td>
                           </tr>
@@ -295,7 +328,8 @@ export default function Cash() {
               {history.map(s => {
                 const sSales = pagamentosDaSessao(data, s);
                 const sProd = vendasDaSessao(data, s);
-                const sTotal = sSales.reduce((sum, a) => sum + a.payment.total, 0) + sProd.reduce((sum, v) => sum + Number(v.total || 0), 0);
+                const sTotal = sSales.reduce((sum, a) => sum + a.payment.total, 0) + sProd.reduce((sum, v) => sum + Number(v.total || 0), 0)
+                  + packsDaSessao(data, s).reduce((sum, v) => sum + Number(v.total || 0), 0);
                 const sExp = data.expenses.filter(e => e.sessionId === s.id).reduce((sum, e) => sum + Number(e.amount || 0), 0);
                 const expCash = getExpectedCash(data, s);
                 const diff = (s.countedCash || 0) - expCash;

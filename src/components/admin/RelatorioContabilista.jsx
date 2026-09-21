@@ -39,7 +39,7 @@ export default function RelatorioContabilista() {
   const exportar = () => {
     if (!r.linhas.length) { toast.info('Mês sem serviços', 'Não há nada para exportar neste mês.'); return; }
     exportarRelatorioMensal(data, ano, mes);
-    toast.success('Relatório criado', `${r.linhas.length} serviços · ${formatPrice(r.totais.total)}`);
+    toast.success('Relatório criado', `${r.linhas.length} serviços${r.packs?.length ? ` · ${r.packs.length} packs` : ''} · ${formatPrice(r.totais.total + (r.totalPacks || 0))}`);
   };
 
   const linha = (rotulo, valor, forte = false) => (
@@ -86,7 +86,8 @@ export default function RelatorioContabilista() {
           {linha('Valor dos serviços', formatPrice(r.totais.base))}
           {r.totais.descontos > 0 && linha('Descontos', '− ' + formatPrice(r.totais.descontos))}
           {r.totais.gorjetas > 0 && linha('Gorjetas', formatPrice(r.totais.gorjetas))}
-          {linha('Total cobrado', formatPrice(r.totais.total), true)}
+          {r.packs?.length > 0 && linha(`Packs vendidos (${r.packs.length})`, formatPrice(r.totalPacks))}
+          {linha('Total cobrado', formatPrice(r.totais.total + (r.totalPacks || 0)), true)}
           <div className="text-sec text-xs" style={{ marginTop: 12 }}>
             Sem IVA — os valores são os cobrados ao cliente.
           </div>

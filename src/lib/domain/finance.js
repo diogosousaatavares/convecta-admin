@@ -59,9 +59,36 @@ export function getProductRevenue(state, range) {
   return round2(vendasDeProdutos(state, range).reduce((s, v) => s + (Number(v.total) || 0), 0));
 }
 
-// Receita do negócio: serviços + produtos. É este o número do painel.
+// --- Vendas de packs -------------------------------------------------------
+// O pack entra como receita no dia em que é pago (decisão de 21/09). Os
+// cortes feitos com ele ficam a 0 € — o dinheiro já foi contado na venda,
+// contá-lo outra vez a cada corte era receita a dobrar. Uma venda anulada
+// (engano, ou dinheiro devolvido) deixa de contar.
+export function vendasDePacks(state, range) {
+  const hoje = localDateStr(new Date());
+  return (state.packSales || []).filter(v => {
+    if (v.anulado) return false;
+    const d = v.soldAt ? localDateStr(new Date(v.soldAt)) : null;
+    return d && d <= hoje && inRange(d, range);
+  });
+}
+
+export function getPackRevenue(state, range) {
+  return round2(vendasDePacks(state, range).reduce((s, v) => s + (Number(v.total) || 0), 0));
+}
+
+// Quanto vale um corte de um pack: o que o cliente pagou a dividir pelos
+// cortes. É a base da comissão do barbeiro nesse corte.
+export function valorDoCortePack(state, a) {
+  if (!a?.usaPack || !a.pacoteId) return 0;
+  const v = (state.packSales || []).find(x => x.id === a.pacoteId);
+  if (!v || !(Number(v.cortes) > 0)) return 0;
+  return round2((Number(v.total) || 0) / Number(v.cortes));
+}
+
+// Receita do negócio: serviços + produtos + packs. É este o número do painel.
 export function getTotalRevenue(state, range) {
-  return round2(getRevenue(state, range) + getProductRevenue(state, range));
+  return round2(getRevenue(state, range) + getProductRevenue(state, range) + getPackRevenue(state, range));
 }
 
 // Despesas do período, pela data em que foram feitas.
@@ -107,7 +134,8 @@ export function commissionForAppointment(state, a) {
   // Legacy: sem registo persistido — estimativa honesta.
   const pro = state.professionals.find(p => p.id === a.professionalId);
   const pct = pro?.commission || 0;
-  const base = netOfPayment(a);
+  // Corte de pack: a comissão é sobre o valor do corte no pack, não sobre 0 €.
+  const base = a.usaPack ? valorDoCortePack(state, a) : netOfPayment(a);
   return {
     professionalId: a.professionalId,
     percentage: pct,
@@ -223,6 +251,18 @@ export function vendasDaSessao(state, session) {
   });
 }
 
+// Os packs vendidos durante esta sessão (pela hora da venda). Anulados não.
+export function packsDaSessao(state, session) {
+  if (!session) return [];
+  const de = session.openedAt;
+  const ate = session.closedAt || null;
+  return (state.packSales || []).filter(v => {
+    if (v.anulado) return false;
+    const t = v.soldAt || '';
+    return t && t >= de && (!ate || t <= ate);
+  });
+}
+
 // Numerário esperado = fundo de abertura + tudo o que entrou EM DINHEIRO
 // (serviços, produtos, entradas avulsas) - o que saiu em dinheiro (despesas
 // pagas em numerário e levantamentos). Cartão e MB WAY não mexem na gaveta.
@@ -243,6 +283,9 @@ export function getExpectedCash(state, session) {
   const produtosDinheiro = vendasDaSessao(state, session)
     .filter(v => isCashMethod(v.method))
     .reduce((s, v) => s + Number(v.total || 0), 0);
+  const packsDinheiro = packsDaSessao(state, session)
+    .filter(v => isCashMethod(v.method))
+    .reduce((s, v) => s + Number(v.total || 0), 0);
   const despesasDinheiro = (state.expenses || [])
     .filter(e => e.sessionId === session.id && expenseImpactsCash(e))
     .reduce((s, e) => s + Number(e.amount || 0), 0);
@@ -253,5 +296,5 @@ export function getExpectedCash(state, session) {
     .filter(m => m.type === 'out' && dentro(m.createdAt || ''))
     .reduce((s, m) => s + Number(m.amount || 0), 0);
 
-  return round2((session.openingBalance || 0) + servicosDinheiro + produtosDinheiro + entradas - despesasDinheiro - saidas);
+  return round2((session.openingBalance || 0) + servicosDinheiro + produtosDinheiro + packsDinheiro + entradas - despesasDinheiro - saidas);
 }

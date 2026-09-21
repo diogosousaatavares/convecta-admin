@@ -144,6 +144,8 @@ export default function Packs() {
         listarPacks(businessId), listarVendas(businessId), listarPedidos(businessId),
       ]);
       setPacks(p); setVendas(v); setPedidos(q);
+      // A Caixa e os relatórios lêem as vendas de packs do estado geral.
+      dataService.recarregarVendasPacks?.().catch(() => {});
     } catch (e) {
       setErro(e.message);
     } finally {

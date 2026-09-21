@@ -10,7 +10,7 @@ import LinkDaBarbearia from '@/components/LinkDaBarbearia';
 import PrimeirosPassos from '@/components/PrimeirosPassos';
 import { Card, Badge, Avatar, EmptyState } from '@/components/ui';
 import { formatPrice, formatDate, formatDateNum, todayStr, addDays, getDowShort } from '@/lib/format';
-import { getRevenue, getProductRevenue, getTotalRevenue, getExpensesTotal, getExpectedCash, getOccupancy, paidAppointments, netOfPayment, getCancellationCount, getCancellationRate, getNoShowCount, getNoShowRate } from '@/lib/domain/finance';
+import { getRevenue, getProductRevenue, getPackRevenue, getTotalRevenue, getExpensesTotal, getExpectedCash, getOccupancy, paidAppointments, netOfPayment, getCancellationCount, getCancellationRate, getNoShowCount, getNoShowRate } from '@/lib/domain/finance';
 import { monthBounds, weekBounds, daysBetween } from '@/lib/domain/dates';
 import { round2 } from '@/lib/domain/money';
 import { listConvectaNotifs, markConvectaNotifRead } from '@/lib/convectaNotifs';
@@ -60,6 +60,7 @@ export default function Dashboard() {
   // dinheiro entrava na caixa, e aqui nao aparecia nada.
   const receitaServicos = getRevenue(data, range);
   const receitaProdutos = getProductRevenue(data, range);
+  const receitaPacks = getPackRevenue(data, range);
   const periodRevenue = getTotalRevenue(data, range);
   const periodExpenses = getExpensesTotal(data, range);
   const periodResult = round2(periodRevenue - periodExpenses);
@@ -268,7 +269,7 @@ export default function Dashboard() {
         </div>
       )}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 14 }}>
-        <Card className="card-pad" style={{ background: 'linear-gradient(135deg, rgba(201,168,39,0.12), rgba(201,168,39,0.03))', border: '1px solid rgba(201,168,39,0.25)' }}><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-gold">RECEITA</span><Wallet size={18} className="text-gold" /></div><div style={{ fontSize: 30, fontWeight: 700, color: '#C9A227', lineHeight: 1 }}>{formatPrice(periodRevenue)}</div><div className="text-xs mt-10 text-sec">Serviços {formatPrice(receitaServicos)} · Produtos {formatPrice(receitaProdutos)}</div>{prevRevenue > 0 && <div className="text-xs mt-8" style={{ color: revDelta >= 0 ? '#22C55E' : '#EF4444' }}>{revDelta >= 0 ? '+' : ''}{revDelta.toFixed(0)}% <span className="text-sec">vs período anterior</span></div>}</Card>
+        <Card className="card-pad" style={{ background: 'linear-gradient(135deg, rgba(201,168,39,0.12), rgba(201,168,39,0.03))', border: '1px solid rgba(201,168,39,0.25)' }}><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-gold">RECEITA</span><Wallet size={18} className="text-gold" /></div><div style={{ fontSize: 30, fontWeight: 700, color: '#C9A227', lineHeight: 1 }}>{formatPrice(periodRevenue)}</div><div className="text-xs mt-10 text-sec">Serviços {formatPrice(receitaServicos)} · Produtos {formatPrice(receitaProdutos)}{receitaPacks > 0 ? ` · Packs ${formatPrice(receitaPacks)}` : ''}</div>{prevRevenue > 0 && <div className="text-xs mt-8" style={{ color: revDelta >= 0 ? '#22C55E' : '#EF4444' }}>{revDelta >= 0 ? '+' : ''}{revDelta.toFixed(0)}% <span className="text-sec">vs período anterior</span></div>}</Card>
         <Card className="card-pad"><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">MARCAÇÕES</span><CalendarDays size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>{periodActive.length}</div><div className="flex gap-12 mt-10 text-xs"><span style={{ color: '#22C55E' }}>✓ {periodAppts.filter(a => a.status === 'completed').length} concluídas</span><span style={{ color: '#EF4444' }}>✗ {periodCancelled} canceladas</span></div></Card>
         <Card className="card-pad"><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">OCUPAÇÃO</span><TrendingUp size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, color: occupancy >= 70 ? '#22C55E' : occupancy >= 40 ? '#C9A227' : '#EF4444', lineHeight: 1 }}>{occupancy}%</div><div style={{ marginTop: 10, height: 4, borderRadius: 2, background: 'var(--border)' }}><div style={{ height: '100%', width: `${Math.min(occupancy, 100)}%`, background: occupancy >= 70 ? '#22C55E' : occupancy >= 40 ? '#C9A227' : '#EF4444' }} /></div></Card>
         <Card className="card-pad"><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">TICKET MÉDIO</span><Star size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, color: '#C9A227', lineHeight: 1 }}>{formatPrice(ticketMedio)}</div><div className="text-sec text-xs mt-10">Hoje: <span className="text-sm">{formatPrice(ticketDia)}</span></div></Card>
