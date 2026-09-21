@@ -742,8 +742,11 @@ async function fetchAll(table, adapter) {
 }
 
 // ─── MB WAY ───────────────────────────────────────────────────────────────────
+const MBWAY_LIGADO = false;
 // Esta marcação ainda se pode pagar por MB WAY? (para o aviso de «confirmada»)
 function mbwayParaPagar(a) {
+  // Desligado a 21/09: a confirmação manual dava trabalho a mais ao barbeiro.
+  if (MBWAY_LIGADO !== true) return false;
   const m = state.business?.mbway || {};
   const d = new Date();
   const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;

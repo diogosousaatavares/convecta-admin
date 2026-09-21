@@ -65,7 +65,9 @@ const GROUPS_TODOS = [
 
   // Pagamentos por MB WAY ao marcar: ligar, número, limite do mês e os
   // pagamentos à espera de confirmação.
-  { type: 'item', to: '/admin/mbway', label: 'MB WAY', icon: MbIcon, iconSize: 20 },
+  // MB WAY com confirmação manual: escondido a 21/09 (dava trabalho a mais
+  // ao barbeiro). Volta quando o pagamento se confirmar sozinho.
+  // { type: 'item', to: '/admin/mbway', label: 'MB WAY', icon: MbIcon, iconSize: 20 },
 
   { type: 'group', label: 'Financeiro', icon: Wallet, items: [
     { to: '/admin/financeiro/caixa', label: 'Caixa', exact: true },
