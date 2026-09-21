@@ -5,6 +5,7 @@ import AdminPage from '@/components/admin/AdminPage';
 import { Card, Button, EmptyState, Modal, Badge, Avatar } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { useToast } from '@/components/ui/ToastContext';
+import dataService from '@/lib/dataService';
 import { formatPrice, formatDateShortNum } from '@/lib/format';
 import {
   listarPacks, guardarPack, apagarPack, listarVendas, venderPack, anularVenda,
@@ -66,6 +67,23 @@ export default function Packs() {
   const [vendaModal, setVendaModal] = useState(false);
   const [venda, setVenda] = useState({ packId: '', customerId: '', metodo: 'Dinheiro', preco: '' });
   const [aGravar, setAGravar] = useState(false);
+
+  // O programa de packs, ligado ou desligado. Desligado (e por omissao), o
+  // cliente nao ve rasto nenhum de packs na app, a agenda nao os oferece, e a
+  // base de dados nao gasta nenhum. Os saldos ficam guardados para quando se
+  // voltar a ligar — como os carimbos do cartao de fidelidade.
+  const ligado = data.business?.packs?.ativo === true;
+  const [aMudar, setAMudar] = useState(false);
+  const alternarPrograma = async () => {
+    setAMudar(true);
+    try {
+      await dataService.updateBusiness({ packs: { ...(data.business?.packs || {}), ativo: !ligado } });
+      toast.success(!ligado ? 'Packs ligados' : 'Packs desligados', !ligado
+        ? 'Os clientes com pack já vêem o cartão na app e podem usá-lo ao marcar.'
+        : 'Deixam de aparecer aos clientes. Os saldos ficam guardados.');
+    } catch (e) { toast.error('Não foi possível mudar', e.message); }
+    finally { setAMudar(false); }
+  };
 
   const carregar = useCallback(async () => {
     if (!businessId) return;
@@ -140,7 +158,7 @@ export default function Packs() {
     servicos: f.servicos.includes(id) ? f.servicos.filter(x => x !== id) : [...f.servicos, id],
   }));
 
-  const accoes = tab === 'packs'
+  const accoes = !ligado ? null : tab === 'packs'
     ? <Button variant="primary" onClick={abrirNovoPack}><Plus size={16} /> Novo pack</Button>
     : <Button variant="primary" onClick={() => abrirVenda()} disabled={!packs.some(p => p.ativo)}><ShoppingBag size={16} /> Vender pack</Button>;
 
@@ -153,6 +171,22 @@ export default function Packs() {
       actions={accoes}
     >
       {erro && <Card className="card-pad" style={{ borderColor: 'var(--error)', marginBottom: 16 }}>{erro}</Card>}
+
+      <Card className="card-pad" style={{ marginBottom: 16 }}>
+        <label className="loyalty-toggle-row" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div>
+            <div className="fw-600 text-sm">Programa de packs {ligado ? 'ligado' : 'desligado'}</div>
+            <div className="text-sec text-xs" style={{ marginTop: 3, lineHeight: 1.5, maxWidth: 560 }}>
+              {ligado
+                ? 'O cliente com pack vê o cartão do pack na app, ao lado do cartão de fidelidade, e usa-o ao marcar. A cada corte feito, o cartão é picotado.'
+                : 'Desligado, os packs não aparecem em lado nenhum da app do cliente e a agenda não os oferece. Liga para começares a vender.'}
+            </div>
+          </div>
+          <input type="checkbox" checked={ligado} disabled={aMudar} onChange={alternarPrograma} style={{ width: 20, height: 20 }} />
+        </label>
+      </Card>
+
+      <div style={{ opacity: ligado ? 1 : 0.45, pointerEvents: ligado ? 'auto' : 'none', transition: 'opacity .2s' }}>
 
       {tab === 'packs' && !aCarregar && (
         packs.length === 0 ? (
@@ -238,6 +272,8 @@ export default function Packs() {
           )}
         </>
       )}
+
+      </div>
 
       <Modal open={packModal} onClose={() => setPackModal(false)} title={pack.id ? 'Editar pack' : 'Novo pack'}>
         <div className="field">

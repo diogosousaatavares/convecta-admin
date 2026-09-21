@@ -43,7 +43,9 @@ const TEMA_OMISSAO={
   // estilo, nao um valor por defeito que se impoe a toda a gente.
   background:{ativo:false,cor:'#FFFFFF',intensidade:0.5,velocidade:1},
 }
-const LOYALTY_OMISSAO={ativo:true,stampsNeeded:10,validMonths:6}
+// Desligado por omissao. Estava ligado: gravar o site escrevia ativo:true
+// no cartao, e uma barbearia que nunca o quis ficava com ele.
+const LOYALTY_OMISSAO={ativo:false,stampsNeeded:10,validMonths:6}
 
 // Aceita o formato antigo (em português) e devolve sempre o contrato novo.
 function normalizarTema(t){
@@ -680,20 +682,20 @@ function DesignTab({biz,onGuardado}){
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,marginBottom:10}}>
                   <Lbl>Cartão de fidelidade</Lbl>
                   <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer',userSelect:'none'}}>
-                    <input type="checkbox" checked={info.loyalty.ativo!==false}
+                    <input type="checkbox" checked={info.loyalty.ativo===true}
                       onChange={e=>inf('loyalty',{...info.loyalty,ativo:e.target.checked})}
                       style={{width:16,height:16,accentColor:YD,cursor:'pointer'}}/>
                     <span style={{fontSize:12.5,color:T2}}>Mostrar no site</span>
                   </label>
                 </div>
-                {info.loyalty.ativo===false&&(
+                {info.loyalty.ativo!==true&&(
                   <div style={{fontSize:11.5,color:T3,marginBottom:10,lineHeight:1.5}}>
                     Desligado, o cartão não aparece em lado nenhum do site do cliente.
                     Os carimbos já dados ficam guardados.
                   </div>
                 )}
                 <div style={{display:'grid',gridTemplateColumns:telemovel?'1fr':'1fr 1fr',gap:14,
-                  opacity:info.loyalty.ativo===false?.4:1,pointerEvents:info.loyalty.ativo===false?'none':'auto'}}>
+                  opacity:info.loyalty.ativo!==true?.4:1,pointerEvents:info.loyalty.ativo!==true?'none':'auto'}}>
                   <div>
                     <div style={{fontSize:11.5,color:T3,marginBottom:5}}>Cortes necessários</div>
                     <Inp type="number" min="1" max="30" value={info.loyalty.stampsNeeded}

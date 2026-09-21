@@ -57,12 +57,12 @@ export default function Agenda() {
   const [packsDoCliente, setPacksDoCliente] = useState([]);
   useEffect(() => {
     let vivo = true;
-    if (!quick.customerId) { setPacksDoCliente([]); return; }
+    if (!quick.customerId || data.business?.packs?.ativo !== true) { setPacksDoCliente([]); return; }
     packsActivosDoCliente(quick.customerId)
       .then(p => { if (vivo) setPacksDoCliente(p); })
       .catch(() => { if (vivo) setPacksDoCliente([]); });
     return () => { vivo = false; };
-  }, [quick.customerId]);
+  }, [quick.customerId, data.business?.packs?.ativo]);
   const saldoPackEncaixe = quick.serviceId ? saldoParaServico(packsDoCliente, quick.serviceId) : 0;
   useEffect(() => {
     // Com saldo, o pack e o normal; sem saldo, nem se oferece.

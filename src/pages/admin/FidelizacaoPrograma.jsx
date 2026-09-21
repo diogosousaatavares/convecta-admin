@@ -20,14 +20,15 @@ import { useToast } from '@/components/ui/ToastContext';
  * aparece ao cliente, o balcao nao carimba e nao ha corte gratis a usar;
  * os carimbos ja dados ficam guardados para quando voltar a ligar.
  */
-const OMISSAO = { ativo: true, stampsNeeded: 10, validMonths: 6, rewardName: 'Corte grátis', cartaoClaro: false };
+// Desligado por omissao: o cartao so existe se o barbeiro o ligar aqui.
+const OMISSAO = { ativo: false, stampsNeeded: 10, validMonths: 6, rewardName: 'Corte grátis', cartaoClaro: false };
 
 export default function FidelizacaoPrograma() {
   const data = useStore();
   const toast = useToast();
   const guardado = { ...OMISSAO, ...(data.business?.loyalty || {}) };
 
-  const [ativo, setAtivo] = useState(guardado.ativo !== false);
+  const [ativo, setAtivo] = useState(guardado.ativo === true);
   const [carimbos, setCarimbos] = useState(guardado.stampsNeeded);
   const [validade, setValidade] = useState(guardado.validMonths);
   const [premio, setPremio] = useState(guardado.rewardName);
@@ -40,7 +41,7 @@ export default function FidelizacaoPrograma() {
   // Se as regras mudarem noutro sitio (super admin), o ecra acompanha.
   useEffect(() => {
     const g = { ...OMISSAO, ...(data.business?.loyalty || {}) };
-    setAtivo(g.ativo !== false); setCarimbos(g.stampsNeeded); setValidade(g.validMonths); setPremio(g.rewardName);
+    setAtivo(g.ativo === true); setCarimbos(g.stampsNeeded); setValidade(g.validMonths); setPremio(g.rewardName);
     setClaro(g.cartaoClaro === true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.business?.loyalty]);

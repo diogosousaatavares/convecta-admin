@@ -187,7 +187,9 @@ function loyaltyCardConfig() {
   const l = state.business?.loyalty || {};
   return {
     ...DEFAULT_LOYALTY,
-    enabled: l.ativo !== false,
+    // So com o cartao LIGADO de proposito. Antes, uma barbearia que nunca
+    // tinha decidido nada carimbava na mesma, e o cliente via a animacao.
+    enabled: l.ativo === true,
     totalStamps: Math.max(3, Math.min(20, Number(l.stampsNeeded) || 10)),
     reward: l.rewardName || DEFAULT_LOYALTY.reward,
   };
@@ -212,7 +214,18 @@ export function cartaoExpirou(loyalty, meses = mesesDeValidade()) {
 }
 
 async function addLoyaltyStamp(appt, at = new Date().toISOString()) {
-  if (!appt?.customerId || appt.loyaltyStamped || !loyaltyCardConfig().enabled) return;
+  if (!appt?.customerId || appt.loyaltyStamped) return;
+  if (!loyaltyCardConfig().enabled) {
+    // Sem cartao nao ha carimbo — mas o pedido de avaliacao do corte
+    // continua. Vivia so aqui dentro, e desligar o cartao calava as
+    // avaliacoes sem ninguem dar por isso.
+    const c = state.customers.find(x => x.id === appt.customerId);
+    if (c && !c.pendingReview) {
+      c.pendingReview = { appointmentId: appt.id, serviceId: appt.serviceId, professionalId: appt.professionalId };
+      await guardarFidelidade(c);
+    }
+    return;
+  }
   const customer = state.customers.find(c => c.id === appt.customerId);
   if (!customer) return;
   const cfg = loyaltyCardConfig();
@@ -352,6 +365,8 @@ function bizFromRow(row) {
     config: s.config || _defaultConfig(),
     // O cartao de fidelidade: uma so verdade, a mesma que o site do cliente le.
     loyalty: s.loyalty || {},
+    // O programa de packs (Packs → interruptor no topo). Desligado por omissao.
+    packs: s.packs || {},
     // As categorias dos servicos, pela ordem que o barbeiro escolheu. Vivem
     // no settings da barbearia (o site do cliente le-as de la); antes eram
     // uma lista em memoria que desaparecia ao recarregar a pagina.
