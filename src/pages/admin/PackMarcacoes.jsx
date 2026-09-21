@@ -139,12 +139,12 @@ export default function PackMarcacoes() {
                     <div className="text-sec text-xs">{v.nome} · até {formatDateShortNum(v.validoAte)}</div>
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(v.total, 8)}, 1fr)`, gap: 8 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(v.total, 8)}, minmax(0, 40px))`, gap: 8 }}>
                   {Array.from({ length: v.total }).map((_, i) => {
                     const feito = i < feitos;
                     const m = !feito ? marcadas[i - feitos] : null;
                     return (
-                      <div key={i} style={{ display: 'grid', justifyItems: 'center', gap: 3 }}>
+                      <div key={i} style={{ display: 'grid', gap: 3, minWidth: 0 }}>
                         <div style={{
                           width: '100%', aspectRatio: '1', borderRadius: '50%', display: 'grid', placeItems: 'center',
                           border: `2px ${feito || m ? 'solid' : 'dashed'} ${feito ? '#16a34a' : 'var(--border-strong, var(--border))'}`,
@@ -152,7 +152,7 @@ export default function PackMarcacoes() {
                         }} title={feito ? 'Feito' : m ? `Marcado · ${formatDateShortNum(m.date)} ${m.startTime}` : 'Por marcar'}>
                           {feito && <Check size={14} strokeWidth={3} />}
                         </div>
-                        <span className="text-sec" style={{ fontSize: 10 }}>{m ? formatDateShortNum(m.date) : ' '}</span>
+                        <span className="text-sec" style={{ fontSize: 10, textAlign: 'center', whiteSpace: 'nowrap' }}>{m ? formatDateShortNum(m.date) : ' '}</span>
                       </div>
                     );
                   })}
