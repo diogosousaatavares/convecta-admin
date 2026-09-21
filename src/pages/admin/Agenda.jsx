@@ -219,7 +219,7 @@ export default function Agenda() {
                             <td>
                               <Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(a)}</Badge>
                               {a.usaRecompensa && <Badge variant="gold" style={{ marginLeft: 6 }}>🎁 Grátis</Badge>}
-                              {a.usaPack && <Badge variant="gold" style={{ marginLeft: 6 }}>Pack</Badge>}
+                              {a.usaPack && <Badge variant="gold" style={{ marginLeft: 6 }}>Pack mensal</Badge>}
                             </td>
                             <td>{a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)}>Confirmar</Button>}{a.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(a.id)}>Presença</Button>}</td>
                           </tr>
@@ -388,7 +388,7 @@ export default function Agenda() {
                 {selAppt.usaPack && (
                   <div className="ag-detail-row">
                     <span className="l">Pagamento</span>
-                    <span className="v"><Badge variant="gold">Pago com o pack</Badge></span>
+                    <span className="v"><Badge variant="gold">Pack mensal — já pago, não cobrar</Badge></span>
                   </div>
                 )}
                 <div className="ag-detail-actions">

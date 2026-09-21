@@ -121,14 +121,20 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                     <div
                       key={a.id}
                       className={`ag-block ${cls}`}
-                      style={{ top, height }}
+                      // Marcação do pack mensal: um friso dourado e a etiqueta
+                      // PACK — o barbeiro sabe à primeira que não se cobra.
+                      style={{ top, height, ...(a.usaPack && !a.blocked ? { boxShadow: 'inset 4px 0 0 #C9A227' } : null) }}
+                      title={a.usaPack ? 'Pack mensal — já pago' : undefined}
                       onClick={() => onSelect(a)}
                     >
                       {a.blocked ? (
                         <span className="ag-b-name">{a.label || 'Bloqueado'}</span>
                       ) : (
                         <>
-                          <div className="ag-b-time">{a.startTime} · {svc?.name}</div>
+                          <div className="ag-b-time">
+                            {a.usaPack && <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', background: '#C9A227', color: '#0A0804', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
+                            {a.startTime} · {svc?.name}
+                          </div>
                           <div className="ag-b-name">{cust?.name || '—'}</div>
                           {(ind.isBirthday || ind.isFirst || ind.hasCoupon || ind.hasSub || ind.inLoyalty) && (
                             <div className="ag-b-indicators">

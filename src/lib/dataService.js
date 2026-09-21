@@ -215,7 +215,11 @@ export function cartaoExpirou(loyalty, meses = mesesDeValidade()) {
 
 async function addLoyaltyStamp(appt, at = new Date().toISOString()) {
   if (!appt?.customerId || appt.loyaltyStamped) return;
-  if (!loyaltyCardConfig().enabled) {
+  // Corte do pack mensal: por omissão NÃO dá carimbo no cartão de
+  // fidelidade — o pack já é o desconto. A barbearia pode mudar isso em
+  // Packs › «Os cortes do pack dão carimbo».
+  const packSemCarimbo = appt.usaPack === true && state.business?.packs?.carimbos !== true;
+  if (!loyaltyCardConfig().enabled || packSemCarimbo) {
     // Sem cartao nao ha carimbo — mas o pedido de avaliacao do corte
     // continua. Vivia so aqui dentro, e desligar o cartao calava as
     // avaliacoes sem ninguem dar por isso.

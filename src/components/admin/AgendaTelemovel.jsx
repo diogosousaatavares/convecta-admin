@@ -233,13 +233,16 @@ export default function AgendaTelemovel({
                         type="button"
                         key={a.id}
                         className={`agm-bloco ${est.cor}`}
-                        style={{ top: topo, height: alt }}
+                        style={{ top: topo, height: alt, ...(a.usaPack && !a.blocked ? { boxShadow: 'inset 4px 0 0 #C9A227' } : null) }}
                         onClick={() => onSelect(a)}
                       >
                         <span className="agm-bloco-barra" />
                         <span className="agm-bloco-ico"><Icone size={18} /></span>
                         <span className="agm-bloco-hora">{a.startTime} – {a.endTime}</span>
-                        <span className="agm-bloco-svc">{a.blocked ? (a.label || 'Bloqueado') : (svc?.name || 'Serviço')}</span>
+                        <span className="agm-bloco-svc">
+                          {a.usaPack && !a.blocked && <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', background: '#C9A227', color: '#0A0804', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
+                          {a.blocked ? (a.label || 'Bloqueado') : (svc?.name || 'Serviço')}
+                        </span>
                         {!a.blocked && <span className="agm-bloco-cli">{cli?.name || '—'}</span>}
                       </button>
                     );

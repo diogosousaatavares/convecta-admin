@@ -22,6 +22,7 @@ const GROUPS_TODOS = [
   { type: 'group', label: 'Agenda', icon: CalendarDays, items: [
     { to: '/admin/agenda', label: 'Agenda', exact: true },
     { to: '/admin/agenda/marcacoes', label: 'Marcações' },
+    { to: '/admin/agenda/pack', label: 'Pack mensal' },
     { to: '/admin/agenda/lista-espera', label: 'Lista de Espera' },
     { to: '/admin/agenda/encaixes', label: 'Encaixes' },
     { to: '/admin/agenda/bloqueios', label: 'Bloqueios' }
@@ -91,7 +92,8 @@ const GROUPS_TODOS = [
 
   { type: 'group', label: 'Packs', icon: Repeat, items: [
     { to: '/admin/packs', label: 'Packs à venda', exact: true },
-    { to: '/admin/packs/clientes', label: 'Clientes com pack' }
+    { to: '/admin/packs/clientes', label: 'Clientes com pack' },
+    { to: '/admin/packs/pedidos', label: 'Pedidos' }
   ]},
 
   { type: 'group', label: 'Promoções', icon: Ticket, items: [

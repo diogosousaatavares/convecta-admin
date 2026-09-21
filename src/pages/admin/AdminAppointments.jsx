@@ -246,7 +246,7 @@ export default function AdminAppointments() {
                     <td>
                       <Badge variant={badgeVariant}>{statusLabel}</Badge>
                       {a.usaRecompensa && <Badge variant="gold" style={{ marginLeft: 6 }}>🎁 Grátis</Badge>}
-                      {a.usaPack && <Badge variant="gold" style={{ marginLeft: 6 }}>Pack</Badge>}
+                      {a.usaPack && <Badge variant="gold" style={{ marginLeft: 6 }}>Pack mensal</Badge>}
                       {/* A avaliação que o cliente deixou deste corte. */}
                       {avaliacaoDe(a.id) && (
                         <span title={avaliacaoDe(a.id).comment || 'Sem comentário'} style={{ marginLeft: 6, display: 'inline-flex', alignItems: 'center', gap: 2, color: 'var(--gold)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
