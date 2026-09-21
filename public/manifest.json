@@ -1,33 +1,33 @@
 {
-  "name": "Gestão Convecta",
-  "short_name": "Gestão Convecta",
+  "name": "Admin",
+  "short_name": "Admin",
   "description": "A gestão da tua barbearia: agenda, clientes, caixa e relatórios.",
   "start_url": "/admin",
   "display": "standalone",
-  "background_color": "#0A0807",
+  "background_color": "#000000",
   "theme_color": "#0A0807",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/admin-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/admin-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-192-maskable.png",
+      "src": "/admin-icon-192-maskable.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-512-maskable.png",
+      "src": "/admin-icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

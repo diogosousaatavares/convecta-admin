@@ -11,8 +11,8 @@ self.addEventListener("push", (e) => {
   e.waitUntil(
     self.registration.showNotification(titulo, {
       body: d.corpo || "",
-      icon: d.icone || "/icon-192.png",
-      badge: "/icon-192.png",
+      icon: d.icone || "/admin-icon-192.png",
+      badge: "/admin-icon-192.png",
       tag: d.tag || "convecta",
       renotify: true,
       requireInteraction: !!d.exigeAccao,
