@@ -45,6 +45,7 @@ const ESTADOS = {
   activa:     { texto: 'Activa',               cor: 'var(--success, #22C55E)' },
   em_atraso:  { texto: 'Pagamento em atraso',  cor: '#F59E0B' },
   cancelada:  { texto: 'Cancelada',            cor: 'var(--error, #EF4444)' },
+  gratis:     { texto: 'Isenta de pagamento',  cor: 'var(--success, #22C55E)' },
 };
 
 const ETIQUETAS = { pago: 'Pago', gratis: 'Grátis', por_pagar: 'Por pagar', falhou: 'Falhou', anulado: 'Anulado', rascunho: '—' };
@@ -333,6 +334,28 @@ export default function Subscricao() {
     return (
       <AdminPage title="Subscrição" subtitle="O teu plano na Convecta.">
         <Spinner label="A confirmar o estado da subscrição…" />
+      </AdminPage>
+    );
+  }
+
+  /*
+   * Barbearia que nao paga (parceiro ou teste — o interruptor e do super
+   * admin). Nao ha nada a vender aqui nem nada a resolver: diz-se isso, e
+   * mais nada. Mostrar-lhe os planos era convida-lo a pagar o que nao deve.
+   */
+  if (sub?.estado === 'gratis') {
+    return (
+      <AdminPage title="Subscrição" subtitle="O teu plano na Convecta.">
+        <Card className="card-pad" style={{ maxWidth: 720 }}>
+          <div className="text-sec" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: .8 }}>Estado</div>
+          <div className="fw-600" style={{ fontSize: 20, color: ESTADOS.gratis.cor, marginTop: 4 }}>
+            {ESTADOS.gratis.texto}
+          </div>
+          <p className="text-sec" style={{ fontSize: 14, lineHeight: 1.6, margin: '12px 0 0' }}>
+            A tua barbearia não paga mensalidade. Não precisas de registar cartão —
+            as marcações estão abertas e tens o painel completo.
+          </p>
+        </Card>
       </AdminPage>
     );
   }

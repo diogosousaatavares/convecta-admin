@@ -1756,25 +1756,32 @@ const dataService = {
 
     const COLUNAS = 'plan, billing_period, professional_limit, subscricao_estado, trial_ends_at, current_period_end, stripe_customer_id';
 
-    let { data, error } = await supabase
-      .from('businesses')
-      .select(COLUNAS + ', cancela_no_fim')
-      .eq('id', BUSINESS_ID).maybeSingle();
-
     /*
-     * A coluna do cancelamento agendado e recente. Se o SQL ainda nao foi
-     * corrido, tenta-se outra vez SEM ela — em vez de devolver null.
+     * As colunas mais recentes pedem-se primeiro, e cada uma que ainda nao
+     * exista (SQL por correr) cai da lista e tenta-se outra vez — em vez de
+     * devolver null.
      *
      * Devolver null aqui era pior do que o problema: `null` quer dizer «esta
      * barbearia nao tem subscricao», e o painel mostrava o ecra de VENDA a
      * quem ja esta a pagar. Um cliente a quem se pede o cartao outra vez e um
      * cliente que liga a perguntar se foi cobrado a dobrar.
+     *
+     * `isenta` e `is_test` (GRATIS.sql): a barbearia nao paga. Parceiros e
+     * barbearias de teste. Sem elas, uma barbearia isenta via a faixa a
+     * pedir o cartao e a pagina de planos — que e exactamente o que o
+     * interruptor do super admin existe para evitar.
      */
-    if (error && /cancela_no_fim/.test(error.message || '')) {
+    const EXTRAS = ['isenta', 'is_test', 'cancela_no_fim'];
+    let extras = [...EXTRAS];
+    let data, error;
+    for (;;) {
       ({ data, error } = await supabase
         .from('businesses')
-        .select(COLUNAS)
+        .select([COLUNAS, ...extras].join(', '))
         .eq('id', BUSINESS_ID).maybeSingle());
+      const emFalta = error && extras.find(c => new RegExp(c).test(error.message || ''));
+      if (!emFalta) break;
+      extras = extras.filter(c => c !== emFalta);
     }
     if (error) {
       // As colunas da subscricao inteiras por criar: ai sim, nao ha nada a ler.
@@ -1786,13 +1793,14 @@ const dataService = {
       plano: data.plan || null,
       periodo: data.billing_period || 'mensal',
       limiteProfissionais: data.professional_limit ?? null,
-      estado: data.subscricao_estado || 'sem_cartao',
+      // Quem nao paga nao tem estado de subscricao que interesse: esta aberto.
+      estado: (data.isenta || data.is_test) ? 'gratis' : (data.subscricao_estado || 'sem_cartao'),
       fimDoTeste: data.trial_ends_at || null,
       fimDoPeriodo: data.current_period_end || null,
       temCliente: !!data.stripe_customer_id,
       // Cancelou no portal, mas continua a usar ate ao fim do periodo. Sao
       // duas coisas diferentes: o estado diz se FUNCIONA, isto diz se ACABA.
-      cancelaNoFim: !!data.cancela_no_fim,
+      cancelaNoFim: !!data.cancela_no_fim && !(data.isenta || data.is_test),
     };
   },
 

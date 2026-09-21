@@ -218,7 +218,7 @@ export default function AdminLayout({ children }) {
       try {
         const s = await dataService.subscricao();
         if (!vivo) return;
-        if (s && ['em_teste', 'activa'].includes(s.estado)) setVisitaBarbeiro(true);
+        if (s && ['em_teste', 'activa', 'gratis'].includes(s.estado)) setVisitaBarbeiro(true);
       } catch { /* sem subscricao legivel, nao se comeca nada */ }
     })();
     return () => { vivo = false; };
