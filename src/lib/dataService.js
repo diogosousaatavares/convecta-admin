@@ -107,6 +107,8 @@ const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','
 let BUSINESS_ID = null;
 let state = {
   business: null,
+  // Pagamentos por MB WAY enviados pelos clientes (MBWAY.sql).
+  pagamentosMbway: [],
   professionals: [], services: [], customers: [], appointments: [],
   products: [], cashSessions: [], cashMovements: [], forms: [],
   waitlist: [], suppliers: [], stockMovements: [], commissions: [],
@@ -371,6 +373,8 @@ function bizFromRow(row) {
     loyalty: s.loyalty || {},
     // O programa de packs (Packs → interruptor no topo). Desligado por omissao.
     packs: s.packs || {},
+    // MB WAY (menu MB WAY): { ativo, numero, titular, limiteMes }.
+    mbway: s.mbway || {},
     // As categorias dos servicos, pela ordem que o barbeiro escolheu. Vivem
     // no settings da barbearia (o site do cliente le-as de la); antes eram
     // uma lista em memoria que desaparecia ao recarregar a pagina.
@@ -511,6 +515,9 @@ function apptFromRow(row) {
     usaPack: m.usaPack === true,
     pacoteId: m.pacoteId || null,
     packDevolvido: m.packDevolvido === true,
+    // Pago por MB WAY e confirmado pelo barbeiro (MBWAY.sql). Quem o escreve
+    // e a base de dados, em mbway_confirmar.
+    mbway: m.mbway || null,
     blocked: m.blocked || false,
     createdAt: row.created_at,
     confirmedAt: m.confirmedAt, completedAt: m.completedAt,
@@ -545,6 +552,9 @@ function apptToRow(a) {
       usaPack: a.usaPack ? true : undefined,
       pacoteId: a.pacoteId || undefined,
       packDevolvido: a.packDevolvido ? true : undefined,
+      // Sem isto, a primeira gravacao do painel depois de confirmar o MB WAY
+      // apagava o «pago» da marcacao.
+      mbway: a.mbway || undefined,
       blocked: a.blocked,
       confirmedAt: a.confirmedAt, completedAt: a.completedAt,
       cancelledAt: a.cancelledAt, attendedAt: a.attendedAt,
@@ -731,6 +741,22 @@ async function fetchAll(table, adapter) {
   return (data || []).map(adapter);
 }
 
+// ─── MB WAY ───────────────────────────────────────────────────────────────────
+function mbwayFromRow(r) {
+  return {
+    id: r.id, appointmentId: r.appointment_id, customerId: r.customer_id,
+    valor: Number(r.valor) || 0, estado: r.estado,
+    comprovativo: r.comprovativo || null, motivo: r.motivo || '',
+    criadoEm: r.created_at || r.criado_em, resolvidoEm: r.resolvido_em,
+  };
+}
+async function lerPagamentosMbway() {
+  const { data, error } = await supabase.from('pagamentos_mbway')
+    .select('*').eq('business_id', BUSINESS_ID).order('criado_em', { ascending: false }).limit(500);
+  if (error) return [];
+  return (data || []).map(mbwayFromRow);
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 async function init() {
   if (initialized) return;
@@ -823,6 +849,8 @@ async function init() {
   ]);
 
   Object.assign(state, { professionals, services, customers, appointments, products, cashSessions, cashMovements, forms, waitlist, suppliers, stockMovements, commissions, sales, expenses, reviews, timeOff });
+  // Sem o MBWAY.sql corrido, a tabela nao existe: fica vazio e calado.
+  state.pagamentosMbway = await lerPagamentosMbway();
   initialized = true;
   notify();
 }
@@ -1069,8 +1097,80 @@ const dataService = {
       .select('*').eq('business_id', BUSINESS_ID);
     if (error) throw new Error(error.message);
     state.appointments = (data || []).map(apptFromRow);
+    state.pagamentosMbway = await lerPagamentosMbway();
     notify();
     return state.appointments;
+  },
+
+  // ── MB WAY ──
+  // O estado do MB WAY de uma marcacao: 'pago' (o barbeiro confirmou),
+  // 'por-confirmar' (o cliente diz que enviou) ou null.
+  mbwayDe(apptId) {
+    const a = state.appointments.find(x => x.id === apptId);
+    if (a?.mbway?.estado === 'confirmado') return { estado: 'pago', valor: Number(a.mbway.valor) || 0 };
+    const p = (state.pagamentosMbway || []).find(x => x.appointmentId === apptId && x.estado === 'enviado');
+    return p ? { estado: 'por-confirmar', valor: p.valor, pagamento: p } : null;
+  },
+  async recarregarMbway() {
+    state.pagamentosMbway = await lerPagamentosMbway();
+    notify(); return state.pagamentosMbway;
+  },
+  async confirmarMbway(pagamentoId) {
+    const { data, error } = await supabase.rpc('mbway_confirmar', { p_id: pagamentoId });
+    if (error) throw traduzirErro(error);
+    const linha = Array.isArray(data) ? data[0] : data;
+    const p = state.pagamentosMbway.find(x => x.id === pagamentoId);
+    if (p) { p.estado = 'confirmado'; p.resolvidoEm = new Date().toISOString(); }
+    const a = state.appointments.find(x => x.id === (linha?.appointment_id || p?.appointmentId));
+    if (a) a.mbway = { estado: 'confirmado', valor: Number(linha?.valor ?? p?.valor) || 0, em: new Date().toISOString(), pagamentoId };
+    if (p?.customerId) {
+      enviarPush({
+        businessId: BUSINESS_ID, para: 'customer', userId: p.customerId,
+        titulo: '\u{2705} Pagamento recebido',
+        mensagem: `${state.business?.name || 'A barbearia'}\nO teu MB WAY de ${String((p.valor || 0).toFixed(2)).replace('.', ',')} € chegou. A marcação está paga.`,
+        url: '/marcacoes', tag: 'mbway-' + pagamentoId,
+      }).catch(e => console.warn('aviso ao cliente não enviado:', e.message));
+    }
+    notify(); return p;
+  },
+  async rejeitarMbway(pagamentoId, motivo = '') {
+    const { error } = await supabase.rpc('mbway_rejeitar', { p_id: pagamentoId, p_motivo: motivo || null });
+    if (error) throw traduzirErro(error);
+    const p = state.pagamentosMbway.find(x => x.id === pagamentoId);
+    if (p) { p.estado = 'rejeitado'; p.motivo = motivo; p.resolvidoEm = new Date().toISOString(); }
+    const a = p && state.appointments.find(x => x.id === p.appointmentId);
+    if (a && a.mbway?.pagamentoId === pagamentoId) a.mbway = null;
+    if (p?.customerId) {
+      enviarPush({
+        businessId: BUSINESS_ID, para: 'customer', userId: p.customerId,
+        titulo: 'MB WAY não recebido',
+        mensagem: `${state.business?.name || 'A barbearia'}\n${motivo || 'O pagamento não chegou. Paga na barbearia ou envia de novo.'}`,
+        url: '/marcacoes', tag: 'mbway-' + pagamentoId,
+      }).catch(e => console.warn('aviso ao cliente não enviado:', e.message));
+    }
+    notify(); return p;
+  },
+  // O print guardado no bucket privado: um link que dura 10 minutos.
+  async urlDoComprovativo(caminho) {
+    if (!caminho) return null;
+    const { data, error } = await supabase.storage.from('comprovativos').createSignedUrl(caminho, 600);
+    if (error) return null;
+    return data?.signedUrl || null;
+  },
+  // Os prints tem nome e telemovel de quem pagou. 90 dias depois de o
+  // pagamento ser tratado, apagam-se.
+  async apagarComprovativosAntigos() {
+    const limite = Date.now() - 90 * 86400000;
+    const velhos = (state.pagamentosMbway || []).filter(p =>
+      p.comprovativo && p.estado !== 'enviado' && p.resolvidoEm && new Date(p.resolvidoEm).getTime() < limite);
+    for (const p of velhos) {
+      const { error } = await supabase.storage.from('comprovativos').remove([p.comprovativo]);
+      if (error) { console.warn('print não apagado:', error.message); continue; }
+      await supabase.rpc('mbway_esquecer_comprovativo', { p_id: p.id });
+      p.comprovativo = null;
+    }
+    if (velhos.length) notify();
+    return velhos.length;
   },
   async cancelAppointment(id, opts = {}) {
     const a = state.appointments.find(x => x.id === id);

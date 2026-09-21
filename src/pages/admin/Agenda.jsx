@@ -220,6 +220,7 @@ export default function Agenda() {
                               <Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(a)}</Badge>
                               {a.usaRecompensa && <Badge variant="gold" style={{ marginLeft: 6 }}>🎁 Grátis</Badge>}
                               {a.usaPack && <Badge variant="gold" style={{ marginLeft: 6 }}>Pack mensal</Badge>}
+                              {(() => { const mb = dataService.mbwayDe?.(a.id); return mb ? <Badge variant={mb.estado === 'pago' ? 'success' : 'warning'} style={{ marginLeft: 6 }}>{mb.estado === 'pago' ? 'Pago MB WAY' : 'MB WAY por confirmar'}</Badge> : null; })()}
                             </td>
                             <td>{a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)}>Confirmar</Button>}{a.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(a.id)}>Presença</Button>}</td>
                           </tr>
@@ -385,6 +386,26 @@ export default function Agenda() {
                     <span className="v"><Badge variant="gold">🎁 Corte grátis do cartão</Badge></span>
                   </div>
                 )}
+                {(() => {
+                  const mb = dataService.mbwayDe?.(selAppt.id);
+                  if (!mb) return null;
+                  return (
+                    <div className="ag-detail-row">
+                      <span className="l">MB WAY</span>
+                      <span className="v" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        {mb.estado === 'pago'
+                          ? <Badge variant="success">Pago · {formatPrice(mb.valor)}</Badge>
+                          : <>
+                              <Badge variant="warning">Por confirmar · {formatPrice(mb.valor)}</Badge>
+                              <Button size="sm" variant="primary" onClick={async () => {
+                                try { await dataService.confirmarMbway(mb.pagamento.id); toast.success('Pagamento confirmado'); }
+                                catch (e) { toast.error('Não foi possível confirmar', e.message); }
+                              }}>Recebi</Button>
+                            </>}
+                      </span>
+                    </div>
+                  );
+                })()}
                 {selAppt.usaPack && (
                   <div className="ag-detail-row">
                     <span className="l">Pagamento</span>

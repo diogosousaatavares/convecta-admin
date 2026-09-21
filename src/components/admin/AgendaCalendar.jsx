@@ -1,3 +1,4 @@
+import dataService from '@/lib/dataService';
 import React from 'react';
 import { useStore } from '@/hooks/useStore';
 import { todayStr } from '@/lib/format';
@@ -133,6 +134,13 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                         <>
                           <div className="ag-b-time">
                             {a.usaPack && <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', background: '#C9A227', color: '#0A0804', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
+                            {(() => {
+                              const mb = dataService.mbwayDe?.(a.id);
+                              if (!mb) return null;
+                              return mb.estado === 'pago'
+                                ? <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#16a34a', color: '#fff' }}>MB WAY ✓</span>
+                                : <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#f59e0b', color: '#1a1a1a' }} title="O cliente diz que pagou por MB WAY — confirma em MB WAY">MB WAY ?</span>;
+                            })()}
                             {a.startTime} · {svc?.name}
                           </div>
                           <div className="ag-b-name">{cust?.name || '—'}</div>

@@ -1,3 +1,4 @@
+import dataService from '@/lib/dataService';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ChevronLeft, ChevronRight, ChevronDown, Users, Info, Plus,
@@ -241,6 +242,13 @@ export default function AgendaTelemovel({
                         <span className="agm-bloco-hora">{a.startTime} – {a.endTime}</span>
                         <span className="agm-bloco-svc">
                           {a.usaPack && !a.blocked && <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', background: '#C9A227', color: '#0A0804', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
+                          {(() => {
+                            const mb = !a.blocked && dataService.mbwayDe?.(a.id);
+                            if (!mb) return null;
+                            return mb.estado === 'pago'
+                              ? <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#16a34a', color: '#fff' }}>MB WAY ✓</span>
+                              : <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#f59e0b', color: '#1a1a1a' }}>MB WAY ?</span>;
+                          })()}
                           {a.blocked ? (a.label || 'Bloqueado') : (svc?.name || 'Serviço')}
                         </span>
                         {!a.blocked && <span className="agm-bloco-cli">{cli?.name || '—'}</span>}

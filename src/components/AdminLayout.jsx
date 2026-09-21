@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog, Clock, Settings, Bell, BarChart3, Menu, X, LogOut, Wallet, Package, Megaphone, Star, ChevronDown, DollarSign, Palette, Gift, Repeat, Ticket, ReceiptText, CreditCard, UserPlus, Search, Plus, HelpCircle, Phone, Mail, Send } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog, Clock, Settings, Bell, BarChart3, Menu, X, LogOut, Wallet, Package, Megaphone, Star, ChevronDown, DollarSign, Palette, Gift, Repeat, Ticket, ReceiptText, CreditCard, UserPlus, Search, Plus, HelpCircle, Phone, Mail, Send, Smartphone } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
@@ -61,6 +61,10 @@ const GROUPS_TODOS = [
     { to: '/admin/comandas/canceladas', label: 'Canceladas' },
     { to: '/admin/comandas/historico', label: 'Histórico' }
   ]},
+
+  // Pagamentos por MB WAY ao marcar: ligar, número, limite do mês e os
+  // pagamentos à espera de confirmação.
+  { type: 'item', to: '/admin/mbway', label: 'MB WAY', icon: Smartphone },
 
   { type: 'group', label: 'Financeiro', icon: Wallet, items: [
     { to: '/admin/financeiro/caixa', label: 'Caixa', exact: true },

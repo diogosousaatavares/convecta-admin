@@ -4,6 +4,7 @@ import { Modal, Button } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice } from '@/lib/format';
 import { precoDaMarcacao } from '@/lib/domain/appointments';
+import dataService from '@/lib/dataService';
 
 const METHODS = [
   { key: 'Dinheiro', icon: Banknote },
@@ -24,9 +25,13 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
   const [amountPaid, setAmountPaid] = useState('');
   const [error, setError] = useState('');
 
+  // Já pago por MB WAY (confirmado pelo barbeiro): o método vem escolhido e
+  // o ecrã avisa para não cobrar outra vez.
+  const mbway = appointment ? dataService.mbwayDe?.(appointment.id) : null;
+
   useEffect(() => {
     if (open) {
-      setMethod('Dinheiro'); setDiscountType('%'); setDiscountValue(''); setDiscountReason('');
+      setMethod(mbway?.estado === 'pago' ? 'MB WAY' : 'Dinheiro'); setDiscountType('%'); setDiscountValue(''); setDiscountReason('');
       setTip(''); setVoucherCode(''); setAmountPaid(''); setError('');
     }
   }, [open, appointment?.id]);
@@ -92,8 +97,19 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
             <div className="text-gold fw-600" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>{formatPrice(base)}</div>
             {cortesGratis && <div className="text-xs fw-600" style={{ color: 'var(--gold)' }}>🎁 Corte grátis do cartão</div>}
             {appointment?.usaPack && <div className="text-xs fw-600" style={{ color: 'var(--gold)' }}>Pago com o pack</div>}
+            {mbway?.estado === 'pago' && <div className="text-xs fw-600" style={{ color: 'var(--success)' }}>Já pago por MB WAY</div>}
           </div>
         </div>
+        {mbway?.estado === 'pago' && (
+          <div className="text-sm mb-16" style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.35)' }}>
+            O cliente já pagou {formatPrice(mbway.valor)} por MB WAY. Não cobres outra vez — só fechas para ficar registado na caixa.
+          </div>
+        )}
+        {mbway?.estado === 'por-confirmar' && (
+          <div className="text-sm mb-16" style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)' }}>
+            O cliente diz que pagou {formatPrice(mbway.valor)} por MB WAY, mas ainda não confirmaste. Vê o teu MB WAY antes de cobrar.
+          </div>
+        )}
 
         <label className="label">Método de pagamento</label>
         <div className="grid-3" style={{ gap: 8, marginBottom: 16 }}>

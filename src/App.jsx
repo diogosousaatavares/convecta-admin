@@ -75,6 +75,7 @@ const RepSubscriptions = lazy(() => import('@/pages/admin/reports/RepSubscriptio
 const FidelizacaoPrograma   = lazy(() => import('@/pages/admin/FidelizacaoPrograma'));
 const Packs            = lazy(() => import('@/pages/admin/Packs'));
 const PackMarcacoes    = lazy(() => import('@/pages/admin/PackMarcacoes'));
+const MbWay            = lazy(() => import('@/pages/admin/MbWay'));
 const Coupons          = lazy(() => import('@/pages/admin/Coupons'));
 const Definicoes       = lazy(() => import('@/pages/admin/Definicoes'));
 const AnamneseForms    = lazy(() => import('@/pages/admin/AnamneseForms'));
@@ -189,6 +190,7 @@ function AppRoutes() {
         <Route path="/admin/packs/clientes" element={<AdminRoute><Packs /></AdminRoute>} />
         <Route path="/admin/packs/pedidos" element={<AdminRoute><Packs /></AdminRoute>} />
         <Route path="/admin/agenda/pack" element={<AdminRoute><PackMarcacoes /></AdminRoute>} />
+        <Route path="/admin/mbway" element={<AdminRoute><MbWay /></AdminRoute>} />
         <Route path="/admin/subscricoes" element={<Navigate to="/admin/packs" replace />} />
         <Route path="/admin/subscricoes/:tab" element={<Navigate to="/admin/packs" replace />} />
         <Route path="/admin/promocoes" element={<AdminRoute><Marketing /></AdminRoute>} />
