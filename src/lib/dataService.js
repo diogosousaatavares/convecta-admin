@@ -742,6 +742,16 @@ async function fetchAll(table, adapter) {
 }
 
 // ─── MB WAY ───────────────────────────────────────────────────────────────────
+// Esta marcação ainda se pode pagar por MB WAY? (para o aviso de «confirmada»)
+function mbwayParaPagar(a) {
+  const m = state.business?.mbway || {};
+  const d = new Date();
+  const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  if (m.ativo !== true || String(m.numero || '').replace(/\D/g, '').length < 9 || m.limiteMes === mes) return false;
+  if (a.usaPack || a.usaRecompensa || !(Number(a.unitPriceSnapshot) > 0)) return false;
+  if (a.mbway?.estado === 'confirmado') return false;
+  return !(state.pagamentosMbway || []).some(p => p.appointmentId === a.id && p.estado !== 'rejeitado');
+}
 function mbwayFromRow(r) {
   return {
     id: r.id, appointmentId: r.appointment_id, customerId: r.customer_id,
@@ -1082,7 +1092,7 @@ const dataService = {
         mensagem: corpoDaMarcacao({
           quem: state.business?.name, servico: a.serviceNameSnapshot,
           data: a.date, hora: a.startTime,
-        }),
+        }) + (mbwayParaPagar(a) ? '\nPodes pagar já por MB WAY na app.' : ''),
         url: '/marcacoes',
         tag: 'marcacao-' + id,
       }).catch(e => console.warn('aviso ao cliente não enviado:', e.message));

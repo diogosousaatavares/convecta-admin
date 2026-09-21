@@ -223,7 +223,12 @@ export default function Packs() {
   };
 
   const abrirConfirmacao = (pedido) => {
-    setConfirmacao({ pedido, metodo: 'Dinheiro', preco: String(pedido.preco) });
+    setConfirmacao({ pedido, metodo: pedido.mbwayEnviadoEm ? 'MB WAY' : 'Dinheiro', preco: String(pedido.preco) });
+  };
+  const verPrint = async (pedido) => {
+    const url = await dataService.urlDoComprovativo?.(pedido.comprovativo);
+    if (url) window.open(url, '_blank', 'noopener');
+    else toast.error('Não foi possível abrir o print');
   };
 
   const gravarConfirmacao = async () => {
@@ -353,7 +358,14 @@ export default function Packs() {
                       {formatPrice(q.preco)}
                       <span className="text-sec text-sm" style={{ fontFamily: 'var(--font-body)' }}> · {q.cortes} cortes</span>
                     </div>
+                    {q.mbwayEnviadoEm && (
+                      <div className="flex items-center gap-8 mt-8" style={{ flexWrap: 'wrap' }}>
+                        <Badge variant="success">Pagou por MB WAY · {haQuanto(q.mbwayEnviadoEm)}</Badge>
+                        {q.comprovativo && <button className="btn btn-ghost btn-sm" onClick={() => verPrint(q)}>Ver print</button>}
+                      </div>
+                    )}
                     <p className="text-sec text-xs mt-8" style={{ lineHeight: 1.55 }}>
+                      {q.mbwayEnviadoEm ? 'Confirma só depois de veres o dinheiro no teu MB WAY. ' : ''}
                       Pediu {haQuanto(q.criadoEm)}.{' '}
                       {pack
                         ? `Se confirmares hoje, vale até ${formatDateShortNum(validadeSeVendidoHoje(pack))}.`

@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Smartphone, Check, X, Image as ImageIcon, AlertTriangle } from 'lucide-react';
+import { Check, X, Image as ImageIcon, AlertTriangle, Package } from 'lucide-react';
+import MbIcon from '@/components/MbIcon';
+import { supabase } from '@/lib/supabase';
+import { listarPedidos, confirmarPedido, recusarPedido } from '@/lib/packsService';
 import AdminPage from '@/components/admin/AdminPage';
 import { Card, Button, Badge, Avatar, EmptyState, Modal } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
@@ -39,6 +42,11 @@ export default function MbWay() {
   const [verPrint, setVerPrint] = useState(null);     // { url, pagamento }
   const [rejeitar, setRejeitar] = useState(null);     // { pagamento, motivo }
   const [verTodos, setVerTodos] = useState(false);
+  // Packs pedidos na app e pagos por MB WAY (PACK_PEDIDOS.sql + MBWAY.sql).
+  const [pedidos, setPedidos] = useState([]);
+  const lerPedidos = () => data.business?.id
+    ? listarPedidos(data.business.id).then(setPedidos).catch(() => setPedidos([]))
+    : Promise.resolve();
 
   useEffect(() => { setNumero(cfg.numero || ''); setTitular(cfg.titular || ''); setDevolucao(cfg.devolucao || ''); }, [cfg.numero, cfg.titular, cfg.devolucao]);
 
@@ -46,6 +54,19 @@ export default function MbWay() {
   useEffect(() => {
     dataService.recarregarMbway?.().then(() => dataService.apagarComprovativosAntigos?.()).catch(() => {});
   }, []);
+  useEffect(() => {
+    if (!data.business?.id) return;
+    listarPedidos(data.business.id).then(async (lista) => {
+      setPedidos(lista);
+      // Os prints dos packs também se apagam 90 dias depois de tratados.
+      const limite = Date.now() - 90 * 86400000;
+      for (const q of lista) {
+        if (!q.comprovativo || q.estado === 'pendente' || !q.resolvidoEm || new Date(q.resolvidoEm).getTime() >= limite) continue;
+        const { error } = await supabase.storage.from('comprovativos').remove([q.comprovativo]);
+        if (!error) await supabase.rpc('mbway_pack_esquecer_comprovativo', { p_pedido_id: q.id });
+      }
+    }).catch(() => {});
+  }, [data.business?.id]);
 
   const gravar = async (mudancas, aviso) => {
     setAGravar(true);
@@ -77,13 +98,38 @@ export default function MbWay() {
 
   const pagamentos = data.pagamentosMbway || [];
   const porConfirmar = pagamentos.filter(p => p.estado === 'enviado');
+  const packsPorConfirmar = pedidos.filter(q => q.estado === 'pendente' && q.mbwayEnviadoEm);
   const tratados = pagamentos.filter(p => p.estado !== 'enviado');
   const tratadosVisiveis = verTodos ? tratados : tratados.slice(0, 20);
 
   // O que já entrou este mês — é o que conta para o limite do banco.
   const recebidoEsteMes = useMemo(() => pagamentos
     .filter(p => p.estado === 'confirmado' && String(p.resolvidoEm || '').slice(0, 7) === mesAtual())
-    .reduce((t, p) => t + p.valor, 0), [pagamentos]);
+    .reduce((t, p) => t + p.valor, 0)
+    + pedidos
+      .filter(q => q.estado === 'confirmado' && q.mbwayEnviadoEm && String(q.resolvidoEm || '').slice(0, 7) === mesAtual())
+      .reduce((t, q) => t + q.preco, 0), [pagamentos, pedidos]);
+
+  const verPrintPack = async (q) => {
+    const url = await dataService.urlDoComprovativo(q.comprovativo);
+    if (!url) { toast.error('Não foi possível abrir o print'); return; }
+    window.open(url, '_blank', 'noopener');
+  };
+  const ativarPack = async (q) => {
+    try {
+      const v = await confirmarPedido(q, 'MB WAY', q.preco, { businessId: data.business?.id, nomeBarbearia: data.business?.name });
+      toast.success('Pack ativo', `${nome(q.customerId)} tem ${v.total} cortes e já pode marcar.`);
+      lerPedidos();
+    } catch (e) { toast.error('Não foi possível ativar', e.message); lerPedidos(); }
+  };
+  const packNaoRecebido = async (q) => {
+    if (!window.confirm(`O MB WAY de ${nome(q.customerId)} não chegou? O pedido do pack é recusado e o cliente é avisado.`)) return;
+    try {
+      await recusarPedido(q, 'O pagamento por MB WAY não chegou. Pede de novo ou paga na barbearia.', { businessId: data.business?.id, nomeBarbearia: data.business?.name });
+      toast.success('Pedido recusado');
+      lerPedidos();
+    } catch (e) { toast.error('Não foi possível guardar', e.message); }
+  };
 
   const marcacao = (id) => data.appointments.find(a => a.id === id);
   const nome = (id) => data.customers.find(c => c.id === id)?.name || 'Cliente';
@@ -187,11 +233,33 @@ export default function MbWay() {
       </Card>
 
       <h3 className="text-sm fw-600" style={{ margin: '0 0 10px' }}>
-        Por confirmar {porConfirmar.length > 0 && <Badge variant="warning">{porConfirmar.length}</Badge>}
+        Por confirmar {porConfirmar.length + packsPorConfirmar.length > 0 && <Badge variant="warning">{porConfirmar.length + packsPorConfirmar.length}</Badge>}
       </h3>
-      {porConfirmar.length === 0 ? (
+      {packsPorConfirmar.length > 0 && (
+        <div className="grid-3" style={{ marginBottom: 16 }}>
+          {packsPorConfirmar.map(q => (
+            <Card key={q.id} className="card-pad">
+              <div className="flex items-center gap-8 mb-16">
+                <Avatar name={nome(q.customerId)} />
+                <div>
+                  <div className="fw-600 text-sm">{nome(q.customerId)}</div>
+                  <div className="text-sec text-xs"><Package size={11} style={{ verticalAlign: '-1px' }} /> {q.nome} · {q.cortes} cortes</div>
+                </div>
+              </div>
+              <div className="text-gold fw-600" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>{formatPrice(q.preco)}</div>
+              <div className="text-sec text-xs mt-8">Pack pedido na app. Ao confirmares, o pack fica ativo.</div>
+              <div className="flex gap-8 mt-16" style={{ flexWrap: 'wrap' }}>
+                {q.comprovativo && <Button size="sm" variant="secondary" onClick={() => verPrintPack(q)}><ImageIcon size={14} /> Ver print</Button>}
+                <Button size="sm" variant="primary" onClick={() => ativarPack(q)}><Check size={14} /> Recebi — ativar pack</Button>
+                <Button size="sm" variant="secondary" onClick={() => packNaoRecebido(q)}><X size={14} /> Não recebi</Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+      {porConfirmar.length === 0 && packsPorConfirmar.length > 0 ? null : porConfirmar.length === 0 ? (
         <Card className="card-pad" style={{ marginBottom: 24 }}>
-          <EmptyState icon={() => <Smartphone />} title="Nada à espera"
+          <EmptyState icon={() => <MbIcon size={40} />} title="Nada à espera"
             description="Quando um cliente pagar uma marcação por MB WAY, aparece aqui com o print. Recebes também uma notificação." />
         </Card>
       ) : (

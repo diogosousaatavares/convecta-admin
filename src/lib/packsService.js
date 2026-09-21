@@ -185,6 +185,9 @@ function pedidoDeLinha(r) {
     motivo: r.motivo || '',
     criadoEm: r.criado_em,
     resolvidoEm: r.resolvido_em,
+    // Pago por MB WAY na app (MBWAY.sql): quando, e o print.
+    mbwayEnviadoEm: r.mbway_enviado_em || null,
+    comprovativo: r.comprovativo || null,
   };
 }
 

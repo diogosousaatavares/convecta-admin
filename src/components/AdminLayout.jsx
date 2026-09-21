@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import MbIcon from '@/components/MbIcon';
 import { LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog, Clock, Settings, Bell, BarChart3, Menu, X, LogOut, Wallet, Package, Megaphone, Star, ChevronDown, DollarSign, Palette, Gift, Repeat, Ticket, ReceiptText, CreditCard, UserPlus, Search, Plus, HelpCircle, Phone, Mail, Send, Smartphone } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
@@ -64,7 +65,7 @@ const GROUPS_TODOS = [
 
   // Pagamentos por MB WAY ao marcar: ligar, número, limite do mês e os
   // pagamentos à espera de confirmação.
-  { type: 'item', to: '/admin/mbway', label: 'MB WAY', icon: Smartphone },
+  { type: 'item', to: '/admin/mbway', label: 'MB WAY', icon: MbIcon, iconSize: 20 },
 
   { type: 'group', label: 'Financeiro', icon: Wallet, items: [
     { to: '/admin/financeiro/caixa', label: 'Caixa', exact: true },
@@ -314,7 +315,7 @@ export default function AdminLayout({ children }) {
             const Icon = g.icon;
             return (
               <Link key={g.to} to={g.to} className={`admin-nav-item ${isActive(g) ? 'active' : ''}`} onClick={() => setOpen(false)}>
-                <Icon size={18} /> {g.label}
+                <Icon size={g.iconSize || 18} /> {g.label}
               </Link>
             );
           }
