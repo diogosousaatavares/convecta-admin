@@ -11,6 +11,7 @@ import {
   reduzirParaTamanho, tamanhoLegivel,
   listGallery, addGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto, moveGalleryPhoto,
 } from '@/lib/designService';
+import SugestaoDesign from '@/components/design/SugestaoDesign';
 
 /*
  * O MEU SITE — a mesma pagina que o super admin usa para desenhar a app de
@@ -298,7 +299,7 @@ function Previsualizacao({tema,info,biz,endereco}){
 }
 
 // ── Aba Design ─────────────────────────────────────────────────────────────
-const PAINEIS=[{id:'cores',l:'Cores'},{id:'fundo',l:'Fundo'},{id:'tipo',l:'Tipografia'},
+const PAINEIS=[{id:'sugestao',l:'Sugestão'},{id:'cores',l:'Cores'},{id:'fundo',l:'Fundo'},{id:'tipo',l:'Tipografia'},
                {id:'info',l:'Conteúdo'},{id:'galeria',l:'Galeria'},{id:'marca',l:'Marca'}]
 
 
@@ -540,10 +541,10 @@ function DesignTab({biz,onGuardado}){
           </div>
         </Card>
 
-        {/* Seis separadores lado a lado num telemovel davam 50px cada: os
-            nomes partiam-se ao meio. Em duas linhas de tres leem-se. */}
+        {/* Sete separadores lado a lado num telemovel davam 45px cada: os
+            nomes partiam-se ao meio. Em duas linhas de quatro leem-se. */}
         <div className="sa-tira" style={telemovel
-          ?{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:4,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}
+          ?{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:4,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}
           :{display:'flex',gap:3,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}}>
           {PAINEIS.map(pn=>(
             <button key={pn.id} onClick={()=>setPainel(pn.id)}
@@ -554,6 +555,11 @@ function DesignTab({biz,onGuardado}){
                 color:painel===pn.id?Y:T2,transition:'background .15s,color .15s'}}>{pn.l}</button>
           ))}
         </div>
+
+        {painel==='sugestao'&&(
+          <SugestaoDesign biz={biz} endereco={endereco} Largar={Largar}
+            onExperimentar={p=>{setTema(t=>({...t,colors:{...t.colors,...p.colors},fonts:{...t.fonts,...p.fonts},radius:p.radius}));setSucesso(false)}}/>
+        )}
 
         {painel==='cores'&&(
           <Card>
