@@ -13,6 +13,7 @@ import AvisoPush from '@/components/AvisoPush';
 import AvisoSubscricao from '@/components/AvisoSubscricao';
 import BemVindo from '@/components/BemVindo';
 import GuardarNoEcra from '@/components/GuardarNoEcra';
+import SinoAvisos from '@/components/SinoAvisos';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 
 const GROUPS_TODOS = [
@@ -117,7 +118,8 @@ const GROUPS_TODOS = [
     { to: '/admin/definicoes/pagamentos', label: 'Pagamentos' },
     { to: '/admin/definicoes/notificacoes', label: 'Notificações' },
     { to: '/admin/definicoes/clientes', label: 'Clientes' },
-    { to: '/admin/definicoes/anamnese', label: 'Anamnese' },
+    // Anamnese escondida (22/09): os formulários gravam-se mas ainda não aparecem na app do cliente.
+    // { to: '/admin/definicoes/anamnese', label: 'Anamnese' },
     { to: '/admin/definicoes/documentos', label: 'Documentos' },
     { to: '/admin/definicoes/tema', label: 'Tema e Aparência' },
     { to: '/admin/definicoes/utilizadores', label: 'Utilizadores e Permissões' },
@@ -447,19 +449,9 @@ export default function AdminLayout({ children }) {
             </div>
           </div>
           <div className="admin-topbar-right">
-            <button className="btn btn-ghost btn-icon" onClick={() => navigate('/admin/marcacoes')}
-              title={porConfirmar ? `${porConfirmar} por confirmar` : 'Marcações'}
-              aria-label={porConfirmar ? `${porConfirmar} marcações por confirmar` : 'Marcações'}
-              style={{ position: 'relative' }}>
-              <Bell size={16} />
-              {porConfirmar > 0 && (
-                <span style={{ position: 'absolute', top: 2, right: 2, minWidth: 15, height: 15,
-                  padding: '0 4px', borderRadius: 8, background: '#C9A227', color: '#100D08',
-                  fontSize: 10, fontWeight: 700, lineHeight: '15px', textAlign: 'center' }}>
-                  {porConfirmar > 9 ? '9+' : porConfirmar}
-                </span>
-              )}
-            </button>
+            {/* O sino abre a lista do que aconteceu (marcações novas, canceladas,
+                packs, avaliações, Convecta) — o mesmo que chega por push. */}
+            <SinoAvisos businessId={data.business?.id} porConfirmar={porConfirmar} />
             <div className="admin-topbar-user">
               <div className="admin-topbar-avatar">{(user?.name || user?.email || 'A').charAt(0).toUpperCase()}</div>
             </div>

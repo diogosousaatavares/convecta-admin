@@ -1912,6 +1912,11 @@ html.theme-light { --linha-agm: rgba(0, 0, 0, 0.13); }
   transition: transform 140ms ease;
 }
 .agm-bloco:active { transform: scale(0.985); }
+/* Bloco baixo (serviço curto): hora e serviço na mesma linha, cliente por baixo. */
+.agm-bloco.curto { display: grid; grid-template-columns: auto minmax(0,1fr); column-gap: 8px; row-gap: 1px; align-content: center; padding-top: 4px; padding-bottom: 4px; }
+.agm-bloco.curto .agm-bloco-hora { grid-column: 1; align-self: center; }
+.agm-bloco.curto .agm-bloco-svc { grid-column: 2; }
+.agm-bloco.curto .agm-bloco-cli { grid-column: 1 / -1; }
 .agm-bloco-barra { position: absolute; left: 0; top: 0; bottom: 0; width: 5px; }
 .agm-bloco-ico { position: absolute; top: 8px; right: 10px; display: flex; }
 .agm-bloco-hora { display: block; font-size: 11px; line-height: 1.25; color: var(--text-sec); font-variant-numeric: tabular-nums; }

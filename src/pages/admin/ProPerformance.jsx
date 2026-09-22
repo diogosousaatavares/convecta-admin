@@ -6,7 +6,7 @@ import { Card, Avatar, EmptyState } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
 
-export default function ProPerformance() {
+export default function ProPerformance({ titulo = 'Desempenho dos Profissionais', subtitulo = 'Indicadores calculados a partir das marcações reais.' }) {
   const data = useStore();
   const [from, setFrom] = useState(addDays(todayStr(), -29));
   const [to, setTo] = useState(todayStr());
@@ -30,7 +30,7 @@ export default function ProPerformance() {
   }), [appts, data.services, data.professionals]);
 
   return (
-    <AdminPage title="Desempenho dos Profissionais" subtitle="Indicadores calculados a partir das marcações reais.">
+    <AdminPage title={titulo} subtitle={subtitulo}>
       <div className="flex gap-8 mb-24" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
         <input type="date" className="input" style={{ width: 'auto' }} value={from} onChange={e => setFrom(e.target.value)} />
         <input type="date" className="input" style={{ width: 'auto' }} value={to} onChange={e => setTo(e.target.value)} />

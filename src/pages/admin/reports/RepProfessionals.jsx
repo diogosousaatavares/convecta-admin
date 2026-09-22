@@ -1,12 +1,8 @@
 import React from 'react';
-import AdminPage from '@/components/admin/AdminPage';
-import PageInfo from '@/components/admin/PageInfo';
 import ProPerformance from '@/pages/admin/ProPerformance';
 
+// O relatório é a mesma página do Desempenho, com outro título. Antes metia a
+// página dentro de outra página e o cabeçalho do painel aparecia duas vezes.
 export default function RepProfessionals() {
-  return (
-    <AdminPage title="Relatório de Profissionais" subtitle="Desempenho por profissional.">
-      <ProPerformance />
-    </AdminPage>
-  );
+  return <ProPerformance titulo="Relatório de Profissionais" subtitulo="Desempenho por profissional." />;
 }

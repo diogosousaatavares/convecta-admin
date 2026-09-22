@@ -224,7 +224,17 @@ export default function AgendaTelemovel({
                     const ini = paraMinutos(a.startTime);
                     const dur = paraMinutos(a.endTime) - ini;
                     const topo = ((ini - abreMin) / STEP) * SLOT_H;
-                    const alt = Math.max((dur / STEP) * SLOT_H - 6, 44);
+                    // Enche a vaga inteira (uma barba de 20 min às 17:30 ocupa a
+                    // vaga das 17:30 toda), sem passar da marcação seguinte.
+                    const fimVaga = ini + Math.ceil(dur / STEP) * STEP;
+                    const seguinte = doProfissional.reduce((m, o) => {
+                      const oi = paraMinutos(o.startTime);
+                      return oi > ini && oi < m ? oi : m;
+                    }, Infinity);
+                    const fimVisto = Math.max(ini + dur, Math.min(fimVaga, seguinte));
+                    const alt = Math.max(((fimVisto - ini) / STEP) * SLOT_H - 6, 44);
+                    // Num bloco baixo não cabem três linhas: vai tudo em duas.
+                    const curto = alt < 76;
                     const est = ESTADOS[a.blocked ? 'blocked' : a.status] || ESTADOS.pending;
                     const svc = services.find(s => s.id === a.serviceId);
                     const cli = customers.find(c => c.id === a.customerId);
@@ -233,7 +243,7 @@ export default function AgendaTelemovel({
                       <button
                         type="button"
                         key={a.id}
-                        className={`agm-bloco ${est.cor}`}
+                        className={`agm-bloco ${est.cor}${curto ? ' curto' : ''}`}
                         style={{ top: topo, height: alt, ...(a.usaPack && !a.blocked ? { boxShadow: 'inset 4px 0 0 #C9A227' } : null) }}
                         onClick={() => onSelect(a)}
                       >
