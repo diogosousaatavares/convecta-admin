@@ -64,9 +64,12 @@ export const MODELO = {
     {
       ficheiro: '1.jpg', larg: 1122, alt: 1402, cabecalho: true,
       zonas: [
-        { tipo: 'logo',  limpar: 'tudo',   x: 0.6338, y: 0.0478, X: 0.7372, Y: 0.1220, recuo: 0.14 },
-        { tipo: 'nome',  limpar: 'escuro', x: 0.500,  y: 0.1250, X: 0.830,  Y: 0.1430,
-          peso: 600, tracking: 0.16, maiusculas: true, alinhar: 'centro', tamanho: 0.0165 },
+        // Cabeçalho: o logótipo da barbearia do lado direito do traço, espelho
+        // do logótipo da Convecta — mesma distância ao traço, mesmo centro
+        // vertical. Sem o nome por baixo (pedido do Diogo, 22/09): o logótipo
+        // já diz quem é, e o nome desalinhava o conjunto.
+        { tipo: 'vazio', limpar: 'tudo',   x: 0.5348, y: 0.0392, X: 0.8200, Y: 0.1462 },
+        { tipo: 'logo',  limpar: 'nada',   x: 0.5749, y: 0.0592, X: 0.8422, Y: 0.1234, recuo: 0, alinhar: 'esquerda' },
         /*
          * A primeira linha do título.
          *
@@ -88,9 +91,12 @@ export const MODELO = {
     {
       ficheiro: '2.jpg', larg: 1092, alt: 1440, cabecalho: true,
       zonas: [
-        { tipo: 'logo',  limpar: 'tudo',   x: 0.6452, y: 0.0688, X: 0.7487, Y: 0.1340, recuo: 0.14 },
-        { tipo: 'nome',  limpar: 'escuro', x: 0.510,  y: 0.1390, X: 0.835,  Y: 0.1560,
-          peso: 600, tracking: 0.16, maiusculas: true, alinhar: 'centro', tamanho: 0.0155 },
+        // Cabeçalho: o logótipo da barbearia do lado direito do traço, espelho
+        // do logótipo da Convecta — mesma distância ao traço, mesmo centro
+        // vertical. Sem o nome por baixo (pedido do Diogo, 22/09): o logótipo
+        // já diz quem é, e o nome desalinhava o conjunto.
+        { tipo: 'vazio', limpar: 'tudo',   x: 0.5540, y: 0.0590, X: 0.8288, Y: 0.1611 },
+        { tipo: 'logo',  limpar: 'nada',   x: 0.5897, y: 0.0750, X: 0.8645, Y: 0.1417, recuo: 0, alinhar: 'esquerda' },
         // ── O cartão de Instagram ──
         // Entre a seta de voltar (acaba em .222) e a campainha (começa em .662).
         // A primeira medida ia até .712 e comia a campainha — os ícones do
@@ -115,9 +121,12 @@ export const MODELO = {
     {
       ficheiro: '3.jpg', larg: 1092, alt: 1440, cabecalho: true,
       zonas: [
-        { tipo: 'logo',  limpar: 'tudo',   x: 0.6407, y: 0.0646, X: 0.7414, Y: 0.1292, recuo: 0.14 },
-        { tipo: 'nome',  limpar: 'escuro', x: 0.505,  y: 0.1350, X: 0.830,  Y: 0.1520,
-          peso: 600, tracking: 0.16, maiusculas: true, alinhar: 'centro', tamanho: 0.0155 },
+        // Cabeçalho: o logótipo da barbearia do lado direito do traço, espelho
+        // do logótipo da Convecta — mesma distância ao traço, mesmo centro
+        // vertical. Sem o nome por baixo (pedido do Diogo, 22/09): o logótipo
+        // já diz quem é, e o nome desalinhava o conjunto.
+        { tipo: 'vazio', limpar: 'tudo',   x: 0.5495, y: 0.0556, X: 0.8242, Y: 0.1528 },
+        { tipo: 'logo',  limpar: 'nada',   x: 0.5852, y: 0.0688, X: 0.8599, Y: 0.1326, recuo: 0, alinhar: 'esquerda' },
         // A barra do browser, dentro do telemóvel: letra branca sobre preto.
         { tipo: 'endereco', limpar: 'claro', x: 0.345, y: 0.5400, X: 0.705, Y: 0.5730,
           peso: 500, alinhar: 'centro', tamanho: 0.0180, cor: '#FFFFFF', fundo: '#000000', cortar: true },
@@ -231,7 +240,7 @@ export function recolorir(ctx, larg, alt, corHex, protegidos = []) {
 function limparZona(ctx, z, larg, alt, fundoDado) {
   const x0 = Math.floor(z.x * larg), y0 = Math.floor(z.y * alt)
   const w = Math.ceil((z.X - z.x) * larg), h = Math.ceil((z.Y - z.y) * alt)
-  if (w <= 0 || h <= 0) return
+  if (w <= 0 || h <= 0 || z.limpar === 'nada') return
 
   /*
    * A cor do fundo.
@@ -387,16 +396,17 @@ function porLogo(ctx, z, larg, alt, logo, inicial, corMarca) {
 
   if (logo) {
     const k = Math.min(iw / logo.width, ih / logo.height)
-    ctx.drawImage(logo, ix + (iw - logo.width * k) / 2, iy + (ih - logo.height * k) / 2,
-      logo.width * k, logo.height * k)
+    const lx = z.alinhar === 'esquerda' ? ix : ix + (iw - logo.width * k) / 2
+    ctx.drawImage(logo, lx, iy + (ih - logo.height * k) / 2, logo.width * k, logo.height * k)
     return
   }
   // Sem logótipo: a inicial, na cor da barbearia. Melhor do que um `?`.
   ctx.fillStyle = corMarca
-  ctx.textAlign = 'center'
+  const esq = z.alinhar === 'esquerda'
+  ctx.textAlign = esq ? 'left' : 'center'
   ctx.textBaseline = 'middle'
   ctx.font = fonte(900, Math.min(iw, ih) * 0.78)
-  ctx.fillText(String(inicial || 'B').toUpperCase(), ix + iw / 2, iy + ih / 2 + ih * 0.02)
+  ctx.fillText(String(inicial || 'B').toUpperCase(), esq ? ix : ix + iw / 2, iy + ih / 2 + ih * 0.02)
 }
 
 // ── O desenho de um cartaz ─────────────────────────────────────────────────

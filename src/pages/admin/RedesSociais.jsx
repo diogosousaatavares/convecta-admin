@@ -63,7 +63,10 @@ export default function RedesSociais() {
       const def = b?.settings || {};
       const t = def.theme || {};
       const cor = t.colors?.gold || t.primaria || t.cores?.primaria || '#C9A227';
-      const logoUrl = t.favicon || b?.logo_url;
+      // Desde 22/09 o «O Meu Site → Marca» grava o logótipo na forma dele
+      // em logo_url e o ícone QUADRADO em theme.favicon. No post quer-se o
+      // logótipo, não o ícone; o favicon só entra se não houver logótipo.
+      const logoUrl = b?.logo_url || t.favicon;
       await garantirFonte();
       /*
        * O logótipo é o que ele carregou em «O Meu Site → Marca», e só na
