@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Check, ChevronRight, X, Scissors, Clock, Palette, Bell, Share2 } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import { DOMINIO_BASE } from '@/lib/designService';
+import { supabase } from '@/lib/supabase';
 
 /*
  * Os primeiros passos, no Dashboard.
@@ -55,7 +56,16 @@ export default function PrimeirosPassos() {
   const [feitos, setFeitos] = useState({});
   const [copiado, setCopiado] = useState(false);
 
-  useEffect(() => { if (id) setFeitos(lerFeitos(id)); }, [id]);
+  // Os passos também vivem na base de dados (ONBOARDING.sql): a maioria
+  // marca-se sozinha quando o barbeiro faz a coisa, e a Convecta vê o
+  // progresso no super admin. O que está no browser junta-se por cima.
+  const [daBase, setDaBase] = useState({});
+  useEffect(() => {
+    if (!id) return;
+    setFeitos(lerFeitos(id));
+    supabase.from('onboarding_passos').select('passo').eq('business_id', id)
+      .then(({ data }) => setDaBase(Object.fromEntries((data || []).map(p => [p.passo, true]))), () => {});
+  }, [id]);
 
   if (!id) return null;
   if (feitos.escondido) return null;
@@ -76,7 +86,7 @@ export default function PrimeirosPassos() {
       titulo: 'Confirma os serviços e os preços',
       ajuda: 'Criámos alguns para começares. Apaga, muda o preço e a duração.',
       to: '/admin/servicos',
-      feito: !!feitos.servicos,
+      feito: !!feitos.servicos || !!daBase.servicos,
     },
     {
       k: 'horarios',
@@ -84,7 +94,7 @@ export default function PrimeirosPassos() {
       titulo: 'Ajusta o horário da barbearia',
       ajuda: 'A que horas abres e fechas, e os dias de folga.',
       to: '/admin/horarios',
-      feito: !!feitos.horarios,
+      feito: !!feitos.horarios || !!daBase.horarios,
     },
     {
       k: 'aparencia',
@@ -92,7 +102,7 @@ export default function PrimeirosPassos() {
       titulo: 'Põe o teu logótipo e as tuas cores',
       ajuda: 'O site dos teus clientes fica com a tua cara.',
       to: '/admin/o-meu-site',
-      feito: !!negocio.logoUrl || !!feitos.aparencia,
+      feito: !!negocio.logoUrl || !!feitos.aparencia || !!daBase.aparencia,
     },
     {
       k: 'notificacoes',
@@ -100,7 +110,7 @@ export default function PrimeirosPassos() {
       titulo: 'Liga as notificações no telemóvel',
       ajuda: 'É assim que sabes de uma marcação no segundo em que ela entra.',
       to: '/admin/definicoes/notificacoes',
-      feito: notificacoesLigadas || !!feitos.notificacoes,
+      feito: notificacoesLigadas || !!feitos.notificacoes || !!daBase.notificacoes,
     },
     {
       k: 'partilhar',
@@ -110,7 +120,7 @@ export default function PrimeirosPassos() {
         ? 'Já tens marcações a entrar. É para isto que isto serve.'
         : 'No Instagram, no WhatsApp, no espelho. É o endereço que enche a agenda.',
       accao: 'copiar',
-      feito: temMarcacoes || !!feitos.partilhar,
+      feito: temMarcacoes || !!feitos.partilhar || !!daBase.partilhar,
     },
   ];
 
@@ -121,6 +131,7 @@ export default function PrimeirosPassos() {
     const novos = { ...feitos, [k]: !feitos[k] };
     setFeitos(novos);
     gravarFeitos(id, novos);
+    supabase.rpc('meu_passo_onboarding', { p_passo: k, p_feito: !!novos[k] }).then(() => {}, () => {});
   };
 
   const esconder = () => {
