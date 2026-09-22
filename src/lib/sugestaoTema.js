@@ -106,7 +106,7 @@ export async function coresDoLogotipo(origem) {
     ctx.drawImage(img, 0, 0, w, h);
     let px;
     try { px = ctx.getImageData(0, 0, w, h).data; }
-    catch { throw new Error('O browser não deixou ler esta imagem. Escolhe o ficheiro do logótipo no teu dispositivo.'); }
+    catch { throw new Error('O browser não deixou ler esta imagem. Volta a carregar o logótipo em Marca e tenta outra vez.'); }
 
     // O fundo: a média dos quatro cantos (se forem opacos).
     const cantos = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]]

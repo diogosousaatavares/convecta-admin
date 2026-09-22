@@ -46,9 +46,7 @@ function Miniatura({ p, nome }) {
   );
 }
 
-export default function SugestaoDesign({ biz, endereco, onExperimentar, Largar }) {
-  const [imagem, setImagem] = useState(biz.logo_url || '');
-  const [doFicheiro, setDoFicheiro] = useState(false);
+export default function SugestaoDesign({ biz, logo, endereco, onExperimentar, irParaMarca }) {
   const [propostas, setPropostas] = useState(null);
   const [aLer, setALer] = useState(false);
   const [erro, setErro] = useState('');
@@ -64,17 +62,9 @@ export default function SugestaoDesign({ biz, endereco, onExperimentar, Largar }
     finally { setALer(false); }
   }
 
-  // Com logótipo na Visão Geral, as propostas aparecem logo ao abrir.
-  useEffect(() => { if (biz.logo_url) ler(biz.logo_url); }, [biz.logo_url]);
-
-  // A pré-visualização de um ficheiro escolhido aqui usa um URL temporário.
-  useEffect(() => () => { if (doFicheiro && imagem) URL.revokeObjectURL(imagem); }, [imagem, doFicheiro]);
-
-  function escolherFicheiro(fs) {
-    const f = fs?.[0]; if (!f) return;
-    setImagem(URL.createObjectURL(f)); setDoFicheiro(true);
-    ler(f);
-  }
+  // O logótipo escolhe-se uma vez só, em Marca. As propostas saem dele e
+  // refazem-se sozinhas se o barbeiro o trocar lá.
+  useEffect(() => { if (logo) ler(logo); else { setPropostas(null); setErro(''); } }, [logo]);
 
   function experimentar(p) {
     setEscolhida(p);
@@ -86,7 +76,7 @@ export default function SugestaoDesign({ biz, endereco, onExperimentar, Largar }
       `Olá! Sou da ${biz.name || 'barbearia'} e queria ajuda com o design da minha app.`,
       `Link: https://${endereco}`,
       escolhida ? `Proposta de que gostei: «${escolhida.nome}».` : 'Ainda não escolhi nenhuma proposta.',
-      doFicheiro || !biz.logo_url ? 'Envio o logótipo a seguir nesta conversa.' : `Logótipo: ${biz.logo_url}`,
+      logo ? `Logótipo: ${logo}` : 'Envio o logótipo a seguir nesta conversa.',
     ];
     window.open(`https://wa.me/${WHATSAPP_CONVECTA}?text=${encodeURIComponent(linhas.join('\n'))}`, '_blank', 'noopener');
   }
@@ -96,21 +86,25 @@ export default function SugestaoDesign({ biz, endereco, onExperimentar, Largar }
       <Card>
         <div style={{ fontWeight: 700, fontSize: 15, color: T, marginBottom: 4 }}>Sugestão a partir do teu logótipo</div>
         <div style={{ fontSize: 12.5, color: T2, marginBottom: 14, lineHeight: 1.5 }}>
-          Lemos as cores do teu logótipo e montamos três designs para a tua app. Experimenta, vê na
+          Lemos as cores do teu logótipo e montamos três designs para a tua app, de acordo com ele. Experimenta, vê na
           pré-visualização e guarda o que gostares — podes afinar depois em Cores e Tipografia.
         </div>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-          <Largar onFicheiros={escolherFicheiro} aEnviar={aLer} titulo="Larga"
-            style={{ width: 76, height: 76, flexShrink: 0, overflow: 'hidden', background: W2,
-              display: 'grid', placeItems: 'center' }}>
+          <div style={{ width: 76, height: 76, flexShrink: 0, overflow: 'hidden', background: W2, borderRadius: 12,
+            border: `1px solid ${BD}`, display: 'grid', placeItems: 'center' }}>
             {aLer ? <Spin size={18} />
-              : imagem ? <img src={imagem} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                : <span style={{ fontSize: 10.5, color: T3, textAlign: 'center', padding: 6 }}>escolher logótipo</span>}
-          </Largar>
-          <div style={{ fontSize: 12, color: T3, lineHeight: 1.55 }}>
-            {imagem
-              ? <>A usar {doFicheiro ? 'o ficheiro que escolheste' : 'o logótipo da Visão Geral'}. Carrega no quadrado para usar outro.</>
-              : <>Carrega no quadrado e escolhe o logótipo (PNG ou JPG). Não fica guardado — serve só para tirar as cores.</>}
+              : logo ? <img src={logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                : <span style={{ fontSize: 10.5, color: T3, textAlign: 'center', padding: 6 }}>sem logótipo</span>}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
+            <div style={{ fontSize: 12, color: T3, lineHeight: 1.55 }}>
+              {logo
+                ? <>As propostas são feitas com o logótipo que está em Marca. Se o trocares lá, mudam sozinhas.</>
+                : <>Ainda não tens logótipo. Mete-o em Marca e as propostas aparecem aqui.</>}
+            </div>
+            <Btn v="secondary" style={{ padding: '7px 12px', fontSize: 12 }} onClick={irParaMarca}>
+              {logo ? 'Trocar logótipo em Marca' : 'Pôr o logótipo em Marca'}
+            </Btn>
           </div>
         </div>
         {erro && <div style={{ marginTop: 12, fontSize: 12.5, color: R, lineHeight: 1.5 }}>{erro}</div>}

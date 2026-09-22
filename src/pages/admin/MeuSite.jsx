@@ -557,7 +557,8 @@ function DesignTab({biz,onGuardado}){
         </div>
 
         {painel==='sugestao'&&(
-          <SugestaoDesign biz={biz} endereco={endereco} Largar={Largar}
+          <SugestaoDesign biz={biz} logo={tema.favicon||biz.logo_url} endereco={endereco}
+            irParaMarca={()=>setPainel('marca')}
             onExperimentar={p=>{setTema(t=>({...t,colors:{...t.colors,...p.colors},fonts:{...t.fonts,...p.fonts},radius:p.radius}));setSucesso(false)}}/>
         )}
 
@@ -764,6 +765,9 @@ function DesignTab({biz,onGuardado}){
                       quando o cliente guarda o site. Quadrado, de preferência 512×512.
                       Sem ícone próprio, usa-se o logótipo da Visão Geral.
                     </div>
+                    {(tema.favicon||biz.logo_url)&&
+                      <Btn v="secondary" style={{padding:'7px 12px',fontSize:12,marginTop:10}}
+                        onClick={()=>setPainel('sugestao')}>Ver design de acordo com este logótipo</Btn>}
                     <div style={{fontSize:11.5,color:T3,marginTop:6,lineHeight:1.5}}>
                       Larga a fotografia como a tiraste — se tiver mais de 1 MB, é encolhida aqui.
                     </div>
