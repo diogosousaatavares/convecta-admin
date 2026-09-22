@@ -112,7 +112,19 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                   const sMin = toMin(a.startTime);
                   const dur = toMin(a.endTime) - sMin;
                   const top = ((sMin - openMin) / STEP) * SLOT_H;
-                  const height = Math.max((dur / STEP) * SLOT_H - 4, 22);
+                  /*
+                   * O bloco enche as vagas que ocupa, inteiras: uma barba de
+                   * 20 minutos às 12:30 pinta a vaga das 12:30 toda, como o
+                   * barbeiro a vê. Só não passa do início da marcação seguinte
+                   * na mesma coluna (uma às 12:50, por exemplo).
+                   */
+                  const fimVaga = sMin + Math.ceil(dur / STEP) * STEP;
+                  const seguinte = colAppts.reduce((m, o) => {
+                    const oi = toMin(o.startTime);
+                    return oi > sMin && oi < m ? oi : m;
+                  }, Infinity);
+                  const fimVisto = Math.max(sMin + dur, Math.min(fimVaga, seguinte));
+                  const height = Math.max(((fimVisto - sMin) / STEP) * SLOT_H - 4, 22);
                   const cls = a.blocked ? 'blocked' : a.status;
                   // Um serviço de 15 ou 20 minutos dá um bloco com menos de
                   // 40px: duas linhas (hora/serviço + cliente) não cabem e o
