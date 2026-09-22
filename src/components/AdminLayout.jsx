@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui';
 
 import { moduloIndisponivel } from '@/lib/modulos';
 import dataService from '@/lib/dataService';
+import { supabase } from '@/lib/supabase';
 import TourDemo from '@/components/admin/TourDemo';
 import AvisoPush from '@/components/AvisoPush';
 import AvisoSubscricao from '@/components/AvisoSubscricao';
@@ -235,6 +236,7 @@ export default function AdminLayout({ children }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
   const [supportForm, setSupportForm] = useState({ name: '', email: '', message: '' });
+  const [supportEstado, setSupportEstado] = useState('');   // '' | 'a-enviar' | 'enviado'
   const searchRef = useRef(null);
   const zonaConteudo = useRef(null);
 
@@ -263,8 +265,23 @@ export default function AdminLayout({ children }) {
   const toggle = (i) => setExpanded(e => ({ ...e, [i]: !e[i] }));
 
   const handleLogout = async () => { await logout(); navigate('/entrar'); };
-  const handleSupportSubmit = (event) => {
+  /*
+   * O pedido vai direto para o suporte da Convecta (fica registado e chega
+   * como notificação ao telemóvel do Diogo). Se por algum motivo não der —
+   * sem rede, SQL por correr — abre o email como antes, para nunca se perder.
+   */
+  const handleSupportSubmit = async (event) => {
     event.preventDefault();
+    setSupportEstado('a-enviar');
+    const { error } = await supabase.rpc('pedir_suporte', {
+      p_mensagem: supportForm.message, p_nome: supportForm.name, p_email: supportForm.email,
+    });
+    if (!error) {
+      setSupportEstado('enviado');
+      setSupportForm(form => ({ ...form, message: '' }));
+      return;
+    }
+    setSupportEstado('');
     const subject = encodeURIComponent(`Problema no painel Convecta${supportForm.name ? ` - ${supportForm.name}` : ''}`);
     const body = encodeURIComponent(`Nome: ${supportForm.name}\nEmail: ${supportForm.email}\n\nProblema:\n${supportForm.message}`);
     window.location.href = `mailto:geral@convecta.pt?subject=${subject}&body=${body}`;
@@ -383,7 +400,12 @@ export default function AdminLayout({ children }) {
             <label className="label" htmlFor="support-message">Descreve o problema</label>
             <textarea id="support-message" required className="input" rows="4" value={supportForm.message} onChange={event => setSupportForm(form => ({ ...form, message: event.target.value }))} />
           </div>
-          <button type="submit" className="btn btn-primary"><Send size={16} /> Enviar email</button>
+          {supportEstado === 'enviado' && (
+            <p className="text-sm" style={{ color: '#22C55E', margin: '0 0 12px' }}>Pedido enviado. A Convecta já foi avisada e responde-te o mais depressa possível.</p>
+          )}
+          <button type="submit" className="btn btn-primary" disabled={supportEstado === 'a-enviar'}>
+            <Send size={16} /> {supportEstado === 'a-enviar' ? 'A enviar…' : 'Enviar pedido'}
+          </button>
         </form>
       </Modal>
       <main className="admin-content" ref={zonaConteudo}>
