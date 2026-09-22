@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 
 export function Button({ variant = 'primary', size, block, icon, children, ...props }) {
   const cls = ['btn', `btn-${variant}`];
@@ -53,10 +54,17 @@ export function Modal({ open, onClose, title, children, footer }) {
     if (!open) return;
     const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
+    // A página por trás fica parada enquanto a janela está aberta. Sem isto,
+    // no iPhone o scroll passava para a agenda e o menu saía do sítio.
+    const antes = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.removeEventListener('keydown', handleKey); document.body.style.overflow = antes; };
   }, [open, onClose]);
   if (!open) return null;
-  return (
+  // Desenhada fora da página onde é aberta: dentro da agenda, um bloco com
+  // transform (o toque no telemóvel deixa o :hover preso) prendia a janela
+  // a esse bloco — ficava cortada a meio, com a agenda a aparecer por baixo.
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-head">
@@ -66,7 +74,9 @@ export function Modal({ open, onClose, title, children, footer }) {
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-foot">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    // Fica dentro do painel (para manter o estilo do painel), mas fora da agenda.
+    document.querySelector('.admin-content') || document.body
   );
 }
 

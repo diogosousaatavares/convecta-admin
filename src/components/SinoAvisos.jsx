@@ -81,11 +81,11 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
       </button>
 
       {aberto && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: -6, width: 'min(360px, calc(100vw - 24px))', zIndex: 60,
+        <div className="sino-caixa" style={{ zIndex: 60,
           background: 'var(--surface, #16130F)', border: '1px solid var(--border)', borderRadius: 14,
           boxShadow: '0 22px 50px rgba(0,0,0,.55)', overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 14 }}>Avisos</div>
-          <div style={{ maxHeight: 420, overflowY: 'auto' }}>
+          <div style={{ maxHeight: 'min(420px, 70dvh)', overflowY: 'auto' }}>
             {porConfirmar > 0 && (
               <button onClick={() => ir('/admin/marcacoes')} style={linha(true)}>
                 <span style={bola('#F59E0B')}><Clock size={15} /></span>

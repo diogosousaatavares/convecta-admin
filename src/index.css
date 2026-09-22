@@ -1514,7 +1514,9 @@ html.theme-light .admin-layout {
   .support-contact-list { grid-template-columns: 1fr; }
 
   /* --- Evitar overflow horizontal da página toda --- */
-  .admin-layout { overflow-x: hidden; }
+  /* clip e não hidden: hidden transformava isto numa caixa de scroll e o
+     menu de cima (sticky) deixava de ficar preso — subia com a página. */
+  .admin-layout { overflow-x: hidden; overflow-x: clip; }
   .admin-content > * { max-width: 100%; box-sizing: border-box; }
 
   /* --- Charts: garantir scroll se forem largos --- */
@@ -2022,4 +2024,23 @@ html.theme-light { --linha-agm: rgba(0, 0, 0, 0.13); }
 .push-linha-mal { color: #F59E0B; font-weight: 600; width: 100%; }
 @media (max-width: 860px) {
   .push-linha > button { margin-left: 0; }
+}
+
+/* ── Telemóvel: correcções 22/09 ─────────────────────────────────────────── */
+/* No telemóvel o :hover fica preso depois de um toque. Um transform preso num
+   bloco da agenda ou num cartão desalinhava tudo o que estivesse dentro. */
+@media (hover: none) {
+  .ag-block:hover, .card-hover:hover, .btn-primary:hover:not(:disabled),
+  .insta-aba:hover, .review-star-btn:hover, .admin-topbar-hamburger:hover { transform: none; }
+}
+/* A janela ocupa o ecrã visível de verdade (a barra do Safari entra na conta). */
+.modal-overlay { height: 100vh; height: 100dvh; overscroll-behavior: contain; }
+.modal { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+@media (max-width: 768px) {
+  .modal { max-height: 90dvh; padding-bottom: env(safe-area-inset-bottom, 0px); }
+}
+/* O sino: no telemóvel a lista abre a toda a largura, por baixo do menu. */
+.sino-caixa { position: absolute; top: calc(100% + 8px); right: -6px; width: min(360px, calc(100vw - 24px)); }
+@media (max-width: 640px) {
+  .sino-caixa { position: fixed; left: 12px; right: 12px; width: auto; top: calc(60px + env(safe-area-inset-top, 0px)); }
 }
