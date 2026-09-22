@@ -114,6 +114,10 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                   const top = ((sMin - openMin) / STEP) * SLOT_H;
                   const height = Math.max((dur / STEP) * SLOT_H - 4, 22);
                   const cls = a.blocked ? 'blocked' : a.status;
+                  // Um serviço de 15 ou 20 minutos dá um bloco com menos de
+                  // 40px: duas linhas (hora/serviço + cliente) não cabem e o
+                  // nome ficava cortado ao meio. Aí vai tudo numa linha só.
+                  const curto = height < 40;
                   const svc = services.find(s => s.id === a.serviceId);
                   const cust = customers.find(c => c.id === a.customerId);
                   const ind = getIndicators(a, cust, data);
@@ -121,7 +125,7 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                   return (
                     <div
                       key={a.id}
-                      className={`ag-block ${cls}`}
+                      className={`ag-block ${cls}${curto ? ' curto' : ''}`}
                       // Marcação do pack mensal: um friso dourado e a etiqueta
                       // PACK — o barbeiro sabe à primeira que não se cobra.
                       style={{ top, height, ...(a.usaPack && !a.blocked ? { boxShadow: 'inset 4px 0 0 #C9A227' } : null) }}
@@ -141,7 +145,7 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                                 ? <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#16a34a', color: '#fff' }}>MB WAY ✓</span>
                                 : <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#f59e0b', color: '#1a1a1a' }} title="O cliente diz que pagou por MB WAY — confirma em MB WAY">MB WAY ?</span>;
                             })()}
-                            {a.startTime} · {svc?.name}
+                            {a.startTime} · {svc?.name}{curto ? ' ·' : ''}
                           </div>
                           <div className="ag-b-name">{cust?.name || '—'}</div>
                           {(ind.isBirthday || ind.isFirst || ind.hasCoupon || ind.hasSub || ind.inLoyalty) && (
