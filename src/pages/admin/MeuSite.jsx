@@ -12,6 +12,7 @@ import {
   listGallery, addGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto, moveGalleryPhoto,
 } from '@/lib/designService';
 import SugestaoDesign from '@/components/design/SugestaoDesign';
+import { prepararLogotipo } from '@/lib/prepararLogotipo';
 
 /*
  * O MEU SITE — a mesma pagina que o super admin usa para desenhar a app de
@@ -231,7 +232,7 @@ function Previsualizacao({tema,info,biz,endereco}){
           :`linear-gradient(150deg, ${c.gold}3A, ${c.surface})`}}>
         <div style={{display:'flex',alignItems:'center',gap:11}}>
           {biz.logo_url
-            ?<img src={biz.logo_url} alt="" style={{width:38,height:38,objectFit:'contain',borderRadius:8}}/>
+            ?<img src={biz.logo_url} alt="" style={{height:42,width:'auto',maxWidth:130,objectFit:'contain',borderRadius:8,display:'block'}}/>
             :<div style={{width:38,height:38,borderRadius:9,background:c.gold,display:'grid',
                 placeItems:'center',color:c.bg,fontWeight:800,fontSize:16}}>{nome[0].toUpperCase()}</div>}
           <div>
@@ -424,8 +425,14 @@ function DesignTab({biz,onGuardado}){
   // larga um ficheiro de 4 MB e não percebe porque é que ficou nítido na
   // mesma — nem que o trabalho foi feito.
   const [iconeEncolhido,setIconeEncolhido]=useState('')
+  // O logotipo (na forma dele) vive na coluna businesses.logo_url; o icone
+  // quadrado vive em settings.theme.favicon. Os dois saem do mesmo ficheiro.
+  const [logoUrl,setLogoUrl]=useState(biz.logo_url||'')
+  const [logoGravado,setLogoGravado]=useState(biz.logo_url||'')
+  const [logoOriginal,setLogoOriginal]=useState(null)
+  const bizVisto={...biz,logo_url:logoUrl}
   const alterado=guardadoTema&&(JSON.stringify(tema)!==JSON.stringify(guardadoTema)
-    ||JSON.stringify(info)!==JSON.stringify(guardadoInfo))
+    ||JSON.stringify(info)!==JSON.stringify(guardadoInfo)||logoUrl!==logoGravado)
   const endereco=biz.domain||`${biz.slug||'barbearia'}.${DOMINIO_BASE}`
 
   // Rodar o telemovel com a pre-visualizacao aberta muda o que cabe no ecra.
@@ -483,19 +490,29 @@ function DesignTab({biz,onGuardado}){
    * Agora encolhe-se. E diz-se o que aconteceu, porque um trabalho feito em
    * silêncio parece um trabalho não feito.
    */
-  async function enviarIcone(ficheiros){
+  /*
+   * O barbeiro larga o logotipo como o tem — foto do cartao, print, PNG com
+   * margens. O prepararLogotipo le a imagem, corta as margens, limpa o fundo
+   * e devolve dois ficheiros: o logotipo na forma dele (para o topo da app)
+   * e o icone quadrado (para o ecra do telemovel). «Usar como está» envia a
+   * imagem sem mexer, para quando a leitura nao acerta.
+   */
+  async function enviarIcone(ficheiros,semAjuste=false){
     const original=Array.isArray(ficheiros)?ficheiros[0]:ficheiros?.target?.files?.[0]; if(!original)return
     setIconeAEnviar(true);setErro('');setIconeEncolhido('')
     try{
-      const file=await reduzirParaTamanho(original,1024*1024)
-      if(file.size>1024*1024){
-        setErro('Não consegui pôr esta imagem abaixo de 1 MB. Tenta uma versão mais pequena.')
-        return
-      }
-      if(file!==original){
-        setIconeEncolhido(`A tua imagem tinha ${tamanhoLegivel(original.size)} e ficou com ${tamanhoLegivel(file.size)}. Não precisas de fazer mais nada.`)
-      }
-      raiz('favicon',await uploadBusinessAsset(biz.id,file,'icone'))
+      let logo=original,icone=original,ajustes=[],pequeno=false
+      if(!semAjuste)({logo,icone,ajustes,pequeno}=await prepararLogotipo(original))
+      logo=await reduzirParaTamanho(logo,1024*1024)
+      icone=await reduzirParaTamanho(icone,1024*1024)
+      const [urlLogo,urlIcone]=await Promise.all([
+        uploadBusinessAsset(biz.id,logo,'logotipo'),
+        uploadBusinessAsset(biz.id,icone,'icone'),
+      ])
+      setLogoUrl(urlLogo);raiz('favicon',urlIcone);setLogoOriginal(original)
+      const frases=semAjuste?['Ficou a imagem tal como a enviaste.']:(ajustes.length?ajustes:['O teu logótipo já estava perfeito — não foi preciso mexer.'])
+      if(pequeno)frases.push('O logótipo tem pouca resolução e pode ficar um pouco desfocado. Se tiveres uma versão maior, usa essa.')
+      setIconeEncolhido(frases.join(' '))
     }
     catch(err){setErro('Upload falhou: '+err.message+(/bucket|not found/i.test(err.message)?' — falta correr o STORAGE_SETUP.sql.':''))}
     finally{setIconeAEnviar(false)}
@@ -504,11 +521,12 @@ function DesignTab({biz,onGuardado}){
   async function guardar(){
     setGuardando(true);setErro('');setSucesso(false)
     try{
-      await updateBusiness(biz.id,{settings:{...(settingsAtuais||{}),
+      await updateBusiness(biz.id,{...(logoUrl!==logoGravado?{logo_url:logoUrl}:{}),settings:{...(settingsAtuais||{}),
         theme:tema, tagline:info.tagline, description:info.description,
         coverImageUrl:info.coverImageUrl, amenities:info.amenities,
         social:info.social, loyalty:info.loyalty}})
       setSettingsAtuais(s=>({...(s||{}),theme:tema,...info}))
+      setLogoGravado(logoUrl)
       setSucesso(true);onGuardado?.()
     }catch(e){setErro('Não foi possível guardar: '+e.message)}
     finally{setGuardando(false)}
@@ -557,7 +575,7 @@ function DesignTab({biz,onGuardado}){
         </div>
 
         {painel==='sugestao'&&(
-          <SugestaoDesign biz={biz} logo={tema.favicon||biz.logo_url} endereco={endereco}
+          <SugestaoDesign biz={bizVisto} logo={logoUrl||tema.favicon} endereco={endereco}
             irParaMarca={()=>setPainel('marca')}
             onExperimentar={p=>{setTema(t=>({...t,colors:{...t.colors,...p.colors},fonts:{...t.fonts,...p.fonts},radius:p.radius}));setSucesso(false)}}/>
         )}
@@ -744,38 +762,43 @@ function DesignTab({biz,onGuardado}){
                 </div>
               </div>
               <div>
-                <Lbl>Ícone da barbearia</Lbl>
-                <div style={{display:'flex',gap:12,alignItems:'flex-start'}}>
-                  <Largar onFicheiros={enviarIcone} aEnviar={iconeAEnviar} titulo="Larga"
-                    style={{width:64,height:64,flexShrink:0,overflow:'hidden',background:BG,
-                      display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <Lbl>Logótipo</Lbl>
+                <div style={{display:'flex',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>
+                  <Largar onFicheiros={f=>enviarIcone(f)} aEnviar={iconeAEnviar} titulo="Larga"
+                    style={{minWidth:64,height:64,maxWidth:170,flexShrink:0,overflow:'hidden',background:BG,
+                      display:'flex',alignItems:'center',justifyContent:'center',padding:4}}>
                     {iconeAEnviar
                       ?<Spin size={16}/>
-                      :(tema.favicon||biz.logo_url)
-                        ?<img src={tema.favicon||biz.logo_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
-                        :<span style={{fontSize:10,color:T3}}>sem ícone</span>}
+                      :(logoUrl||tema.favicon)
+                        ?<img src={logoUrl||tema.favicon} alt="" style={{height:'100%',width:'auto',maxWidth:160,objectFit:'contain',borderRadius:6}}/>
+                        :<span style={{fontSize:10,color:T3}}>sem logótipo</span>}
                   </Largar>
-                  <div style={{flex:1}}>
-                    {tema.favicon&&
-                      <Btn v="ghost" style={{padding:'7px 10px',fontSize:12}}
-                        onClick={()=>raiz('favicon','')}>Remover</Btn>}
-                    <div style={{fontSize:11.5,color:T3,marginTop:8,lineHeight:1.5}}>
-                      Larga a imagem no quadrado, ou carrega nele para escolher.{' '}
-                      É o ícone que aparece no separador do browser e no ecrã do telemóvel
-                      quando o cliente guarda o site. Quadrado, de preferência 512×512.
-                      Sem ícone próprio, usa-se o logótipo da Visão Geral.
+                  {tema.favicon&&!iconeAEnviar&&(
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                      <img src={tema.favicon} alt="" style={{width:44,height:44,borderRadius:10,objectFit:'cover',border:`1px solid ${BD}`}}/>
+                      <span style={{fontSize:10,color:T3}}>ícone</span>
                     </div>
-                    {(tema.favicon||biz.logo_url)&&
-                      <Btn v="secondary" style={{padding:'7px 12px',fontSize:12,marginTop:10}}
-                        onClick={()=>setPainel('sugestao')}>Ver design de acordo com este logótipo</Btn>}
-                    <div style={{fontSize:11.5,color:T3,marginTop:6,lineHeight:1.5}}>
-                      Larga a fotografia como a tiraste — se tiver mais de 1 MB, é encolhida aqui.
+                  )}
+                  <div style={{flex:1,minWidth:180}}>
+                    <div style={{fontSize:11.5,color:T3,lineHeight:1.5}}>
+                      Larga aqui o teu logótipo como o tiveres — ficheiro, print ou fotografia.
+                      Nós lemos a imagem, cortamos as margens, limpamos o fundo e deixamos o
+                      logótipo na forma dele para o topo da app. O ícone do telemóvel sai
+                      daqui também, esse em quadrado.
                     </div>
                     {iconeEncolhido&&
                       <div style={{marginTop:10,padding:'9px 11px',borderRadius:9,lineHeight:1.5,
                         background:`${G}12`,border:`1px solid ${G}35`,fontSize:11.5,color:T2}}>
                         {iconeEncolhido}
                       </div>}
+                    <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:10}}>
+                      {logoOriginal&&!iconeAEnviar&&
+                        <Btn v="ghost" style={{padding:'7px 10px',fontSize:12}}
+                          onClick={()=>enviarIcone([logoOriginal],true)}>Usar a imagem como está</Btn>}
+                      {(logoUrl||tema.favicon)&&
+                        <Btn v="secondary" style={{padding:'7px 12px',fontSize:12}}
+                          onClick={()=>setPainel('sugestao')}>Ver design de acordo com este logótipo</Btn>}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -803,7 +826,7 @@ function DesignTab({biz,onGuardado}){
           </Btn>
           <Btn v="secondary" onClick={()=>{setTema(structuredClone(TEMA_OMISSAO));setSucesso(false)}}>Repor cores</Btn>
           {alterado&&(
-            <Btn v="ghost" onClick={()=>{setTema(guardadoTema);setInfo(guardadoInfo);setSucesso(false)}}>
+            <Btn v="ghost" onClick={()=>{setTema(guardadoTema);setInfo(guardadoInfo);setLogoUrl(logoGravado);setSucesso(false)}}>
               Descartar alterações
             </Btn>
           )}
@@ -855,7 +878,7 @@ function DesignTab({biz,onGuardado}){
                     border:'1px solid rgba(255,255,255,.16)'}}>Fechar</button>
               </div>
               <Telemovel largura={larguraPrevia}>
-                <Previsualizacao tema={tema} info={info} biz={biz} endereco={endereco}/>
+                <Previsualizacao tema={tema} info={info} biz={bizVisto} endereco={endereco}/>
               </Telemovel>
               <div style={{fontSize:11.5,color:T3,textAlign:'center',maxWidth:320,lineHeight:1.55}}>
                 É assim que o cliente vê{alterado?', já com o que ainda não gravaste':''}.
@@ -869,7 +892,7 @@ function DesignTab({biz,onGuardado}){
         <div style={{position:'sticky',top:20}}>
           <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px',marginBottom:10}}>PRÉ-VISUALIZAÇÃO</div>
           <Telemovel>
-            <Previsualizacao tema={tema} info={info} biz={biz} endereco={endereco}/>
+            <Previsualizacao tema={tema} info={info} biz={bizVisto} endereco={endereco}/>
           </Telemovel>
           <div style={{fontSize:11.5,color:T3,marginTop:14,lineHeight:1.55,textAlign:'center'}}>
             Desenhado à largura real de um telemóvel.
