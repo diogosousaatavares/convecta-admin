@@ -12,6 +12,7 @@ import TourDemo from '@/components/admin/TourDemo';
 import AvisoPush from '@/components/AvisoPush';
 import AvisoSubscricao from '@/components/AvisoSubscricao';
 import BemVindo from '@/components/BemVindo';
+import GuardarNoEcra from '@/components/GuardarNoEcra';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 
 const GROUPS_TODOS = [
@@ -482,6 +483,9 @@ export default function AdminLayout({ children }) {
         {/* A primeira entrada: tres ecras a ocupar o ecra inteiro, uma vez
             por barbearia. Depois disso e a faixa de cima que lembra. */}
         <BemVindo />
+        {/* Depois do Bem-vindo: no telemóvel, ensina a guardar o painel no
+            ecrã principal — sem isso, no iPhone não há notificações. */}
+        <GuardarNoEcra />
         {children}
       </main>
     </div>
