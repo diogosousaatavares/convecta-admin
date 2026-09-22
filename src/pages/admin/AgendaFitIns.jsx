@@ -14,6 +14,7 @@ function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return S
 export default function AgendaFitIns() {
   const data = useStore();
   const toast = useToast();
+  const falhou = (e) => toast.error('Não ficou gravado', (e && e.message) || 'Verifica a internet e tenta outra vez.');
   const [date, setDate] = useState(todayStr());
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ export default function AgendaFitIns() {
     setModal({});
   };
 
-  const submit = async () => {
+  const submit = async () => { try {
     if (!form.customerId || !form.serviceId || !form.startTime) { toast.error('Dados incompletos'); return; }
     const svc = data.services.find(s => s.id === form.serviceId);
     let profId = form.professionalId;
@@ -39,6 +40,7 @@ export default function AgendaFitIns() {
     toast.success('Encaixe criado', `${form.startTime} · ${formatDate(date)}`);
     setModal(null);
     setLoading(true); dataService.getAvailableSlots(date, 'any', 30).then(s => { setSlots(s.filter(x => !x.isPast)); setLoading(false); });
+    } catch (e) { falhou(e); }
   };
 
   const free = slots.filter(s => !s.isBooked);

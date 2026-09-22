@@ -39,6 +39,7 @@ export default function Agenda() {
   const data = useStore();
   const telemovel = useIsMobile();
   const toast = useToast();
+  const falhou = (e) => toast.error('Não ficou gravado', (e && e.message) || 'Verifica a internet e tenta outra vez.');
   const [date, setDate] = useState(() => {
     // Vindo da demo do site: abre no dia da marcacao que a pessoa fez la.
     try {
@@ -94,16 +95,17 @@ export default function Agenda() {
     return map;
   }, [data.appointments]);
 
-  const confirm = async (id) => {
+  const confirm = async (id) => { try {
     const a = await dataService.confirmAppointment(id);
     // O cliente e avisado por notificacao push (dataService.confirmAppointment).
     // Nao ha email de confirmacao — o aviso "Email enviado" era mentira.
     toast.success('Marcação confirmada');
     setSelected(null);
+    } catch (e) { falhou(e); }
   };
   const [checkout, setCheckout] = useState(null);
   const attend = (id) => { setCheckout(id); setSelected(null); };
-  const finishCheckout = async (payData) => {
+  const finishCheckout = async (payData) => { try {
     const a = data.appointments.find(x => x.id === checkout);
     if (a && a.status === 'confirmed') await dataService.markAttended(checkout);
     await dataService.checkoutAppointment(checkout, payData);
@@ -129,8 +131,9 @@ export default function Agenda() {
 
     toast.success('Cobrança concluída', `${formatPrice(payData.total)} · ${payData.method}`);
     setCheckout(null);
+    } catch (e) { falhou(e); }
   };
-  const doCancel = async () => {
+  const doCancel = async () => { try {
     if (cancelTarget.blocked || cancelTarget.status === 'blocked') {
       await dataService.deleteAppointment(cancelTarget.id);
       toast.success('Bloqueio removido');
@@ -140,10 +143,11 @@ export default function Agenda() {
     }
     setCancelTarget(null);
     setSelected(null);
+    } catch (e) { falhou(e); }
   };
   const askCancel = (a) => { setCancelTarget(a); setSelected(null); };
 
-  const handleBlock = async (proId, startTime) => {
+  const handleBlock = async (proId, startTime) => { try {
     const label = window.prompt('Motivo do bloqueio (opcional):', 'Bloqueado') || 'Bloqueado';
     const dur = 30;
     await dataService.createAppointment({
@@ -157,9 +161,10 @@ export default function Agenda() {
     });
     toast.success('Horário bloqueado', `${startTime} · ${data.professionals.find(p => p.id === proId)?.name}`);
     setBlockMode(false);
+    } catch (e) { falhou(e); }
   };
 
-  const submitQuick = async () => {
+  const submitQuick = async () => { try {
     setQuickError('');
     if (!quick.serviceId) {
       setQuickError('Seleciona um serviço');
@@ -185,6 +190,7 @@ export default function Agenda() {
       : 'Marcação confirmada na agenda.');
     setQuickOpen(false);
     setQuick({ customerId: '', serviceId: '', professionalId: '', startTime: '', usaPack: false });
+    } catch (e) { falhou(e); }
   };
 
   const selAppt = selected ? data.appointments.find(a => a.id === selected) : null;

@@ -17,8 +17,11 @@ export default function ProSchedules() {
   const schedule = pro?.schedule || data.business.openingHours.map(h => ({ ...h }));
   const isCustom = !!pro?.schedule;
 
-  const setCustom = custom => dataService.updateProfessional(proId, { schedule: custom ? data.business.openingHours.map(h => ({ ...h, breaks: [...(h.breaks || [])] })) : null });
-  const update = (day, field, value) => dataService.updateProfessional(proId, { schedule: schedule.map(h => h.day === day ? { ...h, [field]: value } : h) });
+  // Grava a cada alteração. Se falhar, diz — antes falhava calado.
+  const gravar = (schedule) => dataService.updateProfessional(proId, { schedule })
+    .catch(e => toast.error('Não ficou gravado', (e && e.message) || 'Verifica a internet e tenta outra vez.'));
+  const setCustom = custom => gravar(custom ? data.business.openingHours.map(h => ({ ...h, breaks: [...(h.breaks || [])] })) : null);
+  const update = (day, field, value) => gravar(schedule.map(h => h.day === day ? { ...h, [field]: value } : h));
   const addBreak = day => {
     const h = schedule.find(x => x.day === day);
     update(day, 'breaks', [...(h?.breaks || []), { start: '13:00', end: '14:00' }]);
@@ -53,7 +56,7 @@ export default function ProSchedules() {
               {h.isOpen && breaks.length > 0 && <div style={{ marginTop: 10, paddingLeft: 126, display: 'flex', flexDirection: 'column', gap: 6 }}>{breaks.map((b, idx) => <div key={idx} className="flex items-center gap-8"><span className="text-sec text-xs" style={{ width: 80 }}>{idx === 0 ? 'Pausa almoço' : `Pausa ${idx + 1}`}</span><input className="input" type="time" disabled={!isCustom} value={b.start} onChange={e => updateBreak(day, idx, 'start', e.target.value)} style={{ width: 100 }} /><span className="text-sec">—</span><input className="input" type="time" disabled={!isCustom} value={b.end} onChange={e => updateBreak(day, idx, 'end', e.target.value)} style={{ width: 100 }} />{isCustom && <button onClick={() => removeBreak(day, idx)} aria-label="Remover pausa" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', display: 'flex', padding: 4 }}><X size={13} /></button>}</div>)}</div>}
             </div>;
           })}
-          <div className="mt-16"><Button variant="primary" onClick={() => toast.success('Horários guardados')}><Clock size={16} /> Guardar</Button></div>
+          <div className="mt-16 text-sec text-sm flex items-center gap-8"><Clock size={14} /> Cada alteração fica gravada logo.</div>
         </Card>
       </>}
     </AdminPage>

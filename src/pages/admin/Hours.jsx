@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Clock, Plus, X } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
@@ -13,25 +13,55 @@ export default function Hours() {
   const data = useStore();
   const toast = useToast();
 
+  // Rascunho local: mexer num relógio já não grava a cada tecla (e duas
+  // gravações seguidas já não se atropelam). Só o «Guardar» grava — a sério.
+  const original = data.business?.openingHours || [];
+  const [horas, setHoras] = useState(original);
+  const [mexido, setMexido] = useState(false);
+  const [aGravar, setAGravar] = useState(false);
+  useEffect(() => { if (!mexido) setHoras(original); /* eslint-disable-next-line */ }, [data.business?.openingHours]);
+
   const update = (day, field, value) => {
-    const hours = data.business.openingHours.map(h => h.day === day ? { ...h, [field]: value } : h);
-    dataService.updateBusiness({ openingHours: hours });
+    setMexido(true);
+    setHoras(prev => {
+      const existe = prev.some(h => h.day === day);
+      const base = existe ? prev : [...prev, { day, isOpen: false, open: '09:00', close: '19:00', breaks: [] }];
+      return base.map(h => h.day === day ? { ...h, [field]: value } : h);
+    });
+  };
+
+  const guardar = async () => {
+    for (const h of horas) {
+      if (!h.isOpen) continue;
+      if (h.close <= h.open) { toast.error('Horário inválido', `${DAY_LABELS[h.day]}: o fecho tem de ser depois da abertura.`); return; }
+      for (const b of (h.breaks || [])) {
+        if (b.end <= b.start || b.start < h.open || b.end > h.close) { toast.error('Pausa inválida', `${DAY_LABELS[h.day]}: a pausa tem de caber dentro do horário.`); return; }
+      }
+    }
+    setAGravar(true);
+    try {
+      await dataService.updateBusiness({ openingHours: horas });
+      setMexido(false);
+      toast.success('Horários guardados', 'O site de marcações já usa o horário novo.');
+    } catch (e) {
+      toast.error('Não ficou gravado', (e && e.message) || 'Verifica a internet e tenta outra vez.');
+    } finally { setAGravar(false); }
   };
 
   const addBreak = day => {
-    const h = data.business.openingHours.find(x => x.day === day);
+    const h = horas.find(x => x.day === day);
     const breaks = [...(h?.breaks || []), { start: '13:00', end: '14:00' }];
     update(day, 'breaks', breaks);
   };
 
   const updateBreak = (day, idx, field, value) => {
-    const h = data.business.openingHours.find(x => x.day === day);
+    const h = horas.find(x => x.day === day);
     const breaks = (h?.breaks || []).map((b, i) => i === idx ? { ...b, [field]: value } : b);
     update(day, 'breaks', breaks);
   };
 
   const removeBreak = (day, idx) => {
-    const h = data.business.openingHours.find(x => x.day === day);
+    const h = horas.find(x => x.day === day);
     const breaks = (h?.breaks || []).filter((_, i) => i !== idx);
     update(day, 'breaks', breaks);
   };
@@ -45,7 +75,7 @@ export default function Hours() {
 
       <Card className="card-pad">
         {DAYS.map(day => {
-          const h = data.business.openingHours.find(x => x.day === day) || { isOpen: false, open: '09:00', close: '19:00', breaks: [] };
+          const h = horas.find(x => x.day === day) || { isOpen: false, open: '09:00', close: '19:00', breaks: [] };
           const breaks = h.breaks || [];
           return (
             <div key={day} style={{ padding: '16px 0', borderBottom: '1px solid var(--border)' }}>
@@ -74,7 +104,7 @@ export default function Hours() {
             </div>
           );
         })}
-        <div className="mt-24"><Button variant="primary" onClick={() => toast.success('Horários guardados')}><Clock size={16} /> Guardar horários</Button></div>
+        <div className="mt-24"><Button variant="primary" onClick={guardar} disabled={aGravar || !mexido}><Clock size={16} /> {aGravar ? 'A guardar…' : mexido ? 'Guardar horários' : 'Guardado'}</Button></div>
       </Card>
     </AdminLayout>
   );

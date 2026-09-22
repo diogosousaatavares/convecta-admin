@@ -395,7 +395,9 @@ function bizToRow(biz) {
   // plan / billingPeriod / professionalLimit saem fora de proposito: sao
   // colunas do contrato, nao definicoes da barbearia. Se ficassem no `rest`
   // eram copiados para dentro do settings a cada gravacao.
-  const { id, name, slug, logoUrl, _settings, plan, billingPeriod, professionalLimit, ...rest } = biz;
+  // `demo` tambem: no painel e um sim/nao, mas no settings e { ativo, ... }
+  // escrito pelo Super Admin — gravar o sim/nao por cima estragava-o.
+  const { id, name, slug, logoUrl, _settings, plan, billingPeriod, professionalLimit, demo, ...rest } = biz;
   return { name, slug, logo_url: logoUrl, settings: { ...(_settings || {}), ...rest } };
 }
 
@@ -744,6 +746,20 @@ async function fetchAll(table, adapter) {
   return (data || []).map(adapter);
 }
 
+// A ficha do cliente tal como esta AGORA na base de dados. O cartao de
+// fidelidade muda sem o painel saber (o cliente gasta o corte gratis ao
+// marcar, a base de dados carimba): gravar a copia que o painel leu ao abrir
+// devolvia-lhe o corte gratis ja gasto. Le-se antes de mexer.
+async function fichaFresca(id) {
+  if (!id) return null;
+  const { data, error } = await supabase.from('customers').select('*').eq('id', id).maybeSingle();
+  if (error || !data) return state.customers.find(c => c.id === id) || null;
+  const c = custFromRow(data);
+  const i = state.customers.findIndex(x => x.id === id);
+  if (i >= 0) state.customers[i] = c; else state.customers.push(c);
+  return c;
+}
+
 // ─── MB WAY ───────────────────────────────────────────────────────────────────
 const MBWAY_LIGADO = false;
 // Esta marcação ainda se pode pagar por MB WAY? (para o aviso de «confirmada»)
@@ -958,7 +974,13 @@ const dataService = {
   // ── BUSINESS ──
   getBusiness() { return Promise.resolve(state.business); },
   async updateBusiness(updates) {
-    const merged = { ...state.business, ...updates };
+    // Parte-se do que esta AGORA na base de dados, nao do que este separador
+    // leu ao abrir. O Meu Site, o Super Admin e as definicoes gravam no mesmo
+    // settings: partir da copia antiga apagava o que os outros tinham gravado
+    // entretanto (o tema, o logotipo, a confirmacao automatica...).
+    const { data: atual, error: erroLer } = await supabase.from('businesses').select('*').eq('id', BUSINESS_ID).single();
+    if (erroLer) throw traduzirErro(erroLer);
+    const merged = { ...bizFromRow(atual), ...updates };
     const row = bizToRow(merged);
     const { data, error } = await supabase.from('businesses').update(row).eq('id', BUSINESS_ID).select().single();
     if (error) throw traduzirErro(error);
@@ -1051,7 +1073,7 @@ const dataService = {
     const c = custFromRow(created); state.customers.push(c); notify(); return c;
   },
   async updateCustomer(id, updates) {
-    const existing = state.customers.find(c => c.id === id);
+    const existing = await fichaFresca(id);
     const merged = { ...existing, ...updates };
     const row = custToRow(merged);
     const { data, error } = await supabase.from('customers').update(row).eq('id', id).select().single();
@@ -1062,8 +1084,13 @@ const dataService = {
     notify(); return c;
   },
   async adjustCustomerBalance(id, delta) {
-    const c = state.customers.find(x => x.id === id);
-    if (c) { c.balance = (c.balance || 0) + Number(delta); await supabase.from('customers').update(custToRow(c)).eq('id', id); notify(); }
+    const c = await fichaFresca(id);
+    if (c) {
+      c.balance = (c.balance || 0) + Number(delta);
+      const { error } = await supabase.from('customers').update(custToRow(c)).eq('id', id);
+      if (error) throw traduzirErro(error);
+      notify();
+    }
     return c;
   },
 
@@ -1131,6 +1158,10 @@ const dataService = {
       .select('*').eq('business_id', BUSINESS_ID);
     if (error) throw new Error(error.message);
     state.appointments = (data || []).map(apptFromRow);
+    // Os clientes tambem: quem se registou no site agora aparecia como «—»
+    // na agenda e nao levava carimbo, porque o painel nao o conhecia.
+    const { data: fichas, error: erroFichas } = await supabase.from('customers').select('*').eq('business_id', BUSINESS_ID);
+    if (!erroFichas && fichas) state.customers = fichas.map(custFromRow);
     state.pagamentosMbway = await lerPagamentosMbway();
     state.packSales = await lerVendasPacks();
     notify();
@@ -1263,6 +1294,7 @@ const dataService = {
     const a = state.appointments.find(x => x.id === apptId);
     if (!a || (a.status === 'completed' && a.payment)) return a;
     if (a.status !== 'confirmed' && a.status !== 'completed') return a;
+    await fichaFresca(a.customerId);
     const svc = state.services.find(s => s.id === a.serviceId);
     const pro = state.professionals.find(p => p.id === a.professionalId);
     // Corte gratis: o cliente escolheu gastar um do cartao ao marcar. O
@@ -1611,11 +1643,10 @@ const dataService = {
     const newSection = { ...(currentCfg[section] || {}), ...updates };
     state.business.config = { ...currentCfg, [section]: newSection };
     const { data: existing } = await supabase.from('config').select('id').eq('business_id', BUSINESS_ID).maybeSingle();
-    if (existing) {
-      await supabase.from('config').update({ [section]: newSection }).eq('business_id', BUSINESS_ID);
-    } else {
-      await supabase.from('config').insert({ business_id: BUSINESS_ID, [section]: newSection });
-    }
+    const { error: erroCfg } = existing
+      ? await supabase.from('config').update({ [section]: newSection }).eq('business_id', BUSINESS_ID)
+      : await supabase.from('config').insert({ business_id: BUSINESS_ID, [section]: newSection });
+    if (erroCfg) { state.business.config = currentCfg; notify(); throw traduzirErro(erroCfg); }
     // A confirmacao automatica tem de chegar ao site do cliente, e o site do
     // cliente nao le a tabela config (nem deve — ha la coisas que nao sao da
     // conta de quem vai marcar). Espelha-se so este valor no settings da
@@ -1635,7 +1666,9 @@ const dataService = {
         const { data: b } = await supabase.from('businesses').select('settings').eq('id', BUSINESS_ID).maybeSingle();
         const novas = { ...(b?.settings || {}) };
         mudados.forEach(k => { novas[k] = ESPELHADOS[k](updates[k]); });
-        await supabase.from('businesses').update({ settings: novas }).eq('id', BUSINESS_ID);
+        const { error: e2 } = await supabase.from('businesses').update({ settings: novas }).eq('id', BUSINESS_ID);
+        if (e2) throw e2;
+        if (state.business) state.business._settings = novas;
       } catch (e) { console.error('parametros nao espelhados para o site:', e.message); }
     }
     notify(); return state.business.config;

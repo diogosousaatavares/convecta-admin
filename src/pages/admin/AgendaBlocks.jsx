@@ -14,17 +14,19 @@ function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return S
 export default function AgendaBlocks() {
   const data = useStore();
   const toast = useToast();
+  const falhou = (e) => toast.error('Não ficou gravado', (e && e.message) || 'Verifica a internet e tenta outra vez.');
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({ professionalId: '', date: todayStr(), startTime: '09:00', endTime: '10:00', label: 'Bloqueado' });
 
   const blocks = (data.appointments || []).filter(a => a.blocked || a.status === 'blocked').sort((a, b) => (b.date + b.startTime).localeCompare(a.date + a.startTime));
 
-  const add = async () => {
+  const add = async () => { try {
     if (!form.professionalId || !form.date || !form.startTime || !form.endTime) { toast.error('Dados incompletos'); return; }
     if (toMin(form.endTime) <= toMin(form.startTime)) { toast.error('Horário inválido', 'O fim tem de ser depois do início.'); return; }
     await dataService.createAppointment({ blocked: true, status: 'blocked', professionalId: form.professionalId, date: form.date, startTime: form.startTime, endTime: form.endTime, label: form.label || 'Bloqueado' });
     toast.success('Bloqueio criado');
     setModal(false); setForm({ professionalId: '', date: todayStr(), startTime: '09:00', endTime: '10:00', label: 'Bloqueado' });
+    } catch (e) { falhou(e); }
   };
 
   return (
@@ -44,7 +46,7 @@ export default function AgendaBlocks() {
                   <td>{formatDateShortNum(b.date)}</td>
                   <td>{b.startTime} – {b.endTime}</td>
                   <td className="text-sec">{b.label}</td>
-                  <td><button className="btn btn-ghost btn-icon" aria-label="Eliminar bloqueio" title="Eliminar bloqueio" onClick={() => { dataService.deleteAppointment(b.id); toast.success('Bloqueio removido'); }}><Trash2 size={15} /></button></td>
+                  <td><button className="btn btn-ghost btn-icon" aria-label="Eliminar bloqueio" title="Eliminar bloqueio" onClick={async () => { try { await dataService.deleteAppointment(b.id); toast.success('Bloqueio removido'); } catch (e) { falhou(e); } }}><Trash2 size={15} /></button></td>
                 </tr>
               ))}
             </tbody>

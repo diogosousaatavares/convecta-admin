@@ -29,7 +29,8 @@ const GROUPS_TODOS = [
     { to: '/admin/agenda/pack', label: 'Pack mensal' },
     { to: '/admin/agenda/lista-espera', label: 'Lista de Espera' },
     { to: '/admin/agenda/encaixes', label: 'Encaixes' },
-    { to: '/admin/agenda/bloqueios', label: 'Bloqueios' }
+    { to: '/admin/agenda/bloqueios', label: 'Bloqueios' },
+    { to: '/admin/horarios', label: 'Horário da barbearia' }
   ]},
 
   { type: 'group', label: 'Clientes', icon: Users, items: [
