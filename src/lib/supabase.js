@@ -34,3 +34,25 @@ export function aplicarPreferenciaSessao(lembrar) {
     if (v !== null) { para.setItem(CHAVE_SESSAO, v); de.removeItem(CHAVE_SESSAO) }
   } catch { /* modo privado: fica como estiver */ }
 }
+
+// ── Link de confirmação com o NOSSO domínio ─────────────────────────────────
+// O email de confirmação passou a levar um link para este site (com
+// ?token_hash=…&type=…) em vez de um link para o endereço técnico do
+// Supabase — que parecia suspeito aos filtros de spam e a quem o lia.
+// Aqui troca-se esse código pela sessão. A recuperação da palavra-passe
+// continua pelo caminho antigo e não passa por aqui.
+export const confirmacaoPorLink = (async () => {
+  try {
+    const p = new URLSearchParams(window.location.search)
+    const token_hash = p.get("token_hash")
+    const type = p.get("type")
+    if (!token_hash || !["email", "signup", "magiclink", "invite", "email_change"].includes(type || "")) return null
+    const { error } = await supabase.auth.verifyOtp({ token_hash, type })
+    p.delete("token_hash"); p.delete("type")
+    const resto = p.toString()
+    window.history.replaceState(null, "", window.location.pathname + (resto ? "?" + resto : "") + window.location.hash)
+    if (error) { console.warn("link de confirmação:", error.message); return { erro: error.message } }
+    return { ok: true }
+  } catch (e) { return { erro: String(e && e.message || e) } }
+})()
+
