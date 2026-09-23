@@ -5,23 +5,11 @@ import { Card, Button } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 
-const DEFAULT_COLORS = { '--gold':'#C9A227','--bg':'#0A0807','--surface':'#141210','--elevated':'#1C1915','--border':'#221E18','--text':'#EDE8DF','--text-sec':'#8A8272','--text-ter':'#524F49' };
-const PRESETS = [
-  { label: 'Dark Gold', colors: DEFAULT_COLORS },
-  { label: 'Midnight', colors: { '--gold':'#7C9FD4','--bg':'#07090F','--surface':'#0F1220','--elevated':'#161B2E','--border':'#1E2540','--text':'#E0E6F5','--text-sec':'#7A87A8','--text-ter':'#424A66' } },
-  { label: 'Emerald', colors: { '--gold':'#34A869','--bg':'#080F0B','--surface':'#101A12','--elevated':'#162219','--border':'#1B2B1E','--text':'#DFF0E5','--text-sec':'#6FA882','--text-ter':'#3D6648' } },
-  { label: 'Rose', colors: { '--gold':'#D4607C','--bg':'#0F0809','--surface':'#1E1012','--elevated':'#271419','--border':'#32181D','--text':'#F5E0E3','--text-sec':'#A8707A','--text-ter':'#663D44' } },
-  { label: 'Claro', colors: { '--gold':'#A0790E','--bg':'#F5F2EE','--surface':'#FFFFFF','--elevated':'#F0ECE6','--border':'#D9D3C9','--text':'#1A1714','--text-sec':'#6B6355','--text-ter':'#9C9080' } },
-];
+import { PRESETS, DEFAULT_COLORS, applyTheme, avisosDeContraste } from '@/lib/temaPainel';
+export { applyTheme };
 const COLOR_LABELS = [
-  ['--gold','Cor de destaque','Botões, acentos, valores'], ['--bg','Fundo principal','Background da página'], ['--surface','Surface','Cards e sidebar'], ['--elevated','Elevated','Dropdowns, modais'], ['--border','Bordas','Linhas e separadores'], ['--text','Texto principal','Títulos e conteúdo'], ['--text-sec','Texto secundário','Labels e subtítulos'], ['--text-ter','Texto terciário','Placeholders, hints'],
+  ['--gold','Cor de destaque','Botões, item ativo, valores'], ['--bg','Fundo principal','Fundo da página'], ['--surface','Cartões','Cartões e menu'], ['--elevated','Elevados','Menus abertos, janelas'], ['--border','Linhas','Contornos e separadores'], ['--text','Texto principal','Títulos e conteúdo'], ['--text-sec','Texto secundário','Legendas e menu'], ['--text-ter','Texto terciário','Dicas e campos vazios'],
 ];
-
-export function applyTheme(colors) {
-  let el = document.getElementById('convecta-theme');
-  if (!el) { el = document.createElement('style'); el.id = 'convecta-theme'; document.head.appendChild(el); }
-  el.textContent = `:root { ${Object.entries(colors).map(([key, value]) => `${key}: ${value};`).join(' ')} }`;
-}
 
 function MiniPreview({ colors }) {
   const card = { background: colors['--surface'], border: `1px solid ${colors['--border']}`, borderRadius: 10 };
@@ -53,11 +41,16 @@ export default function TemaPersonalizacao() {
   const apply = async () => { await dataService.updateConfig('theme', colors); applyTheme(colors); setApplied(true); toast.success('Tema aplicado', 'As cores foram guardadas e aplicadas ao painel.'); };
   const reset = async () => { setColors({ ...DEFAULT_COLORS }); await dataService.updateConfig('theme', DEFAULT_COLORS); setApplied(false); toast.info('Tema reposto para o padrão.'); };
 
-  return <AdminPage title="Tema e Personalização" subtitle="Personaliza as cores do painel. A pré-visualização atualiza em tempo real.">
+  return <AdminPage title="Tema e Personalização" subtitle="Escolhe a cor do teu painel. A pré-visualização muda na hora.">
     <div className="tema-layout-grid">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <Card className="card-pad"><div className="fw-600 mb-12" style={{ fontSize: 14, color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: 1 }}>Temas pré-definidos</div><div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>{PRESETS.map(preset => <button key={preset.label} onClick={() => { setApplied(false); setColors({ ...preset.colors }); }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--elevated)', color: 'var(--text)', fontSize: 14, cursor: 'pointer', textAlign: 'left' }}><span style={{ width: 18, height: 18, borderRadius: '50%', background: preset.colors['--gold'], border: '2px solid rgba(255,255,255,.15)' }} /><span style={{ flex: 1 }}>{preset.label}</span>{['--bg','--surface','--elevated'].map(key => <span key={key} style={{ width: 12, height: 12, borderRadius: 3, background: preset.colors[key], border: '1px solid rgba(255,255,255,.1)' }} />)}</button>)}</div></Card>
+        <Card className="card-pad"><div className="fw-600 mb-12" style={{ fontSize: 14, color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: 1 }}>Temas</div><div className="text-sec text-xs" style={{ marginBottom: 12, lineHeight: 1.5 }}>O fundo fica sempre neutro e fácil de ler; muda só a cor de destaque.</div><div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>{PRESETS.map(preset => <button key={preset.label} onClick={() => { setApplied(false); setColors({ ...preset.colors }); }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--elevated)', color: 'var(--text)', fontSize: 14, cursor: 'pointer', textAlign: 'left' }}><span style={{ width: 18, height: 18, borderRadius: '50%', background: preset.colors['--gold'], border: '2px solid rgba(255,255,255,.15)' }} /><span style={{ flex: 1 }}>{preset.label}{preset.nota && <span style={{ color: 'var(--text-sec)', fontSize: 12.5 }}> · {preset.nota}</span>}</span>{(colors['--gold'] || '').toLowerCase() === preset.gold.toLowerCase() && <Check size={15} style={{ color: 'var(--gold)' }} />}</button>)}</div></Card>
         <Card className="card-pad"><div className="fw-600 mb-16" style={{ fontSize: 14, color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: 1 }}>Cores personalizadas</div><div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{COLOR_LABELS.map(([key,label,desc]) => <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}><input type="color" value={colors[key]} onChange={e => setColor(key,e.target.value)} style={{ width: 32, height: 32, padding: 2, border: '1px solid var(--border)', borderRadius: 8, cursor: 'pointer' }} /><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div><div style={{ fontSize: 11, color: 'var(--text-ter)' }}>{desc}</div></div><input className="input" value={colors[key]} onChange={e => setColor(key,e.target.value)} style={{ width: 84, fontFamily: 'monospace', fontSize: 11, padding: '4px 8px' }} /></div>)}</div></Card>
+        {avisosDeContraste(colors).length > 0 && (
+          <div role="alert" style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid rgba(245,158,11,.45)', background: 'rgba(245,158,11,.08)', fontSize: 13, lineHeight: 1.5 }}>
+            {avisosDeContraste(colors).map(a => <div key={a}>⚠ {a}</div>)}
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 8 }}><Button variant="primary" style={{ flex: 1 }} onClick={apply}>{applied ? <><Check size={15} /> Aplicado</> : <><Palette size={15} /> Aplicar tema</>}</Button><Button variant="secondary" onClick={reset}><RotateCcw size={15} /></Button></div>
         {!applied && <div className="text-sec text-xs" style={{ textAlign: 'center' }}>Clica em "Aplicar tema" para guardar e ver no painel real.</div>}
       </div>

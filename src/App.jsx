@@ -17,11 +17,7 @@ import dataService from '@/lib/dataService';
 import { useStore, useAuth } from '@/hooks/useStore';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
-function applySavedTheme(colors) {
-  let style = document.getElementById('convecta-theme');
-  if (!style) { style = document.createElement('style'); style.id = 'convecta-theme'; document.head.appendChild(style); }
-  style.textContent = `:root { ${Object.entries(colors).map(([key, value]) => `${key}: ${value};`).join(' ')} }`;
-}
+import { applyTheme as applySavedTheme } from '@/lib/temaPainel';
 
 // Lazy-load all admin pages
 const Dashboard        = lazy(() => import('@/pages/admin/Dashboard'));
@@ -212,8 +208,9 @@ function AppRoutes() {
 
 export default function App() {
   useEffect(() => {
-    const saved = dataService.getState().business?.config?.theme;
-    if (saved && Object.keys(saved).length > 0) applySavedTheme(saved);
+    // Sempre: sem tema guardado aplica-se o «Convecta». As variáveis derivadas
+    // (texto sobre o destaque, transparências) só existem depois disto.
+    applySavedTheme(dataService.getState().business?.config?.theme || null);
   }, []);
 
   const { loading } = useStore();
