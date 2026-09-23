@@ -95,7 +95,7 @@ function traduzirErro(error) {
   }
   return error instanceof Error ? error : new Error(error.message || 'Erro desconhecido');
 }
-import { getCustomerStats, valorDoCortePack } from '@/lib/domain/finance';
+import { getCustomerStats, valorDoCortePack, resumoCliente } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
 import { localDateStr } from '@/lib/domain/dates';
 import { diaLocal } from '@/lib/format';
@@ -308,10 +308,11 @@ async function guardarFidelidade(customer) {
 function recomputeCustomer(customerId) {
   const c = state.customers.find(x => x.id === customerId);
   if (!c) return;
-  const stats = getCustomerStats(state, customerId);
-  c.totalAppointments = stats.visits;
-  c.totalSpent = stats.totalSpent;
-  c.lastVisit = stats.lastVisit;
+  const r = resumoCliente(state, customerId);
+  c.totalAppointments = r.visitas;
+  c.totalSpent = r.totalGasto;
+  c.lastVisit = r.ultimaVisita;
+  state.customers = [...state.customers];
 }
 
 // ─── Imagens ─────────────────────────────────────────────────────────────────
@@ -583,6 +584,7 @@ function prodFromRow(row) {
     minStock: Number(row.min_stock) || 0,
     cost: m.cost || 0, price: Number(row.price) || 0,
     supplier: m.supplier || '',
+    supplierId: m.supplierId || null,
     isActive: row.is_active !== false,
   };
 }
@@ -592,8 +594,43 @@ function prodToRow(p) {
     business_id: BUSINESS_ID, name,
     stock_quantity: stock || 0, min_stock: minStock || 0,
     price: price || 0, is_active: isActive !== false,
-    metadata: { category: meta.category, unit: meta.unit, cost: meta.cost, supplier: meta.supplier },
+    metadata: { category: meta.category, unit: meta.unit, cost: meta.cost, supplier: meta.supplier, supplierId: meta.supplierId || null },
   };
+}
+
+function validarFornecedor(f) {
+  if (!String(f.name || '').trim()) throw new Error('O fornecedor precisa de um nome.');
+  const email = String(f.email || '').trim();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) throw new Error('O email não parece válido (ex.: nome@empresa.pt).');
+  const tel = String(f.phone || '').replace(/[\s().-]/g, '');
+  if (tel && !/^\+?\d{9,15}$/.test(tel)) throw new Error('O telefone não parece válido (9 dígitos, ou com indicativo +351).');
+}
+
+// Um produto com números impossíveis não se grava.
+function validarProduto(p) {
+  if (!String(p.name || '').trim()) throw new Error('O produto precisa de um nome.');
+  const campos = [['stock', 'O stock'], ['minStock', 'O stock mínimo'], ['cost', 'O custo'], ['price', 'O preço de venda']];
+  for (const [k, nome] of campos) {
+    const v = Number(p[k] ?? 0);
+    if (isNaN(v)) throw new Error(`${nome} tem de ser um número.`);
+    if (v < 0) throw new Error(`${nome} não pode ser negativo.`);
+  }
+  if (!Number.isInteger(Number(p.stock ?? 0))) throw new Error('O stock tem de ser um número inteiro.');
+}
+
+// Um movimento de stock, gravado e posto na lista (lista nova, para os ecrãs
+// acompanharem sem recarregar).
+async function registarMovimento(productId, quantidade, tipo, motivo) {
+  try {
+    const { data: mv, error } = await supabase.from('stock_movements').insert({
+      business_id: BUSINESS_ID, product_id: productId,
+      quantity: quantidade, type: tipo, reference: motivo || '',
+    }).select().single();
+    if (error) { console.warn('movimento de stock não gravado:', error.message); return null; }
+    const m = smFromRow(mv);
+    state.stockMovements = [...(state.stockMovements || []), m];
+    return m;
+  } catch (e) { console.warn('movimento de stock não gravado:', e.message); return null; }
 }
 
 // CASH SESSION
@@ -681,6 +718,8 @@ function despFromRow(row) {
     amount: Number(row.amount) || 0,
     method: row.method || '',
     date: row.spent_at,
+    supplierId: row.metadata?.supplierId || null,
+    supplier: row.metadata?.supplier || '',
     createdAt: row.created_at,
   };
 }
@@ -901,8 +940,20 @@ async function init() {
   // Sem o MBWAY.sql corrido, a tabela nao existe: fica vazio e calado.
   state.pagamentosMbway = await lerPagamentosMbway();
   state.packSales = await lerVendasPacks();
+  recalcularClientes();
   initialized = true;
   notify();
+}
+
+// Visitas, total gasto e última visita de TODOS os clientes, com a mesma
+// regra em todo o lado (resumoCliente): marcações pagas até hoje, serviços
+// sem gorjeta + produtos + packs. O que estava gravado na ficha incluía
+// gorjetas, esquecia produtos e aceitava visitas no futuro.
+function recalcularClientes() {
+  state.customers = (state.customers || []).map(c => {
+    const r = resumoCliente(state, c.id);
+    return { ...c, totalAppointments: r.visitas, totalSpent: r.totalGasto, lastVisit: r.ultimaVisita };
+  });
 }
 
 // ─── SLOT GENERATION ──────────────────────────────────────────────────────────
@@ -1164,6 +1215,7 @@ const dataService = {
     if (!erroFichas && fichas) state.customers = fichas.map(custFromRow);
     state.pagamentosMbway = await lerPagamentosMbway();
     state.packSales = await lerVendasPacks();
+    recalcularClientes();
     notify();
     return state.appointments;
   },
@@ -1294,6 +1346,11 @@ const dataService = {
     const a = state.appointments.find(x => x.id === apptId);
     if (!a || (a.status === 'completed' && a.payment)) return a;
     if (a.status !== 'confirmed' && a.status !== 'completed') return a;
+    // Duas regras que o teste real apanhou a falhar:
+    // 1. Uma marcação de amanhã não se cobra hoje. Contava como receita de
+    //    hoje e punha a «última visita» do cliente no futuro.
+    const erroCobranca = dataService.porqueNaoSePodeCobrar(a, payData?.method);
+    if (erroCobranca) throw new Error(erroCobranca);
     await fichaFresca(a.customerId);
     const svc = state.services.find(s => s.id === a.serviceId);
     const pro = state.professionals.find(p => p.id === a.professionalId);
@@ -1371,6 +1428,39 @@ const dataService = {
     }
     notify(); return a;
   },
+  // Porque é que esta cobrança não pode ser feita — ou null se pode.
+  // Usado pelo ecrã de cobrança (para avisar antes) e pela própria cobrança.
+  porqueNaoSePodeCobrar(a, metodo) {
+    if (!a) return 'Marcação não encontrada.';
+    if (a.date && a.date > localDateStr(new Date())) {
+      const [y, m, d] = a.date.split('-');
+      return `Esta marcação é para ${d}/${m}/${y}. Só se cobra no próprio dia ou depois.`;
+    }
+    // 2. Dinheiro com a caixa fechada não entra em nenhuma sessão: no fecho,
+    //    ninguém sabe dele.
+    if (metodo === 'Dinheiro' && !state.cashSessions.some(s => s.status === 'open')) {
+      return 'A caixa está fechada. Abre a caixa para receber em dinheiro, ou escolhe outro método.';
+    }
+    return null;
+  },
+  caixaAberta() { return state.cashSessions.some(s => s.status === 'open'); },
+  // Usar o pack do cliente numa marcação que foi feita sem ele (ao balcão,
+  // no telefone). A base de dados escolhe o pack que acaba primeiro, gasta um
+  // corte e põe a marcação a 0 € — o dinheiro já contou na venda do pack.
+  async usarPackNaMarcacao(apptId) {
+    const { data: pacoteId, error } = await supabase.rpc('usar_pack_na_marcacao', { p_appointment_id: apptId });
+    if (error) {
+      if (/usar_pack_na_marcacao/.test(error.message || '') && /function|schema cache/i.test(error.message || '')) {
+        throw new Error('Falta correr o SQL CORRECOES_TESTE_2026-09-23.sql no Supabase.');
+      }
+      throw traduzirErro(error);
+    }
+    const a = state.appointments.find(x => x.id === apptId);
+    if (a) { a.usaPack = true; a.pacoteId = pacoteId; a.unitPriceSnapshot = 0; }
+    try { await dataService.recarregarVendasPacks(); } catch { /* o ecrã acompanha ao recarregar */ }
+    notify();
+    return pacoteId;
+  },
   async rescheduleAppointment(id, newDate, newStartTime) {
     const a = state.appointments.find(x => x.id === id);
     if (!a) return a;
@@ -1420,10 +1510,14 @@ const dataService = {
     const sessao = data.sessionId || data.cashSessionId
       || (state.cashSessions.find(s => s.status === 'open') || {}).id;
     if (!sessao) throw new Error('A caixa está fechada. Abre a caixa para registar movimentos em dinheiro.');
-    const row = { business_id: BUSINESS_ID, cash_session_id: sessao, payment_id: data.paymentId || null, type: data.type, amount: data.amount || 0, description: data.description || null };
+    if (!(Number(data.amount) > 0)) throw new Error('O valor tem de ser maior que zero.');
+    // A categoria e as notas perdiam-se (a tabela só tem descrição): o ecrã
+    // mostrava movimentos sem nome. Vão juntas na descrição.
+    const descricao = data.description || [data.category, data.notes].filter(x => String(x || '').trim()).join(' — ') || null;
+    const row = { business_id: BUSINESS_ID, cash_session_id: sessao, payment_id: data.paymentId || null, type: data.type, amount: Number(data.amount) || 0, description: descricao };
     const { data: created, error } = await supabase.from('cash_movements').insert(row).select().single();
     if (error) throw traduzirErro(error);
-    const m = cmFromRow(created); state.cashMovements.push(m); notify(); return m;
+    const m = cmFromRow(created); state.cashMovements = [...state.cashMovements, m]; notify(); return m;
   },
   async deleteCashMovement(id) {
     const { error } = await supabase.from('cash_movements').delete().eq('id', id);
@@ -1434,19 +1528,32 @@ const dataService = {
   // ── PRODUCTS ──
   listProducts() { return Promise.resolve([...state.products]); },
   async createProduct(data) {
-    const row = prodToRow({ stock: 0, minStock: 5, cost: 0, ...data });
+    const dados = { stock: 0, minStock: 5, cost: 0, ...data };
+    validarProduto(dados);
+    const row = prodToRow(dados);
     const { data: created, error } = await supabase.from('products').insert(row).select().single();
     if (error) throw traduzirErro(error);
-    const p = prodFromRow(created); state.products.push(p); notify(); return p;
+    const p = prodFromRow(created);
+    // Lista NOVA: com push no mesmo array, os ecrãs que memorizam a lista não
+    // viam o produto novo até recarregar a página.
+    state.products = [...state.products, p];
+    // O stock com que o produto nasce também é um movimento — senão o
+    // histórico começa a meio e as contas do stock não fecham.
+    if (p.stock > 0) await registarMovimento(p.id, p.stock, 'in', 'Stock inicial');
+    notify(); return p;
   },
   async updateProduct(id, updates) {
     const existing = state.products.find(p => p.id === id);
-    const row = prodToRow({ ...existing, ...updates });
+    const dados = { ...existing, ...updates };
+    validarProduto(dados);
+    const row = prodToRow(dados);
     const { data, error } = await supabase.from('products').update(row).eq('id', id).select().single();
     if (error) throw traduzirErro(error);
     const p = prodFromRow(data);
-    const i = state.products.findIndex(x => x.id === id);
-    if (i >= 0) state.products[i] = p;
+    state.products = state.products.map(x => x.id === id ? p : x);
+    // Mudar o stock à mão na ficha do produto é um acerto: fica escrito.
+    const diff = (Number(p.stock) || 0) - (Number(existing?.stock) || 0);
+    if (existing && diff !== 0) await registarMovimento(id, Math.abs(diff), diff > 0 ? 'in' : 'out', 'Acerto na ficha do produto');
     notify(); return p;
   },
   async deleteProduct(id) {
@@ -1460,12 +1567,18 @@ const dataService = {
    * barbeiro e as contas do mes nao sabem dele.
    */
   async adjustStock(id, delta, reason, opts = {}) {
-    const p = state.products.find(x => x.id === id);
-    if (!p) return p;
-    const d = Number(delta) || 0;
+    const atual = state.products.find(x => x.id === id);
+    if (!atual) return atual;
+    const d = Math.trunc(Number(delta) || 0);
+    if (!d) throw new Error('Indica uma quantidade diferente de zero.');
     const custo = Number(opts.custo) || 0;
-    const antes = Number(p.stock) || 0;
-    p.stock = Math.max(0, antes + d);
+    if (custo < 0) throw new Error('O custo não pode ser negativo.');
+    const antes = Number(atual.stock) || 0;
+    // Tirar mais do que há deixava o stock a 0 e o movimento com o número
+    // pedido: as contas nunca mais batiam certo.
+    if (antes + d < 0) throw new Error(`Só há ${antes} ${atual.unit || 'un'} de ${atual.name}. Não podes tirar ${Math.abs(d)}.`);
+    const p = { ...atual, stock: antes + d };
+    state.products = state.products.map(x => x.id === id ? p : x);
 
     // Uma compra traz o custo consigo. Sem isto, o "valor de stock" ficava
     // na mesma: compravam-se 10 unidades por 30 euros e o inventario
@@ -1479,18 +1592,26 @@ const dataService = {
       p.cost = Math.round(novo * 100) / 100;
     }
 
-    await supabase.from('products').update(prodToRow(p)).eq('id', id);
-    const { data: mv } = await supabase.from('stock_movements').insert({ business_id: BUSINESS_ID, product_id: id, quantity: Math.abs(delta), type: delta >= 0 ? 'in' : 'out', reference: reason || '' }).select().single();
-    if (mv) state.stockMovements.push(smFromRow(mv));
+    const { error: erroStock } = await supabase.from('products').update(prodToRow(p)).eq('id', id);
+    if (erroStock) {
+      state.products = state.products.map(x => x.id === id ? atual : x); notify();
+      throw traduzirErro(erroStock);
+    }
+    // O motivo tem de bater com o sentido: uma saída não é «Entrada de stock».
+    const motivo = (reason || '').trim();
+    const motivoCerto = d < 0 && /^entrada/i.test(motivo) ? 'Saída (acerto)' : d > 0 && /^(sa[ií]da|quebra|uso interno)/i.test(motivo) ? 'Entrada (acerto)' : motivo;
+    await registarMovimento(id, Math.abs(d), d > 0 ? 'in' : 'out', motivoCerto);
 
-    if (delta > 0 && custo > 0) {
+    if (d > 0 && custo > 0) {
       const sessao = state.cashSessions.find(s => s.status === 'open') || null;
       try {
-        await dataService.addExpense(sessao?.id || null, {
-          description: `Compra de ${p.name} (${Math.abs(delta)} ${p.unit || 'un'})`,
+        await dataService.addExpense(opts.method === 'Dinheiro' ? (sessao?.id || null) : null, {
+          description: `Compra de ${p.name} (${Math.abs(d)} ${p.unit || 'un'})`,
           category: 'Fornecedores',
           amount: custo,
           method: opts.method || null,
+          supplierId: opts.supplierId || p.supplierId || null,
+          supplier: opts.supplier || p.supplier || '',
         });
       } catch (e) { console.warn('compra não registada em despesas:', e.message); }
     }
@@ -1618,16 +1739,24 @@ const dataService = {
   // ── SUPPLIERS ──
   listSuppliers() { return Promise.resolve([...state.suppliers]); },
   async createSupplier(data) {
+    validarFornecedor(data);
     const { data: created, error } = await supabase.from('suppliers').insert({ business_id: BUSINESS_ID, name: data.name, contact: data.contact || null, email: data.email || null, phone: data.phone || null, is_active: true }).select().single();
     if (error) throw traduzirErro(error);
-    const s = supFromRow(created); state.suppliers.push(s); notify(); return s;
+    const s = supFromRow(created); state.suppliers = [...state.suppliers, s]; notify(); return s;
   },
   async updateSupplier(id, updates) {
+    validarFornecedor(updates);
+    const antigo = state.suppliers.find(x => x.id === id);
     const { data, error } = await supabase.from('suppliers').update({ name: updates.name, contact: updates.contact || null, email: updates.email || null, phone: updates.phone || null }).eq('id', id).select().single();
     if (error) throw traduzirErro(error);
     const s = supFromRow(data);
-    const i = state.suppliers.findIndex(x => x.id === id);
-    if (i >= 0) state.suppliers[i] = s;
+    state.suppliers = state.suppliers.map(x => x.id === id ? s : x);
+    // Mudou o nome: os produtos dele acompanham.
+    if (antigo && antigo.name !== s.name) {
+      for (const p of state.products.filter(p => p.supplierId === id || (!p.supplierId && p.supplier === antigo.name))) {
+        try { await dataService.updateProduct(p.id, { supplier: s.name, supplierId: id }); } catch { /* segue */ }
+      }
+    }
     notify(); return s;
   },
   async deleteSupplier(id) {
@@ -1695,12 +1824,14 @@ const dataService = {
       amount: Number(data.amount) || 0,
       method: data.method || null,
       spent_at: data.date || localDateStr(new Date()),
+      metadata: { ...(data.supplierId ? { supplierId: data.supplierId } : {}), ...(data.supplier ? { supplier: data.supplier } : {}) },
     };
+    if (!(Number(row.amount) > 0)) throw new Error('O valor da despesa tem de ser maior que zero.');
+    if (!row.description.trim()) throw new Error('Escreve uma descrição.');
     const { data: created, error } = await supabase.from('expenses').insert(row).select().single();
     if (error) throw traduzirErro(error);
     const e = despFromRow(created);
-    if (!state.expenses) state.expenses = [];
-    state.expenses.push(e);
+    state.expenses = [...(state.expenses || []), e];
 
     // A despesa ja esta escrita na tabela das despesas, e e de la que a caixa
     // a le. Criar tambem um movimento de caixa fazia-a sair duas vezes da
@@ -1902,6 +2033,18 @@ const dataService = {
     }));
     const total = Number(sale.total) || itens.reduce((s, i) => s + i.subtotal, 0);
     const sessao = state.cashSessions.find(s => s.status === 'open') || null;
+    if (sale.method === 'Dinheiro' && !sessao) throw new Error('A caixa está fechada. Abre a caixa para receber em dinheiro, ou escolhe outro método.');
+
+    // Não se vende o que não há. O teste vendeu 50 com 8 em stock: o stock
+    // ficou a 0 e o movimento a dizer 50.
+    const porProduto = {};
+    for (const i of itens) if (i.productId) porProduto[i.productId] = (porProduto[i.productId] || 0) + i.qty;
+    for (const [pid, qtd] of Object.entries(porProduto)) {
+      const prod = state.products.find(x => x.id === pid);
+      if (!prod) throw new Error('Um dos produtos já não existe. Recarrega a página.');
+      if (!(qtd > 0)) throw new Error(`Quantidade inválida para ${prod.name}.`);
+      if (qtd > (Number(prod.stock) || 0)) throw new Error(`Só há ${Number(prod.stock) || 0} ${prod.unit || 'un'} de ${prod.name}.`);
+    }
 
     const row = {
       business_id: BUSINESS_ID,
@@ -1915,20 +2058,18 @@ const dataService = {
     const { data: created, error } = await supabase.from('product_sales').insert(row).select().single();
     if (error) throw traduzirErro(error);
     const v = vendaFromRow(created);
-    if (!state.sales) state.sales = [];
-    state.sales.push(v);
+    state.sales = [...(state.sales || []), v];
+    if (v.customerId) recomputeCustomer(v.customerId);
 
-    // O que saiu da prateleira fica escrito, produto a produto.
-    for (const i of itens) {
-      if (!i.productId || !i.qty) continue;
-      try {
-        const { data: mv } = await supabase.from('stock_movements').insert({
-          business_id: BUSINESS_ID, product_id: i.productId,
-          quantity: i.qty, type: 'out',
-          reference: `Venda${sale.customerName ? ` — ${sale.customerName}` : ''}`,
-        }).select().single();
-        if (mv) state.stockMovements.push(smFromRow(mv));
-      } catch (e) { console.warn('movimento de stock não gravado:', e.message); }
+    // O stock desce aqui, e o que saiu da prateleira fica escrito, produto a
+    // produto, com a quantidade que saiu mesmo.
+    for (const [pid, qtd] of Object.entries(porProduto)) {
+      const prod = state.products.find(x => x.id === pid);
+      const novo = { ...prod, stock: (Number(prod.stock) || 0) - qtd };
+      const { error: e1 } = await supabase.from('products').update({ stock_quantity: novo.stock }).eq('id', pid);
+      if (e1) { console.warn('stock não atualizado:', e1.message); continue; }
+      state.products = state.products.map(x => x.id === pid ? novo : x);
+      await registarMovimento(pid, qtd, 'out', `Venda${sale.customerName ? ` — ${sale.customerName}` : ''}`);
     }
 
     notify();

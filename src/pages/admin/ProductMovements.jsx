@@ -4,10 +4,11 @@ import AdminPage from '@/components/admin/AdminPage';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, EmptyState, Badge } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
+import { formatDataHora } from '@/lib/format';
 
 export default function ProductMovements() {
   const data = useStore();
-  const moves = data.stockMovements || [];
+  const moves = [...(data.stockMovements || [])].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   return (
     <AdminPage title="Movimentos de Stock" subtitle="Histórico de entradas, saídas e ajustes.">
@@ -22,7 +23,7 @@ export default function ProductMovements() {
                 const p = data.products.find(x => x.id === m.productId);
                 return (
                   <tr key={m.id}>
-                    <td className="text-xs">{new Date(m.createdAt).toLocaleString('pt-PT').slice(0, 16)}</td>
+                    <td className="text-xs">{formatDataHora(m.createdAt)}</td>
                     <td className="fw-600">{p?.name || '—'}</td>
                     <td>{m.type === 'in' ? <Badge variant="success"><ArrowDownCircle size={12} /> Entrada</Badge> : <Badge variant="danger"><ArrowUpCircle size={12} /> Saída</Badge>}</td>
                     <td>{m.quantity}</td>

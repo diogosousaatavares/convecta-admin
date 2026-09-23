@@ -13,6 +13,8 @@ import { formatPrice, formatDate, formatDateNum, todayStr, addDays, getDowShort 
 import { getRevenue, getProductRevenue, getPackRevenue, getTotalRevenue, getExpensesTotal, getExpectedCash, getOccupancy, paidAppointments, netOfPayment, getCancellationCount, getCancellationRate, getNoShowCount, getNoShowRate } from '@/lib/domain/finance';
 import { monthBounds, weekBounds, daysBetween } from '@/lib/domain/dates';
 import { round2 } from '@/lib/domain/money';
+import { ticketMedio as ticketMedioFn, jaMarcadoPorCobrar } from '@/lib/domain/finance';
+import { estadoStock, produtosStockBaixo, produtosEsgotados } from '@/lib/domain/stock';
 import { listConvectaNotifs, markConvectaNotifRead } from '@/lib/convectaNotifs';
 
 const CHART_GOLD = '#E5E5E5';
@@ -79,7 +81,9 @@ export default function Dashboard() {
   // OCUPAÇÃO: minutos ocupados / minutos disponíveis (não contagem de marcações).
   const occupancyData = useMemo(() => getOccupancy(data, range), [data, range]);
   const occupancy = occupancyData.rate;
-  const ticketMedio = paidAppts.length ? periodRevenue / paidAppts.length : 0;
+  // Ticket médio de um corte: só serviços. Um frasco de 450 € vendido ao
+  // balcão não faz de cada corte um corte de 142 €.
+  const ticketMedio = ticketMedioFn(data, range);
 
   // ticket médio do dia (receita paga hoje ÷ marcações pagas hoje)
   const todayPaid = paidAppointments(data, { from: today, to: today });
@@ -110,8 +114,10 @@ export default function Dashboard() {
     return arr;
   }, [data, today]);
   const avgDaily = revenue7.reduce((s, d) => s + d.rev, 0) / 7;
-  const rangeDays = Math.max(1, daysBetween(range.from, range.to));
-  const forecast = avgDaily * rangeDays;
+  // Já marcado e ainda por cobrar no período (preço da marcação). A antiga
+  // «previsão» multiplicava a média dos últimos 7 dias pelos dias do período:
+  // uma venda grande num dia prometia milhares.
+  const forecast = round2(periodRevenue + jaMarcadoPorCobrar(data, range));
 
   // services distribution
   const svcDist = useMemo(() => {
@@ -164,14 +170,14 @@ export default function Dashboard() {
   const comparisonLabel = period === 'today' ? 'vs. ontem' : period === 'week' ? 'vs. semana anterior' : period === 'month' ? 'vs. mês anterior' : 'vs. período anterior';
 
   // alerts
-  const lowStock = data.products.filter(p => p.stock <= p.minStock);
+  const lowStock = [...produtosEsgotados(data.products), ...produtosStockBaixo(data.products)];
   const pendingToday = data.appointments.filter(a => a.date === today && a.status === 'pending').length;
   const sessaoCaixa = data.cashSessions.find(s => s.status === 'open') || null;
   const cashOpen = !!sessaoCaixa;
   const numerarioEsperado = getExpectedCash(data, sessaoCaixa);
   const endingPromos = data.promotions.filter(p => p.active && p.endsAt && p.endsAt >= today && p.endsAt <= addDays(today, 7));
   const alerts = [
-    ...lowStock.map(p => ({ type: 'warn', icon: Package, title: `Stock baixo: ${p.name}`, sub: `${p.stock} ${p.unit} (mín. ${p.minStock})`, to: '/admin/inventario' })),
+    ...lowStock.map(p => ({ type: 'warn', icon: Package, title: `${estadoStock(p) === 'esgotado' ? 'Esgotado' : 'Stock baixo'}: ${p.name}`, sub: `${p.stock} ${p.unit} (mín. ${p.minStock})`, to: '/admin/inventario' })),
     ...endingPromos.map(p => ({ type: 'info', icon: Megaphone, title: `Promoção a terminar: ${p.name}`, sub: `Termina ${formatDate(p.endsAt)}`, to: '/admin/marketing' })),
     pendingToday > 0 ? { type: 'warn', icon: Clock, title: `${pendingToday} marcações pendentes`, sub: 'A aguardar confirmação hoje', to: '/admin/marcacoes' } : null,
     !cashOpen ? { type: 'info', icon: Lock, title: 'Caixa fechada', sub: 'Abre a caixa para registar vendas', to: '/admin/caixa' } : null
@@ -276,7 +282,7 @@ export default function Dashboard() {
         <Card className="card-pad" style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/caixa')}><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">CAIXA</span><Wallet size={18} className="text-sec" /></div>{sessaoCaixa ? (<><div style={{ fontSize: 30, fontWeight: 700, color: '#C9A227', lineHeight: 1 }}>{formatPrice(numerarioEsperado)}</div><div className="text-sec text-xs mt-10">Numerário esperado · aberta às {new Date(sessaoCaixa.openedAt).toLocaleTimeString('pt-PT').slice(0, 5)}</div></>) : (<><div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.2, color: 'var(--text-sec)' }}>Fechada</div><div className="text-sec text-xs mt-10">Receita de hoje: <span className="text-sm">{formatPrice(receitaHoje)}</span></div></>)}</Card>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 20 }}>{[{ label: 'Taxa cancelamento', value: `${cancelRate.toFixed(0)}%`, warn: cancelRate > 15 }, { label: 'Taxa de retorno', value: `${returnRate.toFixed(0)}%`, gold: true }, { label: 'Clientes (período)', value: periodCustomers }, { label: 'Previsão período', value: formatPrice(forecast), gold: true }, { label: 'Cancel. hoje', value: `${cancelRateToday.toFixed(0)}%`, warn: cancelRateToday > 15 }, { label: 'No-shows', value: periodNoShow }, { label: 'Despesas (período)', value: formatPrice(periodExpenses) }, { label: 'Resultado', value: formatPrice(periodResult), gold: periodResult >= 0, warn: periodResult < 0 }].map((k, i) => <Card key={i} style={{ padding: '14px 16px' }}><div className="text-xs text-sec mb-8">{k.label}</div><div style={{ fontSize: 20, fontWeight: 700, color: k.warn ? '#EF4444' : k.gold ? '#C9A227' : 'var(--text)' }}>{k.value}</div></Card>)}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 20 }}>{[{ label: 'Taxa cancelamento', value: `${cancelRate.toFixed(0)}%`, warn: cancelRate > 15 }, { label: 'Taxa de retorno', value: `${returnRate.toFixed(0)}%`, gold: true }, { label: 'Clientes (período)', value: periodCustomers }, { label: 'Recebido + já marcado', value: formatPrice(forecast), gold: true }, { label: 'Cancel. hoje', value: `${cancelRateToday.toFixed(0)}%`, warn: cancelRateToday > 15 }, { label: 'No-shows', value: periodNoShow }, { label: 'Despesas (período)', value: formatPrice(periodExpenses) }, { label: 'Resultado', value: formatPrice(periodResult), gold: periodResult >= 0, warn: periodResult < 0 }].map((k, i) => <Card key={i} style={{ padding: '14px 16px' }}><div className="text-xs text-sec mb-8">{k.label}</div><div style={{ fontSize: 20, fontWeight: 700, color: k.warn ? '#EF4444' : k.gold ? '#C9A227' : 'var(--text)' }}>{k.value}</div></Card>)}</div>
 
       <div className="dash-two-col" style={{ marginBottom: 14 }}><Card className="card-pad dash-chart-panel"><div className="dash-panel-head"><h3 style={{ fontSize: 18 }}>Receita — últimos 7 dias</h3><Badge variant="gold">média {formatPrice(avgDaily)}/dia</Badge></div><ResponsiveContainer width="100%" height={220}><AreaChart data={revenue7} margin={{ left: -18, right: 8, top: 8, bottom: 0 }}><defs><linearGradient id="dashboardRevenue" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#C9A227" stopOpacity={0.45} /><stop offset="100%" stopColor="#C9A227" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" /><XAxis dataKey="day" stroke="#8A8272" fontSize={12} tickLine={false} axisLine={false} /><YAxis stroke="#8A8272" fontSize={12} tickLine={false} axisLine={false} /><Tooltip contentStyle={{ background: '#1C1915', border: '1px solid #2a2520', borderRadius: 8 }} /><Area type="monotone" dataKey="rev" stroke="#C9A227" strokeWidth={2.5} fill="url(#dashboardRevenue)" /></AreaChart></ResponsiveContainer></Card><Card className="card-pad"><div className="dash-panel-head"><h3 style={{ fontSize: 18 }}>Agenda de hoje</h3><button className="link-gold text-sm" onClick={() => navigate('/admin/agenda')}>Ver tudo <ArrowUpRight size={14} /></button></div>{todayAppts.length === 0 ? <EmptyState icon={() => <CalendarDays />} title="Dia livre" description="Sem marcações hoje." /> : <div className="dash-list">{todayAppts.slice(0, 7).map(a => { const cust = data.customers.find(c => c.id === a.customerId); const svc = data.services.find(s => s.id === a.serviceId); return <div key={a.id} className="dash-list-row"><Avatar name={cust?.name} /><div className="dash-list-name">{cust?.name || '—'}<div className="text-sec text-xs">{svc?.name || '—'}</div></div><div className="dash-list-time">{a.startTime}</div></div>; })}</div>}</Card></div>
 

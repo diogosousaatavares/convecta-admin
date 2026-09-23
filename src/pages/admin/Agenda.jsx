@@ -35,6 +35,14 @@ function rotuloEstado(a) {
   return 'Pendente';
 }
 
+// Dois clientes (ou barbeiros) com o mesmo nome apareciam iguais na lista.
+// Quando o nome se repete, junta-se o telefone/email (ou a função).
+function nomeSemRepetir(lista, item, extra) {
+  const nome = (item.name || '').trim();
+  const repetido = lista.filter(x => (x.name || '').trim().toLowerCase() === nome.toLowerCase()).length > 1;
+  return repetido ? `${nome} · ${extra || item.id.slice(0, 4)}` : nome;
+}
+
 export default function Agenda() {
   const data = useStore();
   const telemovel = useIsMobile();
@@ -51,7 +59,11 @@ export default function Agenda() {
   const [mode, setMode] = useState('grid');
   const [blockMode, setBlockMode] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [quickOpen, setQuickOpen] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(() => {
+    // «Nova marcação» noutros ecrãs abre já o formulário, em vez de largar a
+    // pessoa na agenda sem saber onde carregar.
+    try { return new URLSearchParams(window.location.search).get('nova') === '1'; } catch { return false; }
+  });
   const [quick, setQuick] = useState({ customerId: '', serviceId: '', professionalId: '', startTime: '', usaPack: false });
   // Os packs do cliente escolhido no encaixe. Quem tem pack e liga para
   // marcar tem de o poder usar — senao o barbeiro cobrava-lhe duas vezes.
@@ -109,25 +121,6 @@ export default function Agenda() {
     const a = data.appointments.find(x => x.id === checkout);
     if (a && a.status === 'confirmed') await dataService.markAttended(checkout);
     await dataService.checkoutAppointment(checkout, payData);
-
-    if (payData.products && payData.products.length > 0) {
-      for (const item of payData.products) {
-        const prod = data.products.find(p => p.id === item.productId);
-        if (prod && prod.stock != null) {
-          await dataService.updateProduct(item.productId, { stock: Math.max(0, prod.stock - item.qty) });
-        }
-      }
-      if (payData.method === 'Dinheiro' && payData.productsTotal > 0) {
-        const custName = data.customers.find(c => c.id === a?.customerId)?.name || '';
-        await dataService.addCashMovement({
-          type: 'in',
-          amount: payData.productsTotal,
-          description: `Venda de produtos — ${custName}`,
-          method: 'Dinheiro',
-          category: 'Venda de produto'
-        });
-      }
-    }
 
     toast.success('Cobrança concluída', `${formatPrice(payData.total)} · ${payData.method}`);
     setCheckout(null);
@@ -436,7 +429,7 @@ export default function Agenda() {
             <label className="label">Cliente</label>
             <select className="select" value={quick.customerId} onChange={e => setQuick(f => ({ ...f, customerId: e.target.value }))}>
               <option value="">Selecionar…</option>
-              {data.customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {data.customers.map(c => <option key={c.id} value={c.id}>{nomeSemRepetir(data.customers, c, c.phone || c.email)}</option>)}
             </select>
           </div>
           <div className="field">
@@ -451,7 +444,7 @@ export default function Agenda() {
             <label className="label">Barbeiro</label>
             <select className="select" value={quick.professionalId} onChange={e => setQuick(f => ({ ...f, professionalId: e.target.value }))}>
               <option value="">Selecionar…</option>
-              {data.professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {data.professionals.map(p => <option key={p.id} value={p.id}>{nomeSemRepetir(data.professionals, p, p.role || p.email)}</option>)}
             </select>
           </div>
           <div className="field">

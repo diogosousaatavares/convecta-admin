@@ -152,11 +152,10 @@ export function getCommissionsTotal(state, range) {
 // --- Cliente (Lifetime Value, visitas, última visita) ---------------------
 // Derivados das marcações pagas — NUNCA atualizados na confirmação.
 export function getCustomerStats(state, customerId) {
-  const paid = state.appointments.filter(a => a.customerId === customerId && a.status === APPT_STATES.COMPLETED && a.payment);
-  const totalSpent = round2(paid.reduce((s, a) => s + totalOfPayment(a), 0));
-  const visits = paid.length;
-  const lastVisit = paid.length ? paid.map(a => a.date).sort().reverse()[0] : null;
-  return { visits, totalSpent, lastVisit };
+  // A mesma regra de resumoCliente (mais abaixo): pagas até hoje, sem gorjeta,
+  // com produtos e packs.
+  const r = resumoCliente(state, customerId);
+  return { visits: r.visitas, totalSpent: r.totalGasto, lastVisit: r.ultimaVisita };
 }
 
 // --- Ocupação do profissional (minutos / minutos disponíveis) --------------
@@ -297,4 +296,115 @@ export function getExpectedCash(state, session) {
     .reduce((s, m) => s + Number(m.amount || 0), 0);
 
   return round2((session.openingBalance || 0) + servicosDinheiro + produtosDinheiro + packsDinheiro + entradas - despesasDinheiro - saidas);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AS MESMAS CONTAS EM TODO O PAINEL (23/09)
+//
+// Um teste real encontrou cada ecrã a calcular à sua maneira: comissões com
+// marcações futuras, desempenho com gorjetas dentro da receita, conta do
+// profissional com a % de hoje. A partir daqui, as definições são estas:
+//
+//   RECEITA        = serviços (preço − desconto) + produtos + packs.
+//                    Pela data do PAGAMENTO, nunca no futuro.
+//   GORJETAS       = à parte. São do barbeiro, não da barbearia.
+//   MARCAÇÕES      = marcações PAGAS no período (as mesmas que dão receita).
+//   COMISSÃO       = a gravada no momento da cobrança (snapshot da %).
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Tudo o que um profissional fez no período — é o que os ecrãs de Comissões,
+// Desempenho, Relatório de Profissionais e Conta do Profissional mostram.
+export function resumoProfissional(state, professionalId, range) {
+  const pagas = paidAppointments(state, range).filter(a => a.professionalId === professionalId);
+  const receita = round2(pagas.reduce((s, a) => s + netOfPayment(a), 0));
+  const comissao = round2(pagas.reduce((s, a) => s + (commissionForAppointment(state, a).commissionAmount || 0), 0));
+  const gorjetas = round2(pagas.reduce((s, a) => s + (Number(a.payment?.tip) || 0), 0));
+  const clientes = new Set(pagas.map(a => a.customerId).filter(Boolean)).size;
+  return {
+    marcacoes: pagas.length,
+    pagas,
+    receita,
+    comissao,
+    gorjetas,
+    aReceber: round2(comissao + gorjetas),
+    clientes,
+    ticket: pagas.length ? round2(receita / pagas.length) : 0,
+  };
+}
+
+// Ticket médio de um corte: receita de serviços ÷ marcações pagas. Produtos
+// e packs ficam de fora — um frasco de 450 € não é um corte mais caro.
+export function ticketMedio(state, range) {
+  const pagas = paidAppointments(state, range);
+  return pagas.length ? round2(getRevenue(state, range) / pagas.length) : 0;
+}
+
+// O que já está marcado no período e ainda não foi cobrado (de hoje em
+// diante), ao preço gravado na marcação. Substitui a «previsão» que
+// multiplicava a média de 7 dias pelos dias do período — com uma venda
+// grande num dia, prometia milhares.
+export function jaMarcadoPorCobrar(state, range) {
+  const hoje = localDateStr(new Date());
+  return round2((state.appointments || [])
+    .filter(a => !a.blocked && ['pending', 'confirmed'].includes(a.status) && a.date >= hoje && inRange(a.date, range))
+    .reduce((s, a) => {
+      if (a.usaPack || a.usaRecompensa) return s;
+      const svc = (state.services || []).find(x => x.id === a.serviceId);
+      const p = a.unitPriceSnapshot != null ? Number(a.unitPriceSnapshot) : Number(svc?.price || 0);
+      return s + (p || 0);
+    }, 0));
+}
+
+// Um cliente: visitas pagas, total gasto (serviços líquidos + produtos +
+// packs, sem gorjetas) e última visita — nunca no futuro.
+export function resumoCliente(state, customerId) {
+  const hoje = localDateStr(new Date());
+  const pagas = (state.appointments || []).filter(a => a.customerId === customerId
+    && a.status === APPT_STATES.COMPLETED && a.payment && a.date <= hoje);
+  const servicos = pagas.reduce((s, a) => s + netOfPayment(a), 0);
+  const produtos = (state.sales || []).filter(v => v.customerId === customerId).reduce((s, v) => s + (Number(v.total) || 0), 0);
+  const packs = (state.packSales || []).filter(v => v.customerId === customerId && !v.anulado).reduce((s, v) => s + (Number(v.total) || 0), 0);
+  const ultima = pagas.map(a => a.date).sort().reverse()[0] || null;
+  return { visitas: pagas.length, totalGasto: round2(servicos + produtos + packs), servicos: round2(servicos), produtos: round2(produtos), packs: round2(packs), ultimaVisita: ultima };
+}
+
+// Uma sessão de caixa, com as mesmas contas na página Caixa e no Histórico.
+// diferenca < 0 → falta dinheiro; > 0 → sobra.
+export function resumoSessao(state, session) {
+  if (!session) return null;
+  const servicos = pagamentosDaSessao(state, session).reduce((s, a) => s + totalOfPayment(a), 0);
+  const produtos = vendasDaSessao(state, session).reduce((s, v) => s + (Number(v.total) || 0), 0);
+  const packs = packsDaSessao(state, session).reduce((s, v) => s + (Number(v.total) || 0), 0);
+  const despesas = (state.expenses || []).filter(e => e.sessionId === session.id && expenseImpactsCash(e))
+    .reduce((s, e) => s + (Number(e.amount) || 0), 0);
+  const esperado = getExpectedCash(state, session);
+  const contado = session.status === 'closed' ? round2(Number(session.countedCash) || 0) : null;
+  return {
+    vendas: round2(servicos + produtos + packs),
+    despesas: round2(despesas),
+    esperado,
+    contado,
+    diferenca: contado == null ? null : round2(contado - esperado),
+  };
+}
+
+// "−6,80 € (falta)" / "+2,00 € (sobra)" / "Certo".
+export function textoDiferenca(diff, fmt) {
+  if (diff == null) return '—';
+  if (Math.abs(diff) < 0.005) return 'Certo';
+  return `${diff < 0 ? '−' : '+'}${fmt(Math.abs(diff))} ${diff < 0 ? '(falta)' : '(sobra)'}`;
+}
+
+// Saídas do período: despesas (pela data delas) + saídas avulsas de caixa.
+export function saidasDoPeriodo(state, range) {
+  const despesas = (state.expenses || []).filter(e => inRange(e.date || (e.createdAt || '').slice(0, 10), range))
+    .map(e => ({ id: 'd-' + e.id, origem: 'despesa', data: e.date || (e.createdAt || '').slice(0, 10), quando: e.createdAt, descricao: e.description, categoria: e.category, metodo: e.method, valor: Number(e.amount) || 0 }));
+  const avulsas = (state.cashMovements || []).filter(m => m.type === 'out' && inRange((m.createdAt || '').slice(0, 10), range))
+    .map(m => ({ id: 'm-' + m.id, origem: 'caixa', data: (m.createdAt || '').slice(0, 10), quando: m.createdAt, descricao: m.description || 'Saída de caixa', categoria: 'Saída de caixa', metodo: 'Dinheiro', valor: Number(m.amount) || 0, movimentoId: m.id }));
+  return [...despesas, ...avulsas].sort((a, b) => (b.quando || b.data || '').localeCompare(a.quando || a.data || ''));
+}
+
+export function entradasAvulsas(state, range) {
+  return (state.cashMovements || []).filter(m => m.type === 'in' && inRange((m.createdAt || '').slice(0, 10), range))
+    .map(m => ({ id: m.id, data: (m.createdAt || '').slice(0, 10), quando: m.createdAt, descricao: m.description || 'Entrada de caixa', valor: Number(m.amount) || 0 }));
 }

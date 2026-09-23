@@ -5,7 +5,7 @@ import PageInfo from '@/components/admin/PageInfo';
 import { Card, EmptyState, Badge } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
-import { paidAppointments, vendasDeProdutos, vendasDePacks } from '@/lib/domain/finance';
+import { paidAppointments, vendasDeProdutos, vendasDePacks, netOfPayment, entradasAvulsas } from '@/lib/domain/finance';
 
 export default function FinRevenue() {
   const data = useStore();
@@ -26,16 +26,17 @@ export default function FinRevenue() {
   const idsDeVenda = useMemo(() => new Set(vendas.map(v => v.id)), [vendas]);
   // Os packs contam no dia em que foram pagos (os cortes com pack ficam a 0 €).
   const packs = useMemo(() => vendasDePacks(data, { from, to }), [data, from, to]);
-  const movesIn = useMemo(() => (data.cashMovements || []).filter(m => m.type === 'in'
-    && inRange((m.createdAt || '').slice(0, 10))
-    && !/^Venda de produtos/.test(m.description || '')), [data.cashMovements, from, to, idsDeVenda]);
+  const movesIn = useMemo(() => entradasAvulsas(data, { from, to }).filter(m => !/^Venda de produtos/.test(m.descricao || '')), [data, from, to, idsDeVenda]);
 
-  const servicesRev = sales.reduce((s, a) => s + (a.payment.baseAmount - (a.payment.discountAmount || 0)), 0);
+  const servicesRev = sales.reduce((s, a) => s + netOfPayment(a), 0);
   const tipsRev = sales.reduce((s, a) => s + (a.payment.tip || 0), 0);
   const produtosRev = vendas.reduce((s, v) => s + Number(v.total || 0), 0);
-  const otherRev = movesIn.reduce((s, m) => s + Number(m.amount || 0), 0);
+  const otherRev = movesIn.reduce((s, m) => s + Number(m.valor || 0), 0);
   const packsRev = packs.reduce((s, v) => s + Number(v.total || 0), 0);
-  const total = servicesRev + tipsRev + produtosRev + packsRev + otherRev;
+  // Receita da barbearia = serviços + produtos + packs — a mesma do painel e
+  // dos relatórios. As gorjetas são do barbeiro e as entradas avulsas não são
+  // vendas: aparecem, mas à parte.
+  const total = servicesRev + produtosRev + packsRev;
 
   const rows = [
     { icon: ShoppingBag, label: 'Serviços', value: servicesRev },
@@ -51,12 +52,12 @@ export default function FinRevenue() {
         <input type="date" className="input" style={{ width: 'auto' }} value={to} onChange={e => setTo(e.target.value)} />
       </div>
       <div className="kpi-grid">
-        <Card className="kpi"><TrendingUp className="icon" size={22} /><div className="label">Receita total</div><div className="value gold">{formatPrice(total)}</div></Card>
+        <Card className="kpi"><TrendingUp className="icon" size={22} /><div className="label">Receita (serviços + produtos + packs)</div><div className="value gold">{formatPrice(total)}</div></Card>
         <Card className="kpi"><ShoppingBag className="icon" size={22} /><div className="label">Serviços</div><div className="value">{formatPrice(servicesRev)}</div></Card>
-        <Card className="kpi"><Wallet className="icon" size={22} /><div className="label">Gorjetas</div><div className="value">{formatPrice(tipsRev)}</div></Card>
+        <Card className="kpi"><Wallet className="icon" size={22} /><div className="label">Gorjetas (dos barbeiros, à parte)</div><div className="value">{formatPrice(tipsRev)}</div></Card>
         <Card className="kpi"><Package className="icon" size={22} /><div className="label">Produtos</div><div className="value">{formatPrice(produtosRev)}</div></Card>
         <Card className="kpi"><Scissors className="icon" size={22} /><div className="label">Packs</div><div className="value">{formatPrice(packsRev)}</div></Card>
-        <Card className="kpi"><Repeat className="icon" size={22} /><div className="label">Outras</div><div className="value">{formatPrice(otherRev)}</div></Card>
+        <Card className="kpi"><Repeat className="icon" size={22} /><div className="label">Entradas avulsas de caixa (à parte)</div><div className="value">{formatPrice(otherRev)}</div></Card>
       </div>
       <Card className="card-pad">
         <h3 style={{ fontSize: 18, marginBottom: 16 }}>Vendas concluídas no período</h3>
@@ -69,7 +70,7 @@ export default function FinRevenue() {
                   <td className="text-xs">{a.date}</td>
                   <td>{data.customers.find(c => c.id === a.customerId)?.name || '—'}</td>
                   <td>{data.services.find(s => s.id === a.serviceId)?.name}</td>
-                  <td>{formatPrice((a.payment.baseAmount || 0) - (a.payment.discountAmount || 0))}</td>
+                  <td>{formatPrice(netOfPayment(a))}</td>
                   <td className="text-sec">{formatPrice(a.payment.tip || 0)}</td>
                   <td className="fw-600">{formatPrice(a.payment.total)}</td>
                   <td><Badge variant="default">{a.payment.method}</Badge></td>

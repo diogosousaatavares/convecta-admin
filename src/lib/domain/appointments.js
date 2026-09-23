@@ -65,7 +65,10 @@ export function hasConflict(state, { professionalId, date, startTime, endTime, e
 export function assertNoConflict(state, data, excludeId = null) {
   const conflict = hasConflict(state, data, excludeId);
   if (conflict) {
-    throw new Error(`Conflito de horário: ${data.professionalId} já ocupado em ${data.date} ${data.startTime}-${data.endTime}.`);
+    // Mostrava o código interno do barbeiro (um UUID). Agora diz o nome.
+    const pro = (state.professionals || []).find(p => p.id === data.professionalId);
+    const [y, m, d] = String(data.date || '').split('-');
+    throw new Error(`${pro?.name || 'Este profissional'} já tem uma marcação a ${d}/${m} entre as ${data.startTime} e as ${data.endTime}. Escolhe outra hora.`);
   }
 }
 

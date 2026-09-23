@@ -5,6 +5,7 @@ import PageInfo from '@/components/admin/PageInfo';
 import { Card, Avatar, EmptyState } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
+import { resumoProfissional } from '@/lib/domain/finance';
 
 export default function ProPerformance({ titulo = 'Desempenho dos Profissionais', subtitulo = 'Indicadores calculados a partir das marcações reais.' }) {
   const data = useStore();
@@ -14,20 +15,14 @@ export default function ProPerformance({ titulo = 'Desempenho dos Profissionais'
   const inRange = (d) => d >= from && d <= to;
   const appts = data.appointments.filter(a => inRange(a.date) && !a.blocked);
 
+  // Receita, comissão, gorjetas e marcações pagas: as mesmas contas das
+  // Comissões e da Conta do Profissional (resumoProfissional). As marcações
+  // «na agenda» e as canceladas contam-se pela data da marcação.
   const rows = useMemo(() => data.professionals.map(p => {
+    const r = resumoProfissional(data, p.id, { from, to });
     const pa = appts.filter(a => a.professionalId === p.id);
-    const done = pa.filter(a => a.status === 'completed');
-    const cancelled = pa.filter(a => a.status === 'cancelled');
-    const revenue = done.reduce((s, a) => s + (a.payment?.total || data.services.find(x => x.id === a.serviceId)?.price || 0), 0);
-    const commission = done.reduce((s, a) => {
-      const base = a.payment?.baseAmount || data.services.find(x => x.id === a.serviceId)?.price || 0;
-      const disc = a.payment?.discountAmount || 0;
-      return s + (base - disc) * (p.commission || 0) / 100;
-    }, 0);
-    const clients = new Set(pa.map(a => a.customerId)).size;
-    const ticket = done.length ? revenue / done.length : 0;
-    return { p, total: pa.length, done: done.length, cancelled: cancelled.length, revenue, commission, clients, ticket };
-  }), [appts, data.services, data.professionals]);
+    return { p, total: pa.length, done: r.marcacoes, cancelled: pa.filter(a => a.status === 'cancelled').length, revenue: r.receita, commission: r.comissao, tips: r.gorjetas, clients: r.clientes, ticket: r.ticket };
+  }), [data, appts, from, to]);
 
   return (
     <AdminPage title={titulo} subtitle={subtitulo}>
@@ -39,8 +34,10 @@ export default function ProPerformance({ titulo = 'Desempenho dos Profissionais'
         <Card className="card-pad"><EmptyState icon={() => <Award />} title="Sem profissionais" /></Card>
       ) : (
         <Card className="card-pad">
+          <p className="text-sec text-xs mb-12">Receita sem gorjetas, pela data do pagamento. Os mesmos números das Comissões e da Conta do Profissional.</p>
+          <div style={{ overflowX: 'auto' }}>
           <table className="table">
-            <thead><tr><th>Profissional</th><th>Marcações</th><th>Concluídas</th><th>Canceladas</th><th>Receita</th><th>Comissão</th><th>Clientes</th><th>Ticket médio</th></tr></thead>
+            <thead><tr><th>Profissional</th><th>Na agenda</th><th>Pagas</th><th>Canceladas</th><th>Receita</th><th>Comissão</th><th>Gorjetas</th><th>Clientes</th><th>Ticket médio</th></tr></thead>
             <tbody>
               {rows.map(r => (
                 <tr key={r.p.id}>
@@ -50,12 +47,14 @@ export default function ProPerformance({ titulo = 'Desempenho dos Profissionais'
                   <td>{r.cancelled}</td>
                   <td className="fw-600">{formatPrice(r.revenue)}</td>
                   <td className="text-gold fw-600">{formatPrice(r.commission)}</td>
+                  <td>{formatPrice(r.tips)}</td>
                   <td>{r.clients}</td>
                   <td>{formatPrice(r.ticket)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
       )}
     </AdminPage>

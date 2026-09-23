@@ -20,8 +20,17 @@ export default function RelatorioContabilista() {
   // Por omissao o mes passado: e esse que se manda ao contabilista, nao o que
   // ainda vai a meio.
   const anterior = new Date(agora.getFullYear(), agora.getMonth() - 1, 1);
-  const [ano, setAno] = useState(anterior.getFullYear());
-  const [mes, setMes] = useState(anterior.getMonth());
+  // Se o mês passado está vazio e este já tem serviços (uma barbearia que
+  // começou agora), abre-se neste — senão o ecrã falava de «Agosto» a quem
+  // estava a olhar para Setembro.
+  const inicial = (() => {
+    const passado = dadosDoRelatorio(data, anterior.getFullYear(), anterior.getMonth());
+    if (passado.linhas.length) return anterior;
+    const este = dadosDoRelatorio(data, agora.getFullYear(), agora.getMonth());
+    return este.linhas.length ? new Date(agora.getFullYear(), agora.getMonth(), 1) : anterior;
+  })();
+  const [ano, setAno] = useState(inicial.getFullYear());
+  const [mes, setMes] = useState(inicial.getMonth());
 
   const r = useMemo(() => dadosDoRelatorio(data, ano, mes), [data, ano, mes]);
 
@@ -64,7 +73,8 @@ export default function RelatorioContabilista() {
       </p>
 
       <div className="flex gap-12 items-center mb-16" style={{ flexWrap: 'wrap' }}>
-        <select className="select" style={{ maxWidth: 220 }} value={`${ano}-${mes}`} onChange={escolher}>
+        <label className="text-sec text-sm" htmlFor="mes-contabilista">Mês do relatório</label>
+        <select id="mes-contabilista" className="select" style={{ maxWidth: 220 }} value={`${ano}-${mes}`} onChange={escolher}>
           {opcoes.map(o => (
             <option key={`${o.ano}-${o.mes}`} value={`${o.ano}-${o.mes}`}>{o.rotulo}</option>
           ))}

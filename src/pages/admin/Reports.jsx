@@ -9,6 +9,8 @@ import PageInfo from '@/components/admin/PageInfo';
 import RelatorioContabilista from '@/components/admin/RelatorioContabilista';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice, localDateStr } from '@/lib/format';
+import { paidAppointments, netOfPayment, getTotalRevenue, ticketMedio as ticketMedioFn } from '@/lib/domain/finance';
+import { round2 } from '@/lib/domain/money';
 import { Card, Button, EmptyState } from '@/components/ui';
 
 const GOLD = '#C9A227';
@@ -40,42 +42,43 @@ export default function Reports() {
     return { start, end, startStr: dateStr(start), endStr: dateStr(end) };
   }, [period]);
 
-  const paidStatuses = ['completed'];
+  // As mesmas contas do painel e do Relatório Financeiro: receita pela data do
+  // PAGAMENTO, serviços com desconto e sem gorjeta, e produtos e packs
+  // incluídos. Antes contava só serviços, ao preço de tabela.
+  const faixa = { from: range.startStr, to: range.endStr };
   const apptsInRange = data.appointments.filter(a => a.date >= range.startStr && a.date <= range.endStr);
-  const revenueAppts = apptsInRange.filter(a => paidStatuses.includes(a.status));
+  const revenueAppts = paidAppointments(data, faixa);
+  const revenueOf = (a) => netOfPayment(a);
 
-  const revenueOf = (a) => data.services.find(s => s.id === a.serviceId)?.price || 0;
-
-  const totalRevenue = revenueAppts.reduce((s, a) => s + revenueOf(a), 0);
-  const ticketMedio = revenueAppts.length ? totalRevenue / revenueAppts.length : 0;
+  const totalRevenue = getTotalRevenue(data, faixa);
+  const ticketMedio = ticketMedioFn(data, faixa);
   const newCustomers = data.customers.filter(c => (c.joinedAt || '') >= range.startStr && (c.joinedAt || '') <= range.endStr).length;
   const noShowRate = apptsInRange.length ? (apptsInRange.filter(a => a.status === 'cancelled').length / apptsInRange.length) * 100 : 0;
 
-  // Revenue by day
+  // Receita por dia
   const byDay = useMemo(() => {
     const days = [];
     const cur = new Date(range.start);
     while (cur <= range.end) {
       const ds = dateStr(cur);
-      const rev = apptsInRange.filter(a => a.date === ds && paidStatuses.includes(a.status)).reduce((s, a) => s + revenueOf(a), 0);
-      days.push({ date: ds, label: shortLabel(ds), receita: rev });
+      days.push({ date: ds, label: shortLabel(ds), receita: getTotalRevenue(data, { from: ds, to: ds }) });
       cur.setDate(cur.getDate() + 1);
     }
     return days;
-  }, [range, apptsInRange, data.services]);
+  }, [range, data]);
 
-  // Revenue by barber
+  // Receita de serviços por barbeiro
   const byBarber = useMemo(() => {
     const map = {};
     revenueAppts.forEach(a => { map[a.professionalId] = (map[a.professionalId] || 0) + revenueOf(a); });
-    return data.professionals.map(p => ({ name: p.name.split(' ')[0], receita: map[p.id] || 0 })).filter(x => x.receita > 0).sort((a,b) => b.receita - a.receita);
-  }, [revenueAppts, data.professionals, data.services]);
+    return data.professionals.map(p => ({ name: p.name.split(' ')[0], receita: round2(map[p.id] || 0) })).filter(x => x.receita > 0).sort((a,b) => b.receita - a.receita);
+  }, [revenueAppts, data.professionals]);
 
-  // Top services
+  // Serviços que mais renderam
   const byService = useMemo(() => {
     const map = {};
     revenueAppts.forEach(a => { map[a.serviceId] = (map[a.serviceId] || 0) + revenueOf(a); });
-    return Object.entries(map).map(([id, rev]) => ({ name: data.services.find(s => s.id === id)?.name || id, receita: rev })).sort((a,b) => b.receita - a.receita).slice(0, 5);
+    return Object.entries(map).map(([id, rev]) => ({ name: data.services.find(s => s.id === id)?.name || id, receita: round2(rev) })).sort((a,b) => b.receita - a.receita).slice(0, 5);
   }, [revenueAppts, data.services]);
 
   // Status distribution
@@ -97,7 +100,7 @@ export default function Reports() {
       const svc = data.services.find(s => s.id === a.serviceId)?.name || '';
       const pro = data.professionals.find(p => p.id === a.professionalId)?.name || '';
       const st = { pending: 'Pendente', confirmed: 'Confirmada', completed: 'Concluida', cancelled: 'Cancelada' }[a.status] || a.status;
-      rows.push([a.date, cust, svc, pro, st, String(revenueOf(a).toFixed(2))]);
+      rows.push([a.date, cust, svc, pro, st, String((a.status === 'completed' && a.payment ? netOfPayment(a) : 0).toFixed(2))]);
     });
     const csv = rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });

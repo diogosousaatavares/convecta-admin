@@ -80,7 +80,7 @@ function estadoDaVenda(v) {
   if (v.anulado) return { texto: 'Anulado', variante: 'default' };
   if (v.expirado) return { texto: 'Expirou', variante: 'default' };
   if (v.restantes === 0) return { texto: 'Esgotado', variante: 'default' };
-  return { texto: 'Activo', variante: 'success' };
+  return { texto: 'Ativo', variante: 'success' };
 }
 
 export default function Packs() {
@@ -207,6 +207,9 @@ export default function Packs() {
 
   const gravarVenda = async () => {
     if (!venda.packId || !venda.customerId) { toast.error('Escolhe o cliente e o pack'); return; }
+    // Dinheiro com a caixa fechada não fica em sessão nenhuma: no fecho,
+    // ninguém sabe dele.
+    if (venda.metodo === 'Dinheiro' && !dataService.caixaAberta()) { toast.error('Caixa fechada', 'A caixa está fechada. Abre a caixa para receber em dinheiro, ou escolhe outro método.'); return; }
     setAGravar(true);
     try {
       // O cliente já tinha pedido este pack na app: vender ao balcão é
@@ -235,6 +238,7 @@ export default function Packs() {
 
   const gravarConfirmacao = async () => {
     const { pedido, metodo, preco } = confirmacao;
+    if (metodo === 'Dinheiro' && !dataService.caixaAberta()) { toast.error('Caixa fechada', 'A caixa está fechada. Abre a caixa para receber em dinheiro, ou escolhe outro método.'); return; }
     setAGravar(true);
     try {
       const v = await confirmarPedido(pedido, metodo, preco, { businessId, nomeBarbearia: data.business?.name });

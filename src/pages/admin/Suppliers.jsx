@@ -24,9 +24,11 @@ export default function Suppliers() {
 
   const save = async () => {
     if (!form.name) { toast.error('Nome obrigatório'); return; }
-    if (editingId) { await dataService.updateSupplier(editingId, form); toast.success('Fornecedor atualizado'); }
-    else { await dataService.createSupplier(form); toast.success('Fornecedor criado'); }
-    setModal(false);
+    try {
+      if (editingId) { await dataService.updateSupplier(editingId, form); toast.success('Fornecedor atualizado'); }
+      else { await dataService.createSupplier(form); toast.success('Fornecedor criado'); }
+      setModal(false);
+    } catch (e) { toast.error('Não foi possível gravar', e.message); }
   };
   const remove = async () => { await dataService.deleteSupplier(delId); toast.info('Fornecedor removido'); setDelId(null); };
 
@@ -38,12 +40,12 @@ export default function Suppliers() {
       ) : (
         <div className="grid-3">
           {suppliers.map(s => {
-            const products = data.products.filter(p => (p.supplier || '') === s.name);
+            const products = data.products.filter(p => p.supplierId ? p.supplierId === s.id : (p.supplier || '').trim().toLowerCase() === (s.name || '').trim().toLowerCase());
             return (
               <Card key={s.id} className="card-pad card-hover">
                 <div className="flex justify-between items-center mb-16">
                   <span className="notif-ico"><Truck size={18} /></span>
-                  <Badge variant="default">{products.length} produtos</Badge>
+                  <Badge variant="default">{products.length} {products.length === 1 ? 'produto' : 'produtos'}</Badge>
                 </div>
                 <h3 style={{ fontSize: 17 }}>{s.name}</h3>
                 <div className="text-sec text-sm mt-8">{s.contact || s.email || s.phone || 'Sem contactos'}</div>
@@ -62,8 +64,8 @@ export default function Suppliers() {
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
         <div className="field"><label className="label">Contacto</label><input className="input" value={form.contact} onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} /></div>
         <div className="grid-2">
-          <div className="field"><label className="label">Email</label><input className="input" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
-          <div className="field"><label className="label">Telefone</label><input className="input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
+          <div className="field"><label className="label">Email</label><input type="email" className="input" placeholder="nome@empresa.pt" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
+          <div className="field"><label className="label">Telefone</label><input type="tel" className="input" placeholder="912 345 678" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
         </div>
         <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}><Button variant="secondary" onClick={() => setModal(false)}>Cancelar</Button><Button variant="primary" onClick={save}>{editingId ? 'Guardar' : 'Criar'}</Button></div>
       </Modal>

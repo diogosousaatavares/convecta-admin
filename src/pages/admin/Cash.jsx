@@ -7,7 +7,8 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice, formatDate, todayStr } from '@/lib/format';
-import { getExpectedCash, pagamentosDaSessao, vendasDaSessao, packsDaSessao } from '@/lib/domain/finance';
+import { getExpectedCash, pagamentosDaSessao, vendasDaSessao, packsDaSessao, textoDiferenca } from '@/lib/domain/finance';
+import { TabelaFechos } from '@/components/financeiro/HistoricoCaixa';
 import CheckoutModal from '@/components/admin/CheckoutModal';
 
 const METHODS = ['Dinheiro', 'Cartão', 'MB WAY', 'Transferência', 'Voucher'];
@@ -81,7 +82,7 @@ export default function Cash() {
   // Uma conta so, a mesma que o painel e os relatorios usam.
   const expectedCash = getExpectedCash(data, session);
 
-  const history = data.cashSessions.filter(s => s.status === 'closed').slice(0, 10);
+  const history = data.cashSessions.filter(s => s.status === 'closed').sort((a, b) => (b.closedAt || '').localeCompare(a.closedAt || '')).slice(0, 10);
 
   const doOpen = async () => {
     await dataService.openCashSession(opening, 'admin');
@@ -91,43 +92,26 @@ export default function Cash() {
 
   const addExpense = async () => {
     if (!exp.description || !exp.amount) { toast.error('Dados incompletos', 'Indica descrição e valor.'); return; }
-    await dataService.addExpense(session.id, { description: exp.description, amount: Number(exp.amount), category: exp.category, method: exp.method });
+    try {
+      await dataService.addExpense(session.id, { description: exp.description, amount: Number(exp.amount), category: exp.category, method: exp.method });
+    } catch (e) { toast.error('Não foi possível registar', e.message); return; }
     toast.success('Despesa registada', exp.method === 'Dinheiro' ? 'Saiu da caixa.' : 'Não mexe no numerário da caixa.');
     setExpModal(false); setExp({ description: '', amount: '', category: 'Fornecedores', method: 'Dinheiro' });
   };
 
-  const finishCheckout = async (payData) => {
+  const finishCheckout = async (payData) => { try {
     const a = data.appointments.find(x => x.id === charge);
     if (a && a.status === 'confirmed') await dataService.markAttended(charge);
     await dataService.checkoutAppointment(charge, payData);
 
-    if (payData.products && payData.products.length > 0) {
-      for (const item of payData.products) {
-        const prod = data.products.find(p => p.id === item.productId);
-        if (prod && prod.stock != null) {
-          await dataService.updateProduct(item.productId, { stock: Math.max(0, prod.stock - item.qty) });
-        }
-      }
-      if (payData.method === 'Dinheiro' && payData.productsTotal > 0) {
-        const custName = data.customers.find(c => c.id === a?.customerId)?.name || '';
-        await dataService.addCashMovement({
-          type: 'in',
-          amount: payData.productsTotal,
-          description: `Venda de produtos — ${custName}`,
-          method: 'Dinheiro',
-          category: 'Venda de produto'
-        });
-      }
-    }
-
     toast.success('Cobrança concluída', `${formatPrice(payData.total)} · ${payData.method}`);
     setCharge(null);
-  };
+  } catch (e) { toast.error('Não foi possível cobrar', e.message); } };
 
   const doClose = async () => {
     const diff = (Number(counted) || 0) - expectedCash;
     await dataService.closeCashSession(session.id, counted, closeNotes);
-    toast.success('Caixa fechada', diff === 0 ? 'Sem diferença.' : `Diferença ${formatPrice(Math.abs(diff))} ${diff < 0 ? 'a menos' : 'a mais'}`);
+    toast.success('Caixa fechada', Math.abs(diff) < 0.005 ? 'Sem diferença.' : `Diferença: ${textoDiferenca(diff, formatPrice)}`);
     setCloseModal(false); setCounted(''); setCloseNotes('');
   };
 
@@ -322,31 +306,7 @@ export default function Cash() {
       {history.length > 0 && (
         <Card className="card-pad mt-24">
           <h3 style={{ fontSize: 18, marginBottom: 16 }}>Histórico de fechos</h3>
-          <table className="table">
-            <thead><tr><th>Aberta</th><th>Fechada</th><th>Fundo</th><th>Vendas</th><th>Despesas</th><th>Contado</th><th>Diferença</th></tr></thead>
-            <tbody>
-              {history.map(s => {
-                const sSales = pagamentosDaSessao(data, s);
-                const sProd = vendasDaSessao(data, s);
-                const sTotal = sSales.reduce((sum, a) => sum + a.payment.total, 0) + sProd.reduce((sum, v) => sum + Number(v.total || 0), 0)
-                  + packsDaSessao(data, s).reduce((sum, v) => sum + Number(v.total || 0), 0);
-                const sExp = data.expenses.filter(e => e.sessionId === s.id).reduce((sum, e) => sum + Number(e.amount || 0), 0);
-                const expCash = getExpectedCash(data, s);
-                const diff = (s.countedCash || 0) - expCash;
-                return (
-                  <tr key={s.id}>
-                    <td className="text-xs">{new Date(s.openedAt).toLocaleString('pt-PT').slice(0, 16)}</td>
-                    <td className="text-xs">{new Date(s.closedAt).toLocaleString('pt-PT').slice(0, 16)}</td>
-                    <td>{formatPrice(s.openingBalance)}</td>
-                    <td>{formatPrice(sTotal)}</td>
-                    <td>{formatPrice(sExp)}</td>
-                    <td className="fw-600">{formatPrice(s.countedCash || 0)}</td>
-                    <td><Badge variant={diff === 0 ? 'success' : 'warning'}>{diff === 0 ? 'OK' : formatPrice(Math.abs(diff))}</Badge></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <TabelaFechos sessoes={history} data={data} />
         </Card>
       )}
 

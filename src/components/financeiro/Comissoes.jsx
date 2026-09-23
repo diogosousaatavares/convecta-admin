@@ -3,7 +3,7 @@ import { Card, Button, EmptyState } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
 import { exportCSV } from '@/lib/csv';
-import { paidAppointments, netOfPayment, commissionForAppointment } from '@/lib/domain/finance';
+import { resumoProfissional } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
 
 export default function Comissoes() {
@@ -11,19 +11,13 @@ export default function Comissoes() {
   const [from, setFrom] = useState(addDays(todayStr(), -29));
   const [to, setTo] = useState(todayStr());
 
-  const inRange = (d) => d >= from && d <= to;
-  // Fonte única: marcações pagas no período.
-  const sales = useMemo(() => paidAppointments(data, { from, to }), [data, from, to]);
-
-  // Comissão lida do registo PERSISTIDO (snapshot da % no pagamento).
-  // Vendas legadas sem registo são estimadas com a % atual (commissionForAppointment).
+  // As mesmas contas do Desempenho e da Conta do Profissional
+  // (resumoProfissional): marcações pagas no período, receita sem gorjeta,
+  // comissão gravada no momento da cobrança.
   const rows = useMemo(() => data.professionals.map(p => {
-    const psales = sales.filter(a => a.professionalId === p.id);
-    const netRev = round2(psales.reduce((s, a) => s + netOfPayment(a), 0));
-    const commission = round2(psales.reduce((s, a) => s + commissionForAppointment(data, a).commissionAmount, 0));
-    const tips = round2(psales.reduce((s, a) => s + (a.payment.tip || 0), 0));
-    return { pro: p, count: psales.length, netRev, commission, tips, total: round2(commission + tips) };
-  }), [sales, data.professionals, data.commissions]);
+    const r = resumoProfissional(data, p.id, { from, to });
+    return { pro: p, count: r.marcacoes, netRev: r.receita, commission: r.comissao, tips: r.gorjetas, total: r.aReceber };
+  }), [data, from, to]);
 
   const totalCommission = rows.reduce((s, r) => s + r.commission, 0);
   const totalTips = rows.reduce((s, r) => s + r.tips, 0);

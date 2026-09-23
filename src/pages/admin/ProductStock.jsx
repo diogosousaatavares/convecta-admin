@@ -5,11 +5,12 @@ import PageInfo from '@/components/admin/PageInfo';
 import { Card, Badge, EmptyState } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice } from '@/lib/format';
+import { estadoStock, produtosStockBaixo, produtosEsgotados } from '@/lib/domain/stock';
 
 export default function ProductStock() {
   const data = useStore();
-  const lowStock = data.products.filter(p => p.stock > 0 && p.stock <= p.minStock);
-  const outStock = data.products.filter(p => p.stock <= 0);
+  const lowStock = produtosStockBaixo(data.products);
+  const outStock = produtosEsgotados(data.products);
   const stockValue = data.products.reduce((s, p) => s + p.stock * (p.cost || 0), 0);
   const retailValue = data.products.reduce((s, p) => s + p.stock * (p.price || 0), 0);
 
@@ -29,7 +30,7 @@ export default function ProductStock() {
             <thead><tr><th>Produto</th><th>Stock</th><th>Mínimo</th><th>Estado</th><th>Valor (custo)</th></tr></thead>
             <tbody>
               {data.products.map(p => {
-                const state = p.stock <= 0 ? 'out' : p.stock <= p.minStock ? 'low' : 'ok';
+                const e = estadoStock(p); const state = e === 'esgotado' ? 'out' : e === 'baixo' ? 'low' : 'ok';
                 return (
                   <tr key={p.id}>
                     <td className="fw-600">{p.name}</td>

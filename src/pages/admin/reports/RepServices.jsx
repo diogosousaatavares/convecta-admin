@@ -4,6 +4,7 @@ import AdminPage from '@/components/admin/AdminPage';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, EmptyState } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
+import { paidAppointments, netOfPayment } from '@/lib/domain/finance';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
 
 export default function RepServices() {
@@ -13,13 +14,16 @@ export default function RepServices() {
   const inRange = (d) => d >= from && d <= to;
 
   const rows = useMemo(() => {
-    const appts = data.appointments.filter(a => inRange(a.date) && a.status !== 'cancelled' && !a.blocked);
+    // Só marcações pagas, com o que foi mesmo cobrado (sem gorjeta) — as
+    // mesmas contas do painel. Antes somava marcações futuras ao preço de
+    // tabela e gorjetas dentro da receita.
+    const pagas = paidAppointments(data, { from, to });
     return data.services.map(s => {
-      const pa = appts.filter(a => a.serviceId === s.id);
-      const revenue = pa.reduce((sum, a) => sum + (a.payment?.total || s.price || 0), 0);
+      const pa = pagas.filter(a => a.serviceId === s.id);
+      const revenue = pa.reduce((sum, a) => sum + netOfPayment(a), 0);
       return { s, count: pa.length, revenue };
     }).sort((a, b) => b.count - a.count);
-  }, [data.appointments, data.services, from, to]);
+  }, [data, from, to]);
 
   return (
     <AdminPage title="Relatório de Serviços" subtitle="Mais e menos vendidos, faturação por serviço.">

@@ -5,6 +5,7 @@ import { useStore } from '@/hooks/useStore';
 import { formatPrice } from '@/lib/format';
 import { precoDaMarcacao } from '@/lib/domain/appointments';
 import dataService from '@/lib/dataService';
+import { packsActivosDoCliente, saldoParaServico } from '@/lib/packsService';
 
 const METHODS = [
   { key: 'Dinheiro', icon: Banknote },
@@ -24,6 +25,11 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
   const [voucherCode, setVoucherCode] = useState('');
   const [amountPaid, setAmountPaid] = useState('');
   const [error, setError] = useState('');
+  const [aGravar, setAGravar] = useState(false);
+  // O pack do cliente, quando a marcação foi feita sem ele (ao balcão, por
+  // telefone). O teste real cobrou 13,50 € a quem tinha 4 cortes por usar.
+  const [packs, setPacks] = useState([]);
+  const [aUsarPack, setAUsarPack] = useState(false);
 
   // Já pago por MB WAY (confirmado pelo barbeiro): o método vem escolhido e
   // o ecrã avisa para não cobrar outra vez.
@@ -32,9 +38,26 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
   useEffect(() => {
     if (open) {
       setMethod(mbway?.estado === 'pago' ? 'MB WAY' : 'Dinheiro'); setDiscountType('%'); setDiscountValue(''); setDiscountReason('');
-      setTip(''); setVoucherCode(''); setAmountPaid(''); setError('');
+      setTip(''); setVoucherCode(''); setAmountPaid(''); setError(''); setAGravar(false); setPacks([]);
     }
   }, [open, appointment?.id]);
+
+  const packsLigados = data.business?.packs?.ativo === true;
+  useEffect(() => {
+    if (!open || !packsLigados || !appointment?.customerId || appointment?.usaPack || appointment?.usaRecompensa) return;
+    let vivo = true;
+    packsActivosDoCliente(appointment.customerId).then(p => { if (vivo) setPacks(p || []); }).catch(() => {});
+    return () => { vivo = false; };
+  }, [open, packsLigados, appointment?.id, appointment?.customerId, appointment?.usaPack]);
+  const saldoPack = appointment && !appointment.usaPack ? saldoParaServico(packs, appointment.serviceId) : 0;
+  const packDoCliente = saldoPack > 0 ? packs.find(p => !p.servicos.length || p.servicos.includes(appointment.serviceId)) : null;
+
+  const usarPack = async () => {
+    setAUsarPack(true); setError('');
+    try { await dataService.usarPackNaMarcacao(appointment.id); setPacks([]); }
+    catch (e) { setError(e.message); }
+    finally { setAUsarPack(false); }
+  };
 
   // Era service?.price — o preco de HOJE. Se o servico mudou de preco desde a
   // marcacao, ou se o cliente vem gastar o corte gratis, o ecra mostrava um
@@ -64,11 +87,17 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
   const total = Math.max(0, base - discountAmount) + tipVal;
   const change = method === 'Dinheiro' ? Math.max(0, (Number(amountPaid) || 0) - total) : 0;
 
-  const submit = () => {
+  // Marcação futura, ou dinheiro com a caixa fechada: diz-se já, antes de
+  // carregar em «Cobrar» (a mesma regra está na gravação).
+  const bloqueio = dataService.porqueNaoSePodeCobrar?.(appointment, method) || null;
+
+  const submit = async () => {
+    if (bloqueio) { setError(bloqueio); return; }
     if ((manualDiscount > 0) && !discountReason.trim()) { setError('Indica o motivo do desconto.'); return; }
     if (total < 0) { setError('Valor total inválido.'); return; }
     if (method === 'Dinheiro' && amountPaid && (Number(amountPaid) || 0) < total) { setError('Valor entregue inferior ao total.'); return; }
-    onConfirm({
+    setAGravar(true);
+    try { await onConfirm({
       method,
       baseAmount: base,
       discountType: manualDiscount > 0 ? discountType : null,
@@ -80,7 +109,8 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
       total,
       amountPaid: method === 'Dinheiro' ? (Number(amountPaid) || total) : total,
       change
-    });
+    }); } catch (e) { setError(e?.message || 'Não foi possível cobrar.'); }
+    finally { setAGravar(false); }
   };
 
   if (!open) return null;
@@ -108,6 +138,15 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
         {mbway?.estado === 'por-confirmar' && (
           <div className="text-sm mb-16" style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)' }}>
             O cliente diz que pagou {formatPrice(mbway.valor)} por MB WAY, mas ainda não confirmaste. Vê o teu MB WAY antes de cobrar.
+          </div>
+        )}
+
+        {packDoCliente && (
+          <div className="mb-16" style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(var(--gold-rgb),0.10)', border: '1px solid rgba(var(--gold-rgb),0.4)' }}>
+            <div className="text-sm"><b>{customer?.name || 'Este cliente'} tem um pack que cobre este serviço</b> — {packDoCliente.nome}, {saldoPack} {saldoPack === 1 ? 'corte' : 'cortes'} por usar.</div>
+            <Button size="sm" variant="primary" style={{ marginTop: 10 }} onClick={usarPack} disabled={aUsarPack}>
+              {aUsarPack ? 'A usar…' : 'Usar o pack (fica a 0 €)'}
+            </Button>
           </div>
         )}
 
@@ -170,11 +209,11 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
           <div className="flex justify-between items-center"><span className="fw-600">Total a cobrar</span><span className="text-gold fw-600" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>{formatPrice(total)}</span></div>
         </div>
 
-        {error && <div className="text-sm mt-16" style={{ color: 'var(--error)' }}>{error}</div>}
+        {(error || bloqueio) && <div className="text-sm mt-16" style={{ color: 'var(--error)' }}>{error || bloqueio}</div>}
 
         <div className="ag-detail-actions" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
           <Button variant="secondary" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" onClick={submit}>Cobrar e fechar</Button>
+          <Button variant="primary" onClick={submit} disabled={!!bloqueio || aGravar}>{aGravar ? 'A cobrar…' : 'Cobrar e fechar'}</Button>
         </div>
       </div>
     </Modal>

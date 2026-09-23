@@ -6,7 +6,7 @@ import { Card, Button, EmptyState, Badge, Modal } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, todayStr } from '@/lib/format';
 
 const CATS = ['Fornecedores', 'Limpeza', 'Marketing', 'Rendas', 'Salários', 'Outros'];
 
@@ -14,7 +14,9 @@ export default function FinExpenses() {
   const data = useStore();
   const toast = useToast();
   const [modal, setModal] = useState(false);
-  const [form, setForm] = useState({ description: '', amount: '', category: 'Fornecedores', method: 'Dinheiro' });
+  const vazio = () => ({ description: '', amount: '', category: 'Fornecedores', method: 'Dinheiro', date: todayStr(), supplierId: '' });
+  const [form, setForm] = useState(vazio);
+  const fornecedores = data.suppliers || [];
   const [aGravar, setAGravar] = useState(false);
 
   // Uma factura de fornecedor e uma despesa a qualquer hora: deixou de ser
@@ -25,15 +27,19 @@ export default function FinExpenses() {
   const total = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
 
   const add = async () => {
-    if (!form.description || !form.amount) { toast.error('Dados incompletos'); return; }
+    if (!form.description || !(Number(form.amount) > 0)) { toast.error('Dados incompletos', 'Escreve a descrição e um valor maior que zero.'); return; }
+    if (form.date > todayStr()) { toast.error('Data no futuro', 'Regista a despesa no dia em que foi paga.'); return; }
     setAGravar(true);
     try {
-      const emDinheiro = form.method === 'Dinheiro';
+      // Só sai da caixa aberta se for em dinheiro E de hoje.
+      const emDinheiro = form.method === 'Dinheiro' && form.date === todayStr();
+      const forn = fornecedores.find(f => f.id === form.supplierId);
       await dataService.addExpense(emDinheiro && session ? session.id : null, {
         description: form.description, amount: Number(form.amount), category: form.category, method: form.method,
+        date: form.date, supplierId: forn?.id || null, supplier: forn?.name || '',
       });
       toast.success('Despesa registada', emDinheiro && session ? 'Saiu também da caixa de hoje.' : undefined);
-      setModal(false); setForm({ description: '', amount: '', category: 'Fornecedores', method: 'Dinheiro' });
+      setModal(false); setForm(vazio());
     } catch (e) {
       toast.error('Não foi possível registar', e.message);
     } finally { setAGravar(false); }
@@ -53,13 +59,15 @@ export default function FinExpenses() {
       <Card className="card-pad">
         {expenses.length === 0 ? <EmptyState icon={() => <TrendingDown />} title="Sem despesas" description="As despesas registadas aparecem aqui." /> : (
           <table className="table">
-            <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr></thead>
+            <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Fornecedor</th><th>Pago em</th><th>Valor</th><th></th></tr></thead>
             <tbody>
               {expenses.map(e => (
                 <tr key={e.id}>
                   <td className="text-xs">{e.date || (e.createdAt || '').slice(0, 10)}</td>
                   <td className="fw-600">{e.description}</td>
                   <td><Badge variant="default">{e.category}</Badge></td>
+                  <td className="text-sec text-sm">{e.supplier || '—'}</td>
+                  <td className="text-sec text-sm">{e.method || '—'}</td>
                   <td className="fw-600">-{formatPrice(e.amount)}</td>
                   <td><button className="btn btn-ghost btn-icon" aria-label="Eliminar despesa" title="Eliminar despesa" onClick={() => remover(e.id)}><Trash2 size={15} /></button></td>
                 </tr>
@@ -72,8 +80,18 @@ export default function FinExpenses() {
       <Modal open={modal} onClose={() => setModal(false)} title="Nova despesa">
         <div className="field"><label className="label">Descrição</label><input className="input" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
         <div className="grid-2">
-          <div className="field"><label className="label">Valor (€)</label><input type="number" className="input" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} /></div>
+          <div className="field"><label className="label">Valor (€)</label><input type="number" min="0.01" step="0.01" className="input" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} /></div>
           <div className="field"><label className="label">Categoria</label><select className="select" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>{CATS.map(c => <option key={c}>{c}</option>)}</select></div>
+        </div>
+        <div className="grid-2">
+          <div className="field"><label className="label">Data</label><input type="date" className="input" max={todayStr()} value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} /></div>
+          <div className="field">
+            <label className="label">Fornecedor (opcional)</label>
+            <select className="select" value={form.supplierId} onChange={e => setForm(f => ({ ...f, supplierId: e.target.value }))}>
+              <option value="">—</option>
+              {fornecedores.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+            </select>
+          </div>
         </div>
         <div className="field">
           <label className="label">Como foi paga</label>

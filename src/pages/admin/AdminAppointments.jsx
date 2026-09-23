@@ -133,31 +133,8 @@ export default function AdminAppointments() {
   };
   const finishCheckout = async (payData) => {
     const a = data.appointments.find(x => x.id === checkout);
-    if (a && a.date > todayStr) {
-      toast.error('Ação não permitida', 'Não é possível concluir uma marcação futura.');
-      return;
-    }
     if (a && a.status === 'confirmed') await dataService.markAttended(checkout);
     await dataService.checkoutAppointment(checkout, payData);
-
-    if (payData.products && payData.products.length > 0) {
-      for (const item of payData.products) {
-        const prod = data.products.find(p => p.id === item.productId);
-        if (prod && prod.stock != null) {
-          await dataService.updateProduct(item.productId, { stock: Math.max(0, prod.stock - item.qty) });
-        }
-      }
-      if (payData.method === 'Dinheiro' && payData.productsTotal > 0) {
-        const custName = data.customers.find(c => c.id === a?.customerId)?.name || '';
-        await dataService.addCashMovement({
-          type: 'in',
-          amount: payData.productsTotal,
-          description: `Venda de produtos — ${custName}`,
-          method: 'Dinheiro',
-          category: 'Venda de produto'
-        });
-      }
-    }
 
     toast.success('Marcação concluída', `${formatPrice(payData.total)} · ${payData.method} · venda registada na caixa`);
     setCheckout(null);
@@ -193,7 +170,7 @@ export default function AdminAppointments() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <BotaoAtualizar />
-            <Button variant="primary" onClick={() => navigate('/admin/agenda')}><Plus size={16} /> Nova marcação</Button>
+            <Button variant="primary" onClick={() => navigate('/admin/agenda?nova=1')}><Plus size={16} /> Nova marcação</Button>
           </div>
         </div>
       </div>

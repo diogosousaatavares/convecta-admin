@@ -2122,3 +2122,12 @@ html.theme-light { --linha-agm: rgba(0, 0, 0, 0.13); }
 .admin-content .alert-ico.warn { background: rgba(245,158,11,0.12); color: #F5B544; }
 .admin-content .rank-bar-fill { background: var(--gold); }
 .admin-topbar { background: var(--surface); border-bottom-color: var(--border); }
+
+
+/* Ações de uma linha de tabela sempre à vista: numa janela de ~900 px os
+   botões dos produtos ficavam escondidos à direita. */
+.table th.col-acoes, .table td.col-acoes { position: sticky; right: 0; background: var(--surface); box-shadow: -8px 0 12px -10px rgba(0,0,0,.45); }
+/* Agenda: colunas mais estreitas em ecrãs médios, para não haver scroll de lado. */
+@media (min-width: 768px) and (max-width: 1180px) {
+  .ag-col, .ag-head-pro { min-width: 96px; }
+}

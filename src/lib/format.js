@@ -77,3 +77,12 @@ export function isMoreThan2HoursFuture(dateStr, timeStr) {
   return dt.getTime() - Date.now() > 2 * 3600 * 1000;
 }
 export { DOWS, DOWS_SHORT, MONTHS, MONTHS_SHORT };
+// "23/09/2026 13:30". Era toLocaleString(...).slice(0, 16), que cortava a
+// hora a meio: "23/09/2026, 13:3".
+export function formatDataHora(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    + ' ' + d.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+}

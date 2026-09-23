@@ -4,29 +4,38 @@ import { Card, Button, EmptyState, Modal } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, formatDataHora } from '@/lib/format';
+import { saidasDoPeriodo, entradasAvulsas } from '@/lib/domain/finance';
 
 export default function Movimentos({ mode = 'all' }) {
   const data = useStore();
   const toast = useToast();
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({ type: mode === 'in' ? 'in' : 'out', amount: '', category: 'Outros', notes: '' });
-  const moves = (data.cashMovements || []).filter(m => mode === 'all' || m.type === mode);
-  const totalIn = (data.cashMovements || []).filter(m => m.type === 'in').reduce((s, m) => s + Number(m.amount || 0), 0);
-  const totalOut = (data.cashMovements || []).filter(m => m.type === 'out').reduce((s, m) => s + Number(m.amount || 0), 0);
+  // Saídas = despesas (em qualquer método) + saídas avulsas de caixa. Antes
+  // só mostrava os movimentos avulsos: uma despesa paga em dinheiro saía da
+  // caixa e não aparecia aqui.
+  const entradas = entradasAvulsas(data).map(m => ({ ...m, tipo: 'in', origem: 'caixa', movimentoId: m.id }));
+  const saidas = saidasDoPeriodo(data).map(x => ({ ...x, tipo: 'out' }));
+  const moves = [...(mode === 'out' ? [] : entradas), ...(mode === 'in' ? [] : saidas)]
+    .sort((a, b) => (b.quando || b.data || '').localeCompare(a.quando || a.data || ''));
+  const totalIn = entradas.reduce((s, m) => s + m.valor, 0);
+  const totalOut = saidas.reduce((s, m) => s + m.valor, 0);
 
   const add = async () => {
-    if (!form.amount) { toast.error('Valor', 'Indica o valor.'); return; }
-    await dataService.addCashMovement({ type: form.type, amount: Number(form.amount), category: form.category, notes: form.notes });
-    toast.success('Movimento registado');
-    setModal(false); setForm({ type: 'out', amount: '', category: 'Outros', notes: '' });
+    if (!(Number(form.amount) > 0)) { toast.error('Valor', 'Indica um valor maior que zero.'); return; }
+    try {
+      await dataService.addCashMovement({ type: form.type, amount: Number(form.amount), category: form.category, notes: form.notes });
+      toast.success('Movimento registado');
+      setModal(false); setForm({ type: 'out', amount: '', category: 'Outros', notes: '' });
+    } catch (e) { toast.error('Não foi possível registar', e.message); }
   };
 
   return (
     <>
       <div className="kpi-grid">
-        <Card className="kpi"><ArrowDownCircle className="icon" size={22} /><div className="label">Entradas</div><div className="value gold">{formatPrice(totalIn)}</div></Card>
-        <Card className="kpi"><ArrowUpCircle className="icon" size={22} /><div className="label">Saídas</div><div className="value">{formatPrice(totalOut)}</div></Card>
+        <Card className="kpi"><ArrowDownCircle className="icon" size={22} /><div className="label">Entradas avulsas</div><div className="value gold">{formatPrice(totalIn)}</div></Card>
+        <Card className="kpi"><ArrowUpCircle className="icon" size={22} /><div className="label">Saídas (despesas + caixa)</div><div className="value">{formatPrice(totalOut)}</div></Card>
         <Card className="kpi"><div className="label">Saldo</div><div className="value gold">{formatPrice(totalIn - totalOut)}</div></Card>
       </div>
 
@@ -41,15 +50,17 @@ export default function Movimentos({ mode = 'all' }) {
           <div className="flex-col gap-8">
             {moves.map(m => (
               <div key={m.id} className="flex items-center gap-12" style={{ padding: '11px 14px', background: 'var(--elevated)', borderRadius: 8, border: '1px solid var(--border)' }}>
-                <span style={{ width: 34, height: 34, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: m.type === 'in' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', color: m.type === 'in' ? 'var(--success)' : 'var(--error)', flexShrink: 0 }}>
-                  {m.type === 'in' ? <ArrowDownCircle size={16} /> : <ArrowUpCircle size={16} />}
+                <span style={{ width: 34, height: 34, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: m.tipo === 'in' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', color: m.tipo === 'in' ? 'var(--success)' : 'var(--error)', flexShrink: 0 }}>
+                  {m.tipo === 'in' ? <ArrowDownCircle size={16} /> : <ArrowUpCircle size={16} />}
                 </span>
                 <div className="flex-1">
-                  <div className="fw-600 text-sm">{m.category}</div>
-                  <div className="text-sec text-xs">{m.notes || '—'} · {new Date(m.createdAt).toLocaleString('pt-PT').slice(0, 16)}</div>
+                  <div className="fw-600 text-sm">{m.descricao || '—'}</div>
+                  <div className="text-sec text-xs">{m.origem === 'despesa' ? `Despesa · ${m.categoria || 'sem categoria'}${m.metodo ? ` · ${m.metodo}` : ''}` : 'Caixa'} · {m.quando ? formatDataHora(m.quando) : m.data}</div>
                 </div>
-                <span className="fw-600" style={{ color: m.type === 'in' ? 'var(--success)' : 'var(--error)' }}>{m.type === 'in' ? '+' : '-'}{formatPrice(m.amount)}</span>
-                <button className="btn btn-ghost btn-icon" onClick={() => dataService.deleteCashMovement(m.id)}><Trash2 size={15} /></button>
+                <span className="fw-600" style={{ color: m.tipo === 'in' ? 'var(--success)' : 'var(--error)' }}>{m.tipo === 'in' ? '+' : '-'}{formatPrice(m.valor)}</span>
+                {m.movimentoId
+                  ? <button className="btn btn-ghost btn-icon" aria-label="Apagar movimento" onClick={() => dataService.deleteCashMovement(m.movimentoId).catch(e => toast.error('Não foi possível apagar', e.message))}><Trash2 size={15} /></button>
+                  : <span style={{ width: 36 }} title="Apaga-se em Despesas" />}
               </div>
             ))}
           </div>

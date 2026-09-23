@@ -51,6 +51,13 @@ export default function VendaAvulsoModal({ open, onClose }) {
     const prod = availableProducts.find(p => p.id === selProductId);
     if (!prod) return;
     const qty = Math.max(1, parseInt(selQty, 10) || 1);
+    // Não se põe no carrinho mais do que há na prateleira.
+    const jaNoCarrinho = items.find(i => i.productId === selProductId)?.qty || 0;
+    if (prod.stock != null && jaNoCarrinho + qty > prod.stock) {
+      setError(`Só há ${prod.stock} ${prod.unit || 'un'} de ${prod.name}${jaNoCarrinho ? ` (${jaNoCarrinho} já na venda)` : ''}.`);
+      return;
+    }
+    setError('');
     setItems(prev => {
       const existing = prev.find(i => i.productId === selProductId);
       if (existing) {
@@ -83,15 +90,7 @@ export default function VendaAvulsoModal({ open, onClose }) {
 
     setSaving(true);
     try {
-      // O stock desce aqui; o movimento de stock e a venda em si sao escritos
-      // por createSale, que e quem sabe gravá-los na base de dados.
-      for (const item of items) {
-        const prod = data.products.find(p => p.id === item.productId);
-        if (prod && prod.stock != null) {
-          await dataService.updateProduct(item.productId, { stock: Math.max(0, prod.stock - item.qty) });
-        }
-      }
-
+      // O stock desce dentro de createSale, que primeiro confirma que há.
       // A venda fica escrita em product_sales, com a sessao de caixa. E de la
       // que a caixa, as receitas e o calendario a leem — nao e preciso (nem
       // correcto) criar tambem um movimento de caixa: contava duas vezes.
