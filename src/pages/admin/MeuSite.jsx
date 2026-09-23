@@ -239,7 +239,7 @@ function PreviaReal({endereco,tema,info,logoUrl,editar,onEditar}){
       if(ev.origin!==origem)return
       const d=ev.data||{}
       if(d.tipo==='convecta-pronto')setPronto(p=>p?p+1:1)
-      if(d.tipo==='convecta-editar'&&d.alvo)editarRef.current?.(d.alvo)
+      if(d.tipo==='convecta-editar'&&typeof d.chave==='string')editarRef.current?.(d)
     }
     window.addEventListener('message',ouvir)
     return()=>window.removeEventListener('message',ouvir)
@@ -287,6 +287,51 @@ function contraste(a,b){
     return .2126*c[0]+.7152*c[1]+.0722*c[2]}
   const x=lum(a),y=lum(b);if(x==null||y==null)return 21
   return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)
+}
+
+/*
+ * Editar UMA peça do site: a que o barbeiro tocou. Texto/ícone, fundo e
+ * contorno (este só se a peça tiver contorno). Guarda-se em tema.pecas pela
+ * chave que a app de cliente mandou (página + lugar da peça).
+ */
+function EditorDePeca({peca,tema,onMudar,onRepor,onFechar}){
+  const caixa=useRef(null)
+  useEffect(()=>{caixa.current?.scrollIntoView?.({block:'nearest',behavior:'smooth'})},[peca.chave])
+  const atual=tema.pecas?.[peca.chave]||{}
+  const campos=[
+    {k:'cor',l:peca.tipo==='icone'?'Cor do ícone':'Cor do texto',show:peca.tipo!=='caixa'||!!peca.cor},
+    {k:'fundo',l:'Fundo',show:true},
+    {k:'borda',l:'Contorno',show:!!peca.borda||!!atual.borda},
+  ].filter(c=>c.show)
+  const valor=k=>atual[k]||peca[k]||(k==='fundo'?(tema.colors.surface||'#141210'):'#FFFFFF')
+  const fraco=peca.tipo!=='caixa'&&contraste(valor('cor'),atual.fundo||peca.fundo||tema.colors.bg)<3
+  return(
+    <div ref={caixa} style={{background:W2,border:`1px solid ${Y}55`,borderRadius:14,padding:'12px 14px',marginBottom:12,
+      boxShadow:'0 10px 30px rgba(0,0,0,.4)'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}>
+        <div style={{minWidth:0}}>
+          <div style={{fontSize:10.5,color:T3,fontWeight:700,letterSpacing:'.6px'}}>
+            A MUDAR {peca.global?'· EM TODAS AS PÁGINAS':'· SÓ ESTA PEÇA'}
+          </div>
+          <div style={{fontSize:14.5,fontWeight:700,color:T,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{peca.nome}</div>
+        </div>
+        <button onClick={onFechar} aria-label="Fechar"
+          style={{background:'none',border:'none',color:T2,fontSize:18,cursor:'pointer',padding:4}}>✕</button>
+      </div>
+      {campos.map(c=>(
+        <LinhaCor key={c.k} campo={{l:c.l,d:atual[c.k]?'mudado por ti':'como está agora'}}
+          valor={valor(c.k)} onChange={v=>onMudar(peca.chave,c.k,v)}/>
+      ))}
+      {fraco&&<div style={{fontSize:12,color:O,marginTop:8}}>Com estas cores o texto lê-se mal.</div>}
+      {Object.keys(atual).length>0&&(
+        <button onClick={()=>onRepor(peca.chave)}
+          style={{marginTop:10,background:'none',border:'none',color:T2,fontSize:12.5,cursor:'pointer',
+            textDecoration:'underline',padding:0,fontFamily:'inherit'}}>
+          Voltar ao que estava
+        </button>
+      )}
+    </div>
+  )
 }
 
 function EditorDeElemento({alvo,tema,onElemento,onCor,onRepor,onFechar}){
@@ -571,6 +616,8 @@ function DesignTab({biz,onGuardado}){
   const[alvoEdicao,setAlvoEdicao]=useState(null)
   const[tocarParaMudar,setTocarParaMudar]=useState(true)
   const elemento=(k,v)=>{setTema(t=>({...t,elementos:{...(t.elementos||{}),[k]:v}}));setSucesso(false)}
+  const mudarPeca=(chave,k,v)=>{setTema(t=>({...t,pecas:{...(t.pecas||{}),[chave]:{...((t.pecas||{})[chave]||{}),[k]:v}}}));setSucesso(false)}
+  const reporPeca=chave=>{setTema(t=>{const p={...(t.pecas||{})};delete p[chave];return{...t,pecas:p}});setSucesso(false)}
   const reporElementos=ks=>{setTema(t=>{const e={...(t.elementos||{})};ks.forEach(k=>delete e[k]);return{...t,elementos:e}});setSucesso(false)}
   const fundo=(patch)=>{setTema(t=>({...t,background:{...t.background,...patch}}));setSucesso(false)}
   const fonte=(k,v)=>{setTema(t=>({...t,fonts:{...t.fonts,[k]:v}}));setSucesso(false)}
@@ -965,12 +1012,12 @@ function DesignTab({biz,onGuardado}){
           </label>
         </div>
         {alvoEdicao&&(
-          <EditorDeElemento alvo={alvoEdicao} tema={tema} onElemento={elemento} onCor={cor}
-            onRepor={reporElementos} onFechar={()=>setAlvoEdicao(null)}/>
+          <EditorDePeca peca={alvoEdicao} tema={tema} onMudar={mudarPeca}
+            onRepor={reporPeca} onFechar={()=>setAlvoEdicao(null)}/>
         )}
         {!alvoEdicao&&tocarParaMudar&&(
           <div style={{fontSize:12,color:T2,marginBottom:10,lineHeight:1.5}}>
-            Toca em qualquer parte do site — o botão, os preços, o menu, o fundo — e escolhe a cor só dessa parte.
+            Toca em qualquer peça do site — um título, um texto, um botão, um ícone, uma caixa — e muda a cor só dessa peça.
           </div>
         )}
         <div style={{display:'flex',justifyContent:'center'}}>
