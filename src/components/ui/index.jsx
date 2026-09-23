@@ -65,7 +65,12 @@ export function Modal({ open, onClose, title, children, footer }) {
   // transform (o toque no telemóvel deixa o :hover preso) prendia a janela
   // a esse bloco — ficava cortada a meio, com a agenda a aparecer por baixo.
   return createPortal(
-    <div className="modal-overlay" onClick={onClose}>
+    // Fecha so quando o toque COMECA e ACABA fora da janela. Sem isto,
+    // arrastar alguma coisa la dentro (a foto do barbeiro) e largar fora
+    // fechava a janela e perdia-se o que estava a ser feito.
+    <div className="modal-overlay"
+      onPointerDown={e => { e.currentTarget.dataset.fora = e.target === e.currentTarget ? '1' : ''; }}
+      onClick={e => { if (e.target === e.currentTarget && e.currentTarget.dataset.fora === '1') onClose(); }}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-head">
           <h3 style={{ fontSize: 18 }}>{title}</h3>

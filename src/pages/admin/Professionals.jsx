@@ -6,6 +6,7 @@ import PageInfo from '@/components/admin/PageInfo';
 import { Card, Avatar, Badge, Button, EmptyState, Modal, Stars } from '@/components/ui';
 import dataService, { uploadProfessionalPhoto } from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
+import FotoPerfil from '@/components/admin/FotoPerfil';
 
 const empty = { name: '', role: 'Barber', bio: '', specialties: [], commission: 30 };
 
@@ -35,9 +36,8 @@ export default function Professionals() {
   const close = () => setEditing(null);
   const [aEnviarFoto, setAEnviarFoto] = useState(false);
 
-  const handlePhotoChange = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
+  // Recebe a foto já cortada em quadrado (FotoPerfil) e envia-a.
+  const handlePhotoChange = async (file) => {
     if (!file) return;
     // Pré-visualização imediata enquanto a foto sobe, para não parecer parado.
     const previa = URL.createObjectURL(file);
@@ -163,10 +163,7 @@ export default function Professionals() {
         footer={<><Button variant="ghost" onClick={close}>Cancelar</Button><Button variant="primary" onClick={save}>Guardar</Button></>}>
         <div className="field">
           <label className="label">Fotografia</label>
-          <div className="professional-photo-upload">
-            {form.photoUrl ? <img className="professional-photo-preview" src={form.photoUrl} alt="Pré-visualização do profissional" /> : <Avatar name={form.name || 'Profissional'} size="lg" />}
-            <input className="input" type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} />
-          </div>
+          <FotoPerfil valor={form.photoUrl} nome={form.name} aEnviar={aEnviarFoto} onEscolher={handlePhotoChange} />
         </div>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
         <div className="field"><label className="label">Cargo</label><input className="input" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} /></div>
