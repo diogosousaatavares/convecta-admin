@@ -329,8 +329,13 @@ export default function AdminLayout({ children }) {
   const sidebar = (
     <>
       <div className="admin-sidebar-head">
-        <div className="logo">Convecta<span style={{ color: '#C9A227' }}>.</span></div>
-        <div className="sub">Painel de gestão</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <img src="/admin-logo.png" alt="" className="admin-sidebar-marca" />
+          <div style={{ minWidth: 0 }}>
+            <div className="logo">Convecta<span style={{ color: '#C9A227' }}>.</span></div>
+            <div className="sub">Painel de gestão</div>
+          </div>
+        </div>
       </div>
       <nav className="admin-nav">
         {grupos.map((g, i) => {

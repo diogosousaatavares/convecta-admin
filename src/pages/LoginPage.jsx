@@ -232,7 +232,7 @@ export default function LoginPage() {
             background:'linear-gradient(168deg, #17140F 0%, #100E0B 100%)' }}>
 
             <div style={{ textAlign:'center', marginBottom:26 }}>
-              <img src="/convecta-logo.png" alt="" style={{ width:62, height:62, objectFit:'contain', margin:'0 auto 14px', display:'block' }}/>
+              <img src="/admin-logo.png" alt="" style={{ width:62, height:62, objectFit:'contain', margin:'0 auto 14px', display:'block' }}/>
               <div style={{ fontSize:29, fontWeight:700, color:'#F2EDE4', letterSpacing:'-.022em' }}>Convecta</div>
               <div style={{ fontSize:14, color:'#8A8272', marginTop:4 }}>Painel de Administração</div>
             </div>

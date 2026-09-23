@@ -428,7 +428,7 @@ input, textarea, select { font-family: inherit; }
 .sidebar-collapsed .admin-content { margin-left: 72px; }
 .admin-sidebar.collapsed .admin-sidebar-head { padding-left: 0; padding-right: 0; text-align: center; }
 .admin-sidebar.collapsed .admin-sidebar-head .logo { font-size: 0; }
-.admin-sidebar.collapsed .admin-sidebar-head .logo::after { content: 'C'; font-family: var(--font-head); font-size: 18px; color: var(--text); }
+.admin-sidebar.collapsed .admin-sidebar-head .logo::after { content: none; }
 .admin-sidebar.collapsed .admin-sidebar-head .sub,
 .admin-sidebar.collapsed .admin-nav-item,
 .admin-sidebar.collapsed .nav-group-head,
@@ -2047,3 +2047,7 @@ html.theme-light { --linha-agm: rgba(0, 0, 0, 0.13); }
 
 /* Os avisos ficavam debaixo da barra de estado do iPhone (painel guardado no ecrã). */
 .toast-wrap { top: calc(env(safe-area-inset-top, 0px) + 12px) !important; }
+
+/* Logótipo A no topo do menu. Com o menu encolhido fica só ele. */
+.admin-sidebar-marca { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; display: block; }
+.admin-sidebar.collapsed .admin-sidebar-head .sub { display: none; }
