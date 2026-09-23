@@ -14,6 +14,7 @@ import AvisoSubscricao from '@/components/AvisoSubscricao';
 import BemVindo from '@/components/BemVindo';
 import GuardarNoEcra from '@/components/GuardarNoEcra';
 import SinoAvisos from '@/components/SinoAvisos';
+import AcordoRgpd from '@/components/AcordoRgpd';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 
 const GROUPS_TODOS = [
@@ -478,6 +479,8 @@ export default function AdminLayout({ children }) {
             da subscricao a faixa nao aparece — seria dizer-lhe para ir onde
             ja esta. */}
         {location.pathname !== '/admin/subscricao' && <AvisoSubscricao />}
+        {/* O acordo RGPD (art. 28.º): uma vez por barbearia, até ser aceite. */}
+        <AcordoRgpd />
         {/* A primeira entrada: tres ecras a ocupar o ecra inteiro, uma vez
             por barbearia. Depois disso e a faixa de cima que lembra. */}
         <BemVindo />
