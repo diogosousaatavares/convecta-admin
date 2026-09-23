@@ -133,6 +133,17 @@ export async function getBusiness() {
   return data;
 }
 
+// A barbearia pela vista pública (só o que o site do cliente já mostra). É o
+// que a demonstração da personalização usa: não precisa de sessão e não
+// consegue gravar nada.
+export async function getBusinessPublico({ id, slug } = {}) {
+  let q = supabase.from('businesses_public').select('*');
+  q = id ? q.eq('id', id) : q.eq('slug', slug);
+  const { data, error } = await q.maybeSingle();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 export async function updateBusiness(_id, fields) {
   const { data, error } = await supabase
     .from('businesses')

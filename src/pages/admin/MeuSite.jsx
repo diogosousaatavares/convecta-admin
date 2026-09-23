@@ -7,7 +7,7 @@ import {
 } from '@/components/design/ui';
 import {
   DOMINIO_BASE, LIMITE_GALERIA,
-  updateBusiness, uploadBusinessAsset, getBusiness,
+  updateBusiness, uploadBusinessAsset, getBusiness, getBusinessPublico,
   reduzirParaTamanho, tamanhoLegivel,
   listGallery, addGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto, moveGalleryPhoto,
 } from '@/lib/designService';
@@ -580,7 +580,13 @@ function PreviaFundo({cor,fundo,intensidade,velocidade}){
   )
 }
 
-function DesignTab({biz,onGuardado}){
+// Na demonstração (site da Convecta) nada vai para o servidor: as imagens
+// ficam no próprio browser, como data URL, e só vivem na pré-visualização.
+function paraDataUrl(file){
+  return new Promise((ok,falha)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>falha(new Error('Não foi possível ler a imagem.'));r.readAsDataURL(file)})
+}
+
+export function DesignTab({biz,onGuardado,demo=false}){
   // Esta pagina nasceu no super admin, que se usa num computador. Aqui e o
   // barbeiro que a abre, e o barbeiro tem o telemovel na mao.
   const telemovel=useIsMobile()
@@ -600,7 +606,7 @@ function DesignTab({biz,onGuardado}){
   // e os contactos. Buscamos o registo completo para fundir em vez de esmagar.
   useEffect(()=>{
     let vivo=true
-    getBusiness(biz.id)
+    ;(demo?getBusinessPublico({id:biz.id}):getBusiness(biz.id))
       .then(b=>{
         if(!vivo)return
         const s=b?.settings||{}
@@ -697,7 +703,7 @@ function DesignTab({biz,onGuardado}){
     setAEnviar(true);setErro('')
     try{
       const file=await reduzirParaTamanho(original,4*1024*1024)
-      inf('coverImageUrl',await uploadBusinessAsset(biz.id,file,'capa')) }
+      inf('coverImageUrl',demo?await paraDataUrl(file):await uploadBusinessAsset(biz.id,file,'capa')) }
     catch(err){setErro('Upload falhou: '+err.message+(/bucket|not found/i.test(err.message)?' — falta correr o STORAGE_SETUP.sql.':''))}
     finally{setAEnviar(false)}
   }
@@ -729,10 +735,9 @@ function DesignTab({biz,onGuardado}){
       if(!semAjuste)({logo,icone,ajustes,pequeno}=await prepararLogotipo(original))
       logo=await reduzirParaTamanho(logo,1024*1024)
       icone=await reduzirParaTamanho(icone,1024*1024)
-      const [urlLogo,urlIcone]=await Promise.all([
-        uploadBusinessAsset(biz.id,logo,'logotipo'),
-        uploadBusinessAsset(biz.id,icone,'icone'),
-      ])
+      const [urlLogo,urlIcone]=await Promise.all(demo
+        ?[paraDataUrl(logo),paraDataUrl(icone)]
+        :[uploadBusinessAsset(biz.id,logo,'logotipo'),uploadBusinessAsset(biz.id,icone,'icone')])
       setLogoUrl(urlLogo);raiz('favicon',urlIcone);setLogoOriginal(original)
       const frases=semAjuste?['Ficou a imagem tal como a enviaste.']:(ajustes.length?ajustes:['O teu logótipo já estava perfeito — não foi preciso mexer.'])
       if(pequeno)frases.push('O logótipo tem pouca resolução e pode ficar um pouco desfocado. Se tiveres uma versão maior, usa essa.')
@@ -743,6 +748,7 @@ function DesignTab({biz,onGuardado}){
   }
 
   async function guardar(){
+    if(demo)return
     setGuardando(true);setErro('');setSucesso(false)
     try{
       await updateBusiness(biz.id,{...(logoUrl!==logoGravado?{logo_url:logoUrl}:{}),settings:{...(settingsAtuais||{}),
@@ -772,6 +778,12 @@ function DesignTab({biz,onGuardado}){
       :{display:'grid',gridTemplateColumns:'minmax(0,1fr) 360px',gap:22,alignItems:'start'}}>
       <div style={{display:'flex',flexDirection:'column',gap:18,minWidth:0}}>
 
+        {demo?(
+          <Card style={{padding:'16px 20px'}}>
+            <div style={{fontSize:13.5,color:T,fontWeight:700,marginBottom:4}}>Demonstração com o site da {biz.name||'barbearia'}</div>
+            <div style={{fontSize:12.5,color:T2,lineHeight:1.55}}>É exatamente o editor que tens no teu painel. Muda à vontade: nada do que fizeres aqui é gravado.</div>
+          </Card>
+        ):(
         <Card style={{padding:'18px 20px'}}>
           <div style={{fontSize:12.5,color:T2,fontWeight:600,marginBottom:10}}>Link para dar ao cliente</div>
           <div style={{display:'flex',gap:10,alignItems:'center'}}>
@@ -782,13 +794,14 @@ function DesignTab({biz,onGuardado}){
             <Btn v="secondary" onClick={copiar} style={{flexShrink:0}}>{copiado?'Copiado':'Copiar'}</Btn>
           </div>
         </Card>
+        )}
 
         {/* Sete separadores lado a lado num telemovel davam 45px cada: os
             nomes partiam-se ao meio. Em duas linhas de quatro leem-se. */}
         <div className="sa-tira" style={telemovel
           ?{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:4,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}
           :{display:'flex',gap:3,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}}>
-          {PAINEIS.map(pn=>(
+          {PAINEIS.filter(pn=>!(demo&&pn.id==='galeria')).map(pn=>(
             <button key={pn.id} onClick={()=>setPainel(pn.id)}
               style={{flex:telemovel?undefined:1,padding:telemovel?'10px 4px':'9px 6px',
                 borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',
@@ -1043,6 +1056,21 @@ function DesignTab({biz,onGuardado}){
             color:R,fontSize:13,lineHeight:1.5}}>{erro}</div>
         )}
 
+        {demo?(
+        <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+          <a href="https://convecta.pt/comecar" target="_top" rel="noopener"
+            style={{display:'inline-flex',alignItems:'center',gap:8,padding:'11px 20px',borderRadius:10,
+              background:Y,color:'#0A0804',fontWeight:700,fontSize:14,textDecoration:'none'}}>
+            Quero isto na minha barbearia
+          </a>
+          {alterado&&(
+            <Btn v="ghost" onClick={()=>{setTema(guardadoTema);setInfo(guardadoInfo);setLogoUrl(logoGravado);setSucesso(false)}}>
+              Voltar ao original
+            </Btn>
+          )}
+          <span style={{fontSize:12.5,color:T3}}>Demonstração: nada é gravado.</span>
+        </div>
+        ):(
         <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
           <Btn onClick={guardar} disabled={guardando||!alterado}
             style={{display:'flex',alignItems:'center',gap:8,padding:'11px 20px'}}>
@@ -1057,6 +1085,7 @@ function DesignTab({biz,onGuardado}){
           {sucesso&&<span style={{fontSize:13,color:G,fontWeight:600}}>Guardado.</span>}
           {alterado&&!sucesso&&<span style={{fontSize:12.5,color:T3}}>Alterações por guardar</span>}
         </div>
+        )}
 
       </div>
 
@@ -1066,7 +1095,7 @@ function DesignTab({biz,onGuardado}){
       <div style={telemovel?{marginTop:26}:{position:'sticky',top:20}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
           <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px'}}>
-            O TEU SITE{alterado?' · COM O QUE AINDA NÃO GRAVASTE':''}
+            {demo?`O SITE DA ${String(biz.name||'BARBEARIA').toUpperCase()}${alterado?' · COM AS TUAS MUDANÇAS':''}`:`O TEU SITE${alterado?' · COM O QUE AINDA NÃO GRAVASTE':''}`}
           </div>
           <label style={{display:'flex',alignItems:'center',gap:8,fontSize:12,color:T2,cursor:'pointer'}}>
             Tocar para mudar

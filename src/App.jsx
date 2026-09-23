@@ -12,6 +12,7 @@ import ScrollToTop from '@/components/ScrollToTop';
 import PageNotFound from '@/lib/PageNotFound';
 import LoginPage from '@/pages/LoginPage';
 import ReporSenha from '@/pages/ReporSenha';
+const DemoPersonalizacao = lazy(() => import('@/pages/DemoPersonalizacao'));
 import authService from '@/lib/authService';
 import dataService from '@/lib/dataService';
 import { useStore, useAuth } from '@/hooks/useStore';
@@ -117,6 +118,8 @@ function AppRoutes() {
       <Routes location={location}>
         <Route path="/entrar" element={<LoginPage adminOnly />} />
         <Route path="/repor-senha" element={<ReporSenha />} />
+        {/* Pública: a demonstração da personalização que o site convecta.pt mostra. */}
+        <Route path="/personalizar" element={<Suspense fallback={<Spinner />}><DemoPersonalizacao /></Suspense>} />
         <Route path="/" element={<Navigate to="/admin" replace />} />
 
         {/* Admin com layout */}
