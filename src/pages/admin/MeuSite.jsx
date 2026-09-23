@@ -326,6 +326,7 @@ function Amostras({cores,valor,onEscolher}){
  */
 function EditorDePeca({peca,tema,onMudar,onRepor,onFechar}){
   const atual=tema.pecas?.[peca.chave]||{}
+  const oculto=atual.oculto===true
   const forma=peca.forma||'caixa'
   const campos=[
     {k:'cor',l:forma==='icone'?'Cor do ícone':'Cor do texto',show:forma!=='caixa'||!!peca.cor},
@@ -370,6 +371,20 @@ function EditorDePeca({peca,tema,onMudar,onRepor,onFechar}){
       <LinhaCor campo={{l:'Outra cor',d:'toca no círculo para escolher qualquer cor'}}
         valor={valor(campo)} onChange={v=>onMudar(peca.chave,campo,v)}/>
       {fraco&&<div style={{fontSize:12,color:O,marginTop:8}}>Com estas cores o texto lê-se mal.</div>}
+
+      {/* Tirar a peça do site. Fica meio transparente aqui, para se poder
+          voltar a mostrar; no site do cliente desaparece. */}
+      <button onClick={()=>onMudar(peca.chave,'oculto',!oculto)}
+        style={{marginTop:12,width:'100%',padding:'10px 12px',borderRadius:10,cursor:'pointer',fontFamily:'inherit',
+          fontSize:13.5,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',gap:8,
+          border:`1px solid ${oculto?G:'#E74C3C88'}`,background:oculto?`${G}1A`:'rgba(231,76,60,.10)',color:oculto?G:'#F08A7E'}}>
+        {oculto?'👁  Voltar a mostrar no site':'🗑  Remover do site'}
+      </button>
+      {oculto
+        ?<div style={{fontSize:11.5,color:T3,marginTop:6,lineHeight:1.5}}>Os clientes já não veem esta peça. Aqui aparece meio transparente para a poderes voltar a mostrar.</div>
+        :peca.forma!=='caixa'&&/marcar|continuar|confirmar/i.test(peca.nome||'')&&
+          <div style={{fontSize:11.5,color:O,marginTop:6,lineHeight:1.5}}>Atenção: sem este botão os clientes podem não conseguir marcar.</div>}
+
       {Object.keys(atual).length>0&&(
         <button onClick={()=>onRepor(peca.chave)}
           style={{marginTop:10,background:'none',border:'none',color:T2,fontSize:12.5,cursor:'pointer',
