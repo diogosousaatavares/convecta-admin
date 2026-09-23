@@ -118,6 +118,8 @@ export default function Dashboard() {
   // «previsão» multiplicava a média dos últimos 7 dias pelos dias do período:
   // uma venda grande num dia prometia milhares.
   const forecast = round2(periodRevenue + jaMarcadoPorCobrar(data, range));
+  // Dias do período — usado para comparar com o período anterior.
+  const rangeDays = Math.max(1, daysBetween(range.from, range.to));
 
   // services distribution
   const svcDist = useMemo(() => {
