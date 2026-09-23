@@ -780,8 +780,8 @@ export function DesignTab({biz,onGuardado,demo=false}){
 
         {demo?(
           <Card style={{padding:'16px 20px'}}>
-            <div style={{fontSize:13.5,color:T,fontWeight:700,marginBottom:4}}>Demonstração com o site da {biz.name||'barbearia'}</div>
-            <div style={{fontSize:12.5,color:T2,lineHeight:1.55}}>É exatamente o editor que tens no teu painel. Muda à vontade: nada do que fizeres aqui é gravado.</div>
+            <div style={{fontSize:13.5,color:T,fontWeight:700,marginBottom:4}}>Demonstração ao vivo</div>
+            <div style={{fontSize:12.5,color:T2,lineHeight:1.55}}>{telemovel?'Toca numa peça do telemóvel acima e depois em «Editar». Ou escolhe as cores aqui em baixo. ':''}É exatamente o editor que tens no teu painel. Muda à vontade: nada do que fizeres aqui é gravado.</div>
           </Card>
         ):(
         <Card style={{padding:'18px 20px'}}>
@@ -1092,10 +1092,10 @@ export function DesignTab({biz,onGuardado,demo=false}){
       {/* A pre-visualizacao e o site verdadeiro. No computador vive ao lado,
           fixa; no telemovel fica por baixo do formulario. Tocar num elemento
           abre a cor dele por cima do telemovel. */}
-      <div style={telemovel?{marginTop:26}:{position:'sticky',top:20}}>
+      <div style={telemovel?(demo?{order:-1,marginBottom:4}:{marginTop:26}):{position:'sticky',top:20}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
           <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px'}}>
-            {demo?`O SITE DA ${String(biz.name||'BARBEARIA').toUpperCase()}${alterado?' · COM AS TUAS MUDANÇAS':''}`:`O TEU SITE${alterado?' · COM O QUE AINDA NÃO GRAVASTE':''}`}
+            {demo?`SITE DE DEMONSTRAÇÃO${alterado?' · COM AS TUAS MUDANÇAS':''}`:`O TEU SITE${alterado?' · COM O QUE AINDA NÃO GRAVASTE':''}`}
           </div>
           <label style={{display:'flex',alignItems:'center',gap:8,fontSize:12,color:T2,cursor:'pointer'}}>
             Tocar para mudar

@@ -8,7 +8,7 @@ import { Spin, T2 } from '@/components/design/ui';
  * mostra esta página dentro de uma moldura).
  *
  * É o mesmo editor do «O Meu Site» do painel, peça por peça, a mexer no site
- * verdadeiro de uma barbearia (a Rasta Village, por omissão). Sem sessão e
+ * verdadeiro de uma barbearia (a convectacutts, a barbearia de demonstração, por omissão). Sem sessão e
  * sem gravar nada: lê a barbearia pela vista pública, as mudanças vivem só na
  * pré-visualização e as imagens ficam no browser de quem experimenta.
  */
@@ -17,7 +17,7 @@ export default function DemoPersonalizacao() {
   const [erro, setErro] = useState('');
 
   useEffect(() => {
-    const slug = new URLSearchParams(window.location.search).get('b') || 'rastavillage';
+    const slug = new URLSearchParams(window.location.search).get('b') || 'convectacutts';
     getBusinessPublico({ slug })
       .then(b => {
         if (!b) { setErro('Demonstração indisponível de momento.'); return; }
