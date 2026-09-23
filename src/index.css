@@ -2044,3 +2044,6 @@ html.theme-light { --linha-agm: rgba(0, 0, 0, 0.13); }
 @media (max-width: 640px) {
   .sino-caixa { position: fixed; left: 12px; right: 12px; width: auto; top: calc(60px + env(safe-area-inset-top, 0px)); }
 }
+
+/* Os avisos ficavam debaixo da barra de estado do iPhone (painel guardado no ecrã). */
+.toast-wrap { top: calc(env(safe-area-inset-top, 0px) + 12px) !important; }
