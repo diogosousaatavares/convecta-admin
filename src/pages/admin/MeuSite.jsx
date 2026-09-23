@@ -218,7 +218,117 @@ function Telemovel({largura=292,children}){
   )
 }
 
-// ── Pré-visualização ───────────────────────────────────────────────────────
+// ── Pré-visualização real ──────────────────────────────────────────────────
+/*
+ * O site da barbearia, a sério, dentro da moldura do telemóvel. Antes era um
+ * desenho parecido; agora é a própria app de cliente (com ?previa=1), por isso
+ * o que o barbeiro vê é exatamente o que o cliente vai ver.
+ *
+ * O tema e os textos ainda por gravar vão por postMessage e aplicam-se só lá
+ * dentro. Quando o barbeiro toca num elemento, a app diz qual foi e aqui
+ * abre-se a cor desse elemento.
+ */
+function PreviaReal({endereco,tema,info,logoUrl,editar,onEditar}){
+  const ref=useRef(null)
+  const[pronto,setPronto]=useState(false)
+  const origem=`https://${endereco}`
+  const editarRef=useRef(onEditar)
+  editarRef.current=onEditar
+  useEffect(()=>{
+    const ouvir=ev=>{
+      if(ev.origin!==origem)return
+      const d=ev.data||{}
+      if(d.tipo==='convecta-pronto')setPronto(p=>p?p+1:1)
+      if(d.tipo==='convecta-editar'&&d.alvo)editarRef.current?.(d.alvo)
+    }
+    window.addEventListener('message',ouvir)
+    return()=>window.removeEventListener('message',ouvir)
+  },[origem])
+  useEffect(()=>{
+    if(!pronto)return
+    ref.current?.contentWindow?.postMessage({tipo:'convecta-tema',tema,info,logoUrl},origem)
+  },[tema,info,logoUrl,pronto,origem])
+  useEffect(()=>{
+    if(!pronto)return
+    ref.current?.contentWindow?.postMessage({tipo:'convecta-modo',editar},origem)
+  },[editar,pronto,origem])
+  return(
+    <div style={{position:'relative',width:TLM_L,height:TLM_A,background:tema?.colors?.bg||'#000'}}>
+      <iframe ref={ref} src={`${origem}/?previa=1`} title="O teu site, como o cliente o vê"
+        style={{width:TLM_L,height:TLM_A,border:0,display:'block'}}/>
+      {!pronto&&(
+        <div style={{position:'absolute',inset:0,display:'grid',placeItems:'center',color:'#bbb',fontSize:15}}>
+          A abrir o teu site…
+        </div>
+      )}
+    </div>
+  )
+}
+
+// O que se pode mudar ao tocar na pré-visualização. `k` vive em
+// tema.elementos (só aquele elemento); `cor` é uma das cores base.
+const ALVOS_EDICAO={
+  botao:   {l:'Botão principal',     campos:[{k:'botao',l:'Fundo do botão',base:'gold'},{k:'botaoTexto',l:'Texto do botão',base:'#0A0804'}]},
+  preco:   {l:'Preços',              campos:[{k:'preco',l:'Cor dos preços',base:'gold'}]},
+  titulo:  {l:'Títulos',             campos:[{k:'titulo',l:'Cor dos títulos',base:'text'}]},
+  menu:    {l:'Menu de baixo',       campos:[{k:'menu',l:'Fundo do menu',base:'#121212'},{k:'menuAtivo',l:'Página em que estás',base:'gold'}]},
+  cartao:  {l:'Cartões',             campos:[{k:'cartao',l:'Fundo dos cartões',base:'surface'}]},
+  estrelas:{l:'Estrelas',            campos:[{k:'estrelas',l:'Cor das estrelas',base:'gold'}]},
+  link:    {l:'Links',               campos:[{k:'link',l:'Cor dos links',base:'gold'}]},
+  etiqueta:{l:'Etiqueta sobre o nome',campos:[{k:'etiqueta',l:'Cor da etiqueta',base:'gold'}]},
+  texto:   {l:'Texto',               campos:[{cor:'text',l:'Texto principal'},{cor:'textSec',l:'Texto secundário'}]},
+  fundo:   {l:'Fundo da página',     campos:[{cor:'bg',l:'Fundo'},{cor:'surface',l:'Caixas'},{cor:'border',l:'Contornos'}]},
+}
+
+// Contraste entre duas cores (WCAG). Abaixo de 3 lê-se mal.
+function contraste(a,b){
+  const lum=h=>{const m=/^#?([0-9a-f]{6})$/i.exec(h||'');if(!m)return null
+    const n=parseInt(m[1],16),c=[n>>16&255,n>>8&255,n&255].map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4})
+    return .2126*c[0]+.7152*c[1]+.0722*c[2]}
+  const x=lum(a),y=lum(b);if(x==null||y==null)return 21
+  return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)
+}
+
+function EditorDeElemento({alvo,tema,onElemento,onCor,onRepor,onFechar}){
+  // No telemovel o editor aparece por cima da moldura: traz-se para o ecra.
+  const caixa=useRef(null)
+  useEffect(()=>{caixa.current?.scrollIntoView?.({block:'nearest',behavior:'smooth'})},[alvo])
+  const def=ALVOS_EDICAO[alvo];if(!def)return null
+  const valorDe=c=>{
+    if(c.cor)return tema.colors[c.cor]
+    const v=tema.elementos?.[c.k];if(v)return v
+    return c.base.startsWith('#')?c.base:tema.colors[c.base]
+  }
+  const mudou=def.campos.some(c=>c.k&&tema.elementos?.[c.k])
+  const aviso=alvo==='botao'&&contraste(valorDe(def.campos[0]),valorDe(def.campos[1]))<3
+  return(
+    <div ref={caixa} style={{background:W2,border:`1px solid ${Y}55`,borderRadius:14,padding:'12px 14px',marginBottom:12,
+      boxShadow:'0 10px 30px rgba(0,0,0,.4)'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}>
+        <div>
+          <div style={{fontSize:10.5,color:T3,fontWeight:700,letterSpacing:'.6px'}}>A MUDAR</div>
+          <div style={{fontSize:14.5,fontWeight:700,color:T}}>{def.l}</div>
+        </div>
+        <button onClick={onFechar} aria-label="Fechar"
+          style={{background:'none',border:'none',color:T2,fontSize:18,cursor:'pointer',padding:4}}>✕</button>
+      </div>
+      {def.campos.map(c=>(
+        <LinhaCor key={c.k||c.cor} campo={{l:c.l,d:c.k?'só este elemento':'cor base do site'}}
+          valor={valorDe(c)} onChange={v=>c.k?onElemento(c.k,v):onCor(c.cor,v)}/>
+      ))}
+      {aviso&&<div style={{fontSize:12,color:O,marginTop:8}}>O texto do botão lê-se mal com esta cor de fundo.</div>}
+      {mudou&&(
+        <button onClick={()=>onRepor(def.campos.filter(c=>c.k).map(c=>c.k))}
+          style={{marginTop:10,background:'none',border:'none',color:T2,fontSize:12.5,cursor:'pointer',
+            textDecoration:'underline',padding:0,fontFamily:'inherit'}}>
+          Voltar à cor base
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ── Pré-visualização (desenho antigo, já não usado) ────────────────────────
 function Previsualizacao({tema,info,biz,endereco}){
   const c=tema.colors,r=tema.radius
   const nome=tema.appName||biz.name||'Barbearia'
@@ -457,6 +567,11 @@ function DesignTab({biz,onGuardado}){
   },[previaAberta])
 
   const cor=(k,v)=>{setTema(t=>({...t,colors:{...t.colors,[k]:v}}));setSucesso(false)}
+  // Cores de um elemento só (tocar na pré-visualização).
+  const[alvoEdicao,setAlvoEdicao]=useState(null)
+  const[tocarParaMudar,setTocarParaMudar]=useState(true)
+  const elemento=(k,v)=>{setTema(t=>({...t,elementos:{...(t.elementos||{}),[k]:v}}));setSucesso(false)}
+  const reporElementos=ks=>{setTema(t=>{const e={...(t.elementos||{})};ks.forEach(k=>delete e[k]);return{...t,elementos:e}});setSucesso(false)}
   const fundo=(patch)=>{setTema(t=>({...t,background:{...t.background,...patch}}));setSucesso(false)}
   const fonte=(k,v)=>{setTema(t=>({...t,fonts:{...t.fonts,[k]:v}}));setSucesso(false)}
   const raiz=(k,v)=>{setTema(t=>({...t,[k]:v}));setSucesso(false)}
@@ -836,35 +951,40 @@ function DesignTab({biz,onGuardado}){
 
       </div>
 
-      {/* No computador a pre-visualizacao vive ao lado, sempre a vista.
-          Num telemovel fica por baixo do formulario, sempre visivel — o
-          barbeiro muda uma cor, desce, e ve. (Antes era um botao que abria
-          por cima; o Diogo preferiu te-la na pagina.) */}
-      {telemovel?(
-        <div style={{marginTop:26}}>
-          <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px',marginBottom:10,textAlign:'center'}}>
-            COMO FICA O SITE{alterado?' · COM O QUE AINDA NÃO GRAVASTE':''}
+      {/* A pre-visualizacao e o site verdadeiro. No computador vive ao lado,
+          fixa; no telemovel fica por baixo do formulario. Tocar num elemento
+          abre a cor dele por cima do telemovel. */}
+      <div style={telemovel?{marginTop:26}:{position:'sticky',top:20}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
+          <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px'}}>
+            O TEU SITE{alterado?' · COM O QUE AINDA NÃO GRAVASTE':''}
           </div>
-          <div style={{display:'flex',justifyContent:'center'}}>
-            <Telemovel largura={larguraPrevia}>
-              <Previsualizacao tema={tema} info={info} biz={bizVisto} endereco={endereco}/>
-            </Telemovel>
-          </div>
-          <div style={{fontSize:11.5,color:T3,marginTop:12,lineHeight:1.55,textAlign:'center'}}>
-            É assim que o cliente vê. Muda o que quiseres lá em cima e desce para comparar.
-          </div>
+          <label style={{display:'flex',alignItems:'center',gap:8,fontSize:12,color:T2,cursor:'pointer'}}>
+            Tocar para mudar
+            <Interruptor ligado={tocarParaMudar} onChange={v=>{setTocarParaMudar(v);if(!v)setAlvoEdicao(null)}}/>
+          </label>
         </div>
-      ):(
-        <div style={{position:'sticky',top:20}}>
-          <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px',marginBottom:10}}>PRÉ-VISUALIZAÇÃO</div>
-          <Telemovel>
-            <Previsualizacao tema={tema} info={info} biz={bizVisto} endereco={endereco}/>
+        {alvoEdicao&&(
+          <EditorDeElemento alvo={alvoEdicao} tema={tema} onElemento={elemento} onCor={cor}
+            onRepor={reporElementos} onFechar={()=>setAlvoEdicao(null)}/>
+        )}
+        {!alvoEdicao&&tocarParaMudar&&(
+          <div style={{fontSize:12,color:T2,marginBottom:10,lineHeight:1.5}}>
+            Toca em qualquer parte do site — o botão, os preços, o menu, o fundo — e escolhe a cor só dessa parte.
+          </div>
+        )}
+        <div style={{display:'flex',justifyContent:'center'}}>
+          <Telemovel largura={telemovel?larguraPrevia:292}>
+            <PreviaReal endereco={endereco} tema={tema} info={info} logoUrl={logoUrl}
+              editar={tocarParaMudar} onEditar={setAlvoEdicao}/>
           </Telemovel>
-          <div style={{fontSize:11.5,color:T3,marginTop:14,lineHeight:1.55,textAlign:'center'}}>
-            Desenhado à largura real de um telemóvel.
-          </div>
         </div>
-      )}
+        <div style={{fontSize:11.5,color:T3,marginTop:12,lineHeight:1.55,textAlign:'center'}}>
+          {tocarParaMudar
+            ?'Desliga «Tocar para mudar» para navegar no site como um cliente.'
+            :'Estás a navegar como um cliente. Liga «Tocar para mudar» para escolher cores.'}
+        </div>
+      </div>
     </div>
   )
 }
