@@ -181,12 +181,16 @@ function larguraDaPrevia(){
 }
 
 function Telemovel({largura=292,children}){
-  const e=largura/TLM_L
+  // O ecra fica DENTRO da moldura (3% de cada lado). A escala tem de ser a
+  // do ecra, nao a da moldura inteira — senao o site ficava 6% mais largo
+  // do que o ecra e cortava-se do lado direito.
+  const moldura=largura*.03
+  const e=(largura-2*moldura)/TLM_L
   const agora=new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})
   return(
-    <div style={{width:largura,height:TLM_A*e,position:'relative',margin:'0 auto'}}>
+    <div style={{width:largura,height:TLM_A*e+2*moldura,position:'relative',margin:'0 auto'}}>
       <div style={{position:'absolute',inset:0,borderRadius:largura*.155,background:'#101012',
-        padding:largura*.03,boxSizing:'border-box',
+        padding:moldura,boxSizing:'border-box',
         boxShadow:'0 26px 60px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.09), inset 0 0 0 1px rgba(255,255,255,.05)'}}>
         <div style={{width:'100%',height:'100%',borderRadius:largura*.125,overflow:'hidden',
           position:'relative',background:'#000'}}>
@@ -1017,7 +1021,7 @@ function DesignTab({biz,onGuardado}){
         )}
         {!alvoEdicao&&tocarParaMudar&&(
           <div style={{fontSize:12,color:T2,marginBottom:10,lineHeight:1.5}}>
-            Toca em qualquer peça do site — um título, um texto, um botão, um ícone, uma caixa — e muda a cor só dessa peça.
+            Toca numa peça do site — um título, um texto, um botão, um ícone — e depois em «Editar» para mudar a cor só dessa peça.
           </div>
         )}
         <div style={{display:'flex',justifyContent:'center'}}>
