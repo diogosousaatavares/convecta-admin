@@ -330,9 +330,9 @@ export default function AdminLayout({ children }) {
   const sidebar = (
     <>
       <div className="admin-sidebar-head">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="admin-sidebar-marca-linha">
           <img src="/admin-logo.png" alt="" className="admin-sidebar-marca" />
-          <div style={{ minWidth: 0 }}>
+          <div className="admin-sidebar-marca-texto">
             <div className="logo">Convecta<span style={{ color: '#C9A227' }}>.</span></div>
             <div className="sub">Painel de gestão</div>
           </div>

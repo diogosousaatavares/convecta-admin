@@ -2051,3 +2051,14 @@ html.theme-light { --linha-agm: rgba(0, 0, 0, 0.13); }
 /* Logótipo A no topo do menu. Com o menu encolhido fica só ele. */
 .admin-sidebar-marca { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; display: block; }
 .admin-sidebar.collapsed .admin-sidebar-head .sub { display: none; }
+
+/* Menu encolhido: o A ao centro da coluna, sem o texto ao lado (antes o
+   texto invisível continuava a ocupar espaço e empurrava o A para fora). */
+.admin-sidebar-marca-linha { display: flex; align-items: center; gap: 12px; }
+.admin-sidebar-marca-texto { min-width: 0; }
+@media (min-width: 768px) {
+  .admin-sidebar.collapsed .admin-sidebar-head { padding-left: 0; padding-right: 0; }
+  .admin-sidebar.collapsed .admin-sidebar-marca-linha { justify-content: center; gap: 0; }
+  .admin-sidebar.collapsed .admin-sidebar-marca-texto { display: none; }
+  .admin-sidebar.collapsed .admin-sidebar-marca { width: 34px; height: 34px; }
+}
