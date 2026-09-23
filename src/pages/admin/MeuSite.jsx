@@ -298,34 +298,77 @@ function contraste(a,b){
  * contorno (este só se a peça tiver contorno). Guarda-se em tema.pecas pela
  * chave que a app de cliente mandou (página + lugar da peça).
  */
+// A lista de cores que aparece ao carregar em «Editar». Primeiro as cores do
+// próprio site (para ficar tudo a condizer), depois uma paleta pronta.
+const PALETA=['#FFFFFF','#EDE8DF','#BDBDBD','#6B6B6B','#2A2622','#000000',
+  '#C9A227','#F5C542','#E67E22','#E74C3C','#C2185B','#8E44AD','#2980B9','#1ABC9C','#27AE60','#795548']
+
+function Amostras({cores,valor,onEscolher}){
+  return(
+    <div style={{display:'flex',flexWrap:'wrap',gap:8,padding:'4px 0 10px'}}>
+      {cores.map(c=>{
+        const igual=(valor||'').toLowerCase()===c.toLowerCase()
+        return(
+          <button key={c} type="button" onClick={()=>onEscolher(c)} aria-label={`Cor ${c}`} title={c}
+            style={{width:32,height:32,borderRadius:'50%',background:c,cursor:'pointer',padding:0,flexShrink:0,
+              border:igual?`3px solid ${Y}`:'1px solid rgba(255,255,255,.25)',
+              boxShadow:igual?'0 0 0 2px #000 inset':'inset 0 0 0 1px rgba(0,0,0,.25)'}}/>
+        )
+      })}
+    </div>
+  )
+}
+
+/*
+ * Editar UMA peça do site: a que o barbeiro tocou e depois carregou em
+ * «Editar». Aparece por cima do telemóvel, com uma lista de cores para tocar.
+ * Guarda-se em tema.pecas pela chave que a app de cliente mandou.
+ */
 function EditorDePeca({peca,tema,onMudar,onRepor,onFechar}){
-  const caixa=useRef(null)
-  useEffect(()=>{caixa.current?.scrollIntoView?.({block:'nearest',behavior:'smooth'})},[peca.chave])
   const atual=tema.pecas?.[peca.chave]||{}
+  const forma=peca.forma||'caixa'
   const campos=[
-    {k:'cor',l:peca.tipo==='icone'?'Cor do ícone':'Cor do texto',show:peca.tipo!=='caixa'||!!peca.cor},
+    {k:'cor',l:forma==='icone'?'Cor do ícone':'Cor do texto',show:forma!=='caixa'||!!peca.cor},
     {k:'fundo',l:'Fundo',show:true},
     {k:'borda',l:'Contorno',show:!!peca.borda||!!atual.borda},
   ].filter(c=>c.show)
+  const[campo,setCampo]=useState(campos[0].k)
+  useEffect(()=>{setCampo(campos[0].k)// eslint-disable-next-line
+  },[peca.chave])
   const valor=k=>atual[k]||peca[k]||(k==='fundo'?(tema.colors.surface||'#141210'):'#FFFFFF')
-  const fraco=peca.tipo!=='caixa'&&contraste(valor('cor'),atual.fundo||peca.fundo||tema.colors.bg)<3
+  const doSite=[tema.colors.gold,tema.colors.text,tema.colors.textSec,tema.colors.bg,tema.colors.surface].filter(Boolean)
+  const cores=[...new Set([...doSite,...PALETA].map(c=>c.toUpperCase()))]
+  const fraco=forma!=='caixa'&&contraste(valor('cor'),atual.fundo||peca.fundo||tema.colors.bg)<3
   return(
-    <div ref={caixa} style={{background:W2,border:`1px solid ${Y}55`,borderRadius:14,padding:'12px 14px',marginBottom:12,
-      boxShadow:'0 10px 30px rgba(0,0,0,.4)'}}>
+    <div style={{background:'#16130F',border:`1px solid ${Y}66`,borderRadius:16,padding:'12px 14px',
+      boxShadow:'0 -8px 40px rgba(0,0,0,.6)',maxHeight:'100%',overflowY:'auto'}}>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}>
         <div style={{minWidth:0}}>
           <div style={{fontSize:10.5,color:T3,fontWeight:700,letterSpacing:'.6px'}}>
-            A MUDAR {peca.global?'· EM TODAS AS PÁGINAS':'· SÓ ESTA PEÇA'}
+            {peca.global?'EM TODAS AS PÁGINAS':'SÓ ESTA PEÇA'}
           </div>
           <div style={{fontSize:14.5,fontWeight:700,color:T,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{peca.nome}</div>
         </div>
-        <button onClick={onFechar} aria-label="Fechar"
-          style={{background:'none',border:'none',color:T2,fontSize:18,cursor:'pointer',padding:4}}>✕</button>
+        <button onClick={onFechar} style={{background:Y,border:'none',color:'#111',fontWeight:700,fontSize:13,
+          cursor:'pointer',padding:'7px 14px',borderRadius:99,fontFamily:'inherit',flexShrink:0}}>Feito</button>
       </div>
-      {campos.map(c=>(
-        <LinhaCor key={c.k} campo={{l:c.l,d:atual[c.k]?'mudado por ti':'como está agora'}}
-          valor={valor(c.k)} onChange={v=>onMudar(peca.chave,c.k,v)}/>
-      ))}
+      {campos.length>1&&(
+        <div style={{display:'flex',gap:6,margin:'12px 0 8px'}}>
+          {campos.map(c=>(
+            <button key={c.k} onClick={()=>setCampo(c.k)}
+              style={{flex:1,padding:'8px 6px',borderRadius:9,cursor:'pointer',fontFamily:'inherit',fontSize:12.5,fontWeight:700,
+                border:`1px solid ${campo===c.k?Y:BD}`,background:campo===c.k?`${Y}22`:'transparent',color:campo===c.k?Y:T2,
+                display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+              <span style={{width:12,height:12,borderRadius:'50%',background:valor(c.k),border:'1px solid rgba(255,255,255,.3)'}}/>
+              {c.l}
+            </button>
+          ))}
+        </div>
+      )}
+      {campos.length===1&&<div style={{fontSize:12.5,color:T2,margin:'10px 0 6px',fontWeight:600}}>{campos[0].l}</div>}
+      <Amostras cores={cores} valor={valor(campo)} onEscolher={v=>onMudar(peca.chave,campo,v)}/>
+      <LinhaCor campo={{l:'Outra cor',d:'toca no círculo para escolher qualquer cor'}}
+        valor={valor(campo)} onChange={v=>onMudar(peca.chave,campo,v)}/>
       {fraco&&<div style={{fontSize:12,color:O,marginTop:8}}>Com estas cores o texto lê-se mal.</div>}
       {Object.keys(atual).length>0&&(
         <button onClick={()=>onRepor(peca.chave)}
@@ -1015,20 +1058,27 @@ function DesignTab({biz,onGuardado}){
             <Interruptor ligado={tocarParaMudar} onChange={v=>{setTocarParaMudar(v);if(!v)setAlvoEdicao(null)}}/>
           </label>
         </div>
-        {alvoEdicao&&(
-          <EditorDePeca peca={alvoEdicao} tema={tema} onMudar={mudarPeca}
-            onRepor={reporPeca} onFechar={()=>setAlvoEdicao(null)}/>
-        )}
+
         {!alvoEdicao&&tocarParaMudar&&(
           <div style={{fontSize:12,color:T2,marginBottom:10,lineHeight:1.5}}>
             Toca numa peça do site — um título, um texto, um botão, um ícone — e depois em «Editar» para mudar a cor só dessa peça.
           </div>
         )}
-        <div style={{display:'flex',justifyContent:'center'}}>
+        <div style={{display:'flex',justifyContent:'center',position:'relative'}}>
           <Telemovel largura={telemovel?larguraPrevia:292}>
             <PreviaReal endereco={endereco} tema={tema} info={info} logoUrl={logoUrl}
               editar={tocarParaMudar} onEditar={setAlvoEdicao}/>
           </Telemovel>
+          {/* As cores abrem por cima do telemovel, onde o barbeiro esta a olhar. */}
+          {alvoEdicao&&(
+            <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',bottom:8,
+              width:telemovel?'min(100%, 380px)':340,maxHeight:'70%',display:'flex',zIndex:5}}>
+              <div style={{width:'100%'}}>
+                <EditorDePeca peca={alvoEdicao} tema={tema} onMudar={mudarPeca}
+                  onRepor={reporPeca} onFechar={()=>setAlvoEdicao(null)}/>
+              </div>
+            </div>
+          )}
         </div>
         <div style={{fontSize:11.5,color:T3,marginTop:12,lineHeight:1.55,textAlign:'center'}}>
           {tocarParaMudar
