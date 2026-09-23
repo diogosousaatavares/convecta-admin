@@ -834,60 +834,26 @@ function DesignTab({biz,onGuardado}){
           {alterado&&!sucesso&&<span style={{fontSize:12.5,color:T3}}>Alterações por guardar</span>}
         </div>
 
-        {/* O botao flutuante fica por cima do fim da pagina; sem este espaco
-            tapava o "Guardar design", que e o ultimo que se carrega. */}
-        {telemovel&&<div style={{height:70}} aria-hidden="true"/>}
       </div>
 
       {/* No computador a pre-visualizacao vive ao lado, sempre a vista.
-          Num telemovel nao existe "ao lado": ou empurra a pagina para fora do
-          ecra, ou obriga a fazer scroll ate ao fim de cada vez que se muda uma
-          cor. Por isso aqui e um botao — abre por cima, ve-se, fecha-se, e
-          volta-se exatamente ao sitio onde se estava. */}
+          Num telemovel fica por baixo do formulario, sempre visivel — o
+          barbeiro muda uma cor, desce, e ve. (Antes era um botao que abria
+          por cima; o Diogo preferiu te-la na pagina.) */}
       {telemovel?(
-        <>
-          <button onClick={()=>setPreviaAberta(true)} aria-label="Ver como fica o site"
-            style={{position:'fixed',right:16,bottom:18,zIndex:80,
-              display:'flex',alignItems:'center',gap:9,padding:'13px 19px',
-              borderRadius:99,border:'none',cursor:'pointer',fontFamily:'inherit',
-              fontSize:13.5,fontWeight:700,color:'#0A0807',
-              background:`linear-gradient(100deg,${YD},${Y})`,
-              boxShadow:'0 10px 30px rgba(0,0,0,.55)'}}>
-            <span style={{width:11,height:17,borderRadius:3,border:'2px solid #0A0807',
-              display:'inline-block',flexShrink:0}}/>
-            Ver como fica
-            {/* ponto pequeno: ha alteracoes que ainda nao viste em telemovel */}
-            {alterado&&<span style={{width:7,height:7,borderRadius:'50%',background:'#0A0807',opacity:.5}}/>}
-          </button>
-
-          {previaAberta&&(
-            <div onClick={ev=>{if(ev.target===ev.currentTarget)setPreviaAberta(false)}}
-              style={{position:'fixed',inset:0,zIndex:400,padding:'14px 16px',
-                background:'rgba(6,5,4,.9)',backdropFilter:'blur(7px)',WebkitBackdropFilter:'blur(7px)',
-                display:'flex',flexDirection:'column',overflowY:'auto'}}>
-              {/* margin auto em vez de justify-content: centra quando ha
-                  espaco e deixa rolar quando nao ha (telemovel deitado). */}
-              <div style={{margin:'auto 0',display:'flex',flexDirection:'column',
-                alignItems:'center',gap:12,width:'100%'}}>
-              <div style={{width:'100%',maxWidth:420,display:'flex',alignItems:'center',
-                justifyContent:'space-between',gap:12}}>
-                <span style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px'}}>PRÉ-VISUALIZAÇÃO</span>
-                <button onClick={()=>setPreviaAberta(false)}
-                  style={{padding:'7px 14px',borderRadius:9,cursor:'pointer',fontFamily:'inherit',
-                    fontSize:12.5,fontWeight:700,color:T,background:'rgba(255,255,255,.09)',
-                    border:'1px solid rgba(255,255,255,.16)'}}>Fechar</button>
-              </div>
-              <Telemovel largura={larguraPrevia}>
-                <Previsualizacao tema={tema} info={info} biz={bizVisto} endereco={endereco}/>
-              </Telemovel>
-              <div style={{fontSize:11.5,color:T3,textAlign:'center',maxWidth:320,lineHeight:1.55}}>
-                É assim que o cliente vê{alterado?', já com o que ainda não gravaste':''}.
-                Fecha, muda o que quiseres, e abre outra vez para comparar.
-              </div>
-              </div>
-            </div>
-          )}
-        </>
+        <div style={{marginTop:26}}>
+          <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px',marginBottom:10,textAlign:'center'}}>
+            COMO FICA O SITE{alterado?' · COM O QUE AINDA NÃO GRAVASTE':''}
+          </div>
+          <div style={{display:'flex',justifyContent:'center'}}>
+            <Telemovel largura={larguraPrevia}>
+              <Previsualizacao tema={tema} info={info} biz={bizVisto} endereco={endereco}/>
+            </Telemovel>
+          </div>
+          <div style={{fontSize:11.5,color:T3,marginTop:12,lineHeight:1.55,textAlign:'center'}}>
+            É assim que o cliente vê. Muda o que quiseres lá em cima e desce para comparar.
+          </div>
+        </div>
       ):(
         <div style={{position:'sticky',top:20}}>
           <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px',marginBottom:10}}>PRÉ-VISUALIZAÇÃO</div>

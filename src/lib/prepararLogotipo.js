@@ -128,14 +128,30 @@ export async function prepararLogotipo(original) {
     }
   }
 
+  // ── Fundo liso: tira-se, e o logótipo fica transparente ──
+  // Um logótipo com um quadrado branco (ou preto) à volta fica sempre mal em
+  // cima da capa e do menu da app. Se o fundo é de uma cor só, apaga-se:
+  // o que está à cor do fundo fica transparente, com a borda suavizada.
+  if (liso && fundo && !transparente) {
+    const dentro = PERTO * 0.55;
+    for (let i = 0; i < px.length; i += 4) {
+      if (px[i + 3] <= 40) continue;
+      const d = dist(px, i, fundo);
+      if (d <= dentro) px[i + 3] = 0;
+      else if (d < PERTO) px[i + 3] = Math.round(px[i + 3] * (d - dentro) / (PERTO - dentro));
+    }
+    ctx.putImageData(dados, 0, 0);
+    ajustes.push('Tirámos o fundo — o logótipo ficou transparente.');
+  }
+
   const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
   const cor = fundo ? `rgb(${fundo.map(Math.round).join(',')})` : null;
-  const desenhar = (largura, altura, margemX, margemY, cobrir = false) => {
+  const desenhar = (largura, altura, margemX, margemY, cobrir = false, comFundo = false) => {
     const c = document.createElement('canvas');
     c.width = Math.round(largura); c.height = Math.round(altura);
     const g = c.getContext('2d');
     g.imageSmoothingQuality = 'high';
-    if (cor) { g.fillStyle = cor; g.fillRect(0, 0, c.width, c.height); }
+    if (cor && comFundo) { g.fillStyle = cor; g.fillRect(0, 0, c.width, c.height); }
     // cobrir: numa fotografia enche-se o quadrado (corta as pontas) em vez de
     // deixar faixas de cor à volta.
     const s = (cobrir ? Math.max : Math.min)((c.width - 2 * margemX) / cw, (c.height - 2 * margemY) / ch);
@@ -150,11 +166,13 @@ export async function prepararLogotipo(original) {
   const alvo = Math.min(900, Math.max(320, real));        // não inventa resolução a mais
   const k = alvo / Math.max(cw, ch);
   const folga = liso ? Math.round(Math.max(cw, ch) * k * 0.06) : 0;
-  const logo = desenhar(cw * k + 2 * folga, ch * k + 2 * folga, folga, folga);
+  const logo = desenhar(cw * k + 2 * folga, ch * k + 2 * folga, folga, folga, false, !liso && !transparente);
 
   // O ícone do telemóvel: esse tem de ser quadrado (é a regra do Android/iPhone).
   const m = LADO * (liso ? 0.12 : 0.04);
-  const icone = desenhar(LADO, LADO, m, m, !liso);
+  // O ícone leva a cor do fundo original: o iPhone não aceita ícones
+  // transparentes (pinta-os de preto). O logótipo em si fica sem fundo.
+  const icone = desenhar(LADO, LADO, m, m, !liso, true);
 
   if (cortou || Math.abs(cw - ch) / Math.max(cw, ch) > 0.03) {
     ajustes.push('O ícone do telemóvel ficou quadrado com o logótipo ao centro.');
