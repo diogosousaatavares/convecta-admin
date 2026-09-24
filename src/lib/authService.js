@@ -156,6 +156,11 @@ const authService = {
   isProfissional() { return !!_session && _session.role === 'profissional'; },
   meuProfissionalId() { return _session?.professionalId || null; },
   permissoes() { return _session?.permissoes || { agenda_toda: true }; },
+  // Relê a linha em `users` (depois de o dono se ligar a uma ficha, por exemplo).
+  async recarregar() {
+    const { data } = await supabase.auth.getUser();
+    if (data?.user) { await _enrichSession(data.user); notify(); }
+  },
   isCustomer() { return _session?.type === 'customer'; },
   isAuthenticated() { return !!_session; },
   isAuthLoading() { return _authLoading; },

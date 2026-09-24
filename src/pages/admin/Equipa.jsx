@@ -1,7 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Users, ShieldCheck, ShieldOff, Eye, EyeOff, Pencil, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useStore } from '@/hooks/useStore';
+import { useStore, useAuth } from '@/hooks/useStore';
+import { supabase } from '@/lib/supabase';
+import authService from '@/lib/authService';
+import { useToast } from '@/components/ui/ToastContext';
 import AdminLayout from '@/components/AdminLayout';
 import { Card, Avatar, Badge, Button } from '@/components/ui';
 import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
@@ -38,7 +41,7 @@ function Ponto({ nivel }) {
 
 /* O "canvas": o dono em cima, os profissionais em baixo, ligados por linhas.
    Desenhado em SVG para escalar com o ecrã; os cartões são HTML por cima. */
-function Distribuicao({ dono, pros, acessos, selecionado, onSelecionar }) {
+function Distribuicao({ dono, pros, acessos, selecionado, onSelecionar, meuProfissionalId }) {
   const n = Math.max(pros.length, 1);
   const larguraCartao = 150, gap = 16;
   const largura = Math.max(n * (larguraCartao + gap) + gap, 360);
@@ -51,8 +54,9 @@ function Distribuicao({ dono, pros, acessos, selecionado, onSelecionar }) {
         <svg width={largura} height={yPro + alturaCartao + 12} style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
           {pros.map((p, i) => {
             const tem = !!acessos.de(p.id);
+            const eu = p.id === meuProfissionalId;
             const x = xDe(i);
-            return <path key={p.id} d={`M ${xDono} ${yDono + 78} C ${xDono} ${yPro - 20}, ${x} ${yDono + 90}, ${x} ${yPro}`} fill="none" stroke={tem ? 'var(--success)' : 'var(--border)'} strokeWidth={tem ? 2.5 : 2} strokeDasharray={tem ? '' : '6 5'} />;
+            return <path key={p.id} d={`M ${xDono} ${yDono + 78} C ${xDono} ${yPro - 20}, ${x} ${yDono + 90}, ${x} ${yPro}`} fill="none" stroke={eu ? 'var(--gold)' : tem ? 'var(--success)' : 'var(--border)'} strokeWidth={tem || eu ? 2.5 : 2} strokeDasharray={tem || eu ? '' : '6 5'} />;
           })}
         </svg>
         {/* Dono */}
@@ -68,16 +72,17 @@ function Distribuicao({ dono, pros, acessos, selecionado, onSelecionar }) {
         {pros.map((p, i) => {
           const a = acessos.de(p.id);
           const ativo = selecionado === p.id;
+          const euMesmo = p.id === meuProfissionalId;
           return (
             <button key={p.id} type="button" onClick={() => onSelecionar(ativo ? null : p.id)}
-              style={{ position: 'absolute', left: xDe(i) - larguraCartao / 2, top: yPro, width: larguraCartao, height: alturaCartao, padding: '10px 10px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'inherit', background: 'var(--surface)', border: `2px solid ${ativo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--border)'}`, boxShadow: ativo ? 'var(--shadow-gold)' : 'none' }}>
+              style={{ position: 'absolute', left: xDe(i) - larguraCartao / 2, top: yPro, width: larguraCartao, height: alturaCartao, padding: '10px 10px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'inherit', background: 'var(--surface)', border: `2px solid ${ativo ? 'var(--gold)' : euMesmo ? 'rgba(var(--gold-rgb),0.6)' : a ? 'var(--success)' : 'var(--border)'}`, boxShadow: ativo ? 'var(--shadow-gold)' : 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Avatar name={p.name} src={p.photoUrl} />
                 <div className="fw-600" style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
               </div>
               <div className="text-sec text-xs" style={{ marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.role || 'Profissional'}</div>
-              <div className="text-xs" style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 5, color: a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600 }}>
-                {a ? <><ShieldCheck size={13} /> Com acesso</> : <><ShieldOff size={13} /> Sem acesso</>}
+              <div className="text-xs" style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600, background: 'var(--surface)', position: 'relative' }}>
+                {euMesmo ? <><Crown size={13} /> És tu</> : a ? <><ShieldCheck size={13} /> Com acesso</> : <><ShieldOff size={13} /> Sem acesso</>}
               </div>
             </button>
           );
@@ -98,6 +103,22 @@ export default function Equipa() {
   const dono = data.user || {};
   const comAcesso = pros.filter(p => acessos.de(p.id)).length;
   const pro = pros.find(p => p.id === selecionado);
+  const toast = useToast();
+  const { meuProfissionalId } = useAuth();
+  const [aLigar, setALigar] = useState(false);
+  const minhaFicha = pros.find(p => p.id === meuProfissionalId) || null;
+  const [escolhaDono, setEscolhaDono] = useState('');
+  // O dono também é barbeiro: liga a conta dele a uma ficha (ou desliga).
+  const ligarDono = async (id) => {
+    setALigar(true);
+    const { error } = await supabase.rpc('ligar_dono_a_profissional', { p_professional_id: id || null });
+    setALigar(false);
+    if (error) { toast.error('Não ficou gravado', error.message); return; }
+    await authService.recarregar();
+    toast.success(id ? 'Ligado' : 'Desligado', id ? `A tua conta é agora o ${pros.find(p => p.id === id)?.name}.` : 'A tua conta já não está ligada a nenhuma ficha.');
+    setEscolhaDono('');
+  };
+  const estreito = typeof window !== 'undefined' && window.innerWidth < 640;
 
   return (
     <AdminLayout>
@@ -107,6 +128,27 @@ export default function Equipa() {
       </div>
 
       <Card className="mb-24">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <Crown size={18} style={{ color: 'var(--gold)', flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div className="fw-600">Tu, o dono, também cortas?</div>
+            <div className="text-sec text-xs">{minhaFicha ? `A tua conta está ligada à ficha «${minhaFicha.name}»: a tua coluna na agenda, as tuas comissões, os teus clientes.` : 'Liga a tua conta a uma ficha de profissional para teres a tua coluna na agenda e a tua conta de comissões.'}</div>
+          </div>
+          {minhaFicha ? (
+            <Button variant="ghost" size="sm" disabled={aLigar} onClick={() => ligarDono(null)}>Desligar</Button>
+          ) : (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <select className="select" value={escolhaDono} onChange={e => setEscolhaDono(e.target.value)} style={{ width: 'auto' }}>
+                <option value="">Qual ficha és tu?</option>
+                {pros.filter(p => !acessos.de(p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <Button variant="primary" size="sm" disabled={!escolhaDono || aLigar} onClick={() => ligarDono(escolhaDono)}>Ligar</Button>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <Card className="mb-24">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
           <div className="fw-600">Distribuição</div>
           <div className="text-sec text-xs" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
@@ -114,7 +156,35 @@ export default function Equipa() {
             <span><span style={{ display: 'inline-block', width: 18, borderTop: '2px dashed var(--border)', verticalAlign: 'middle', marginRight: 6 }} />sem acesso</span>
           </div>
         </div>
-        <Distribuicao dono={dono} pros={pros} acessos={acessos} selecionado={selecionado} onSelecionar={setSelecionado} />
+        {estreito ? (
+          <div style={{ display: 'grid', gap: 8 }}>
+            <div style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--surface)', border: '2px solid var(--gold)', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Crown size={18} style={{ color: 'var(--gold)', flexShrink: 0 }} />
+              <div style={{ minWidth: 0 }}>
+                <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dono.name || 'Dono'}{minhaFicha ? ` · ${minhaFicha.name}` : ''}</div>
+                <div className="text-xs" style={{ color: 'var(--gold)', fontWeight: 600 }}>Dono · vê tudo</div>
+              </div>
+            </div>
+            {pros.map(p => {
+              const a = acessos.de(p.id); const ativo = selecionado === p.id; const euMesmo = p.id === meuProfissionalId;
+              return (
+                <button key={p.id} type="button" onClick={() => setSelecionado(ativo ? null : p.id)}
+                  style={{ padding: '10px 12px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'inherit', background: 'var(--surface)', border: `2px solid ${ativo ? 'var(--gold)' : euMesmo ? 'rgba(var(--gold-rgb),0.5)' : a ? 'var(--success)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Avatar name={p.name} src={p.photoUrl} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                    <div className="text-sec text-xs">{p.role || 'Profissional'}</div>
+                  </div>
+                  <div className="text-xs" style={{ display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                    {euMesmo ? <><Crown size={13} /> És tu</> : a ? <><ShieldCheck size={13} /> Com acesso</> : <><ShieldOff size={13} /> Sem acesso</>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <Distribuicao dono={dono} pros={pros} acessos={acessos} selecionado={selecionado} onSelecionar={setSelecionado} meuProfissionalId={meuProfissionalId} />
+        )}
         <div className="text-sec text-xs" style={{ marginTop: 8 }}>Toca num profissional para dar ou tirar o acesso.</div>
         {pro && (
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>

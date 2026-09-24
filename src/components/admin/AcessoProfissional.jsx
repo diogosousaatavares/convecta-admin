@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { KeyRound, ShieldCheck, ShieldOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui';
+import { useAuth } from '@/hooks/useStore';
+import { Crown } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 
 /*
@@ -26,7 +28,22 @@ export function useAcessos(businessId) {
 
 export default function AcessoProfissional({ profissional, acesso, onMudou, destaque = false, emailInicial = '', abertoInicial = false }) {
   const toast = useToast();
+  const { meuProfissionalId, isProfissional } = useAuth();
   const [aberto, setAberto] = useState(abertoInicial);
+  // A ficha é a do próprio dono: ele entra com a conta dele, não precisa de convite.
+  if (!isProfissional && meuProfissionalId && profissional?.id === meuProfissionalId) {
+    return (
+      <div style={destaque ? { marginTop: 16, padding: '12px 14px', borderRadius: 10, background: 'rgba(var(--gold-rgb),0.10)', border: '1px solid rgba(var(--gold-rgb),0.45)' } : { marginTop: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+          <Crown size={16} style={{ color: 'var(--gold)' }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="fw-600">Este és tu, o dono</div>
+            <div className="text-sec text-xs">Entras com a tua conta e vês tudo. Podes mudar isto em Equipa e acessos.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   const [email, setEmail] = useState(emailInicial || profissional?.email || '');
   const [aEnviar, setAEnviar] = useState(false);
 
