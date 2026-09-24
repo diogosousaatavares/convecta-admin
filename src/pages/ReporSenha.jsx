@@ -25,8 +25,22 @@ export default function ReporSenha() {
     setStage('form');
   };
 
+  // Convite da barbearia (?convite=…): código nosso, vale 7 dias, sem tokens do Supabase.
+  const [convite] = useState(() => new URLSearchParams(window.location.search).get('convite') || '');
+  const [conviteInfo, setConviteInfo] = useState(null);
+
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
+    if (q.get('convite')) {
+      (async () => {
+        const { data, error: e } = await supabase.functions.invoke('convidar-profissional', { body: { acao: 'aceitar', convite: q.get('convite') } });
+        let erro = data?.erro;
+        if (e && !erro) { try { erro = (await e.context?.json())?.erro; } catch { erro = ''; } erro = erro || e.message; }
+        if (erro) { setMotivo(erro); setStage('error'); return; }
+        setConviteInfo(data); setStage('form');
+      })();
+      return () => {};
+    }
     if (q.get('token_hash')) { setTokenHash(q.get('token_hash')); setStage('confirmar'); return () => {}; }
     // O Supabase manda o erro na própria URL quando o link já foi usado ou expirou
     // (#error=access_denied&error_code=otp_expired&error_description=...).
@@ -70,6 +84,19 @@ export default function ReporSenha() {
     if (password.length < 6) { setError('A palavra-passe tem de ter pelo menos 6 caracteres.'); return; }
     if (password !== confirm) { setError('As palavras-passe não coincidem.'); return; }
     setLoading(true);
+    if (convite) {
+      // A função guarda a palavra-passe na conta e nós entramos logo com ela.
+      const { data, error: e } = await supabase.functions.invoke('convidar-profissional', { body: { acao: 'aceitar', convite, password } });
+      let erro = data?.erro;
+      if (e && !erro) { try { erro = (await e.context?.json())?.erro; } catch { erro = ''; } erro = erro || e.message; }
+      if (erro) { setLoading(false); setError(erro); return; }
+      const { error: eLogin } = await supabase.auth.signInWithPassword({ email: data.email, password });
+      setLoading(false);
+      if (eLogin) { setError('A palavra-passe ficou guardada, mas não consegui entrar: ' + eLogin.message + '. Vai a «Entrar» e usa-a.'); return; }
+      setStage('success');
+      setTimeout(() => { window.location.href = '/admin/agenda'; }, 1500);
+      return;
+    }
     const { error: err } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (err) { setError(err.message || 'Erro ao atualizar a palavra-passe. Tenta novamente.'); return; }
@@ -161,8 +188,8 @@ export default function ReporSenha() {
           {stage === 'form' && (
             <>
               <div style={{ marginBottom: 28 }}>
-                <h1 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 4px' }}>Nova palavra-passe</h1>
-                <p style={{ fontSize: 13, color: '#666', margin: 0 }}>Escolhe uma nova palavra-passe segura</p>
+                <h1 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 4px' }}>{conviteInfo ? `Olá${conviteInfo.nome ? ' ' + String(conviteInfo.nome).split(' ')[0] : ''}!` : 'Nova palavra-passe'}</h1>
+                <p style={{ fontSize: 13, color: '#666', margin: 0 }}>{conviteInfo ? `Escolhe a tua palavra-passe para entrar na agenda da ${conviteInfo.barbearia || 'barbearia'} com o email ${conviteInfo.email}.` : 'Escolhe uma nova palavra-passe segura'}</p>
               </div>
               <form onSubmit={submit}>
                 <div style={{ marginBottom: 16 }}>
