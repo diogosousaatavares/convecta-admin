@@ -21,7 +21,7 @@ export default function ReporSenha() {
     setLoading(true); setError('');
     const { error: err } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' });
     setLoading(false);
-    if (err) { setMotivo('O link já foi usado ou passou o prazo. Cada link só serve uma vez.'); setStage('error'); return; }
+    if (err) { console.warn('verifyOtp', err); setMotivo(`O Supabase recusou o código: ${err.message}${err.code ? ` (${err.code})` : ''}.`); setStage('error'); return; }
     setStage('form');
   };
 
