@@ -14,8 +14,20 @@ export default function ReporSenha() {
   const [motivo, setMotivo] = useState('');
   const [emailNovo, setEmailNovo] = useState('');
   const [pedido, setPedido] = useState(false);
+  // Link «à prova de Gmail»: traz um token_hash que só é gasto quando a pessoa
+  // carrega no botão — o antivírus/Gmail pode visitar a página que não estraga nada.
+  const [tokenHash, setTokenHash] = useState('');
+  const confirmarToken = async () => {
+    setLoading(true); setError('');
+    const { error: err } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' });
+    setLoading(false);
+    if (err) { setMotivo('O link já foi usado ou passou o prazo. Cada link só serve uma vez.'); setStage('error'); return; }
+    setStage('form');
+  };
 
   useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get('token_hash')) { setTokenHash(q.get('token_hash')); setStage('confirmar'); return () => {}; }
     // O Supabase manda o erro na própria URL quando o link já foi usado ou expirou
     // (#error=access_denied&error_code=otp_expired&error_description=...).
     const params = new URLSearchParams((window.location.hash || '').replace(/^#/, '') + '&' + window.location.search.replace(/^\?/, ''));
@@ -104,6 +116,14 @@ export default function ReporSenha() {
               <div style={{ width: 36, height: 36, border: '3px solid #333', borderTopColor: 'var(--gold, #C9A84C)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 20px' }} />
               <div style={{ color: '#aaa', fontSize: 14 }}>A verificar o link de recuperação…</div>
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          )}
+
+          {stage === 'confirmar' && (
+            <div style={{ textAlign: 'center', padding: '8px 0' }}>
+              <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Escolher a palavra-passe</div>
+              <div style={{ fontSize: 13, color: '#666', marginBottom: 24 }}>Carrega para continuar. Este passo só funciona uma vez.</div>
+              <button className="btn btn-primary" disabled={loading} style={{ width: '100%', justifyContent: 'center', height: 44 }} onClick={confirmarToken}>{loading ? 'A confirmar…' : 'Continuar'} <ArrowRight size={16} /></button>
             </div>
           )}
 
