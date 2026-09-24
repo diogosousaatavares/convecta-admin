@@ -124,10 +124,19 @@ export default function Agenda() {
   const attend = (id) => { setCheckout(id); setSelected(null); };
   const finishCheckout = async (payData) => { try {
     const a = data.appointments.find(x => x.id === checkout);
+    // Os produtos primeiro: é aqui que se valida o stock e a caixa. Se falhar,
+    // a marcação fica por cobrar e o barbeiro corrige — em vez de ficar meio
+    // cobrada.
+    if (payData.produtos?.length) {
+      await dataService.createSale({
+        items: payData.produtos, total: payData.totalProdutos, method: payData.method,
+        customerId: a?.customerId || null, professionalId: a?.professionalId || null,
+      });
+    }
     if (a && a.status === 'confirmed') await dataService.markAttended(checkout);
     await dataService.checkoutAppointment(checkout, payData);
 
-    toast.success('Cobrança concluída', `${formatPrice(payData.total)} · ${payData.method}`);
+    toast.success('Cobrança concluída', `${formatPrice(payData.totalConta ?? payData.total)} · ${payData.method}`);
     setCheckout(null);
     } catch (e) { falhou(e); }
   };
@@ -145,10 +154,10 @@ export default function Agenda() {
   };
   const askCancel = (a) => { setCancelTarget(a); setSelected(null); };
 
-  const handleBlock = async (proId, startTime) => { try {
+  const handleBlock = async (proId, startTime, motivo, duracao) => { try {
     if (so && proId !== so) { soATua(); return; }
-    const label = window.prompt('Motivo do bloqueio (opcional):', 'Bloqueado') || 'Bloqueado';
-    const dur = 30;
+    const label = motivo != null ? (motivo || 'Bloqueado') : (window.prompt('Motivo do bloqueio (opcional):', 'Bloqueado') || 'Bloqueado');
+    const dur = Number(duracao) || 30;
     await dataService.createAppointment({
       blocked: true,
       label,
@@ -165,11 +174,20 @@ export default function Agenda() {
 
   // Clicar numa hora da grelha: a mesma janela do botão, já com o barbeiro e
   // a hora escolhidos. O botão continua a funcionar como antes (em branco).
-  const novaNaHora = (professionalId, startTime) => {
-    if (so && professionalId && professionalId !== so) { soATua(); return; }
+  // Clicar numa hora da grelha: primeiro pergunta-se o que fazer — marcar ou
+  // bloquear. O botão Encaixe (sem hora) vai direto à marcação.
+  const [escolha, setEscolha] = useState(null);   // {professionalId, startTime}
+  const [bloqMotivo, setBloqMotivo] = useState('');
+  const [bloqDur, setBloqDur] = useState('30');
+  const abrirMarcacao = (professionalId, startTime) => {
     setQuickError('');
     setQuick({ customerId: '', serviceId: '', professionalId: so || professionalId, startTime, usaPack: false });
     setQuickOpen(true);
+  };
+  const novaNaHora = (professionalId, startTime) => {
+    if (so && professionalId && professionalId !== so) { soATua(); return; }
+    if (professionalId && startTime) { setBloqMotivo(''); setBloqDur('30'); setEscolha({ professionalId, startTime }); return; }
+    abrirMarcacao(professionalId, startTime);
   };
 
   const submitQuick = async () => { try {
@@ -437,6 +455,26 @@ export default function Agenda() {
                 </div>}
               </>
             )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Clicou numa hora: marcar ou bloquear? */}
+      <Modal open={!!escolha} onClose={() => setEscolha(null)} title={escolha ? `${escolha.startTime} · ${data.professionals.find(p => p.id === escolha.professionalId)?.name || ''}` : ''}>
+        {escolha && (
+          <div className="ag-detail">
+            <div className="text-sec text-sm mb-16">{formatDate(date)}. O que queres fazer com esta hora?</div>
+            <Button variant="primary" block onClick={() => { const e = escolha; setEscolha(null); abrirMarcacao(e.professionalId, e.startTime); }}><Plus size={15} /> Nova marcação</Button>
+            <div className="mt-16" style={{ padding: '12px 14px', background: 'var(--elevated)', borderRadius: 10 }}>
+              <div className="fw-600 text-sm mb-8">Bloquear este horário</div>
+              <div className="flex gap-8">
+                <input className="input" placeholder="Motivo (opcional): almoço, fornecedor…" value={bloqMotivo} onChange={e => setBloqMotivo(e.target.value)} />
+                <select className="select" style={{ width: 'auto' }} value={bloqDur} onChange={e => setBloqDur(e.target.value)}>
+                  {[['30', '30 min'], ['60', '1 h'], ['90', '1 h 30'], ['120', '2 h'], ['180', '3 h'], ['240', '4 h']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+              <Button variant="secondary" block style={{ marginTop: 10 }} onClick={async () => { const e = escolha; setEscolha(null); await handleBlock(e.professionalId, e.startTime, bloqMotivo.trim(), bloqDur); }}>Bloquear</Button>
+            </div>
           </div>
         )}
       </Modal>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Banknote, CreditCard, Smartphone, Receipt, Gift, Tag } from 'lucide-react';
+import { Banknote, CreditCard, Smartphone, Receipt, Gift, Tag, Plus, X } from 'lucide-react';
 import { Modal, Button } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice } from '@/lib/format';
@@ -30,6 +30,11 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
   // telefone). O teste real cobrou 13,50 € a quem tinha 4 cortes por usar.
   const [packs, setPacks] = useState([]);
   const [aUsarPack, setAUsarPack] = useState(false);
+  // Produtos levados junto com o corte (uma cera, um champô). Vão para a
+  // mesma conta e ficam registados como venda de produtos, com o stock a
+  // descer — o barbeiro não tem de abrir outro ecrã.
+  const [produtos, setProdutos] = useState([]);   // [{productId, name, unitPrice, qty}]
+  const [prodSel, setProdSel] = useState('');
 
   // Já pago por MB WAY (confirmado pelo barbeiro): o método vem escolhido e
   // o ecrã avisa para não cobrar outra vez.
@@ -38,7 +43,7 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
   useEffect(() => {
     if (open) {
       setMethod(mbway?.estado === 'pago' ? 'MB WAY' : 'Dinheiro'); setDiscountType('%'); setDiscountValue(''); setDiscountReason('');
-      setTip(''); setVoucherCode(''); setAmountPaid(''); setError(''); setAGravar(false); setPacks([]);
+      setTip(''); setVoucherCode(''); setAmountPaid(''); setError(''); setAGravar(false); setPacks([]); setProdutos([]); setProdSel('');
     }
   }, [open, appointment?.id]);
 
@@ -84,7 +89,21 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
 
   const discountAmount = Math.min(manualDiscount + voucherDiscount, base);
   const tipVal = Number(tip) || 0;
-  const total = Math.max(0, base - discountAmount) + tipVal;
+  const totalServico = Math.max(0, base - discountAmount) + tipVal;
+  const totalProdutos = produtos.reduce((s, i) => s + i.unitPrice * i.qty, 0);
+  // O que o cliente paga: o serviço (com desconto e gorjeta) mais os produtos.
+  const total = totalServico + totalProdutos;
+  const produtosDisponiveis = (data.products || []).filter(p => p.isActive !== false && (p.stock == null || Number(p.stock) > 0));
+  const juntarProduto = () => {
+    const p = produtosDisponiveis.find(x => x.id === prodSel); if (!p) return;
+    setProdutos(l => {
+      const ja = l.find(i => i.productId === p.id);
+      if (ja) return l.map(i => i.productId === p.id ? { ...i, qty: p.stock == null ? i.qty + 1 : Math.min(i.qty + 1, Number(p.stock)) } : i);
+      return [...l, { productId: p.id, name: p.name, unitPrice: Number(p.price) || 0, qty: 1 }];
+    });
+    setProdSel('');
+  };
+  const mudarQtd = (id, d) => setProdutos(l => l.map(i => i.productId === id ? { ...i, qty: i.qty + d } : i).filter(i => i.qty > 0));
   const change = method === 'Dinheiro' ? Math.max(0, (Number(amountPaid) || 0) - total) : 0;
 
   // Marcação futura, ou dinheiro com a caixa fechada: diz-se já, antes de
@@ -106,9 +125,14 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
       discountAmount,
       voucherCode: voucher ? voucher.code : '',
       tip: tipVal,
-      total,
-      amountPaid: method === 'Dinheiro' ? (Number(amountPaid) || total) : total,
-      change
+      total: totalServico,
+      amountPaid: method === 'Dinheiro' ? (Number(amountPaid) || total) - totalProdutos : totalServico,
+      change,
+      // Os produtos vão à parte: viram uma venda de produtos com o mesmo
+      // método, o mesmo cliente e o mesmo barbeiro.
+      produtos: produtos.map(i => ({ ...i, subtotal: i.unitPrice * i.qty })),
+      totalProdutos,
+      totalConta: total,
     }); } catch (e) { setError(e?.message || 'Não foi possível cobrar.'); }
     finally { setAGravar(false); }
   };
@@ -147,6 +171,33 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
             <Button size="sm" variant="primary" style={{ marginTop: 10 }} onClick={usarPack} disabled={aUsarPack}>
               {aUsarPack ? 'A usar…' : 'Usar o pack (fica a 0 €)'}
             </Button>
+          </div>
+        )}
+
+        {produtosDisponiveis.length > 0 && (
+          <div className="field">
+            <label className="label">Levou algum produto?</label>
+            <div className="flex gap-8">
+              <select className="select" value={prodSel} onChange={e => setProdSel(e.target.value)}>
+                <option value="">Juntar produto à conta…</option>
+                {produtosDisponiveis.map(p => <option key={p.id} value={p.id}>{p.name} · {formatPrice(Number(p.price) || 0)}</option>)}
+              </select>
+              <Button size="sm" variant="secondary" onClick={juntarProduto} disabled={!prodSel} aria-label="Juntar produto"><Plus size={14} /></Button>
+            </div>
+            {produtos.length > 0 && (
+              <div className="flex-col gap-8 mt-8">
+                {produtos.map(i => (
+                  <div key={i.productId} className="flex items-center gap-8 text-sm" style={{ padding: '8px 10px', background: 'var(--elevated)', borderRadius: 8 }}>
+                    <span className="flex-1">{i.name}</span>
+                    <button className="ag-ico-btn" aria-label="Menos um" onClick={() => mudarQtd(i.productId, -1)} style={{ width: 28, height: 28 }}>−</button>
+                    <span className="fw-600" style={{ minWidth: 18, textAlign: 'center' }}>{i.qty}</span>
+                    <button className="ag-ico-btn" aria-label="Mais um" onClick={() => mudarQtd(i.productId, +1)} style={{ width: 28, height: 28 }}>+</button>
+                    <span className="fw-600" style={{ minWidth: 64, textAlign: 'right' }}>{formatPrice(i.unitPrice * i.qty)}</span>
+                    <button className="ag-ico-btn" aria-label="Tirar" onClick={() => setProdutos(l => l.filter(x => x.productId !== i.productId))} style={{ width: 28, height: 28 }}><X size={13} /></button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -202,7 +253,8 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
         )}
 
         <div style={{ padding: '14px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, marginTop: 16 }}>
-          <div className="flex justify-between text-sm"><span className="text-sec">Subtotal</span><span>{formatPrice(base)}</span></div>
+          <div className="flex justify-between text-sm"><span className="text-sec">{service?.name || 'Serviço'}</span><span>{formatPrice(base)}</span></div>
+          {produtos.map(i => <div key={i.productId} className="flex justify-between text-sm mt-8"><span className="text-sec">{i.qty}× {i.name}</span><span>{formatPrice(i.unitPrice * i.qty)}</span></div>)}
           {discountAmount > 0 && <div className="flex justify-between text-sm mt-8"><span className="text-sec">Desconto</span><span style={{ color: 'var(--success)' }}>-{formatPrice(discountAmount)}</span></div>}
           {tipVal > 0 && <div className="flex justify-between text-sm mt-8"><span className="text-sec">Gorjeta</span><span>+{formatPrice(tipVal)}</span></div>}
           <hr className="divider" style={{ margin: '10px 0' }} />
