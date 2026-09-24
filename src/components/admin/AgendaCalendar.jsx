@@ -24,7 +24,7 @@ function getIndicators(a, cust, data) {
   return { isBirthday, isFirst, hasCoupon, hasSub, inLoyalty };
 }
 
-export default function AgendaCalendar({ date, appts, professionals, services, customers, blockMode, onBlock, onSelect }) {
+export default function AgendaCalendar({ date, appts, professionals, services, customers, blockMode, onBlock, onSelect, onNovaNaHora }) {
   const data = useStore();
   const dow = new Date(date + 'T00:00:00').getDay();
   const hours = data.business.openingHours.find(h => h.day === DAY_NAMES[dow]);
@@ -71,10 +71,14 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
             return (
               <div className="ag-col" key={p.id} style={{ position: 'relative' }}>
                 {times.map((t, i) => (
+                  // Clicar numa hora livre abre a nova marcação já com o
+                  // barbeiro e a hora preenchidos. Em modo bloquear, bloqueia.
                   <div
                     key={i}
-                    className={`ag-slotline ${blockMode ? 'blockable' : ''}`}
-                    onClick={blockMode ? () => onBlock(p.id, t) : undefined}
+                    data-hora={t}
+                    className={`ag-slotline ${blockMode ? 'blockable' : (onNovaNaHora ? 'livre' : '')}`}
+                    title={blockMode ? `Bloquear ${t}` : (onNovaNaHora ? `Nova marcação às ${t}` : undefined)}
+                    onClick={blockMode ? () => onBlock(p.id, t) : (onNovaNaHora ? () => onNovaNaHora(p.id, t) : undefined)}
                   />
                 ))}
                 {(hours.breaks || []).map((b, bi) => {

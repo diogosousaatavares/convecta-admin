@@ -291,6 +291,9 @@ input, textarea, select { font-family: inherit; }
 .ag-slotline { height: 48px; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 150ms ease; }
 .ag-slotline.blockable { cursor: pointer; }
 .ag-slotline.blockable:hover { background: rgba(var(--gold-rgb),0.08); }
+.ag-slotline.livre { position: relative; cursor: pointer; }
+.ag-slotline.livre:hover { background: rgba(var(--gold-rgb),0.06); }
+.ag-slotline.livre:hover::after { content: '+ ' attr(data-hora); position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 700; color: var(--gold); pointer-events: none; }
 .ag-block { position: absolute; left: 4px; right: 4px; border-radius: 8px; padding: 5px 7px; font-size: 12px; overflow: hidden; cursor: pointer; border: 1px solid; transition: transform 150ms ease, box-shadow 150ms ease; z-index: 2; }
 .ag-block:hover { transform: scale(1.02); z-index: 3; box-shadow: 0 4px 14px rgba(0,0,0,0.4); }
 .ag-block.confirmed { background: rgba(var(--gold-rgb),0.18); border-color: rgba(var(--gold-rgb),0.5); }
@@ -1898,6 +1901,8 @@ html.theme-light { --linha-agm: rgba(0, 0, 0, 0.13); }
 .agm-linha { height: 64px; border-top: 1px dashed rgba(255, 255, 255, 0.07); }
 .agm-linha:first-child { border-top: 0; }
 .agm-linha.bloqueavel:active { background: rgba(var(--gold-rgb), 0.1); }
+.agm-linha.livre { cursor: pointer; }
+.agm-linha.livre:active { background: rgba(var(--gold-rgb), 0.08); }
 
 .agm-pausa {
   position: absolute; left: 0; right: 0; z-index: 1; pointer-events: none;

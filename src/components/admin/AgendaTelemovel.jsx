@@ -84,6 +84,7 @@ export default function AgendaTelemovel({
   blockMode, setBlockMode, onBlock, onSelect,
   mode, setMode,
   onNovaMarcacao,
+  onNovaNaHora,
   children,
 }) {
   const data = useStore();
@@ -207,8 +208,8 @@ export default function AgendaTelemovel({
                   {horas.map((h, i) => (
                     <div
                       key={i}
-                      className={`agm-linha ${blockMode ? 'bloqueavel' : ''}`}
-                      onClick={blockMode ? () => onBlock(pro.id, h) : undefined}
+                      className={`agm-linha ${blockMode ? 'bloqueavel' : (onNovaNaHora ? 'livre' : '')}`}
+                      onClick={blockMode ? () => onBlock(pro.id, h) : (onNovaNaHora ? () => onNovaNaHora(pro.id, h) : undefined)}
                     />
                   ))}
 

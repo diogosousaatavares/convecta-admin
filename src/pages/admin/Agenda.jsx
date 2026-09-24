@@ -157,6 +157,14 @@ export default function Agenda() {
     } catch (e) { falhou(e); }
   };
 
+  // Clicar numa hora da grelha: a mesma janela do botão, já com o barbeiro e
+  // a hora escolhidos. O botão continua a funcionar como antes (em branco).
+  const novaNaHora = (professionalId, startTime) => {
+    setQuickError('');
+    setQuick({ customerId: '', serviceId: '', professionalId, startTime, usaPack: false });
+    setQuickOpen(true);
+  };
+
   const submitQuick = async () => { try {
     setQuickError('');
     if (!quick.serviceId) {
@@ -256,9 +264,10 @@ export default function Agenda() {
           setBlockMode={setBlockMode}
           onBlock={handleBlock}
           onSelect={(a) => setSelected(a.id)}
+          onNovaNaHora={novaNaHora}
           mode={mode}
           setMode={setMode}
-          onNovaMarcacao={() => setQuickOpen(true)}
+          onNovaMarcacao={() => novaNaHora('', '')}
         >
           {corpoLista}
         </AgendaTelemovel>
@@ -285,7 +294,7 @@ export default function Agenda() {
             <button className="ag-nav-btn" aria-label="Dia seguinte" onClick={() => shift(1)} title="Dia seguinte"><ChevronRight size={18} /></button>
           </div>
           <div className="ag-tb-actions">
-            <Button size="sm" variant="primary" onClick={() => setQuickOpen(true)}><Plus size={15} /> Encaixe</Button>
+            <Button size="sm" variant="primary" onClick={() => novaNaHora('', '')}><Plus size={15} /> Encaixe</Button>
             <button className="btn-gold-pill btn-sm" onClick={() => setVendaOpen(true)}><ShoppingBag size={15} /> Venda</button>
           </div>
         </div>
@@ -318,6 +327,7 @@ export default function Agenda() {
               blockMode={blockMode}
               onBlock={handleBlock}
               onSelect={(a) => setSelected(a.id)}
+              onNovaNaHora={novaNaHora}
             />
           )}
           {corpoLista}
@@ -423,7 +433,7 @@ export default function Agenda() {
       </Modal>
 
       {/* Quick booking modal */}
-      <Modal open={quickOpen} onClose={() => setQuickOpen(false)} title="Novo encaixe">
+      <Modal open={quickOpen} onClose={() => setQuickOpen(false)} title={quick.startTime ? `Nova marcação · ${quick.startTime}` : 'Nova marcação'}>
         <div className="ag-detail">
           <div className="field">
             <label className="label">Cliente</label>
