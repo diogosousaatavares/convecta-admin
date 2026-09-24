@@ -11,7 +11,7 @@ export default function ContaProfissional() {
   const data = useStore();
   const [from, setFrom] = useState(addDays(todayStr(), -29));
   const [to, setTo] = useState(todayStr());
-  const [selPro, setSelPro] = useState(data.professionals[0]?.id || '');
+  const [selPro, setSelPro] = useState((data.isProfissional && data.meuProfissionalId) || data.professionals[0]?.id || '');
 
   const pro = data.professionals.find(p => p.id === selPro);
   const r = useMemo(() => resumoProfissional(data, selPro, { from, to }), [data, selPro, from, to]);
@@ -33,8 +33,8 @@ export default function ContaProfissional() {
       <div className="flex justify-between items-center mb-16" style={{ flexWrap: 'wrap', gap: 12 }}>
         <h3 style={{ fontSize: 18 }}>Conta do Profissional</h3>
         <div className="flex gap-8" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
-          <select className="select" style={{ width: 'auto' }} value={selPro} onChange={e => setSelPro(e.target.value)}>
-            {data.professionals.map(p => <option key={p.id} value={p.id}>{p.name}{p.role ? ` · ${p.role}` : ''}</option>)}
+          <select className="select" style={{ width: 'auto' }} value={selPro} disabled={data.isProfissional} onChange={e => setSelPro(e.target.value)}>
+            {data.professionals.filter(p => !data.isProfissional || p.id === data.meuProfissionalId).map(p => <option key={p.id} value={p.id}>{p.name}{p.role ? ` · ${p.role}` : ''}</option>)}
           </select>
           <input type="date" className="input" style={{ width: 'auto' }} value={from} onChange={e => setFrom(e.target.value)} />
           <input type="date" className="input" style={{ width: 'auto' }} value={to} onChange={e => setTo(e.target.value)} />

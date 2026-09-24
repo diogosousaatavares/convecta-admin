@@ -85,10 +85,11 @@ export default function AgendaTelemovel({
   mode, setMode,
   onNovaMarcacao,
   onNovaNaHora,
+  proInicial,
   children,
 }) {
   const data = useStore();
-  const [proId, setProId] = useState(() => professionals[0]?.id || '');
+  const [proId, setProId] = useState(() => proInicial || professionals[0]?.id || '');
   const [seletorAberto, setSeletorAberto] = useState(false);
   const [legendaAberta, setLegendaAberta] = useState(false);
 

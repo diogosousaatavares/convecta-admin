@@ -47,3 +47,22 @@ export function moduloIndisponivel(caminho) {
   if (!caminho) return false;
   return MODULOS_POR_ACABAR.some(m => caminho === m || caminho.startsWith(m + '/'));
 }
+
+/*
+ * O que um barbeiro com acesso proprio (role 'profissional') pode abrir.
+ * A agenda toda, os clientes e a conta dele. O resto — dinheiro, caixa,
+ * site, definicoes, subscricao — e do dono. A base de dados tranca o mesmo
+ * (supabase/ACESSO_PROFISSIONAL.sql); isto e so para o ecra nao mostrar
+ * portas que nao abrem.
+ */
+export const ABERTO_AO_PROFISSIONAL = [
+  '/admin/agenda',
+  '/admin/clientes',
+  '/admin/profissionais/ferias',
+  '/admin/financeiro/conta-profissional',
+  '/admin/notificacoes',
+];
+export function permitidoAoProfissional(caminho) {
+  if (!caminho) return false;
+  return ABERTO_AO_PROFISSIONAL.some(m => caminho === m || caminho.startsWith(m + '/'));
+}

@@ -5,7 +5,7 @@ import { LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog,
 import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
-import { moduloIndisponivel } from '@/lib/modulos';
+import { moduloIndisponivel, permitidoAoProfissional } from '@/lib/modulos';
 import dataService from '@/lib/dataService';
 import { supabase } from '@/lib/supabase';
 import TourDemo from '@/components/admin/TourDemo';
@@ -198,9 +198,16 @@ const PASSOS_BARBEIRO = [
     texto: 'Cada coluna é um barbeiro. Agora falta uma coisa só: partilhar o teu link. Sem isso a agenda fica bonita e vazia.' },
 ];
 
-function gruposPara(demo) {
-  if (!demo) return GROUPS;
-  return GROUPS
+function gruposPara(demo, profissional) {
+  let gs = GROUPS;
+  if (profissional) {
+    // O barbeiro ve so o que pode abrir; a conta dele ganha um nome que diz o que e.
+    gs = gs
+      .map(g => g.items ? { ...g, items: g.items.filter(it => permitidoAoProfissional(it.to)).map(it => it.to === '/admin/financeiro/conta-profissional' ? { ...it, label: 'A minha conta' } : it) } : g)
+      .filter(g => g.items ? g.items.length > 0 : permitidoAoProfissional(g.to));
+  }
+  if (!demo) return gs;
+  return gs
     .map(g => g.items ? { ...g, items: g.items.filter(it => !ESCONDIDOS_EM_DEMO.includes(it.to)) } : g)
     .filter(g => !g.items || g.items.length > 0);
 }
@@ -234,7 +241,7 @@ export default function AdminLayout({ children }) {
     })();
     return () => { vivo = false; };
   }, []);
-  const grupos = gruposPara(emDemo);
+  const grupos = gruposPara(emDemo, data.isProfissional);
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [query, setQuery] = useState('');

@@ -62,6 +62,8 @@ export function useAuth() {
   return {
     user: authService.getCurrentUser(),
     isAdmin: authService.isAdmin(),
+    isProfissional: authService.isProfissional(),
+    meuProfissionalId: authService.meuProfissionalId(),
     isAuthenticated: authService.isAuthenticated(),
     isAuthLoading: authService.isAuthLoading(),
     login: (...args) => authService.login(...args),

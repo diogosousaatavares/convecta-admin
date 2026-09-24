@@ -120,7 +120,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const s = await login(email, password)
-      if (!s || s.role !== 'admin') {
+      if (!s || (s.role !== 'admin' && s.role !== 'profissional')) {
         setError('Esta conta não tem permissões de administrador.')
         return
       }

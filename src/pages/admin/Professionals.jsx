@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserCog, Plus, Pencil, Trash2, Lock } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
@@ -7,6 +7,7 @@ import { Card, Avatar, Badge, Button, EmptyState, Modal, Stars } from '@/compone
 import dataService, { uploadProfessionalPhoto } from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import FotoPerfil from '@/components/admin/FotoPerfil';
+import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
 
 const empty = { name: '', role: 'Barber', bio: '', specialties: [], commission: 30 };
 
@@ -24,6 +25,7 @@ export default function Professionals() {
   };
   const toast = useToast();
   const [editing, setEditing] = useState(null);
+  const acessos = useAcessos(data.business?.id);
   const [form, setForm] = useState(empty);
   const [specs, setSpecs] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -150,6 +152,7 @@ export default function Professionals() {
                   {p.specialties.map((s, i) => <Badge key={i} variant="default">{s}</Badge>)}
                 </div>
               )}
+              <AcessoProfissional profissional={p} acesso={acessos.de(p.id)} onMudou={acessos.recarregar} />
               <div className="flex gap-8 mt-16">
                   <Button size="sm" variant="secondary" block onClick={() => openEdit(p)}><Pencil size={14} /> Editar</Button>
                   <Button size="sm" variant="ghost" aria-label="Eliminar profissional" title="Eliminar profissional" onClick={() => setDeleteTarget(p)}><Trash2 size={14} /></Button>

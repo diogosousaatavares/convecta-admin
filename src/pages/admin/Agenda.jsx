@@ -48,6 +48,11 @@ export default function Agenda() {
   const telemovel = useIsMobile();
   const toast = useToast();
   const falhou = (e) => toast.error('Não ficou gravado', (e && e.message) || 'Verifica a internet e tenta outra vez.');
+  // Um barbeiro com acesso proprio ve a agenda toda mas so mexe na coluna
+  // dele. `so` e o id da ficha dele; para o dono e null (mexe em tudo).
+  const so = data.isProfissional ? data.meuProfissionalId : null;
+  const podeMexer = (a) => !so || !a || a.professionalId === so;
+  const soATua = () => toast.error('Só na tua coluna', 'Podes marcar, bloquear e cobrar só as tuas marcações.');
   const [date, setDate] = useState(() => {
     // Vindo da demo do site: abre no dia da marcacao que a pessoa fez la.
     try {
@@ -141,6 +146,7 @@ export default function Agenda() {
   const askCancel = (a) => { setCancelTarget(a); setSelected(null); };
 
   const handleBlock = async (proId, startTime) => { try {
+    if (so && proId !== so) { soATua(); return; }
     const label = window.prompt('Motivo do bloqueio (opcional):', 'Bloqueado') || 'Bloqueado';
     const dur = 30;
     await dataService.createAppointment({
@@ -160,8 +166,9 @@ export default function Agenda() {
   // Clicar numa hora da grelha: a mesma janela do botão, já com o barbeiro e
   // a hora escolhidos. O botão continua a funcionar como antes (em branco).
   const novaNaHora = (professionalId, startTime) => {
+    if (so && professionalId && professionalId !== so) { soATua(); return; }
     setQuickError('');
-    setQuick({ customerId: '', serviceId: '', professionalId, startTime, usaPack: false });
+    setQuick({ customerId: '', serviceId: '', professionalId: so || professionalId, startTime, usaPack: false });
     setQuickOpen(true);
   };
 
@@ -229,7 +236,7 @@ export default function Agenda() {
                               {a.usaPack && <Badge variant="gold" style={{ marginLeft: 6 }}>Pack mensal</Badge>}
                               {(() => { const mb = dataService.mbwayDe?.(a.id); return mb ? <Badge variant={mb.estado === 'pago' ? 'success' : 'warning'} style={{ marginLeft: 6 }}>{mb.estado === 'pago' ? 'Pago MB WAY' : 'MB WAY por confirmar'}</Badge> : null; })()}
                             </td>
-                            <td>{a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)}>Confirmar</Button>}{a.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(a.id)}>Presença</Button>}</td>
+                            <td>{podeMexer(a) && a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)}>Confirmar</Button>}{podeMexer(a) && a.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(a.id)}>Presença</Button>}</td>
                           </tr>
                         );
                       })}
@@ -265,6 +272,7 @@ export default function Agenda() {
           onBlock={handleBlock}
           onSelect={(a) => setSelected(a.id)}
           onNovaNaHora={novaNaHora}
+          proInicial={so}
           mode={mode}
           setMode={setMode}
           onNovaMarcacao={() => novaNaHora('', '')}
@@ -377,9 +385,9 @@ export default function Agenda() {
                 <div className="ag-detail-row"><span className="l">Barbeiro</span><span className="v">{selPro?.name}</span></div>
                 <div className="ag-detail-row"><span className="l">Horário</span><span className="v">{selAppt.startTime} – {selAppt.endTime}</span></div>
                 <div className="ag-detail-row"><span className="l">Motivo</span><span className="v">{selAppt.label}</span></div>
-                <div className="ag-detail-actions">
+                {podeMexer(selAppt) && <div className="ag-detail-actions">
                   <Button size="sm" variant="danger" onClick={() => askCancel(selAppt)}>Remover bloqueio</Button>
-                </div>
+                </div>}
               </>
             ) : (
               <>
@@ -421,11 +429,12 @@ export default function Agenda() {
                     <span className="v"><Badge variant="gold">Pack mensal — já pago, não cobrar</Badge></span>
                   </div>
                 )}
-                <div className="ag-detail-actions">
+                {!podeMexer(selAppt) && <div className="text-sec text-sm mt-8">Marcação de outro barbeiro — só o próprio ou o dono a podem mudar.</div>}
+                {podeMexer(selAppt) && <div className="ag-detail-actions">
                   {selAppt.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(selAppt.id)}>Confirmar</Button>}
                   {selAppt.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(selAppt.id)}>Confirmar presença</Button>}
                   {selAppt.status !== 'cancelled' && selAppt.status !== 'completed' && <Button size="sm" variant="danger" onClick={() => askCancel(selAppt)}>Cancelar</Button>}
-                </div>
+                </div>}
               </>
             )}
           </div>
@@ -452,9 +461,9 @@ export default function Agenda() {
           </div>
           <div className="field">
             <label className="label">Barbeiro</label>
-            <select className="select" value={quick.professionalId} onChange={e => setQuick(f => ({ ...f, professionalId: e.target.value }))}>
+            <select className="select" value={quick.professionalId} disabled={!!so} onChange={e => setQuick(f => ({ ...f, professionalId: e.target.value }))}>
               <option value="">Selecionar…</option>
-              {data.professionals.map(p => <option key={p.id} value={p.id}>{nomeSemRepetir(data.professionals, p, p.role || p.email)}</option>)}
+              {data.professionals.filter(p => !so || p.id === so).map(p => <option key={p.id} value={p.id}>{nomeSemRepetir(data.professionals, p, p.role || p.email)}</option>)}
             </select>
           </div>
           <div className="field">
