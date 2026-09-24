@@ -50,7 +50,9 @@ export function useStore() {
     return () => { unsub1(); unsub2(); };
   }, []);
 
-  return { ...dataService.getState(), loading };
+  // Quem está a usar o painel: o dono, ou um barbeiro com acesso próprio.
+  // Vive na sessão (authService), não nos dados — as páginas leem-no daqui.
+  return { ...dataService.getState(), loading, isProfissional: authService.isProfissional(), meuProfissionalId: authService.meuProfissionalId() };
 }
 
 export function useAuth() {
