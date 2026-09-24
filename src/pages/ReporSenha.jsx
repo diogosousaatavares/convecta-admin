@@ -11,19 +11,40 @@ export default function ReporSenha() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [motivo, setMotivo] = useState('');
+  const [emailNovo, setEmailNovo] = useState('');
+  const [pedido, setPedido] = useState(false);
 
   useEffect(() => {
+    // O Supabase manda o erro na própria URL quando o link já foi usado ou expirou
+    // (#error=access_denied&error_code=otp_expired&error_description=...).
+    const params = new URLSearchParams((window.location.hash || '').replace(/^#/, '') + '&' + window.location.search.replace(/^\?/, ''));
+    const eTipo = params.get('type');
+    if (params.get('error') || params.get('error_code')) {
+      const cod = params.get('error_code') || '';
+      setMotivo(cod === 'otp_expired' ? 'O link já foi usado ou passou o prazo. Cada link só serve uma vez.' : (params.get('error_description') || params.get('error') || '').replace(/\+/g, ' '));
+      setStage('error');
+      return () => {};
+    }
+
     // Supabase processa automaticamente o hash da URL (access_token + type=recovery)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setStage('form');
-      }
+      if (event === 'PASSWORD_RECOVERY') setStage('form');
+      // Alguns browsers já vêm com sessão e o evento chega como SIGNED_IN.
+      if (event === 'SIGNED_IN' && eTipo === 'recovery') setStage('form');
     });
+    // Rede de segurança: se a sessão já foi criada a partir do link, mostra o formulário.
+    if (eTipo === 'recovery') {
+      setTimeout(async () => {
+        const { data } = await supabase.auth.getSession();
+        if (data?.session) setStage(s => s === 'waiting' ? 'form' : s);
+      }, 1500);
+    }
 
-    // Timeout: se após 5 segundos não chegou o evento, o link é inválido/expirado
+    // Timeout: se após 8 segundos não chegou o evento, o link é inválido/expirado
     const timer = setTimeout(() => {
       setStage(s => s === 'waiting' ? 'error' : s);
-    }, 5000);
+    }, 8000);
 
     return () => {
       subscription.unsubscribe();
@@ -91,11 +112,23 @@ export default function ReporSenha() {
             <div style={{ textAlign: 'center', padding: '8px 0' }}>
               <AlertCircle size={40} style={{ color: '#f87171', margin: '0 auto 16px', display: 'block' }} />
               <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Link inválido ou expirado</div>
-              <div style={{ fontSize: 13, color: '#666', marginBottom: 24 }}>
-                Este link de recuperação já não é válido. Pede um novo na página de login.
+              <div style={{ fontSize: 13, color: '#666', marginBottom: 20 }}>
+                {motivo || 'Este link já não é válido. Cada link só serve uma vez e tem prazo.'} Pede um novo aqui: chega por email em segundos.
               </div>
+              {pedido ? (
+                <div style={{ fontSize: 13, color: '#166534', background: '#dcfce7', padding: '10px 12px', borderRadius: 8, marginBottom: 16 }}>Enviado. Vê o email {emailNovo} (e o spam) e abre o link mais recente.</div>
+              ) : (
+                <form onSubmit={async (e) => { e.preventDefault(); setLoading(true);
+                  const { error: err } = await supabase.auth.resetPasswordForEmail(emailNovo.trim(), { redirectTo: `${window.location.origin}/repor-senha` });
+                  setLoading(false); if (err) { setError(err.message); return; } setPedido(true); }}
+                  style={{ display: 'grid', gap: 10, marginBottom: 16 }}>
+                  <input className="input" type="email" required placeholder="o teu email" value={emailNovo} onChange={e => setEmailNovo(e.target.value)} style={{ height: 44 }} />
+                  {error && <div style={{ fontSize: 13, color: '#b91c1c' }}>{error}</div>}
+                  <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%', justifyContent: 'center', height: 44 }}>{loading ? 'A enviar…' : 'Enviar novo link'}</button>
+                </form>
+              )}
               <button
-                className="btn btn-primary"
+                className="btn btn-ghost"
                 style={{ width: '100%', justifyContent: 'center', height: 44 }}
                 onClick={() => navigate('/entrar')}
               >
