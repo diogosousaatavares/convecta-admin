@@ -676,6 +676,10 @@ function wlFromRow(row) {
     customerId: row.customer_id, serviceId: row.service_id,
     preferredDate: row.preferred_date, status: row.status,
     priority: m.priority || 'normal', createdAt: row.created_at,
+    // Lista de espera a serio (LISTA_DE_ESPERA.sql): barbeiro, hora, oferta.
+    professionalId: row.professional_id || null,
+    startAt: row.start_at || null, expiraEm: row.expira_em || null, oferecidoEm: row.oferecido_em || null,
+    appointmentId: row.appointment_id || null, origem: row.origem || 'painel',
   };
 }
 
@@ -1729,6 +1733,14 @@ const dataService = {
     const i = state.waitlist.findIndex(x => x.id === id);
     if (i >= 0) state.waitlist[i] = w;
     notify(); return w;
+  },
+  // Oferecer ja a vaga a este pedido (a base de dados confirma que esta livre).
+  async oferecerVaga(id) {
+    const { error } = await supabase.rpc('espera_oferecer_manual', { p_id: id });
+    if (error) throw traduzirErro(error);
+    const { data } = await supabase.from('waitlist').select('*').eq('id', id).maybeSingle();
+    if (data) { const w = wlFromRow(data); const i = state.waitlist.findIndex(x => x.id === id); if (i >= 0) state.waitlist[i] = w; notify(); }
+    return true;
   },
   async removeWaitlist(id) {
     const { error } = await supabase.from('waitlist').delete().eq('id', id);

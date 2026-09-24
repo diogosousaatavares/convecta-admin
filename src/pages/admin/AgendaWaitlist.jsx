@@ -9,7 +9,10 @@ import { useToast } from '@/components/ui/ToastContext';
 import { formatDateNum, todayStr } from '@/lib/format';
 
 const PRIOS = { normal: 'Normal', alta: 'Alta', urgente: 'Urgente' };
-const STATUS = { waiting: 'Em espera', contacted: 'Contactado', scheduled: 'Agendado', closed: 'Fechado' };
+const STATUS = { waiting: 'À espera', oferecido: 'Vaga oferecida', marcado: 'Marcou', expirou: 'Deixou expirar', cancelado: 'Saiu', contacted: 'Contactado', scheduled: 'Agendado', closed: 'Fechado' };
+const COR = { waiting: 'default', oferecido: 'warning', marcado: 'success', expirou: 'danger', cancelado: 'default' };
+const hora = iso => iso ? new Date(iso).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }) : '';
+const dia = iso => iso ? new Date(iso).toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' }) : '';
 
 export default function AgendaWaitlist() {
   const data = useStore();
@@ -27,29 +30,44 @@ export default function AgendaWaitlist() {
   };
 
   const setStatus = async (id, status) => { await dataService.updateWaitlist(id, { status }); toast.success('Estado atualizado'); };
+  const oferecer = async (w) => {
+    try { await dataService.oferecerVaga(w.id); toast.success('Vaga oferecida', 'O cliente foi avisado e tem 1 hora para confirmar.'); }
+    catch (e) { toast.error('Não deu', e.message); }
+  };
+  const [vista, setVista] = useState('ativos');
+  const rowsVis = rows.filter(w => vista === 'todos' ? true : ['waiting', 'oferecido', 'contacted', 'scheduled'].includes(w.status))
+    .sort((a, b) => (a.startAt || a.preferredDate || '9').localeCompare(b.startAt || b.preferredDate || '9'));
 
   return (
     <AdminPage title="Lista de Espera" subtitle="Clientes que aguardam disponibilidade."
-      info={{ description: 'Clientes que querem ser atendidos mas não encontraram disponibilidade imediata. Quando surge uma vaga por cancelamento ou encaixe, podes contactar o próximo da lista e recuperar essa receita.', impact: 'Sem lista de espera, um cancelamento de última hora é receita perdida. Com ela, o slot pode ser preenchido em minutos, mantendo a ocupação e a satisfação dos clientes que aguardavam.', links: ['Agenda', 'Encaixes', 'Clientes', 'Marcações'] }}
+      info={{ description: 'Quem pediu, na app, para ser avisado se uma hora vagar. Quando a marcação dessa hora é cancelada, o primeiro da lista recebe notificação e email e tem 1 hora para confirmar; se não confirmar, passa ao seguinte. Também podes acrescentar alguém à mão ou oferecer a vaga já.cuperar essa receita.', impact: 'Sem lista de espera, um cancelamento de última hora é receita perdida. Com ela, o slot pode ser preenchido em minutos, mantendo a ocupação e a satisfação dos clientes que aguardavam.', links: ['Agenda', 'Encaixes', 'Clientes', 'Marcações'] }}
       actions={<Button variant="primary" onClick={() => setModal(true)}><Plus size={16} /> Adicionar</Button>}>
-      {rows.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <Clock />} title="Lista vazia" description="Adiciona clientes à lista de espera." /></Card>
+      <div className="chip-row" style={{ marginBottom: 14 }}>
+        <button className={`chip ${vista === 'ativos' ? 'active' : ''}`} onClick={() => setVista('ativos')}>À espera</button>
+        <button className={`chip ${vista === 'todos' ? 'active' : ''}`} onClick={() => setVista('todos')}>Tudo</button>
+      </div>
+      {rowsVis.length === 0 ? (
+        <Card className="card-pad"><EmptyState icon={() => <Clock />} title="Ninguém à espera" description="Quando um cliente pedir, na app, para ser avisado se uma hora vagar, aparece aqui." /></Card>
       ) : (
         <Card>
           <table className="table">
-            <thead><tr><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Preferência</th><th>Prioridade</th><th>Estado</th><th></th></tr></thead>
+            <thead><tr><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Hora pedida</th><th>Estado</th><th></th></tr></thead>
             <tbody>
-              {rows.map(w => (
+              {rowsVis.map(w => (
                 <tr key={w.id}>
-                  <td className="fw-600">{data.customers.find(c => c.id === w.customerId)?.name || '—'}</td>
+                  <td className="fw-600">{data.customers.find(c => c.id === w.customerId)?.name || '—'}<div className="text-sec text-xs">{w.origem === 'app' ? 'pediu na app' : 'posto à mão'}</div></td>
                   <td>{data.services.find(s => s.id === w.serviceId)?.name || '—'}</td>
-                  <td>{w.professionalId === 'any' ? 'Qualquer' : data.professionals.find(p => p.id === w.professionalId)?.name || '—'}</td>
-                  <td className="text-sm">{w.preferredDate ? formatDateNum(w.preferredDate) : '—'}</td>
-                  <td><Badge variant={w.priority === 'urgente' ? 'danger' : w.priority === 'alta' ? 'warning' : 'default'}>{PRIOS[w.priority] || w.priority}</Badge></td>
+                  <td>{!w.professionalId || w.professionalId === 'any' ? 'Qualquer' : data.professionals.find(p => p.id === w.professionalId)?.name || '—'}</td>
+                  <td className="text-sm">{w.startAt ? `${dia(w.startAt)} · ${hora(w.startAt)}` : (w.preferredDate ? formatDateNum(w.preferredDate) : '—')}</td>
                   <td>
-                    <select className="select" style={{ width: 'auto', padding: '6px 10px' }} value={w.status} onChange={e => setStatus(w.id, e.target.value)}>
-                      {Object.entries(STATUS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-                    </select>
+                    <Badge variant={COR[w.status] || 'default'}>{STATUS[w.status] || w.status}</Badge>
+                    {w.status === 'oferecido' && w.expiraEm && <div className="text-sec text-xs">confirma até às {hora(w.expiraEm)}</div>}
+                    {w.status === 'waiting' && w.startAt && <div style={{ marginTop: 6 }}><Button size="sm" variant="secondary" onClick={() => oferecer(w)}>Oferecer já</Button></div>}
+                    {!w.startAt && (
+                      <select className="select" style={{ width: 'auto', padding: '6px 10px', marginTop: 6 }} value={w.status} onChange={e => setStatus(w.id, e.target.value)}>
+                        {['waiting', 'contacted', 'scheduled', 'closed'].map(k => <option key={k} value={k}>{STATUS[k]}</option>)}
+                      </select>
+                    )}
                   </td>
                   <td><button className="btn btn-ghost btn-icon" aria-label="Remover da lista de espera" title="Remover da lista de espera" onClick={() => dataService.removeWaitlist(w.id)}><Trash2 size={15} /></button></td>
                 </tr>
