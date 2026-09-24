@@ -15,7 +15,7 @@ let _motivoSemSessao = '';
 async function _linhaDoUtilizador(id) {
   const { data } = await supabase
     .from('users')
-    .select('role, business_id, name, professional_id')
+    .select('role, business_id, name, professional_id, permissoes')
     .eq('id', id)
     .maybeSingle();
   return data;
@@ -72,6 +72,8 @@ async function _enrichSession(user) {
     // Um barbeiro com acesso proprio: role 'profissional' e o id da ficha dele.
     // O painel usa-o para lhe mostrar so a agenda, os clientes e a conta dele.
     professionalId: userRow.professional_id || null,
+    // O que o dono deixou este profissional ver (Profissionais › Dar acesso).
+    permissoes: { agenda_toda: true, ...(userRow.permissoes || {}) },
   };
 }
 
@@ -153,6 +155,7 @@ const authService = {
   // Verdadeiro para o barbeiro com acesso proprio (nao e o dono).
   isProfissional() { return !!_session && _session.role === 'profissional'; },
   meuProfissionalId() { return _session?.professionalId || null; },
+  permissoes() { return _session?.permissoes || { agenda_toda: true }; },
   isCustomer() { return _session?.type === 'customer'; },
   isAuthenticated() { return !!_session; },
   isAuthLoading() { return _authLoading; },

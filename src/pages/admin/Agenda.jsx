@@ -51,6 +51,8 @@ export default function Agenda() {
   // Um barbeiro com acesso proprio ve a agenda toda mas so mexe na coluna
   // dele. `so` e o id da ficha dele; para o dono e null (mexe em tudo).
   const so = data.isProfissional ? data.meuProfissionalId : null;
+  // Se o dono desligou «vê a agenda toda», só aparece a coluna dele.
+  const prosVisiveis = (so && data.permissoes && data.permissoes.agenda_toda === false) ? data.professionals.filter(p => p.id === so) : data.professionals;
   const podeMexer = (a) => !so || !a || a.professionalId === so;
   const soATua = () => toast.error('Só na tua coluna', 'Podes marcar, bloquear e cobrar só as tuas marcações.');
   const [date, setDate] = useState(() => {
@@ -100,7 +102,7 @@ export default function Agenda() {
   // desmarcou, mas saem da grelha das horas: o lugar esta livre e tem de se
   // ver que esta livre.
   const dayAppts = data.appointments.filter(a => a.date === date);
-  const dayAppstNaGrelha = dayAppts.filter(a => a.status !== 'cancelled');
+  const dayAppstNaGrelha = dayAppts.filter(a => a.status !== 'cancelled' && (!so || !data.permissoes || data.permissoes.agenda_toda !== false || a.professionalId === so));
   const vendasDoDia = useMemo(
     () => (data.sales || []).filter(v => (v.date || (v.soldAt || '').slice(0, 10)) === date)
       .sort((x, y) => (x.soldAt || '').localeCompare(y.soldAt || '')),
@@ -282,7 +284,7 @@ export default function Agenda() {
           shift={shift}
           appts={dayAppstNaGrelha}
           apptsByDate={apptsByDate}
-          professionals={data.professionals}
+          professionals={prosVisiveis}
           services={data.services}
           customers={data.customers}
           blockMode={blockMode}
@@ -347,7 +349,7 @@ export default function Agenda() {
             <AgendaCalendar
               date={date}
               appts={dayAppstNaGrelha}
-              professionals={data.professionals}
+              professionals={prosVisiveis}
               services={data.services}
               customers={data.customers}
               blockMode={blockMode}

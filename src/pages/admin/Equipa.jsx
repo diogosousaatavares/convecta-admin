@@ -9,7 +9,7 @@ import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfiss
 // O que cada tipo de pessoa vê no painel. É o espelho das regras da base de
 // dados (ACESSO_PROFISSIONAL.sql) e de modulos.js — mudar num sítio é mudar nos três.
 const AREAS = [
-  { nome: 'Agenda', dono: 'tudo', pro: 'parcial', notaPro: 'vê a agenda toda, só mexe na coluna dele' },
+  { nome: 'Agenda', dono: 'tudo', pro: 'parcial', notaPro: 'mexe só na coluna dele; o dono escolhe em cada um se vê a agenda toda ou só a dele' },
   { nome: 'Confirmar presença e cobrar', dono: 'tudo', pro: 'parcial', notaPro: 'só as marcações dele' },
   { nome: 'Clientes', dono: 'tudo', pro: 'tudo', notaPro: 'vê e edita as fichas' },
   { nome: 'Lista de espera', dono: 'tudo', pro: 'parcial', notaPro: 'só a dele' },
@@ -133,7 +133,7 @@ export default function Equipa() {
 
       <Card>
         <div className="fw-600" style={{ marginBottom: 4 }}>Quem vê o quê</div>
-        <p className="text-sec text-sm" style={{ marginTop: 0 }}>Isto não se muda ficha a ficha: é a regra da casa, trancada na base de dados. O dono vê tudo; um profissional com acesso vê só o que lhe toca.</p>
+        <p className="text-sec text-sm" style={{ marginTop: 0 }}>É a regra da casa, trancada na base de dados. O dono vê tudo; um profissional com acesso vê só o que lhe toca. O que se pode ajustar em cada um está no bloco de acesso (toca no profissional em cima).</p>
         <div style={{ overflowX: 'auto' }}>
           <table className="table" style={{ minWidth: 560 }}>
             <thead>

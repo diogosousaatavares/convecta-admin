@@ -17,7 +17,7 @@ export function useAcessos(businessId) {
   const [lista, setLista] = useState([]);
   const recarregar = useCallback(async () => {
     if (!businessId) return;
-    const { data } = await supabase.from('users').select('id, email, professional_id').eq('business_id', businessId).not('professional_id', 'is', null);
+    const { data } = await supabase.from('users').select('id, email, professional_id, permissoes').eq('business_id', businessId).not('professional_id', 'is', null);
     setLista(data || []);
   }, [businessId]);
   useEffect(() => { recarregar(); }, [recarregar]);
@@ -59,16 +59,31 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
 
   const caixa = { marginTop: 16, padding: '12px 14px', borderRadius: 10, background: acesso ? 'rgba(34,197,94,0.08)' : 'rgba(var(--gold-rgb),0.08)', border: `1px solid ${acesso ? 'rgba(34,197,94,0.35)' : 'rgba(var(--gold-rgb),0.35)'}` };
   if (acesso) {
+    const perm = { agenda_toda: true, ...(acesso.permissoes || {}) };
+    const mudar = async (chave, valor) => {
+      const novas = { ...perm, [chave]: valor };
+      const { error } = await supabase.rpc('definir_permissoes_profissional', { p_user_id: acesso.id, p_permissoes: novas });
+      if (error) { toast.error('Não ficou gravado', error.message); return; }
+      toast.success('Guardado', valor ? `${profissional.name} passa a ver a agenda toda.` : `${profissional.name} passa a ver só a coluna dele.`);
+      onMudou?.();
+    };
     return (
       <div style={destaque ? caixa : { marginTop: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 13 }}>
           <ShieldCheck size={16} style={{ color: 'var(--success)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="fw-600">Acesso ao painel: ligado</div>
-            <div className="text-sec text-xs" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{acesso.email} · vê a agenda, os clientes e a conta dele</div>
+            <div className="text-sec text-xs" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{acesso.email} · vê os clientes e a conta dele</div>
           </div>
           <Button size="sm" variant="ghost" onClick={remover} disabled={aEnviar}>Remover</Button>
         </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)', cursor: 'pointer', fontSize: 13 }}>
+          <input type="checkbox" checked={perm.agenda_toda !== false} onChange={e => mudar('agenda_toda', e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--gold)' }} />
+          <span style={{ flex: 1 }}>
+            <span className="fw-600">Vê a agenda toda</span>
+            <span className="text-sec text-xs" style={{ display: 'block' }}>{perm.agenda_toda !== false ? 'Vê as colunas dos colegas; mexe só na dele.' : 'Só vê a coluna dele.'}</span>
+          </span>
+        </label>
       </div>
     );
   }
