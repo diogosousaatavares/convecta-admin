@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, ShieldCheck, ShieldOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui';
 import { useToast } from '@/components/ui/ToastContext';
@@ -24,10 +24,10 @@ export function useAcessos(businessId) {
   return { de: (proId) => lista.find(u => u.professional_id === proId) || null, recarregar };
 }
 
-export default function AcessoProfissional({ profissional, acesso, onMudou }) {
+export default function AcessoProfissional({ profissional, acesso, onMudou, destaque = false, emailInicial = '', abertoInicial = false }) {
   const toast = useToast();
-  const [aberto, setAberto] = useState(false);
-  const [email, setEmail] = useState('');
+  const [aberto, setAberto] = useState(abertoInicial);
+  const [email, setEmail] = useState(emailInicial || profissional?.email || '');
   const [aEnviar, setAEnviar] = useState(false);
 
   async function chamar(corpo) {
@@ -57,25 +57,38 @@ export default function AcessoProfissional({ profissional, acesso, onMudou }) {
     } catch (e) { toast.error('Não deu', e.message); }
   }
 
+  const caixa = { marginTop: 16, padding: '12px 14px', borderRadius: 10, background: acesso ? 'rgba(34,197,94,0.08)' : 'rgba(var(--gold-rgb),0.08)', border: `1px solid ${acesso ? 'rgba(34,197,94,0.35)' : 'rgba(var(--gold-rgb),0.35)'}` };
   if (acesso) {
     return (
-      <div className="mt-16" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 13 }}>
-        <KeyRound size={14} style={{ color: 'var(--gold)' }} />
-        <span className="text-sec" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>Tem acesso · {acesso.email}</span>
-        <Button size="sm" variant="ghost" onClick={remover} disabled={aEnviar}>Remover acesso</Button>
+      <div style={destaque ? caixa : { marginTop: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 13 }}>
+          <ShieldCheck size={16} style={{ color: 'var(--success)' }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="fw-600">Acesso ao painel: ligado</div>
+            <div className="text-sec text-xs" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{acesso.email} · vê a agenda, os clientes e a conta dele</div>
+          </div>
+          <Button size="sm" variant="ghost" onClick={remover} disabled={aEnviar}>Remover</Button>
+        </div>
       </div>
     );
   }
   if (!aberto) {
     return (
-      <div className="mt-16">
-        <Button size="sm" variant="ghost" onClick={() => setAberto(true)}><KeyRound size={14} /> Dar acesso ao painel</Button>
+      <div style={destaque ? caixa : { marginTop: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 13 }}>
+          <ShieldOff size={16} style={{ color: 'var(--text-sec)' }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="fw-600">Acesso ao painel: sem acesso</div>
+            <div className="text-sec text-xs">Só o dono entra. Dá-lhe acesso para ele ver a agenda dele.</div>
+          </div>
+          <Button size="sm" variant="primary" onClick={() => setAberto(true)}><KeyRound size={14} /> Dar acesso</Button>
+        </div>
       </div>
     );
   }
   return (
-    <div className="mt-16" style={{ display: 'grid', gap: 8 }}>
-      <div className="text-sec text-xs">Vai ver a agenda, os clientes e a conta dele. Sem dinheiro nem definições.</div>
+    <div style={{ ...(destaque ? caixa : { marginTop: 16 }), display: 'grid', gap: 8 }}>
+      <div className="text-sec text-xs">Vai ver a agenda (mexe só na coluna dele), os clientes e a conta dele. Sem dinheiro nem definições.</div>
       <input className="input" type="email" placeholder="email do barbeiro" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') dar(); }} />
       <div className="flex gap-8">
         <Button size="sm" variant="primary" onClick={dar} disabled={aEnviar || !email.trim()}>{aEnviar ? 'A enviar…' : 'Enviar convite'}</Button>

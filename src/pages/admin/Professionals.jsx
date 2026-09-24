@@ -9,7 +9,7 @@ import { useToast } from '@/components/ui/ToastContext';
 import FotoPerfil from '@/components/admin/FotoPerfil';
 import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
 
-const empty = { name: '', role: 'Barber', bio: '', specialties: [], commission: 30 };
+const empty = { name: '', role: 'Barbeiro', email: '', phone: '', bio: '', specialties: [], commission: 30 };
 
 // 'profissional' -> 'Profissional'. O nome do plano vem da base de dados em
 // minusculas; aqui e um rotulo que o barbeiro le.
@@ -60,12 +60,17 @@ export default function Professionals() {
     }
   };
 
+  // Depois de criar: o convite para o painel, já com o email da ficha.
+  const [convidar, setConvidar] = useState(null);
   const save = async () => {
-    if (!form.name) { toast.error('Nome obrigatório'); return; }
+    if (!form.name.trim()) { toast.error('Nome obrigatório'); return; }
+    if (!form.role || !form.role.trim()) { toast.error('Função obrigatória', 'Barbeiro, gerente, rececionista…'); return; }
+    if (!form.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) { toast.error('Email obrigatório', 'É por aqui que ele recebe o acesso ao painel.'); return; }
+    if (data.professionals.some(p => p.id !== editing && (p.email || '').toLowerCase() === form.email.trim().toLowerCase())) { toast.error('Email repetido', 'Já há um profissional com esse email.'); return; }
     if (aEnviarFoto) { toast.error('A fotografia ainda está a subir', 'Espera um instante e grava outra vez.'); return; }
     const payload = { ...form, specialties: specs.split(',').map(s => s.trim()).filter(Boolean) };
     try {
-      if (editing === 'new') { await dataService.createProfessional(payload); toast.success('Profissional criado'); }
+      if (editing === 'new') { const novo = await dataService.createProfessional(payload); toast.success('Profissional criado'); setConvidar(novo); }
       else { await dataService.updateProfessional(editing, payload); toast.success('Profissional atualizado'); }
     } catch (err) {
       // Sem isto, o limite do plano rebentava em silêncio e a janela fechava
@@ -152,7 +157,7 @@ export default function Professionals() {
                   {p.specialties.map((s, i) => <Badge key={i} variant="default">{s}</Badge>)}
                 </div>
               )}
-              <AcessoProfissional profissional={p} acesso={acessos.de(p.id)} onMudou={acessos.recarregar} />
+              <AcessoProfissional profissional={p} acesso={acessos.de(p.id)} onMudou={acessos.recarregar} destaque />
               <div className="flex gap-8 mt-16">
                   <Button size="sm" variant="secondary" block onClick={() => openEdit(p)}><Pencil size={14} /> Editar</Button>
                   <Button size="sm" variant="ghost" aria-label="Eliminar profissional" title="Eliminar profissional" onClick={() => setDeleteTarget(p)}><Trash2 size={14} /></Button>
@@ -169,10 +174,26 @@ export default function Professionals() {
           <FotoPerfil valor={form.photoUrl} nome={form.name} aEnviar={aEnviarFoto} onEscolher={handlePhotoChange} />
         </div>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
-        <div className="field"><label className="label">Cargo</label><input className="input" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} /></div>
+        <div className="grid-2" style={{ gap: 12 }}>
+          <div className="field"><label className="label">Função *</label><input className="input" list="funcoes-pro" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} placeholder="Barbeiro" /><datalist id="funcoes-pro"><option value="Barbeiro" /><option value="Barbeiro sénior" /><option value="Gerente" /><option value="Rececionista" /><option value="Aprendiz" /></datalist></div>
+          <div className="field"><label className="label">Email *</label><input className="input" type="email" value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="o email dele" /></div>
+        </div>
+        <div className="field"><label className="label">Telemóvel</label><input className="input" type="tel" value={form.phone || ''} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>
         <div className="field"><label className="label">Bio</label><textarea className="textarea" rows={2} value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} /></div>
         <div className="field"><label className="label">Comissão (%)</label><input className="input" type="number" min="0" max="100" step="1" value={form.commission ?? 30} onChange={e => setForm({ ...form, commission: Number(e.target.value) || 0 })} /></div>
         <div className="field"><label className="label">Especialidades (separadas por vírgulas)</label><input className="input" value={specs} onChange={e => setSpecs(e.target.value)} placeholder="Fades, Barba" /></div>
+      </Modal>
+
+      <Modal open={!!convidar} onClose={() => setConvidar(null)} title="Dar acesso ao painel?"
+        footer={<><Button variant="ghost" onClick={() => setConvidar(null)}>Agora não</Button></>}>
+        {convidar && (
+          <div>
+            <p className="text-sec text-sm" style={{ marginTop: 0 }}>
+              <b style={{ color: 'var(--text)' }}>{convidar.name}</b> vai receber um email em <b style={{ color: 'var(--text)' }}>{convidar.email}</b> para escolher a palavra-passe. Depois entra no painel e vê a agenda (mexe só na coluna dele), os clientes e a conta dele. Sem dinheiro nem definições.
+            </p>
+            <AcessoProfissional profissional={convidar} acesso={null} onMudou={() => { acessos.recarregar(); setConvidar(null); }} emailInicial={convidar.email} abertoInicial />
+          </div>
+        )}
       </Modal>
 
       <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Eliminar profissional"

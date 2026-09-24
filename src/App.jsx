@@ -27,6 +27,7 @@ const AdminAppointments= lazy(() => import('@/pages/admin/AdminAppointments'));
 const Customers        = lazy(() => import('@/pages/admin/Customers'));
 const Services         = lazy(() => import('@/pages/admin/Services'));
 const Professionals    = lazy(() => import('@/pages/admin/Professionals'));
+const Equipa           = lazy(() => import('@/pages/admin/Equipa'));
 const Hours            = lazy(() => import('@/pages/admin/Hours'));
 const Subscricao       = lazy(() => import('@/pages/admin/Subscricao'));
 const Settings         = lazy(() => import('@/pages/admin/Settings'));
@@ -138,6 +139,7 @@ function AppRoutes() {
         <Route path="/admin/servicos" element={<AdminRoute><Services /></AdminRoute>} />
         <Route path="/admin/servicos/categorias" element={<AdminRoute><ServiceCategories /></AdminRoute>} />
         <Route path="/admin/profissionais" element={<AdminRoute><Professionals /></AdminRoute>} />
+        <Route path="/admin/profissionais/equipa" element={<AdminRoute><Equipa /></AdminRoute>} />
         <Route path="/admin/profissionais/horarios" element={<AdminRoute><ProSchedules /></AdminRoute>} />
         <Route path="/admin/profissionais/ferias" element={<AdminRoute><ProTimeOff /></AdminRoute>} />
         <Route path="/admin/profissionais/comissoes" element={<AdminRoute><ProCommissions /></AdminRoute>} />
