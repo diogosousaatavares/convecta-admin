@@ -89,7 +89,7 @@ function traduzirErro(error) {
    * que esperam pelo cartao. E diz-se-lhe exactamente onde carregar.
    */
   if (typeof error.message === 'string' && error.message.includes('SEM_SUBSCRICAO')) {
-    const e = new Error('Para começares a receber marcações falta registar o cartão. São 7 dias à experiência e só depois é que pagas — vai a Subscrição, no fim do menu.');
+    const e = new Error('Para começares a receber marcações falta registar o cartão. É um mês grátis e só depois é que pagas — vai a Subscrição, no fim do menu.');
     e.semSubscricao = true;
     return e;
   }

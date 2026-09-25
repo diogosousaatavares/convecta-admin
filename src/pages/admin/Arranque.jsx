@@ -269,11 +269,11 @@ export default function Arranque() {
             <span className="fw-600" style={{ fontSize: 15 }}>Quando quiseres receber marcações</span>
           </div>
           <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--text-sec)', lineHeight: 1.6 }}>
-            Para os clientes poderem marcar, é preciso registar um cartão. Os primeiros 7 dias
-            não são cobrados e cancelas sozinho aqui no painel — não tens de decidir isso agora.
+            Para os clientes poderem marcar, é preciso registar um cartão. O primeiro mês
+            não é cobrado e cancelas sozinho aqui no painel — não tens de decidir isso agora.
           </p>
           <Button variant="secondary" onClick={() => guardar('/admin/subscricao')} disabled={aGravar}>
-            Guardar e activar com 7 dias grátis <ArrowRight size={14} />
+            Guardar e activar com 1 mês grátis <ArrowRight size={14} />
           </Button>
         </Card>
 

@@ -37,7 +37,7 @@ const AVISOS = {
     fundo: 'rgba(201, 162, 39, 0.10)',
     icone: CreditCard,
     titulo: 'Falta registar o cartão para começares a receber marcações',
-    texto: 'Podes preparar tudo — serviços, horários, aparência. Só as marcações é que esperam. São 7 dias à experiência e só depois é que pagas.',
+    texto: 'Podes preparar tudo — serviços, horários, aparência. Só as marcações é que esperam. É um mês grátis e só depois é que pagas.',
     botao: 'Ver planos',
   },
   em_atraso: {
