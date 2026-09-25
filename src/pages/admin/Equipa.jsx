@@ -151,7 +151,7 @@ export default function Equipa() {
       <Card className="mb-24">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
           <div className="fw-600">Distribuição</div>
-          <div className="text-sec text-xs" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+          <div className="text-sec text-xs" style={{ display: estreito ? 'none' : 'flex', gap: 14, flexWrap: 'wrap' }}>
             <span><span style={{ display: 'inline-block', width: 18, borderTop: '2.5px solid var(--success)', verticalAlign: 'middle', marginRight: 6 }} />com acesso</span>
             <span><span style={{ display: 'inline-block', width: 18, borderTop: '2px dashed var(--border)', verticalAlign: 'middle', marginRight: 6 }} />sem acesso</span>
           </div>
@@ -204,6 +204,29 @@ export default function Equipa() {
       <Card>
         <div className="fw-600" style={{ marginBottom: 4 }}>Quem vê o quê</div>
         <p className="text-sec text-sm" style={{ marginTop: 0 }}>É a regra da casa, trancada na base de dados. O dono vê tudo; um profissional com acesso vê só o que lhe toca. O que se pode ajustar em cada um está no bloco de acesso (toca no profissional em cima).</p>
+        {estreito ? (
+          <details style={{ marginTop: 10 }}>
+            <summary style={{ cursor: 'pointer', fontSize: 13, fontWeight: 600, padding: '9px 0' }}>
+              Ver área a área
+            </summary>
+            <div style={{ display: 'grid', gap: 8, marginTop: 6 }}>
+              {AREAS.map(a => (
+                <div key={a.nome} style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid var(--border)' }}>
+                  <div className="fw-600" style={{ fontSize: 13 }}>{a.nome}</div>
+                  <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 5 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <Crown size={13} style={{ color: 'var(--gold)' }} /><Ponto nivel={a.dono} />
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                      <ShieldCheck size={13} style={{ color: 'var(--success)' }} /><Ponto nivel={a.pro} />
+                    </span>
+                  </div>
+                  {a.notaPro && <div className="text-sec text-xs" style={{ marginTop: 4 }}>{a.notaPro}</div>}
+                </div>
+              ))}
+            </div>
+          </details>
+        ) : (
         <div style={{ overflowX: 'auto' }}>
           <table className="table" style={{ minWidth: 560 }}>
             <thead>
@@ -227,6 +250,7 @@ export default function Equipa() {
             </tbody>
           </table>
         </div>
+        )}
         <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Badge variant="success">Sem acesso = não entra no painel</Badge>
           <Badge>Um profissional só cobra as marcações dele</Badge>

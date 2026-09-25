@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { UserCog, Plus, Pencil, Trash2, Lock } from 'lucide-react';
+import { UserCog, Plus, Pencil, Trash2, Lock, ShieldCheck, ShieldOff, Crown, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useStore } from '@/hooks/useStore';
+import { useIsMobile } from '@/hooks/use-mobile';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, Avatar, Badge, Button, EmptyState, Modal, Stars } from '@/components/ui';
@@ -15,8 +17,20 @@ const empty = { name: '', role: 'Barbeiro', email: '', phone: '', bio: '', speci
 // minusculas; aqui e um rotulo que o barbeiro le.
 const nomeDoPlano = p => (p ? p.charAt(0).toUpperCase() + p.slice(1) : '');
 
+/*
+ * No telemovel esta pagina tinha, por cada barbeiro: foto, nome, funcao, bio,
+ * estrelas, "ainda sem avaliacoes", as especialidades e o bloco inteiro de
+ * acesso ao painel — meio ecra por pessoa, e o bloco de acesso repetia o que
+ * a pagina "Equipa e acessos" ja faz melhor. Com cinco barbeiros era uma
+ * maratona de scroll para chegar ao botao de editar.
+ *
+ * No telemovel fica uma linha por pessoa: quem e, o que faz, e se entra ou
+ * nao no painel. O resto abre-se — a ficha no lapis, os acessos na pagina que
+ * existe para isso. No computador, onde ha espaco e tres colunas, nada muda.
+ */
 export default function Professionals() {
   const data = useStore();
+  const isMobile = useIsMobile();
   // As avaliacoes de um barbeiro: quantas sao e a media delas.
   const avaliacoesDe = (proId) => {
     const lista = (data.reviews || []).filter(r => r.professionalId === proId);
@@ -130,6 +144,48 @@ export default function Professionals() {
 
       {data.professionals.length === 0 ? (
         <Card className="card-pad"><EmptyState icon={() => <UserCog />} title="Sem profissionais" description="Adiciona o primeiro profissional." /></Card>
+      ) : isMobile ? (
+        <div style={{ display: 'grid', gap: 10 }}>
+          {data.professionals.map(p => {
+            const acesso = acessos.de(p.id);
+            const souEu = p.id === data.meuProfissionalId;
+            const av = avaliacoesDe(p.id);
+            const cor = souEu ? 'var(--gold)' : acesso ? 'var(--success)' : 'var(--text-sec)';
+            return (
+              <Card key={p.id} className="card-pad">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {p.photoUrl
+                    ? <img className="professional-photo" src={p.photoUrl} alt={`Fotografia de ${p.name}`} />
+                    : <Avatar name={p.name} />}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                    <div className="text-sec text-xs" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {p.role}{av.total > 0 ? ` · ${av.media.toFixed(1)} ★ (${av.total})` : ''}
+                    </div>
+                  </div>
+                  <Button size="sm" variant="ghost" aria-label={`Editar ${p.name}`} title="Editar ficha" onClick={() => openEdit(p)}><Pencil size={15} /></Button>
+                  <Button size="sm" variant="ghost" aria-label={`Eliminar ${p.name}`} title="Eliminar" onClick={() => setDeleteTarget(p)}><Trash2 size={15} /></Button>
+                </div>
+
+                {/* O acesso nao se gere aqui: mostra-se como esta e leva-se a
+                    quem o gere. Ter o formulario de convite dentro de cada
+                    cartao era o que fazia esta pagina nao caber no telemovel. */}
+                <Link to="/admin/profissionais/equipa"
+                  style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 7, padding: '9px 11px',
+                    borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none',
+                    color: 'inherit', fontSize: 12.5 }}>
+                  {souEu ? <Crown size={14} style={{ color: cor, flexShrink: 0 }} />
+                    : acesso ? <ShieldCheck size={14} style={{ color: cor, flexShrink: 0 }} />
+                    : <ShieldOff size={14} style={{ color: cor, flexShrink: 0 }} />}
+                  <span style={{ color: cor, fontWeight: 600 }}>
+                    {souEu ? 'És tu, o dono' : acesso ? 'Entra no painel' : 'Não entra no painel'}
+                  </span>
+                  <ChevronRight size={14} style={{ marginLeft: 'auto', color: 'var(--text-ter)', flexShrink: 0 }} />
+                </Link>
+              </Card>
+            );
+          })}
+        </div>
       ) : (
         <div className="grid-3">
           {data.professionals.map(p => (
@@ -142,16 +198,17 @@ export default function Professionals() {
                 </div>
               </div>
               <p className="text-sec text-sm mt-16">{p.bio}</p>
-              <div className="flex items-center gap-8 mt-16">
-                {/* Estrelas a serio: media das avaliacoes deste barbeiro. Antes vinha
-                    de duas colunas que ninguem escrevia — dizia sempre "0 · 0". */}
-                <Stars rating={avaliacoesDe(p.id).media} size={13} />
-                <span className="text-sec text-xs">
-                  {avaliacoesDe(p.id).total > 0
-                    ? `${avaliacoesDe(p.id).media.toFixed(1)} · ${avaliacoesDe(p.id).total} ${avaliacoesDe(p.id).total === 1 ? 'avaliação' : 'avaliações'}`
-                    : 'Ainda sem avaliações'}
-                </span>
-              </div>
+              {/* Estrelas a serio: media das avaliacoes deste barbeiro. So
+                  aparecem quando ha alguma — uma fila de estrelas vazias em
+                  todos os cartoes de uma barbearia nova nao diz nada. */}
+              {avaliacoesDe(p.id).total > 0 && (
+                <div className="flex items-center gap-8 mt-16">
+                  <Stars rating={avaliacoesDe(p.id).media} size={13} />
+                  <span className="text-sec text-xs">
+                    {avaliacoesDe(p.id).media.toFixed(1)} · {avaliacoesDe(p.id).total} {avaliacoesDe(p.id).total === 1 ? 'avaliação' : 'avaliações'}
+                  </span>
+                </div>
+              )}
               {p.specialties?.length > 0 && (
                 <div className="flex gap-8 flex-wrap mt-16">
                   {p.specialties.map((s, i) => <Badge key={i} variant="default">{s}</Badge>)}
