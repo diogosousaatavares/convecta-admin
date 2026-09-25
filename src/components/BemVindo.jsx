@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ExternalLink, CreditCard, X, Check } from 'lucide-react';
+import { ArrowRight, ExternalLink, Scissors, X, Check } from 'lucide-react';
 import dataService from '@/lib/dataService';
 import { DOMINIO_BASE as APPS } from '@/lib/designService';
 
@@ -95,29 +95,24 @@ export default function BemVindo() {
     },
     {
       olho: 'Só falta uma coisa',
-      titulo: <>Para receber marcações,<br />precisas do cartão.</>,
+      titulo: <>Os preços ainda<br />não são os teus.</>,
       corpo: (
         <>
-          <p className="bv-p">Com cartão, a agenda abre hoje. <strong>Os primeiros 7 dias são grátis.</strong></p>
+          <p className="bv-p">
+            A barbearia nasceu com serviços e horário de exemplo. Um minuto a corrigi-los
+            e o site passa a ser mesmo o teu.
+          </p>
           <div className="bv-tempo">
-            <div className="bv-tempo-i"><b>Hoje</b><span>0 €</span></div>
-            <div className="bv-tempo-i"><b>7 dias</b><span>0 €</span></div>
-            <div className="bv-tempo-i"><b>Dia 8</b><span>Primeira cobrança, só se ficares</span></div>
+            <div className="bv-tempo-i"><b>Agora</b><span>Os teus preços e o teu horário</span></div>
+            <div className="bv-tempo-i"><b>Depois</b><span>O cartão, quando quiseres receber marcações</span></div>
+            <div className="bv-tempo-i"><b>7 dias</b><span>Grátis, e cancelas sozinho</span></div>
           </div>
-          <p className="bv-p bv-mini">Cancelas sozinho, aqui no painel.</p>
+          <p className="bv-p bv-mini">Não te pedimos cartão nenhum para isto.</p>
         </>
       ),
-      botao: 'Percebi',
-    },
-    {
-      olho: 'Como queres começar?',
-      titulo: <>Abre a agenda hoje.<br />Decide daqui a 7 dias.</>,
-      corpo: (
-        <p className="bv-p">Se activares agora, os clientes já marcam esta noite.</p>
-      ),
-      botao: 'Activar com 7 dias grátis',
-      icone: <CreditCard size={18} />,
-      destino: '/admin/subscricao',
+      botao: 'Pôr os meus preços',
+      icone: <Scissors size={18} />,
+      destino: '/admin/arranque',
       secundario: 'Ver primeiro o painel',
     },
   ];

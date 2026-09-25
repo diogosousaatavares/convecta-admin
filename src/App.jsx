@@ -79,6 +79,7 @@ const Definicoes       = lazy(() => import('@/pages/admin/Definicoes'));
 const AnamneseForms    = lazy(() => import('@/pages/admin/AnamneseForms'));
 const Parametros       = lazy(() => import('@/pages/admin/Parametros'));
 const TemaPersonalizacao = lazy(() => import('@/pages/admin/TemaPersonalizacao'));
+const Arranque = lazy(() => import('@/pages/admin/Arranque'));
 const MeuSite = lazy(() => import('@/pages/admin/MeuSite'));
 
 const Spinner = () => (
@@ -130,6 +131,9 @@ function AppRoutes() {
             que quer ver o dia todo. O dashboard continua inteiro, em
             /admin/dashboard e no menu — so deixou de ser a porta de entrada. */}
         <Route path="/admin" element={<Navigate to="/admin/agenda" replace />} />
+        {/* O arranque nao leva AdminLayout: e um ecra so, com uma coisa para
+            fazer. O menu ao lado so lhe daria vinte sitios para onde fugir. */}
+        <Route path="/admin/arranque" element={<AdminRoute><Arranque /></AdminRoute>} />
         <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
         <Route path="/admin/agenda" element={<AdminRoute><Agenda /></AdminRoute>} />
         <Route path="/admin/agenda/marcacoes" element={<AdminRoute><AdminAppointments /></AdminRoute>} />

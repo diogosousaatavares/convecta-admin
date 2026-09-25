@@ -16,6 +16,7 @@ import GuardarNoEcra from '@/components/GuardarNoEcra';
 import SinoAvisos from '@/components/SinoAvisos';
 import AcordoRgpd from '@/components/AcordoRgpd';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
+import PrimeirosPassos from '@/components/PrimeirosPassos';
 
 const GROUPS_TODOS = [
   // A agenda vem primeiro porque e onde ele vive. O dashboard e para quando
@@ -497,6 +498,11 @@ export default function AdminLayout({ children }) {
         {/* Depois do Bem-vindo: no telemóvel, ensina a guardar o painel no
             ecrã principal — sem isso, no iPhone não há notificações. */}
         <GuardarNoEcra />
+        {/* A lista de "o que faco agora?" vivia so no Dashboard. Desde que a
+            Agenda passou a ser a porta de entrada, quem entra deixava de a
+            ver — e era precisamente a quem acabou de chegar que ela servia.
+            Fica nos dois sitios, escrita num lado so. */}
+        {(location.pathname === '/admin/agenda' || location.pathname === '/admin/dashboard') && <PrimeirosPassos />}
         {children}
       </main>
     </div>
