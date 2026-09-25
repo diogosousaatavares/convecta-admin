@@ -26,14 +26,26 @@ import { prepararLogotipo } from '@/lib/prepararLogotipo';
 
 const FONTES=['Inter','Playfair Display','Montserrat','Poppins','DM Sans','Space Grotesk','Bebas Neue']
 const CAMPOS_COR=[
-  {k:'bg',       l:'Fundo',              d:'--bg · fundo principal da app'},
-  {k:'surface',  l:'Cartões',            d:'--surface · caixas sobre o fundo'},
-  {k:'elevated', l:'Elementos elevados', d:'--elevated · menus e modais'},
-  {k:'gold',     l:'Cor de marca',       d:'--gold · botões, preços e destaques'},
-  {k:'text',     l:'Texto',              d:'--text · texto principal'},
-  {k:'textSec',  l:'Texto secundário',   d:'--text-sec · legendas'},
-  {k:'border',   l:'Contornos',          d:'--border · linhas e separadores'},
+  {k:'bg',       l:'Fundo',              d:'o fundo de todo o site'},
+  {k:'surface',  l:'Cartões',            d:'as caixas que ficam sobre o fundo'},
+  {k:'elevated', l:'Menus e janelas',    d:'o que abre por cima de tudo'},
+  {k:'gold',     l:'Cor da tua marca',   d:'botões, preços e destaques'},
+  {k:'text',     l:'Texto',              d:'títulos e texto normal'},
+  {k:'textSec',  l:'Texto mais claro',   d:'legendas e letras pequenas'},
+  {k:'border',   l:'Linhas',             d:'contornos e separadores'},
 ]
+
+/*
+ * Os codigos de cor (#0A0807) estavam sempre a vista, um por linha, em letra
+ * de maquina, ao lado de nomes como "--gold". Um barbeiro a ver isto pela
+ * primeira vez ve sete linhas de codigo e conclui que o programa nao e para
+ * ele — foi o que aconteceu numa visita a 25/09/2026.
+ *
+ * O circulo de cor chega para escolher: abre o seletor do proprio telemovel.
+ * O codigo continua la para quem tem a cor da marca escrita num papel, mas
+ * so quando o pede.
+ */
+const CtxCodigos = React.createContext(false)
 const TEMA_OMISSAO={
   colors:{bg:'#0A0807',surface:'#141210',elevated:'#1C1915',gold:'#C9A227',
           text:'#EDE8DF',textSec:'#8A8272',border:'#221E18'},
@@ -69,6 +81,7 @@ function normalizarTema(t){
 }
 
 function LinhaCor({campo,valor,onChange}){
+  const mostrarCodigo=React.useContext(CtxCodigos)
   return(
     <div style={{display:'flex',alignItems:'center',gap:13,padding:'11px 0',borderBottom:`1px solid ${BD}`}}>
       <label style={{width:36,height:36,borderRadius:9,flexShrink:0,cursor:'pointer',overflow:'hidden',
@@ -78,10 +91,12 @@ function LinhaCor({campo,valor,onChange}){
       </label>
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontSize:13,fontWeight:600,color:T}}>{campo.l}</div>
-        <div style={{fontSize:11,color:T3,marginTop:1,fontFamily:'monospace'}}>{campo.d}</div>
+        <div style={{fontSize:11,color:T3,marginTop:1}}>{campo.d}</div>
       </div>
-      <Inp value={valor} onChange={e=>onChange(e.target.value)}
-        style={{width:100,fontFamily:'monospace',fontSize:12.5,textTransform:'uppercase'}}/>
+      {mostrarCodigo&&(
+        <Inp value={valor} onChange={e=>onChange(e.target.value)}
+          style={{width:100,fontFamily:'monospace',fontSize:12.5,textTransform:'uppercase'}}/>
+      )}
     </div>
   )
 }
@@ -644,6 +659,8 @@ export function DesignTab({biz,onGuardado,demo=false}){
     loyalty:{...LOYALTY_OMISSAO,...(settingsAtuais.loyalty||{})},
   }:null
   const [iconeAEnviar,setIconeAEnviar]=useState(false)
+  // Os codigos hexadecimais so aparecem a quem os pede. Ver CtxCodigos.
+  const [codigosDeCor,setCodigosDeCor]=useState(false)
   // O que se diz depois de encolher uma foto grande. Sem isto, a pessoa
   // larga um ficheiro de 4 MB e não percebe porque é que ficou nítido na
   // mesma — nem que o trabalho foi feito.
@@ -821,9 +838,16 @@ export function DesignTab({biz,onGuardado,demo=false}){
           <Card>
             <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:4}}>Cores</div>
             <div style={{fontSize:12.5,color:T2,marginBottom:6}}>
-              Cada uma corresponde a uma variável CSS da app de cliente.
+              Toca no círculo de cada linha e escolhe a cor. Vês logo o resultado ao lado.
             </div>
-            {CAMPOS_COR.map(c=><LinhaCor key={c.k} campo={c} valor={tema.colors[c.k]} onChange={v=>cor(c.k,v)}/>)}
+            <CtxCodigos.Provider value={codigosDeCor}>
+              {CAMPOS_COR.map(c=><LinhaCor key={c.k} campo={c} valor={tema.colors[c.k]} onChange={v=>cor(c.k,v)}/>)}
+            </CtxCodigos.Provider>
+            <button type="button" onClick={()=>setCodigosDeCor(v=>!v)}
+              style={{marginTop:12,background:'none',border:'none',padding:0,cursor:'pointer',
+                font:'inherit',fontSize:11.5,color:T3,textDecoration:'underline'}}>
+              {codigosDeCor?'Esconder os códigos de cor':'Tenho o código da minha cor (ex.: #C9A227)'}
+            </button>
           </Card>
         )}
 
@@ -881,13 +905,13 @@ export function DesignTab({biz,onGuardado,demo=false}){
             <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:16}}>Tipografia e forma</div>
             <div style={{display:'grid',gridTemplateColumns:telemovel?'1fr':'1fr 1fr',gap:16,marginBottom:18}}>
               <div>
-                <Lbl>Títulos — --font-head</Lbl>
+                <Lbl>Letra dos títulos</Lbl>
                 <Sel value={tema.fonts.heading} onChange={e=>fonte('heading',e.target.value)}>
                   {FONTES.map(f=><option key={f} value={f} style={{background:W2}}>{f}</option>)}
                 </Sel>
               </div>
               <div>
-                <Lbl>Corpo — --font-body</Lbl>
+                <Lbl>Letra do texto</Lbl>
                 <Sel value={tema.fonts.body} onChange={e=>fonte('body',e.target.value)}>
                   {FONTES.map(f=><option key={f} value={f} style={{background:W2}}>{f}</option>)}
                 </Sel>
@@ -1039,13 +1063,14 @@ export function DesignTab({biz,onGuardado,demo=false}){
                   </div>
                 </div>
               </div>
+              {/* Isto dizia ao barbeiro que as "chaves" gravadas eram --bg, --gold
+                  e --font-head, e falava do applyTheme. Era uma nota de
+                  programador a aparecer a quem so quer escolher uma cor.
+                  O que ele precisa de saber e uma coisa so: depois de gravar,
+                  recarrega o site para ver. */}
               <div style={{padding:'12px 14px',borderRadius:10,background:`${O}0C`,border:`1px solid ${O}30`,
                 fontSize:12,color:T2,lineHeight:1.6}}>
-                As chaves gravadas aqui são exatamente as que a app de cliente vai ler
-                (<b style={{color:T,fontFamily:'monospace'}}>--bg</b>,
-                <b style={{color:T,fontFamily:'monospace'}}> --gold</b>,
-                <b style={{color:T,fontFamily:'monospace'}}> --font-head</b>…).
-                O <b style={{color:T}}>applyTheme</b> da app de cliente lê-as no arranque; basta recarregar o site depois de gravar.
+                Depois de gravares, recarrega o site da tua barbearia para veres as mudanças.
               </div>
             </div>
           </Card>

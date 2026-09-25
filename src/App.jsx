@@ -126,8 +126,11 @@ function AppRoutes() {
         <Route path="/" element={<Navigate to="/admin" replace />} />
 
         {/* Admin com layout */}
-        <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
-        <Route path="/admin" element={<AdminRoute><Dashboard /></AdminRoute>} />
+        {/* A agenda e a casa: e o primeiro ecra que ele abre de manha e o
+            que quer ver o dia todo. O dashboard continua inteiro, em
+            /admin/dashboard e no menu — so deixou de ser a porta de entrada. */}
+        <Route path="/admin" element={<Navigate to="/admin/agenda" replace />} />
+        <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
         <Route path="/admin/agenda" element={<AdminRoute><Agenda /></AdminRoute>} />
         <Route path="/admin/agenda/marcacoes" element={<AdminRoute><AdminAppointments /></AdminRoute>} />
         <Route path="/admin/agenda/lista-espera" element={<AdminRoute><AgendaWaitlist /></AdminRoute>} />

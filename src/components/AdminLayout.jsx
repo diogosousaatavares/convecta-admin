@@ -18,12 +18,8 @@ import AcordoRgpd from '@/components/AcordoRgpd';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 
 const GROUPS_TODOS = [
-  { type: 'item', to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-
-  // A area de personalizacao: e daqui que o dono desenha o que os clientes veem.
-  { type: 'item', to: '/admin/o-meu-site', label: 'O Meu Site', icon: Palette },
-  { type: 'item', to: '/admin/redes-sociais', label: 'Redes sociais', icon: Megaphone },
-
+  // A agenda vem primeiro porque e onde ele vive. O dashboard e para quando
+  // quer ver as contas — nao e por onde comeca o dia.
   { type: 'group', label: 'Agenda', icon: CalendarDays, items: [
     { to: '/admin/agenda', label: 'Agenda', exact: true },
     { to: '/admin/agenda/marcacoes', label: 'Marcações' },
@@ -33,6 +29,12 @@ const GROUPS_TODOS = [
     { to: '/admin/agenda/bloqueios', label: 'Bloqueios' },
     { to: '/admin/horarios', label: 'Horário da barbearia' }
   ]},
+
+  { type: 'item', to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+
+  // A area de personalizacao: e daqui que o dono desenha o que os clientes veem.
+  { type: 'item', to: '/admin/o-meu-site', label: 'O Meu Site', icon: Palette },
+  { type: 'item', to: '/admin/redes-sociais', label: 'Redes sociais', icon: Megaphone },
 
   { type: 'group', label: 'Clientes', icon: Users, items: [
     { to: '/admin/clientes', label: 'Clientes', exact: true },
@@ -165,7 +167,7 @@ const PASSOS_DEMO = [
     texto: 'Histórico, o que gastaram, quantos carimbos têm. Quem chega ao décimo corte tem o próximo grátis — e tu vês isso antes de ele entrar pela porta.' },
   { rota: '/admin/relatorios', alvo: 'relatorio', titulo: 'O fim do mês',
     texto: 'Escolhes o mês e descarregas um Excel pronto para o contabilista. Acabou o saco de talões.' },
-  { rota: '/admin', alvo: 'atualizar', titulo: 'É isto',
+  { rota: '/admin/agenda', alvo: 'atualizar', titulo: 'É isto',
     texto: 'Agora é teu: marca, confirma, cobra, experimenta tudo. O que fizeres aqui desaparece de hora a hora. Quando quiseres isto para a tua barbearia, fala connosco.' },
 ];
 /*
@@ -185,7 +187,7 @@ const PASSOS_DEMO = [
  * ele tem mesmo de fazer hoje.
  */
 const PASSOS_BARBEIRO = [
-  { rota: '/admin', alvo: 'link-barbearia', titulo: 'Este é o teu endereço',
+  { rota: '/admin/dashboard', alvo: 'link-barbearia', titulo: 'Este é o teu endereço',
     texto: 'O site da tua barbearia já está no ar. É este link que vais pôr no Instagram e mandar aos clientes — copia-se com um toque.' },
   { rota: '/admin/servicos', alvo: 'servicos', titulo: 'Confirma os teus preços',
     texto: 'Criámos alguns serviços para arrancares. Apaga os que não fazes, muda os preços e a duração de cada um — a duração é o que decide as horas que o cliente vê.' },
@@ -480,7 +482,7 @@ export default function AdminLayout({ children }) {
             perguntado — e ficava sem campainha nenhuma. */}
         {/* Pedir para ligar: em todas as paginas. A linha "ligadas, testar":
             so no Dashboard, e so uma vez por dia — em Definicoes esta sempre. */}
-        {location.pathname !== '/admin/subscricao' && <AvisoPush businessId={data.business?.id} userId={user?.id} papel="admin" comTeste={location.pathname === '/admin'} />}
+        {location.pathname !== '/admin/subscricao' && <AvisoPush businessId={data.business?.id} userId={user?.id} papel="admin" comTeste={location.pathname === '/admin/dashboard'} />}
         {/* A subscricao vem DEPOIS das notificacoes de proposito: a campainha
             e o que faz o produto funcionar no primeiro dia; o cartao e o que
             o faz durar. Por esta ordem, e nao ao contrario. Na propria pagina
