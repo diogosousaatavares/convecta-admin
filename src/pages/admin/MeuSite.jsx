@@ -532,8 +532,96 @@ function Previsualizacao({tema,info,biz,endereco}){
 }
 
 // ── Aba Design ─────────────────────────────────────────────────────────────
-const PAINEIS=[{id:'sugestao',l:'Sugestão'},{id:'cores',l:'Cores'},{id:'fundo',l:'Fundo'},{id:'tipo',l:'Tipografia'},
-               {id:'info',l:'Conteúdo'},{id:'galeria',l:'Galeria'},{id:'marca',l:'Marca'}]
+const PAINEIS=[{id:'guia',l:'Guia'},{id:'sugestao',l:'Sugestão'},{id:'cores',l:'Cores'},{id:'fundo',l:'Fundo'},
+               {id:'tipo',l:'Tipografia'},{id:'info',l:'Conteúdo'},{id:'galeria',l:'Galeria'},{id:'marca',l:'Marca'}]
+
+/*
+ * O guia.
+ *
+ * Ate 25/09/2026 quem abria "O Meu Site" caia directamente na lista de cores:
+ * sete linhas seguidas, cada uma com um codigo. Um barbeiro numa visita olhou
+ * e disse "isto e cheio de codigos" — e tinha razao, porque nada ali lhe dizia
+ * por onde comecar nem que podia nao comecar de todo.
+ *
+ * Este ecra e agora o primeiro. Da duas saidas, e a primeira e a de quem nao
+ * quer mexer em nada: poe o logotipo e nos fazemos o desenho. So depois vem o
+ * passo a passo para quem quer escolher.
+ */
+function Passo({n,titulo,texto,botao,onIr}){
+  return(
+    <div style={{display:'flex',gap:13,padding:'13px 0',borderBottom:`1px solid ${BD}`}}>
+      <div style={{width:26,height:26,borderRadius:'50%',flexShrink:0,display:'grid',placeItems:'center',
+        background:`${Y}1F`,color:Y,fontSize:13,fontWeight:800}}>{n}</div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:13.5,fontWeight:700,color:T}}>{titulo}</div>
+        <div style={{fontSize:12.5,color:T2,marginTop:3,lineHeight:1.55}}>{texto}</div>
+        {botao&&(
+          <Btn v="ghost" onClick={onIr} style={{marginTop:9,padding:'7px 12px',fontSize:12}}>{botao}</Btn>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function PainelGuia({demo,temLogo,ir}){
+  return(
+    <div style={{display:'flex',flexDirection:'column',gap:16}}>
+      <Card>
+        <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:4}}>Isto é o site que os teus clientes veem</div>
+        <div style={{fontSize:12.5,color:T2,lineHeight:1.6}}>
+          Muda o que quiseres e vê o resultado no telemóvel aqui ao lado.
+          {demo
+            ?' Nesta demonstração nada é gravado — mexe à vontade.'
+            :' Nada chega ao site dos teus clientes até carregares em Guardar, aqui em baixo.'}
+        </div>
+      </Card>
+
+      <Card>
+        <div style={{fontSize:11,letterSpacing:1,textTransform:'uppercase',color:T3,fontWeight:700,marginBottom:6}}>
+          O caminho curto
+        </div>
+        <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:4}}>Não queres andar a escolher cores?</div>
+        <div style={{fontSize:12.5,color:T2,lineHeight:1.6,marginBottom:12}}>
+          Põe o teu logótipo e nós tratamos do resto: lemos as cores dele e montamos
+          três desenhos prontos. Escolhes o que gostares mais e está feito — sem
+          escolher uma cor sequer.
+        </div>
+        <Btn onClick={()=>ir(temLogo?'sugestao':'marca')}>
+          {temLogo?'Ver os três desenhos':'Pôr o meu logótipo'}
+        </Btn>
+      </Card>
+
+      <Card>
+        <div style={{fontSize:11,letterSpacing:1,textTransform:'uppercase',color:T3,fontWeight:700,marginBottom:6}}>
+          Ou fazes tu
+        </div>
+        <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:10}}>Quatro passos, por esta ordem</div>
+
+        <Passo n="1" titulo="O teu logótipo e o nome"
+          texto="É o que aparece em cima, no site e no telemóvel do cliente. Se tiveres o logótipo no telemóvel, é arrastar para lá."
+          botao="Ir para Marca" onIr={()=>ir('marca')}/>
+
+        <Passo n="2" titulo="As cores"
+          texto="Toca no círculo de cada linha e escolhe a cor no seletor do teu telemóvel. Não precisas de saber nenhum código — a mais importante é a «Cor da tua marca», que pinta os botões e os preços."
+          botao="Ir para Cores" onIr={()=>ir('cores')}/>
+
+        <Passo n="3" titulo="A capa, os textos e as fotos"
+          texto="A fotografia grande lá de cima, a morada, o telefone e as fotos dos cortes. É isto que faz o site parecer a tua barbearia e não um site qualquer."
+          botao="Ir para Conteúdo" onIr={()=>ir('info')}/>
+
+        <Passo n="4" titulo={demo?'No teu painel, Guardar':'Guardar'}
+          texto={demo
+            ?'Aqui não há nada para guardar: isto é uma demonstração. No painel da tua barbearia há um botão Guardar em baixo, e é só depois disso que os teus clientes veem as mudanças.'
+            :'Carrega em Guardar, aqui em baixo. Só a partir daí é que os teus clientes veem as mudanças — até lá ninguém vê nada.'}/>
+
+        <div style={{fontSize:12,color:T3,marginTop:12,lineHeight:1.55}}>
+          Se te perderes ou não gostares do que fizeste, volta ao caminho curto:
+          as sugestões repõem tudo de uma vez.
+        </div>
+      </Card>
+    </div>
+  )
+}
 
 
 // Pre-visualizacao do fundo animado. Repete o desenho do convecta-client em
@@ -608,7 +696,8 @@ export function DesignTab({biz,onGuardado,demo=false}){
   // No telemovel a pre-visualizacao abre-se por cima, a pedido.
   const[previaAberta,setPreviaAberta]=useState(false)
   const[larguraPrevia,setLarguraPrevia]=useState(()=>larguraDaPrevia())
-  const[painel,setPainel]=useState('cores')
+  // Comecava em 'cores' — a lista de codigos era a primeira coisa que ele via.
+  const[painel,setPainel]=useState('guia')
   const[tema,setTema]=useState(()=>structuredClone(TEMA_OMISSAO))
   const[info,setInfo]=useState({tagline:'',description:'',coverImageUrl:'',
     amenities:[],social:{instagram:'',facebook:'',tiktok:''},loyalty:{...LOYALTY_OMISSAO}})
@@ -827,6 +916,10 @@ export function DesignTab({biz,onGuardado,demo=false}){
                 color:painel===pn.id?Y:T2,transition:'background .15s,color .15s'}}>{pn.l}</button>
           ))}
         </div>
+
+        {painel==='guia'&&(
+          <PainelGuia demo={demo} temLogo={!!(logoUrl||tema.favicon)} ir={setPainel}/>
+        )}
 
         {painel==='sugestao'&&(
           <SugestaoDesign biz={bizVisto} logo={logoUrl||tema.favicon} endereco={endereco}
