@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import MbIcon from '@/components/MbIcon';
-import { LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog, Clock, Settings, Bell, BarChart3, Menu, X, LogOut, Wallet, Package, Megaphone, Star, ChevronDown, DollarSign, Palette, Gift, Repeat, Ticket, ReceiptText, CreditCard, UserPlus, Search, Plus, HelpCircle, Phone, Mail, Send, Smartphone } from 'lucide-react';
+import { MoreHorizontal, LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog, Clock, Settings, Bell, BarChart3, Menu, X, LogOut, Wallet, Package, Megaphone, Star, ChevronDown, DollarSign, Palette, Gift, Repeat, Ticket, ReceiptText, CreditCard, UserPlus, Search, Plus, HelpCircle, Phone, Mail, Send, Smartphone } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
@@ -19,129 +19,130 @@ import { vigiarTabelas } from '@/lib/tabelaMobile';
 import PrimeirosPassos from '@/components/PrimeirosPassos';
 
 const GROUPS_TODOS = [
-  // A agenda vem primeiro porque e onde ele vive. O dashboard e para quando
-  // quer ver as contas — nao e por onde comeca o dia.
-  { type: 'group', label: 'Agenda', icon: CalendarDays, items: [
+  /*
+   * Sete entradas. Eram treze, com 63 destinos por baixo.
+   *
+   * Um barbeiro que entra pela primeira vez via sessenta e oito sitios para
+   * onde ir e nao sabia por onde comecar — e foi exactamente isso que dois
+   * deles disseram por palavras deles: "e confusa", "a BUK e mais simples".
+   *
+   * Nada foi apagado. Todas as paginas continuam a existir e todos os
+   * enderecos continuam a funcionar: o que mudou foi so a arrumacao. O que
+   * nao se usa todas as semanas desceu para "Mais", e o que tem uma
+   * pagina-mae (Financeiro, Relatorios, Definicoes) passa a ser alcancado
+   * por ela em vez de ter dez linhas no menu.
+   */
+
+  // O dia de trabalho. E aqui que ele vive.
+  { type: 'group', label: 'Hoje', icon: CalendarDays, items: [
     { to: '/admin/agenda', label: 'Agenda', exact: true },
     { to: '/admin/agenda/marcacoes', label: 'Marcações' },
-    { to: '/admin/agenda/pack', label: 'Pack mensal' },
-    { to: '/admin/agenda/lista-espera', label: 'Lista de Espera' },
+    { to: '/admin/agenda/lista-espera', label: 'Lista de espera' },
     { to: '/admin/agenda/encaixes', label: 'Encaixes' },
-    { to: '/admin/agenda/bloqueios', label: 'Bloqueios' },
-    { to: '/admin/horarios', label: 'Horário da barbearia' }
+    { to: '/admin/agenda/bloqueios', label: 'Bloqueios' }
   ]},
-
-  { type: 'item', to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-
-  // A area de personalizacao: e daqui que o dono desenha o que os clientes veem.
-  { type: 'item', to: '/admin/o-meu-site', label: 'O Meu Site', icon: Palette },
-  { type: 'item', to: '/admin/redes-sociais', label: 'Redes sociais', icon: Megaphone },
 
   { type: 'group', label: 'Clientes', icon: Users, items: [
     { to: '/admin/clientes', label: 'Clientes', exact: true },
-    { to: '/admin/clientes/aniversarios', label: 'Aniversários' }
-  ]},
-
-  { type: 'group', label: 'Profissionais', icon: UserCog, items: [
-    { to: '/admin/profissionais', label: 'Profissionais', exact: true },
-    { to: '/admin/profissionais/equipa', label: 'Equipa e acessos' },
-    { to: '/admin/profissionais/horarios', label: 'Horários' },
-    { to: '/admin/profissionais/ferias', label: 'Férias' },
-    { to: '/admin/profissionais/comissoes', label: 'Comissões' },
-    { to: '/admin/profissionais/desempenho', label: 'Desempenho' },
+    { to: '/admin/clientes/aniversarios', label: 'Aniversários' },
     { to: '/admin/avaliacoes', label: 'Avaliações' }
   ]},
 
-  { type: 'group', label: 'Serviços', icon: Scissors, items: [
-    { to: '/admin/servicos', label: 'Serviços', exact: true },
-    { to: '/admin/servicos/categorias', label: 'Categorias' }
+  // Os barbeiros e tudo o que lhes diz respeito, incluindo o horario da casa
+  // — que e a pergunta que se faz logo a seguir a "quem trabalha aqui".
+  { type: 'group', label: 'Equipa', icon: UserCog, items: [
+    { to: '/admin/profissionais', label: 'Profissionais', exact: true },
+    { to: '/admin/profissionais/equipa', label: 'Equipa e acessos' },
+    { to: '/admin/horarios', label: 'Horário da barbearia' },
+    { to: '/admin/profissionais/horarios', label: 'Horários de cada um' },
+    { to: '/admin/profissionais/ferias', label: 'Férias e folgas' },
+    { to: '/admin/profissionais/comissoes', label: 'Comissões' }
   ]},
 
-  { type: 'group', label: 'Inventário', icon: Package, items: [
-    { to: '/admin/produtos', label: 'Produtos', exact: true },
+  { type: 'group', label: 'Serviços e produtos', icon: Scissors, items: [
+    { to: '/admin/servicos', label: 'Serviços', exact: true },
+    { to: '/admin/servicos/categorias', label: 'Categorias' },
+    { to: '/admin/produtos', label: 'Produtos' },
     { to: '/admin/produtos/stock', label: 'Stock' },
-    { to: '/admin/produtos/movimentos', label: 'Movimentos' },
+    { to: '/admin/produtos/movimentos', label: 'Entradas e saídas de stock' },
     { to: '/admin/produtos/fornecedores', label: 'Fornecedores' }
   ]},
 
-  { type: 'group', label: 'Comandas', icon: ReceiptText, items: [
-    { to: '/admin/comandas/abertas', label: 'Abertas' },
-    { to: '/admin/comandas/pendentes', label: 'Pendentes' },
-    { to: '/admin/comandas/pagas', label: 'Pagas' },
-    { to: '/admin/comandas/canceladas', label: 'Canceladas' },
-    { to: '/admin/comandas/historico', label: 'Histórico' }
-  ]},
-
-  // Pagamentos por MB WAY ao marcar: ligar, número, limite do mês e os
-  // pagamentos à espera de confirmação.
-  // MB WAY com confirmação manual: escondido a 21/09 (dava trabalho a mais
-  // ao barbeiro). Volta quando o pagamento se confirmar sozinho.
-  // { type: 'item', to: '/admin/mbway', label: 'MB WAY', icon: MbIcon, iconSize: 20 },
-
-  { type: 'group', label: 'Financeiro', icon: Wallet, items: [
+  /*
+   * O dinheiro do dia-a-dia. As contas, os fluxos e os historicos vivem na
+   * pagina do Financeiro, que ja e um indice com cartoes — dez linhas de
+   * menu para isso era a razao de ninguem perceber a diferenca entre
+   * "Entradas/Saidas" e "Receitas/Despesas".
+   */
+  { type: 'group', label: 'Dinheiro', icon: Wallet, items: [
     { to: '/admin/financeiro/caixa', label: 'Caixa', exact: true },
-    { to: '/admin/financeiro/historico', label: 'Histórico de Caixa' },
+    { to: '/admin/comandas', label: 'Comandas' },
     { to: '/admin/financeiro/entradas', label: 'Entradas' },
     { to: '/admin/financeiro/saidas', label: 'Saídas' },
-    { to: '/admin/financeiro/receitas', label: 'Receitas' },
-    { to: '/admin/financeiro/despesas', label: 'Despesas' },
-    { to: '/admin/financeiro/comissoes', label: 'Comissões' },
-    { to: '/admin/financeiro/conta-cliente', label: 'Conta de Cliente' },
-    { to: '/admin/financeiro/conta-profissional', label: 'Conta de Profissional' },
-    { to: '/admin/financeiro/fluxo', label: 'Fluxo de Caixa' }
+    { to: '/admin/financeiro/comissoes', label: 'Comissões a pagar' },
+    { to: '/admin/financeiro', label: 'Todas as contas' }
   ]},
 
-  { type: 'group', label: 'Relatórios', icon: BarChart3, items: [
-    { to: '/admin/relatorios', label: 'Resumo', exact: true },
-    { to: '/admin/relatorios/marcacoes', label: 'Marcações' },
-    { to: '/admin/relatorios/clientes', label: 'Clientes' },
-    { to: '/admin/relatorios/profissionais', label: 'Profissionais' },
-    { to: '/admin/relatorios/financeiro', label: 'Financeiro' },
-    { to: '/admin/relatorios/servicos', label: 'Serviços' },
-    { to: '/admin/relatorios/produtos', label: 'Produtos & Stock' },
-    { to: '/admin/relatorios/fidelizacao', label: 'Fidelização' }
-  ]},
-
-  { type: 'group', label: 'Fidelização', icon: Gift, items: [
-    { to: '/admin/fidelizacao/programa', label: 'Cartão de fidelidade' },
-  ]},
-
-  { type: 'group', label: 'Packs', icon: Repeat, items: [
-    { to: '/admin/packs', label: 'Packs à venda', exact: true },
-    { to: '/admin/packs/clientes', label: 'Clientes com pack' },
-    { to: '/admin/packs/pedidos', label: 'Pedidos' }
-  ]},
-
-  { type: 'group', label: 'Promoções', icon: Ticket, items: [
-    { to: '/admin/promocoes', label: 'Promoções', exact: true },
-    { to: '/admin/promocoes/cupoes', label: 'Cupões' }
-  ]},
-
-  { type: 'group', label: 'Definições', icon: Settings, items: [
-    { to: '/admin/definicoes/negocio', label: 'Negócio' },
-    { to: '/admin/definicoes/agenda', label: 'Agenda' },
-    { to: '/admin/definicoes/profissionais', label: 'Profissionais' },
-    { to: '/admin/definicoes/pagamentos', label: 'Pagamentos' },
-    { to: '/admin/definicoes/notificacoes', label: 'Notificações' },
-    { to: '/admin/definicoes/clientes', label: 'Clientes' },
-    // Anamnese escondida (22/09): os formulários gravam-se mas ainda não aparecem na app do cliente.
-    // { to: '/admin/definicoes/anamnese', label: 'Anamnese' },
-    { to: '/admin/definicoes/documentos', label: 'Documentos' },
-    { to: '/admin/definicoes/tema', label: 'Tema e Aparência' },
-    { to: '/admin/definicoes/utilizadores', label: 'Utilizadores e Permissões' },
-    { to: '/admin/definicoes/seguranca', label: 'Segurança' },
-    { to: '/admin/definicoes/parametros', label: 'Parâmetros' }
-  ]},
+  { type: 'item', to: '/admin/o-meu-site', label: 'O meu site', icon: Palette },
 
   /*
-   * A subscricao da barbearia na Convecta — o que ELA nos paga. Nada a ver
-   * com o modulo `Assinaturas`, que e o clube que ela vende aos clientes dela.
+   * Tudo o que nao se usa todas as semanas. Continua a uma distancia de dois
+   * toques, mas deixa de disputar a atencao com a agenda.
    *
-   * Fica em ultimo de proposito: quem ja paga nunca mais aqui volta. Quem
-   * ainda nao pagou nao chega ca por este menu — chega pelo ecra que lhe
-   * aparece quando tenta marcar sem cartao.
+   * ── Porque e que isto ainda e comprido ──────────────────────────────
+   *
+   * As paginas-mae das Definicoes, das Comandas, dos Relatorios e das
+   * Promocoes NAO tem separadores por dentro: cada sub-pagina e um
+   * componente proprio, alcancavel so pelo endereco. Tirar estas linhas do
+   * menu deixava 24 paginas sem porta nenhuma.
+   *
+   * Por isso ficam aqui, dentro de uma gaveta fechada, em vez de estarem
+   * espalhadas por seis grupos no menu de cima. Quando essas quatro paginas
+   * ganharem separadores, estas linhas desaparecem daqui e ficam so as
+   * quatro mae — e a gaveta passa de vinte e cinco para oito.
+   *
+   * O Financeiro e os Packs ja tem separadores proprios (?tab=), e e por
+   * isso que as sub-paginas deles nao estao aqui.
    */
-  { type: 'item', to: '/admin/subscricao', label: 'Subscrição', icon: CreditCard }
+  { type: 'group', label: 'Mais', icon: MoreHorizontal, items: [
+    { to: '/admin/dashboard', label: 'Resumo do negócio', exact: true },
+    { to: '/admin/profissionais/desempenho', label: 'Desempenho da equipa' },
+    { to: '/admin/fidelizacao', label: 'Cartão de fidelidade' },
+    { to: '/admin/packs', label: 'Packs' },
+    { to: '/admin/agenda/pack', label: 'Pack mensal' },
+    { to: '/admin/redes-sociais', label: 'Redes sociais' },
+    { to: '/admin/subscricao', label: 'A minha subscrição' },
+
+    { to: '/admin/promocoes', label: 'Promoções' },
+    { to: '/admin/promocoes/cupoes', label: 'Cupões' },
+
+    { to: '/admin/relatorios', label: 'Relatórios: resumo', exact: true },
+    { to: '/admin/relatorios/marcacoes', label: 'Relatório de marcações' },
+    { to: '/admin/relatorios/clientes', label: 'Relatório de clientes' },
+    { to: '/admin/relatorios/profissionais', label: 'Relatório da equipa' },
+    { to: '/admin/relatorios/financeiro', label: 'Relatório financeiro' },
+    { to: '/admin/relatorios/servicos', label: 'Relatório de serviços' },
+    { to: '/admin/relatorios/produtos', label: 'Relatório de produtos' },
+    { to: '/admin/relatorios/fidelizacao', label: 'Relatório de fidelização' },
+
+    { to: '/admin/comandas/abertas', label: 'Comandas abertas' },
+    { to: '/admin/comandas/pendentes', label: 'Comandas pendentes' },
+    { to: '/admin/comandas/pagas', label: 'Comandas pagas' },
+    { to: '/admin/comandas/canceladas', label: 'Comandas canceladas' },
+    { to: '/admin/comandas/historico', label: 'Histórico de comandas' },
+
+    { to: '/admin/definicoes/negocio', label: 'Definições: negócio' },
+    { to: '/admin/definicoes/agenda', label: 'Definições: agenda' },
+    { to: '/admin/definicoes/profissionais', label: 'Definições: profissionais' },
+    { to: '/admin/definicoes/pagamentos', label: 'Definições: pagamentos' },
+    { to: '/admin/definicoes/notificacoes', label: 'Definições: notificações' },
+    { to: '/admin/definicoes/clientes', label: 'Definições: clientes' },
+    { to: '/admin/definicoes/documentos', label: 'Definições: documentos' },
+    { to: '/admin/definicoes/tema', label: 'Tema do painel' },
+    { to: '/admin/definicoes/utilizadores', label: 'Utilizadores e permissões' },
+    { to: '/admin/definicoes/seguranca', label: 'Segurança' },
+    { to: '/admin/definicoes/parametros', label: 'Parâmetros' }
+  ]}
 ];
 
 // Os modulos que ainda nao guardam nada nao aparecem no menu. Um grupo que

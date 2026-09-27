@@ -205,7 +205,7 @@ function AppRoutes() {
         <Route path="/admin/subscricoes/:tab" element={<Navigate to="/admin/packs" replace />} />
         <Route path="/admin/promocoes" element={<AdminRoute><Marketing /></AdminRoute>} />
         <Route path="/admin/promocoes/cupoes" element={<AdminRoute><Coupons /></AdminRoute>} />
-        <Route path="/admin/definicoes" element={<Navigate to="/admin/definicoes/negocio" replace />} />
+        <Route path="/admin/definicoes" element={<AdminRoute><Definicoes /></AdminRoute>} />
         <Route path="/admin/definicoes/negocio" element={<AdminRoute><Settings /></AdminRoute>} />
         <Route path="/admin/definicoes/anamnese" element={<AdminRoute><AnamneseForms /></AdminRoute>} />
         <Route path="/admin/definicoes/parametros" element={<AdminRoute><Parametros /></AdminRoute>} />
