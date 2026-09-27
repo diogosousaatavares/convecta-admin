@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/ToastContext';
 import { Modal, EmptyState, Button, Card } from '@/components/ui';
 import AvisoPush from '@/components/AvisoPush';
 import authService from '@/lib/authService';
+import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
 
 const TYPE_META = {
   info: { label: 'Informação', icon: Info, cls: '' },
@@ -91,6 +92,7 @@ export default function Notifications() {
 
   return (
     <AdminLayout>
+      <SeparadoresDaFamilia />
       <div className="page-head" data-tour="notificacoes">
         <h1>Notificações</h1>
         <p>Cria e gere os avisos enviados aos clientes na aplicação.</p>

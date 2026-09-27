@@ -20,17 +20,18 @@ import PrimeirosPassos from '@/components/PrimeirosPassos';
 
 const GROUPS_TODOS = [
   /*
-   * Sete entradas. Eram treze, com 63 destinos por baixo.
+   * Oito entradas. Eram treze, com 63 destinos por baixo.
    *
-   * Um barbeiro que entra pela primeira vez via sessenta e oito sitios para
-   * onde ir e nao sabia por onde comecar — e foi exactamente isso que dois
-   * deles disseram por palavras deles: "e confusa", "a BUK e mais simples".
+   * Um barbeiro que entrava pela primeira vez via sessenta e oito sitios para
+   * onde ir e nao sabia por onde comecar — foi o que dois deles disseram por
+   * palavras deles: "e confusa", "a BUK e mais simples".
    *
-   * Nada foi apagado. Todas as paginas continuam a existir e todos os
-   * enderecos continuam a funcionar: o que mudou foi so a arrumacao. O que
-   * nao se usa todas as semanas desceu para "Mais", e o que tem uma
-   * pagina-mae (Financeiro, Relatorios, Definicoes) passa a ser alcancado
-   * por ela em vez de ter dez linhas no menu.
+   * Nada foi apagado: todas as paginas existem e todos os enderecos
+   * funcionam. O que mudou foi a arrumacao.
+   *
+   * Dentro de um grupo, uma linha com `titulo` e um cabecalho — nao se
+   * carrega nela. E o que permite que a gaveta "Mais" seja uma gaveta com
+   * separadores e nao trinta linhas despejadas.
    */
 
   // O dia de trabalho. E aqui que ele vive.
@@ -59,18 +60,23 @@ const GROUPS_TODOS = [
     { to: '/admin/profissionais/comissoes', label: 'Comissões' }
   ]},
 
-  { type: 'group', label: 'Serviços e produtos', icon: Scissors, items: [
+  // Separados: "Servicos e produtos" numa linha so partia ao meio na barra
+  // lateral e ficava a ocupar duas linhas.
+  { type: 'group', label: 'Serviços', icon: Scissors, items: [
     { to: '/admin/servicos', label: 'Serviços', exact: true },
-    { to: '/admin/servicos/categorias', label: 'Categorias' },
-    { to: '/admin/produtos', label: 'Produtos' },
+    { to: '/admin/servicos/categorias', label: 'Categorias' }
+  ]},
+
+  { type: 'group', label: 'Produtos', icon: Package, items: [
+    { to: '/admin/produtos', label: 'Produtos', exact: true },
     { to: '/admin/produtos/stock', label: 'Stock' },
-    { to: '/admin/produtos/movimentos', label: 'Entradas e saídas de stock' },
+    { to: '/admin/produtos/movimentos', label: 'Entradas e saídas' },
     { to: '/admin/produtos/fornecedores', label: 'Fornecedores' }
   ]},
 
   /*
    * O dinheiro do dia-a-dia. As contas, os fluxos e os historicos vivem na
-   * pagina do Financeiro, que ja e um indice com cartoes — dez linhas de
+   * pagina do Financeiro, que ja e um indice com separadores — dez linhas de
    * menu para isso era a razao de ninguem perceber a diferenca entre
    * "Entradas/Saidas" e "Receitas/Despesas".
    */
@@ -86,62 +92,24 @@ const GROUPS_TODOS = [
   { type: 'item', to: '/admin/o-meu-site', label: 'O meu site', icon: Palette },
 
   /*
-   * Tudo o que nao se usa todas as semanas. Continua a uma distancia de dois
-   * toques, mas deixa de disputar a atencao com a agenda.
+   * A gaveta. Tudo o que nao se usa todas as semanas, uma linha por assunto.
    *
-   * ── Porque e que isto ainda e comprido ──────────────────────────────
-   *
-   * As paginas-mae das Definicoes, das Comandas, dos Relatorios e das
-   * Promocoes NAO tem separadores por dentro: cada sub-pagina e um
-   * componente proprio, alcancavel so pelo endereco. Tirar estas linhas do
-   * menu deixava 24 paginas sem porta nenhuma.
-   *
-   * Por isso ficam aqui, dentro de uma gaveta fechada, em vez de estarem
-   * espalhadas por seis grupos no menu de cima. Quando essas quatro paginas
-   * ganharem separadores, estas linhas desaparecem daqui e ficam so as
-   * quatro mae — e a gaveta passa de vinte e cinco para oito.
-   *
-   * O Financeiro e os Packs ja tem separadores proprios (?tab=), e e por
-   * isso que as sub-paginas deles nao estao aqui.
+   * Tinha trinta e duas linhas ate as Definicoes, as Comandas, os Relatorios
+   * e as Promocoes ganharem separadores por dentro (ver
+   * SeparadoresDaFamilia). A partir dai, o menu so precisa da porta: as
+   * paginas irmas alcancam-se umas as outras la dentro.
    */
   { type: 'group', label: 'Mais', icon: MoreHorizontal, items: [
     { to: '/admin/dashboard', label: 'Resumo do negócio', exact: true },
+    { to: '/admin/relatorios', label: 'Relatórios' },
     { to: '/admin/profissionais/desempenho', label: 'Desempenho da equipa' },
     { to: '/admin/fidelizacao', label: 'Cartão de fidelidade' },
     { to: '/admin/packs', label: 'Packs' },
     { to: '/admin/agenda/pack', label: 'Pack mensal' },
+    { to: '/admin/promocoes', label: 'Promoções e cupões' },
     { to: '/admin/redes-sociais', label: 'Redes sociais' },
-    { to: '/admin/subscricao', label: 'A minha subscrição' },
-
-    { to: '/admin/promocoes', label: 'Promoções' },
-    { to: '/admin/promocoes/cupoes', label: 'Cupões' },
-
-    { to: '/admin/relatorios', label: 'Relatórios: resumo', exact: true },
-    { to: '/admin/relatorios/marcacoes', label: 'Relatório de marcações' },
-    { to: '/admin/relatorios/clientes', label: 'Relatório de clientes' },
-    { to: '/admin/relatorios/profissionais', label: 'Relatório da equipa' },
-    { to: '/admin/relatorios/financeiro', label: 'Relatório financeiro' },
-    { to: '/admin/relatorios/servicos', label: 'Relatório de serviços' },
-    { to: '/admin/relatorios/produtos', label: 'Relatório de produtos' },
-    { to: '/admin/relatorios/fidelizacao', label: 'Relatório de fidelização' },
-
-    { to: '/admin/comandas/abertas', label: 'Comandas abertas' },
-    { to: '/admin/comandas/pendentes', label: 'Comandas pendentes' },
-    { to: '/admin/comandas/pagas', label: 'Comandas pagas' },
-    { to: '/admin/comandas/canceladas', label: 'Comandas canceladas' },
-    { to: '/admin/comandas/historico', label: 'Histórico de comandas' },
-
-    { to: '/admin/definicoes/negocio', label: 'Definições: negócio' },
-    { to: '/admin/definicoes/agenda', label: 'Definições: agenda' },
-    { to: '/admin/definicoes/profissionais', label: 'Definições: profissionais' },
-    { to: '/admin/definicoes/pagamentos', label: 'Definições: pagamentos' },
-    { to: '/admin/definicoes/notificacoes', label: 'Definições: notificações' },
-    { to: '/admin/definicoes/clientes', label: 'Definições: clientes' },
-    { to: '/admin/definicoes/documentos', label: 'Definições: documentos' },
-    { to: '/admin/definicoes/tema', label: 'Tema do painel' },
-    { to: '/admin/definicoes/utilizadores', label: 'Utilizadores e permissões' },
-    { to: '/admin/definicoes/seguranca', label: 'Segurança' },
-    { to: '/admin/definicoes/parametros', label: 'Parâmetros' }
+    { to: '/admin/definicoes', label: 'Definições' },
+    { to: '/admin/subscricao', label: 'A minha subscrição' }
   ]}
 ];
 
@@ -149,8 +117,27 @@ const GROUPS_TODOS = [
 // fique sem nenhum item desaparece por inteiro — um cabecalho vazio no menu
 // levanta a mesma pergunta que o modulo levantava.
 const GROUPS = GROUPS_TODOS
-  .map(g => g.items ? { ...g, items: g.items.filter(it => !moduloIndisponivel(it.to)) } : g)
-  .filter(g => !g.items || g.items.length > 0);
+  // Um cabecalho (`titulo`) nao tem endereco e passa sempre. Um cabecalho que
+  // fique sem nenhuma linha por baixo desaparece com elas — senao ficava um
+  // titulo a anunciar o vazio.
+  .map(g => g.items ? { ...g, items: semTitulosOrfaos(g.items.filter(it => it.titulo || !moduloIndisponivel(it.to))) } : g)
+  .filter(g => !g.items || g.items.some(it => !it.titulo));
+
+/*
+ * Um cabecalho so fica se tiver pelo menos uma linha sua por baixo — ou
+ * seja, se antes do cabecalho seguinte houver algo em que se possa carregar.
+ * Sem isto, esconder um modulo deixava no menu um titulo a anunciar o nada.
+ */
+function semTitulosOrfaos(itens) {
+  return itens.filter((it, i) => {
+    if (!it.titulo) return true;
+    for (let k = i + 1; k < itens.length; k++) {
+      if (itens[k].titulo) return false;
+      return true;
+    }
+    return false;
+  });
+}
 
 // Na demonstracao a conta e publica. Se alguem lhe mudar a palavra-passe ou
 // apagar utilizadores, tranca a demo a toda a gente ate a proxima reposicao.
@@ -375,7 +362,9 @@ export default function AdminLayout({ children }) {
               </button>
               {isExp && (
                 <div className="nav-sub">
-                  {g.items.map(it => (
+                  {g.items.map(it => it.titulo ? (
+                    <div key={`t-${it.titulo}`} className="nav-sub-titulo">{it.titulo}</div>
+                  ) : (
                     <Link key={it.to} to={it.to} className={`nav-sub-item ${isActive(it) ? 'active' : ''}`} onClick={() => setOpen(false)}>
                       <span className="bullet" />
                       {it.label}

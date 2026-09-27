@@ -7,6 +7,7 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatDate, todayStr } from '@/lib/format';
+import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
 
 const TYPES = [
   { key: 'discount', label: 'Desconto', icon: Percent },
@@ -44,6 +45,7 @@ export default function Marketing() {
 
   return (
     <AdminLayout>
+      <SeparadoresDaFamilia />
       <div className="page-head">
         <h1>Marketing &amp; Promoções</h1>
         <p>Campanhas, descontos e programa de fidelidade</p>

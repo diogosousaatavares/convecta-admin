@@ -6,6 +6,7 @@ import PageInfo from '@/components/admin/PageInfo';
 import { Card, Button, Modal } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
+import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
 
 export default function Settings() {
   const data = useStore();
@@ -26,6 +27,7 @@ export default function Settings() {
 
   return (
     <AdminLayout>
+      <SeparadoresDaFamilia />
       <div className="page-head">
         <h1>Definições gerais</h1>
         <p>Informação do negócio e dados da barbearia.</p>

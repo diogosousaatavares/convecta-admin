@@ -12,6 +12,7 @@ import { formatPrice, localDateStr } from '@/lib/format';
 import { paidAppointments, netOfPayment, getTotalRevenue, ticketMedio as ticketMedioFn } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
 import { Card, Button, EmptyState } from '@/components/ui';
+import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
 
 const GOLD = '#C9A227';
 const GOLD_SOFT = '#E6C65A';
@@ -112,6 +113,7 @@ export default function Reports() {
 
   return (
     <AdminLayout>
+      <SeparadoresDaFamilia />
       <div className="flex items-center justify-between" style={{ marginBottom: 22, flexWrap: 'wrap', gap: 12 }}>
         <div className="page-head" style={{ margin: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

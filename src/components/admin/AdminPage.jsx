@@ -2,6 +2,7 @@ import React from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
 import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
+import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
 
 const PAGE_BY_TITLE = {
   'Bloqueios': 'bloqueios', 'Encaixes': 'encaixes', 'Lista de Espera': 'listaEspera', 'Aniversários': 'aniversarios',
@@ -35,6 +36,8 @@ export default function AdminPage({ title, subtitle, actions, children, info, pa
         </div>
       </div>
       <PageInfo page={page || PAGE_BY_TITLE[title]} />
+      {/* As paginas irmas desta area, quando as ha. Ver o componente. */}
+      <SeparadoresDaFamilia />
       {children}
     </AdminLayout>
   );
