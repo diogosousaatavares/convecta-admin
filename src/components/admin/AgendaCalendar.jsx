@@ -4,6 +4,7 @@ import { useStore } from '@/hooks/useStore';
 import { todayStr } from '@/lib/format';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import IndicadoresCliente from '@/components/admin/IndicadoresCliente';
 
 const SLOT_H = 48;
 const STEP = 30;
@@ -11,20 +12,6 @@ const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
-
-function getIndicators(a, cust, data) {
-  if (!cust || a.blocked) return {};
-
-  const todayMD = new Date().toISOString().slice(5, 10);
-  const isBirthday = cust.birthDate && cust.birthDate.slice(5, 10) === todayMD;
-  const custAppts = data.appointments.filter(c => c.customerId === cust.id && c.status !== 'cancelled');
-  const isFirst = custAppts.length === 1;
-  const hasCoupon = !!(a.couponCode || a.payment?.coupon);
-  const hasSub = data.subscriptions.some(s => s.customerId === cust.id && s.status === 'active');
-  const inLoyalty = (cust.loyalty?.totalStamps || 0) > 0;
-
-  return { isBirthday, isFirst, hasCoupon, hasSub, inLoyalty };
-}
 
 export default function AgendaCalendar({ date, appts, professionals, services, customers, blockMode, onBlock, onSelect, onNovaNaHora }) {
   const data = useStore();
@@ -155,7 +142,6 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                   const curto = height < 40;
                   const svc = services.find(s => s.id === a.serviceId);
                   const cust = customers.find(c => c.id === a.customerId);
-                  const ind = getIndicators(a, cust, data);
 
                   return (
                     <div
@@ -182,16 +168,10 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                             })()}
                             {a.startTime} · {svc?.name}{curto ? ' ·' : ''}
                           </div>
-                          <div className="ag-b-name">{cust?.name || '—'}</div>
-                          {(ind.isBirthday || ind.isFirst || ind.hasCoupon || ind.hasSub || ind.inLoyalty) && (
-                            <div className="ag-b-indicators">
-                              {ind.isBirthday && <span className="ag-ind" title="Aniversariante">🎂</span>}
-                              {ind.isFirst && <span className="ag-ind" title="1.ª marcação">⭐</span>}
-                              {ind.hasCoupon && <span className="ag-ind" title="Cupão aplicado">🏷️</span>}
-                              {ind.hasSub && <span className="ag-ind" title="Assinatura ativa">📦</span>}
-                              {ind.inLoyalty && <span className="ag-ind" title="Fidelidade">💳</span>}
-                            </div>
-                          )}
+                          <div className="ag-b-cliente">
+                            <span className="ag-b-name">{cust?.name || '—'}</span>
+                            <IndicadoresCliente appt={a} cliente={cust} data={data} />
+                          </div>
                         </>
                       )}
                     </div>

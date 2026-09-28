@@ -1,4 +1,5 @@
 import dataService from '@/lib/dataService';
+import IndicadoresCliente from '@/components/admin/IndicadoresCliente';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ChevronLeft, ChevronRight, ChevronDown, Users, Info, Plus,
@@ -274,7 +275,12 @@ export default function AgendaTelemovel({
                           })()}
                           {a.blocked ? (a.label || 'Bloqueado') : (svc?.name || 'Serviço')}
                         </span>
-                        {!a.blocked && <span className="agm-bloco-cli">{cli?.name || '—'}</span>}
+                        {!a.blocked && (
+                          <span className="agm-bloco-cli">
+                            {cli?.name || '—'}
+                            <IndicadoresCliente appt={a} cliente={cli} data={data} />
+                          </span>
+                        )}
                       </button>
                     );
                   })}
