@@ -205,15 +205,30 @@ input, textarea, select { font-family: inherit; }
 .bell-dot { position: absolute; top: -2px; right: -8px; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2px rgba(10,8,5,0.92); }
 
 /* ===== GOLD PILL BUTTON (brand-consistent) ===== */
+/* ── A regra dos botoes ───────────────────────────────────────────────────
+   Um botao e uma ACCAO ou uma ESCOLHA, e cada uma tem um aspecto so:
+
+   · accao principal   → .btn .btn-primary   (dourado solido; UM por ecra)
+   · accao secundaria  → .btn .btn-secondary (contorno, sem preenchimento)
+   · escolha activa    → pilula com o dourado no texto e no contorno
+
+   Havia quatro aspectos diferentes para a mesma coisa: o dourado solido do
+   .btn-primary, o degrade do "O Meu Site", esta pilula castanha, e o bloco
+   amarelo do .ag-side-btn.active. Lado a lado pareciam de programas
+   diferentes — e na agenda havia dois botoes amarelos grandes a disputar a
+   atencao, quando so a "Nova marcacao" e a accao principal.
+
+   Esta classe fica (e usada no "Venda", ao lado da accao principal) mas
+   passa a ser, a vista, um .btn-secondary. ─────────────────────────────── */
 .btn-gold-pill {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 9px 16px; border-radius: var(--radius-pill);
-  background: #3D341C; color: #D4AF37; font-size: 13px; font-weight: 600;
-  border: 1px solid rgba(var(--gold-rgb),0.42); transition: all 200ms ease; cursor: pointer; white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 22px; border-radius: var(--radius-input);
+  background: transparent; color: var(--text); font-size: 14px; font-weight: 600;
+  border: 1px solid var(--border); transition: all 250ms ease; cursor: pointer; white-space: nowrap;
 }
-.btn-gold-pill:hover:not(:disabled) { background: #4A3E22; border-color: rgba(var(--gold-rgb),0.6); }
+.btn-gold-pill:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
 .btn-gold-pill:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-gold-pill.btn-sm { padding: 7px 13px; font-size: 12.5px; }
+.btn-gold-pill.btn-sm { padding: 8px 14px; font-size: 13px; }
 
 /* ===== NOTIFICATION CARD (brand) ===== */
 .notif-card { background: #1E1E1E; border: 1px solid rgba(var(--gold-rgb),0.22); border-radius: 14px; padding: 16px; transition: border-color 200ms ease, transform 200ms ease; }
@@ -325,7 +340,10 @@ input, textarea, select { font-family: inherit; }
 .ag-side-actions { display: flex; flex-direction: column; gap: 8px; }
 .ag-side-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 14px; border-radius: 8px; background: var(--elevated); border: 1px solid var(--border); color: var(--text-sec); font-size: 13px; font-weight: 600; transition: all 200ms ease; }
 .ag-side-btn:hover { border-color: var(--gold); color: var(--text); }
-.ag-side-btn.active { background: var(--gold); color: #0A0804; border-color: var(--gold); }
+/* Era um bloco amarelo do tamanho do botao principal — dois amarelos
+   grandes no mesmo ecra, e este nem sequer e uma accao: e a vista que esta
+   escolhida. Passa a dizer "estou escolhido" sem gritar. */
+.ag-side-btn.active { background: rgba(var(--gold-rgb),0.12); color: var(--gold); border-color: var(--gold); }
 
 .ag-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .ag-cal-title { font-weight: 600; font-size: 13px; text-transform: capitalize; }
@@ -527,7 +545,7 @@ input, textarea, select { font-family: inherit; }
 .admin-content .btn-primary:hover:not(:disabled) { background: #fff; }
 .admin-content .ag-viewseg button.active,
 .admin-content .period-tabs button.active { background: #3a3a3a; color: #fff; }
-.admin-content .ag-side-btn.active { background: #fff; color: #141414; border-color: #fff; }
+.admin-content .ag-side-btn.active { background: rgba(255,255,255,0.10); color: #fff; border-color: #fff; }
 .admin-content .badge-gold { background: rgba(255,255,255,0.08); color: #fff; }
 .admin-content .badge-warning { background: rgba(255,255,255,0.08); color: #c4c4c4; }
 .admin-content .chip.active,
@@ -1669,7 +1687,7 @@ html.theme-light .admin-layout {
 .aviso-push-txt span { font-size: 13px; color: var(--text-sec); line-height: 1.5; }
 .aviso-push-erro { color: #F08A8A !important; }
 .aviso-push-btn {
-  flex-shrink: 0; align-self: center; padding: 10px 18px; border-radius: 10px; border: none;
+  flex-shrink: 0; align-self: center; padding: 12px 22px; border-radius: var(--radius-input); border: none;
   background: var(--gold); color: #100E0B; font-size: 14px; font-weight: 700;
   cursor: pointer; font-family: inherit;
 }

@@ -25,14 +25,26 @@ export const fmtDate=d=>d?new Date(d).toLocaleDateString('pt-PT'):'—'
 export function Spin({size=16}){return<span style={{display:'inline-block',width:size,height:size,borderRadius:'50%',border:`2px solid ${BD}`,borderTopColor:T2,animation:'spin .7s linear infinite'}}/>}
 export function Logo({size=32}){return<img src='/convecta-logo.png' style={{width:size,height:size,objectFit:'contain',flexShrink:0}} alt=''/>}
 export function Badge({color,children}){return<span style={{fontSize:11,padding:'3px 9px',borderRadius:20,background:`${color}18`,color,fontWeight:700,whiteSpace:'nowrap'}}>{children}</span>}
-export function Btn({v='primary',children,style:s,...p}){
-  const base={padding:'8px 16px',borderRadius:8,border:'none',cursor:'pointer',fontSize:13,fontWeight:700,fontFamily:'inherit',transition:'opacity .15s',...s}
-  const themes={primary:{background:`linear-gradient(100deg,${YD},${Y} 52%,${YD})`,color:TY},secondary:{background:W2,color:T,border:`1px solid ${BD}`},danger:{background:`${R}14`,color:R,border:`1px solid ${R}35`},ghost:{background:'transparent',color:T2}}
-  return<button style={{...base,...themes[v]||themes.primary}} {...p}>{children}</button>
+/*
+ * ── Porque e que estes componentes usam as classes do painel ─────────────
+ *
+ * Isto era um segundo conjunto de pecas, com estilos proprios escritos a
+ * mao: o botao daqui era um degrade com cantos de 8px e letra de 13, o do
+ * resto do painel e dourado liso com cantos maiores e letra de 14. Lado a
+ * lado — o "Guardar design" do Meu Site e o botao da Agenda — pareciam de
+ * dois programas diferentes, e eram.
+ *
+ * Passam todos a desenhar as classes do painel (.btn, .input, .card...).
+ * O aspecto passa a vir de um sitio so: mexer no .btn do index.css muda o
+ * painel inteiro, este ecra incluido. Os `style` que cada sitio ja passava
+ * continuam a valer por cima, para os botoes pequenos e afinacoes locais.
+ */
+export function Btn({v='primary',children,style:s,className:c='',...p}){
+  return <button className={`btn btn-${v} ${c}`.trim()} style={s} {...p}>{children}</button>
 }
-export const Inp=React.forwardRef(({style:s,...p},ref)=><input ref={ref} style={{width:'100%',padding:'9px 12px',borderRadius:8,border:`1px solid ${BD}`,background:'rgba(255,255,255,.04)',color:T,fontSize:13,outline:'none',boxSizing:'border-box',fontFamily:'inherit',...s}} {...p}/>)
-export const Sel=({style:s,children,...p})=><select style={{width:'100%',padding:'9px 12px',borderRadius:8,border:`1px solid ${BD}`,background:W2,color:T,fontSize:13,outline:'none',boxSizing:'border-box',fontFamily:'inherit',...s}} {...p}>{children}</select>
-export const Lbl=({children})=><label style={{fontSize:12,color:T2,marginBottom:5,display:'block',fontWeight:600}}>{children}</label>
-export const Card=({style:s,children,...p})=><div style={{background:W,borderRadius:12,border:`1px solid ${BD}`,padding:20,...s}} {...p}>{children}</div>
+export const Inp=React.forwardRef(({style:s,className:c='',...p},ref)=><input ref={ref} className={`input ${c}`.trim()} style={s} {...p}/>)
+export const Sel=({style:s,className:c='',children,...p})=><select className={`select ${c}`.trim()} style={s} {...p}>{children}</select>
+export const Lbl=({children})=><label className="label">{children}</label>
+export const Card=({style:s,className:c='',children,...p})=><div className={`card card-pad ${c}`.trim()} style={s} {...p}>{children}</div>
 // Área de texto com o mesmo aspeto do Inp. Nova; o painel antigo não tinha.
-export const Ta=({style:s,...p})=><textarea style={{width:'100%',minHeight:84,padding:'9px 12px',borderRadius:8,border:`1px solid ${BD}`,background:'rgba(255,255,255,.04)',color:T,fontSize:13,outline:'none',boxSizing:'border-box',fontFamily:'inherit',lineHeight:1.5,resize:'vertical',...s}} {...p}/>
+export const Ta=({style:s,className:c='',...p})=><textarea className={`textarea ${c}`.trim()} style={{minHeight:84,resize:'vertical',...s}} {...p}/>
