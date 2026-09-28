@@ -2198,3 +2198,27 @@ html.theme-light { --linha-agm: rgba(0, 0, 0, 0.13); }
 @media (min-width: 768px) and (max-width: 1180px) {
   .ag-col, .ag-head-pro { min-width: 96px; }
 }
+
+/* A entrada de cada pagina.
+   Substitui o <motion.div> do framer-motion, que eram 112 kB de biblioteca
+   carregados em todas as aberturas do painel para fazer subir a pagina 28
+   pixeis. O browser faz isto sozinho, sem descarregar nada. */
+@keyframes pagina-entra-sobe {
+  from { transform: translateY(28px); }
+  to   { transform: translateY(0); }
+}
+.pagina-entra {
+  animation: pagina-entra-sobe 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pagina-entra-curta {
+  animation-duration: 250ms;
+  animation-name: pagina-entra-sobe-curta;
+}
+@keyframes pagina-entra-sobe-curta {
+  from { transform: translateY(6px); }
+  to   { transform: translateY(0); }
+}
+/* Quem pediu menos movimento ao sistema nao leva movimento nenhum. */
+@media (prefers-reduced-motion: reduce) {
+  .pagina-entra, .pagina-entra-curta { animation: none; }
+}

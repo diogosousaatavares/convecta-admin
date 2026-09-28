@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ExternalLink, Scissors, X, Check } from 'lucide-react';
 import dataService from '@/lib/dataService';
 import { DOMINIO_BASE as APPS } from '@/lib/designService';
@@ -121,15 +120,16 @@ export default function BemVindo() {
   const ultimo = ecra === ECRAS.length - 1;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        className="bv"
+    /* Era um <motion.div> do framer-motion, so para aparecer devagar. O
+       CSS desta janela ja vem escrito aqui em baixo (a constante CSS): as
+       animacoes foram para la. Perde-se a animacao de SAIDA, que ninguem
+       chega a ver porque a janela fecha e desaparece. */
+    <>
+      <div
+        className="bv bv-aparece"
         role="dialog"
         aria-modal="true"
         aria-label="Bem-vindo"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
       >
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         <button type="button" className="bv-saltar" onClick={() => fechar()} aria-label="Saltar a apresentação">
@@ -140,14 +140,7 @@ export default function BemVindo() {
           {ECRAS.map((_, i) => <span key={i} className={i === ecra ? 'on' : i < ecra ? 'feito' : ''} />)}
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={ecra}
-            className="bv-conteudo"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.32, ease: 'easeOut' }}
+        <div key={ecra} className="bv-conteudo bv-entra"
           >
             <div className="bv-olho">{e.olho}</div>
             <h1 className="bv-h1">{e.titulo}</h1>
@@ -168,10 +161,9 @@ export default function BemVindo() {
                 </button>
               )}
             </div>
-          </motion.div>
-        </AnimatePresence>
-      </motion.div>
-    </AnimatePresence>
+          </div>
+      </div>
+    </>
   );
 }
 
@@ -236,5 +228,9 @@ const CSS = `
   .bv-btn { width: 100%; justify-content: center; }
   .bv-pontos { top: max(22px, env(safe-area-inset-top)); left: 24px; transform: none; }
 }
-@media (prefers-reduced-motion: reduce) { .bv-btn { animation: none; } }
+@keyframes bv-aparece { from { opacity: 0 } to { opacity: 1 } }
+.bv-aparece { animation: bv-aparece 240ms ease-out both; }
+@keyframes bv-entra { from { opacity: 0; transform: translateY(24px) } to { opacity: 1; transform: translateY(0) } }
+.bv-entra { animation: bv-entra 320ms ease-out both; }
+@media (prefers-reduced-motion: reduce) { .bv-btn, .bv-aparece, .bv-entra { animation: none; } }
 `;

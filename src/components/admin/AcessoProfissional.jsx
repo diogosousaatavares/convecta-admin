@@ -5,6 +5,7 @@ import { Button } from '@/components/ui';
 import { useAuth } from '@/hooks/useStore';
 import { Crown } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
+import { useConfirmar } from '@/components/ui/Confirmar';
 
 /*
  * Dar acesso ao painel a um barbeiro que nao e o dono.
@@ -65,15 +66,22 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
       setAberto(false); setEmail(''); onMudou?.();
     } catch (e) { toast.error('Não deu', e.message); }
   }
-  async function remover() {
-    if (!window.confirm(`Tirar o acesso de ${profissional.name} ao painel?`)) return;
-    try {
-      await chamar({ acao: 'remover', professional_id: profissional.id });
-      toast.success('Acesso removido', `${profissional.name} já não entra no painel.`);
-      onMudou?.();
-    } catch (e) { toast.error('Não deu', e.message); }
+  function remover() {
+    pedir({
+      titulo: 'Tirar o acesso ao painel?',
+      texto: `${profissional.name} deixa de conseguir entrar. A ficha dele, a agenda e as comissões ficam como estão.`,
+      botao: 'Tirar acesso',
+      aoConfirmar: async () => {
+        try {
+          await chamar({ acao: 'remover', professional_id: profissional.id });
+          toast.success('Acesso removido', `${profissional.name} já não entra no painel.`);
+          onMudou?.();
+        } catch (e) { toast.error('Não deu', e.message); }
+      },
+    });
   }
 
+  const [pedir, Confirmacao] = useConfirmar();
   const caixa = { marginTop: 16, padding: '12px 14px', borderRadius: 10, background: acesso ? 'rgba(34,197,94,0.08)' : 'rgba(var(--gold-rgb),0.08)', border: `1px solid ${acesso ? 'rgba(34,197,94,0.35)' : 'rgba(var(--gold-rgb),0.35)'}` };
   if (acesso) {
     const perm = { agenda_toda: true, ...(acesso.permissoes || {}) };
@@ -94,6 +102,7 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
           </div>
           <Button size="sm" variant="ghost" onClick={remover} disabled={aEnviar}>Remover</Button>
         </div>
+        <Confirmacao />
         <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)', cursor: 'pointer', fontSize: 13 }}>
           <input type="checkbox" checked={perm.agenda_toda !== false} onChange={e => mudar('agenda_toda', e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--gold)' }} />
           <span style={{ flex: 1 }}>

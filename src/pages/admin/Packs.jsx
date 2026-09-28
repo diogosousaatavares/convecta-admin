@@ -11,6 +11,7 @@ import {
   listarPacks, guardarPack, apagarPack, listarVendas, venderPack, anularVenda,
   listarPedidos, confirmarPedido, recusarPedido,
 } from '@/lib/packsService';
+import { useConfirmar } from '@/components/ui/Confirmar';
 
 /*
  * Packs — o cliente paga uns quantos cortes à cabeça e vai-os marcando.
@@ -199,11 +200,16 @@ export default function Packs() {
     finally { setAGravar(false); }
   };
 
-  const removerPack = async (p) => {
-    if (!window.confirm(`Apagar o «${p.nome}»? Quem já o comprou fica com os cortes que tem.`)) return;
-    try { await apagarPack(p.id); carregar(); }
-    catch (e) { toast.error('Não foi possível apagar', e.message); }
-  };
+  const [pedir, Confirmacao] = useConfirmar();
+  const removerPack = (p) => pedir({
+    titulo: `Apagar o «${p.nome}»?`,
+    texto: 'Deixa de estar à venda. Quem já o comprou fica com os cortes que tem.',
+    botao: 'Apagar pack',
+    aoConfirmar: async () => {
+      try { await apagarPack(p.id); carregar(); }
+      catch (e) { toast.error('Não foi possível apagar', e.message); }
+    },
+  });
 
   const gravarVenda = async () => {
     if (!venda.packId || !venda.customerId) { toast.error('Escolhe o cliente e o pack'); return; }
@@ -262,11 +268,15 @@ export default function Packs() {
     finally { setAGravar(false); }
   };
 
-  const anular = async (v) => {
-    if (!window.confirm(`Anular o pack de ${nomeCliente(v.customerId)}? Os ${v.restantes} cortes que restam deixam de valer. As marcações já feitas ficam.`)) return;
-    try { await anularVenda(v.id); carregar(); }
-    catch (e) { toast.error('Não foi possível anular', e.message); }
-  };
+  const anular = (v) => pedir({
+    titulo: `Anular o pack de ${nomeCliente(v.customerId)}?`,
+    texto: `Os ${v.restantes} cortes que restam deixam de valer. As marcações já feitas ficam.`,
+    botao: 'Anular pack',
+    aoConfirmar: async () => {
+      try { await anularVenda(v.id); carregar(); }
+      catch (e) { toast.error('Não foi possível anular', e.message); }
+    },
+  });
 
   const alternarServico = (id) => setPack(f => ({
     ...f,
@@ -710,6 +720,7 @@ export default function Packs() {
           </>
         )}
       </Modal>
+      <Confirmacao />
     </AdminPage>
   );
 }

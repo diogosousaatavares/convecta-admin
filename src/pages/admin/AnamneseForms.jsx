@@ -4,6 +4,7 @@ import AdminPage from '@/components/admin/AdminPage';
 import { Card, Button, Badge, EmptyState, Modal } from '@/components/ui';
 import { useToast } from '@/components/ui/ToastContext';
 import dataService from '@/lib/dataService';
+import { useConfirmar } from '@/components/ui/Confirmar';
 
 const QTYPES = [
   { key: 'short', label: 'Texto curto' },
@@ -98,12 +99,13 @@ export default function AnamneseForms() {
     toast.success('Formulário guardado');
   };
   const toggleActive = async form => { await dataService.saveForm({ ...form, active: !form.active }); await load(); };
-  const remove = async id => {
-    if (!window.confirm('Eliminar este formulário?')) return;
-    await dataService.deleteForm(id);
-    await load();
-    toast.info('Formulário eliminado');
-  };
+  const [pedir, Confirmacao] = useConfirmar();
+  const remove = id => pedir({
+    titulo: 'Eliminar este formulário?',
+    texto: 'As respostas que os clientes já deram deixam de estar acessíveis por aqui.',
+    botao: 'Eliminar',
+    aoConfirmar: async () => { await dataService.deleteForm(id); await load(); toast.info('Formulário eliminado'); },
+  });
 
   return (
     <AdminPage title="Anamnese / Formulários" subtitle="Cria e gere os formulários enviados aos clientes antes ou durante a visita." actions={<Button variant="primary" onClick={openNew}><Plus size={16} /> Novo Formulário</Button>}>
@@ -123,6 +125,7 @@ export default function AnamneseForms() {
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editForm?.questions?.length === 0 && !editForm?.name ? 'Novo Formulário' : `Editar: ${editForm?.name || 'Formulário'}`}>
         {editForm && <div><FormBuilder form={editForm} onChange={setEditForm} /><div className="ag-detail-actions" style={{ justifyContent: 'flex-end', marginTop: 20 }}><Button variant="secondary" onClick={() => setModalOpen(false)}>Cancelar</Button><Button variant="primary" onClick={save} disabled={saving}>{saving ? 'A guardar...' : 'Guardar formulário'}</Button></div></div>}
       </Modal>
+      <Confirmacao />
     </AdminPage>
   );
 }

@@ -9,6 +9,7 @@ import { useStore } from '@/hooks/useStore';
 import { useToast } from '@/components/ui/ToastContext';
 import dataService from '@/lib/dataService';
 import { formatPrice, formatDateShortNum } from '@/lib/format';
+import { useConfirmar } from '@/components/ui/Confirmar';
 
 /*
  * MB WAY — o cliente paga a marcação por MB WAY ao número do barbeiro.
@@ -122,14 +123,19 @@ export default function MbWay() {
       lerPedidos();
     } catch (e) { toast.error('Não foi possível ativar', e.message); lerPedidos(); }
   };
-  const packNaoRecebido = async (q) => {
-    if (!window.confirm(`O MB WAY de ${nome(q.customerId)} não chegou? O pedido do pack é recusado e o cliente é avisado.`)) return;
-    try {
-      await recusarPedido(q, 'O pagamento por MB WAY não chegou. Pede de novo ou paga na barbearia.', { businessId: data.business?.id, nomeBarbearia: data.business?.name });
-      toast.success('Pedido recusado');
-      lerPedidos();
-    } catch (e) { toast.error('Não foi possível guardar', e.message); }
-  };
+  const [pedir, Confirmacao] = useConfirmar();
+  const packNaoRecebido = (q) => pedir({
+    titulo: 'O MB WAY não chegou?',
+    texto: `O pedido de ${nome(q.customerId)} é recusado e o cliente é avisado por email.`,
+    botao: 'Recusar pedido',
+    aoConfirmar: async () => {
+      try {
+        await recusarPedido(q, 'O pagamento por MB WAY não chegou. Pede de novo ou paga na barbearia.', { businessId: data.business?.id, nomeBarbearia: data.business?.name });
+        toast.success('Pedido recusado');
+        lerPedidos();
+      } catch (e) { toast.error('Não foi possível guardar', e.message); }
+    },
+  });
 
   const marcacao = (id) => data.appointments.find(a => a.id === id);
   const nome = (id) => data.customers.find(c => c.id === id)?.name || 'Cliente';
@@ -366,6 +372,7 @@ export default function MbWay() {
           </>
         )}
       </Modal>
+      <Confirmacao />
     </AdminPage>
   );
 }

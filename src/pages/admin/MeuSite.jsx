@@ -14,6 +14,7 @@ import {
 } from '@/lib/designService';
 import SugestaoDesign from '@/components/design/SugestaoDesign';
 import { prepararLogotipo } from '@/lib/prepararLogotipo';
+import { useConfirmar } from '@/components/ui/Confirmar';
 
 /*
  * O MEU SITE — a mesma pagina que o super admin usa para desenhar a app de
@@ -1163,6 +1164,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
 
 // As fotos do trabalho da barbearia: aparecem na app do cliente.
 function PainelGaleria({biz}){
+  const[pedir,Confirmacao]=useConfirmar()
   const[fotos,setFotos]=useState(null)
   const[aEnviar,setAEnviar]=useState(false)
   const[erro,setErro]=useState('')
@@ -1189,9 +1191,13 @@ function PainelGaleria({biz}){
     finally{ setAEnviar(false) }
   }
 
-  async function apagar(f){
-    if(!window.confirm('Apagar esta foto da galeria?'))return
-    try{ await deleteGalleryPhoto(f.id); await recarregar() }catch(e){ setErro(e.message) }
+  function apagar(f){
+    pedir({
+      titulo:'Apagar esta foto?',
+      texto:'Desaparece da galeria do site dos teus clientes.',
+      botao:'Apagar foto',
+      aoConfirmar: async () => { try{ await deleteGalleryPhoto(f.id); await recarregar() }catch(e){ setErro(e.message) } },
+    })
   }
   async function mover(f,d){ try{ await moveGalleryPhoto(biz.id,f.id,d); await recarregar() }catch(e){ setErro(e.message) } }
   async function gravarLegenda(f){
@@ -1203,6 +1209,7 @@ function PainelGaleria({biz}){
 
   return(
     <Card>
+      <Confirmacao />
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,marginBottom:6}}>
         <div style={{fontWeight:700,fontSize:15,color:T}}>Galeria</div>
       </div>

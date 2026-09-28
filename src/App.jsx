@@ -2,12 +2,8 @@ import { lazy, Suspense, useEffect } from 'react';
 import { moduloIndisponivel, permitidoAoProfissional } from '@/lib/modulos';
 import { ESCONDIDOS_EM_DEMO } from '@/components/AdminLayout';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { queryClientInstance } from '@/lib/query-client';
 import { AuthProvider } from '@/lib/AuthContext';
 import { ToastProvider } from '@/components/ui/ToastContext';
-import { Toaster } from '@/components/ui/toaster';
 import ScrollToTop from '@/components/ScrollToTop';
 import PageNotFound from '@/lib/PageNotFound';
 import LoginPage from '@/pages/LoginPage';
@@ -111,13 +107,21 @@ function AppRoutes() {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
   return (
-    // Comeca visivel: em opacity 0, se a animacao nao corresse a pagina
-    // ficava em branco ate se recarregar.
-    <motion.div
+    /*
+     * Isto era um <motion.div> do framer-motion: 112 kB de biblioteca
+     * carregados em todas as aberturas do painel para fazer subir a pagina
+     * 28 pixeis. Passa a ser uma animacao de CSS (.pagina-entra no
+     * index.css), que o browser ja sabe fazer sozinho.
+     *
+     * A `key` continua a ser o caminho: e o que faz a animacao recomecar a
+     * cada mudanca de pagina.
+     *
+     * Comeca visivel: em opacity 0, se a animacao nao corresse a pagina
+     * ficava em branco ate se recarregar.
+     */
+    <div
       key={location.pathname}
-      initial={{ y: isAdminPage ? 28 : 6 }}
-      animate={{ y: 0 }}
-      transition={{ duration: isAdminPage ? 0.34 : 0.25, ease: [0.22, 1, 0.36, 1] }}
+      className={isAdminPage ? 'pagina-entra' : 'pagina-entra pagina-entra-curta'}
     >
       <Routes location={location}>
         <Route path="/entrar" element={<LoginPage adminOnly />} />
@@ -216,7 +220,7 @@ function AppRoutes() {
         <Route path="/admin/definicoes/:tab" element={<AdminRoute><Definicoes /></AdminRoute>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
-    </motion.div>
+    </div>
   );
 }
 
@@ -230,17 +234,23 @@ export default function App() {
   const { loading } = useStore();
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0d0d0d' }}><p style={{ color: '#C9A84C' }}>A carregar...</p></div>;
 
+  /*
+   * O QueryClientProvider e o <Toaster/> sairam daqui a 28/09/2026.
+   *
+   * Nao havia um unico useQuery nem useMutation no projeto: o react-query
+   * estava a ser carregado inteiro para envolver a app e mais nada. E o
+   * Toaster e o do modelo shadcn, que traz o radix atras — ninguem chamava
+   * o use-toast dele, porque os avisos do painel passam todos pelo
+   * ToastContext, que e nosso e ja esta aqui em baixo.
+   */
   return (
     <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <ScrollToTop />
-          <ToastProvider>
-            <AppRoutes />
-          </ToastProvider>
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
+      <Router>
+        <ScrollToTop />
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
+      </Router>
     </AuthProvider>
   );
 }

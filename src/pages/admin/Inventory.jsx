@@ -39,6 +39,7 @@ export default function Inventory() {
   const openEdit = (p) => { setEditingId(p.id); setNovaCategoria(false); setForm({ name: p.name, category: p.category, unit: p.unit, stock: p.stock, minStock: p.minStock, cost: p.cost, price: p.price || 0, supplier: p.supplier || '', supplierId: p.supplierId || (fornecedores.find(f => f.name === p.supplier)?.id || '') }); setEditModal(true); };
   const openAdj = (p) => { setAdj({ id: p.id, delta: '', reason: MOTIVOS_ENTRADA[0], custo: '', comoDespesa: true, method: 'Transferência' }); setAdjModal(true); };
 
+  const [avisoPreco, setAvisoPreco] = useState(false);
   const save = async () => {
     if (!form.name) { toast.error('Nome obrigatório'); return; }
     // Uma categoria nova escrita aqui passa a estar na lista da barbearia,
@@ -48,9 +49,10 @@ export default function Inventory() {
       try { await dataService.updateBusiness({ productCategories: [...categoriasProduto, cat] }); } catch { /* o produto grava na mesma */ }
     }
     // Vender abaixo do que custou e quase sempre um engano de quem trocou
-    // os dois campos. Pergunta-se uma vez; quem esta em saldo, confirma.
-    if (Number(form.price) > 0 && Number(form.cost) > 0 && Number(form.price) < Number(form.cost)
-        && !window.confirm(`O preço de venda (${Number(form.price).toFixed(2)} €) é menor do que o custo (${Number(form.cost).toFixed(2)} €). Cada venda dá prejuízo. Gravar assim?`)) return;
+    // os dois campos. Avisa-se dentro da janela, e o segundo toque grava.
+    if (Number(form.price) > 0 && Number(form.cost) > 0 && Number(form.price) < Number(form.cost) && !avisoPreco) {
+      setAvisoPreco(true); return;
+    }
     const forn = fornecedores.find(f => f.id === form.supplierId);
     const dados = { ...form, supplierId: forn?.id || null, supplier: forn?.name || '', stock: Number(form.stock), minStock: Number(form.minStock), cost: Number(form.cost), price: Number(form.price) };
     try {
@@ -170,7 +172,7 @@ export default function Inventory() {
         </div>
         <div className="grid-2">
           <div className="field"><label className="label">Custo (€)</label><input type="number" min="0" step="0.01" className="input" value={form.cost} onChange={e => setForm(f => ({ ...f, cost: e.target.value }))} /></div>
-          <div className="field"><label className="label">Preço de venda (€)</label><input type="number" className="input" min="0" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} /></div>
+          <div className="field"><label className="label">Preço de venda (€)</label><input type="number" className="input" min="0" step="0.01" value={form.price} onChange={e => { setForm(f => ({ ...f, price: e.target.value })); setAvisoPreco(false); }} /></div>
         </div>
         <div className="grid-2">
           <div className="field">
@@ -186,9 +188,16 @@ export default function Inventory() {
             {form.supplier && !form.supplierId && <p className="text-sec text-xs" style={{ marginTop: 6 }}>Antes estava escrito «{form.supplier}». Escolhe-o da lista.</p>}
           </div>
         </div>
+        {avisoPreco && (
+          <div className="text-sm" style={{ color: 'var(--error)', margin: '0 0 12px' }}>
+            O preço de venda ({Number(form.price || 0).toFixed(2)} €) é menor do que o custo ({Number(form.cost || 0).toFixed(2)} €). Cada venda dá prejuízo.
+          </div>
+        )}
         <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}>
           <Button variant="secondary" onClick={() => setEditModal(false)}>Cancelar</Button>
-          <Button variant="primary" onClick={save}>{editingId ? 'Guardar' : 'Criar'}</Button>
+          <Button variant={avisoPreco ? 'danger' : 'primary'} onClick={save}>
+            {avisoPreco ? 'Gravar assim mesmo' : (editingId ? 'Guardar' : 'Criar')}
+          </Button>
         </div>
       </Modal>
 
