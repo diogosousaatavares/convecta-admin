@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, BookOpen, Lock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 
 const DOW_LABELS = ['Do', 'Se', 'Te', 'Qu', 'Qu', 'Se', 'Sá'];
 const MONTHS = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
@@ -60,11 +60,9 @@ export default function AgendaSidebar({ date, setDate, apptsByDate, mode, setMod
             );
           })}
         </div>
-        <label className={`ag-block-toggle ${blockMode ? 'active' : ''}`}>
-          <Lock size={13} />
-          <input type="checkbox" checked={blockMode} onChange={e => setBlockMode(e.target.checked)} />
-          Bloquear Horário
-        </label>
+        {/* A caixa "Bloquear Horário" vivia aqui, solta debaixo do
+            calendário do mês, onde ninguém a procurava. Passou a ser um
+            botão na barra de cima, ao lado do "Nova marcação". */}
       </div>
 
       <div className="ag-side-card ag-side-actions">

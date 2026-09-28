@@ -547,21 +547,6 @@ const PAINEIS=[{id:'guia',l:'Guia'},{id:'sugestao',l:'Sugestão'},{id:'cores',l:
  * quer mexer em nada: poe o logotipo e nos fazemos o desenho. So depois vem o
  * passo a passo para quem quer escolher.
  */
-function Passo({n,titulo,texto,botao,onIr}){
-  return(
-    <div style={{display:'flex',gap:13,padding:'13px 0',borderBottom:`1px solid ${BD}`}}>
-      <div style={{width:26,height:26,borderRadius:'50%',flexShrink:0,display:'grid',placeItems:'center',
-        background:`${Y}1F`,color:Y,fontSize:13,fontWeight:800}}>{n}</div>
-      <div style={{flex:1,minWidth:0}}>
-        <div style={{fontSize:13.5,fontWeight:700,color:T}}>{titulo}</div>
-        <div style={{fontSize:12.5,color:T2,marginTop:3,lineHeight:1.55}}>{texto}</div>
-        {botao&&(
-          <Btn v="ghost" onClick={onIr} style={{marginTop:9,padding:'7px 12px',fontSize:12}}>{botao}</Btn>
-        )}
-      </div>
-    </div>
-  )
-}
 
 function PainelGuia({demo,temLogo,ir}){
   return(
@@ -591,34 +576,16 @@ function PainelGuia({demo,temLogo,ir}){
         </Btn>
       </Card>
 
-      <Card>
-        <div style={{fontSize:11,letterSpacing:1,textTransform:'uppercase',color:T3,fontWeight:700,marginBottom:6}}>
-          Ou fazes tu
-        </div>
-        <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:10}}>Quatro passos, por esta ordem</div>
+      {/*
+        Aqui estava "OU FAZES TU — Quatro passos, por esta ordem": quatro
+        passos com o seu texto e um botao cada. Tirado a 28/09/2026.
 
-        <Passo n="1" titulo="O teu logótipo e o nome"
-          texto="É o que aparece em cima, no site e no telemóvel do cliente. Se tiveres o logótipo no telemóvel, é arrastar para lá."
-          botao="Ir para Marca" onIr={()=>ir('marca')}/>
-
-        <Passo n="2" titulo="As cores"
-          texto="Toca no círculo de cada linha e escolhe a cor no seletor do teu telemóvel. Não precisas de saber nenhum código — a mais importante é a «Cor da tua marca», que pinta os botões e os preços."
-          botao="Ir para Cores" onIr={()=>ir('cores')}/>
-
-        <Passo n="3" titulo="A capa, os textos e as fotos"
-          texto="A fotografia grande lá de cima, a morada, o telefone e as fotos dos cortes. É isto que faz o site parecer a tua barbearia e não um site qualquer."
-          botao="Ir para Conteúdo" onIr={()=>ir('info')}/>
-
-        <Passo n="4" titulo={demo?'No teu painel, Guardar':'Guardar'}
-          texto={demo
-            ?'Aqui não há nada para guardar: isto é uma demonstração. No painel da tua barbearia há um botão Guardar em baixo, e é só depois disso que os teus clientes veem as mudanças.'
-            :'Carrega em Guardar, aqui em baixo. Só a partir daí é que os teus clientes veem as mudanças — até lá ninguém vê nada.'}/>
-
-        <div style={{fontSize:12,color:T3,marginTop:12,lineHeight:1.55}}>
-          Se te perderes ou não gostares do que fizeste, volta ao caminho curto:
-          as sugestões repõem tudo de uma vez.
-        </div>
-      </Card>
+        O problema nao era o conteudo, era haver dois caminhos a competir no
+        mesmo ecra. Quem chega aqui ou quer que lhe facam o desenho, ou vai
+        direito ao separador que lhe interessa — e os separadores estao
+        mesmo ali por cima. Um guia com dois caminhos obriga a escolher
+        antes de comecar, que e o contrario de guiar.
+      */}
     </div>
   )
 }
