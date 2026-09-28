@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import TourDemo from '@/components/admin/TourDemo';
 import { useStore } from '@/hooks/useStore';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
@@ -536,59 +537,29 @@ const PAINEIS=[{id:'marca',l:'Logótipo'},{id:'sugestao',l:'Sugestão'},{id:'cor
                {id:'tipo',l:'Letra'},{id:'info',l:'Conteúdo'},{id:'galeria',l:'Fotos'}]
 
 /*
- * O tutorial da primeira vez.
+ * O guia da primeira vez.
  *
- * Substitui o painel "Guia", que era um separador entre outros sete: quem
- * nao carregasse nele nunca o via, e quem carregasse levava com dois
- * caminhos a competir no mesmo ecra.
+ * Era um cartao com tres ecras de texto: lia-se e fechava-se, e nao ficava
+ * nada. Passa a ser o mesmo guia que a demonstracao usa (TourDemo): escurece
+ * a pagina, poe um rectangulo a volta da coisa de que esta a falar, e diz uma
+ * frase. Aponta em vez de descrever.
  *
- * Isto aparece sozinho, uma vez, por cima de tudo. Tres ecras, uma frase
- * cada, letra grande. No fim ha duas saidas — e a primeira e a de quem nao
- * quer mexer em nada.
+ * As marcas (data-tour) estao nos proprios elementos desta pagina.
  */
-const CHAVE_TUTORIAL='convecta:meusite:tutorial'
+const CHAVE_TUTORIAL='convecta:meusite:guia'
 
-function TutorialPrimeiraVez({onFechar,onSoLogotipo}){
-  const[passo,setPasso]=useState(0)
-  const passos=[
-    {t:'Este e o site dos teus clientes',
-     d:'E aqui que eles escolhem o corte e marcam a hora. Esta pronto a funcionar.'},
-    {t:'Para mudar, toca na propria imagem',
-     d:'Toca num titulo, num botao ou num preco do telemovel ao lado. Abre a cor dessa peca e mudas ali mesmo.'},
-    {t:'No fim, carrega em Guardar',
-     d:'Enquanto nao guardares, os teus clientes continuam a ver o site como esta agora.'},
-  ]
-  const p=passos[passo]
-  const ultimo=passo===passos.length-1
-  return(
-    <div style={{position:'fixed',inset:0,zIndex:80,background:'rgba(0,0,0,.72)',
-      display:'grid',placeItems:'center',padding:20}}>
-      <div style={{width:'min(100%,460px)',background:W,border:`1px solid ${BD}`,
-        borderRadius:18,padding:'28px 26px'}}>
-        <div style={{display:'flex',gap:6,marginBottom:22}}>
-          {passos.map((_,i)=>(
-            <div key={i} style={{height:4,flex:1,borderRadius:2,
-              background:i<=passo?Y:BD}}/>
-          ))}
-        </div>
-        <div style={{fontSize:24,fontWeight:700,color:T,lineHeight:1.25,marginBottom:12}}>{p.t}</div>
-        <div style={{fontSize:16,color:T2,lineHeight:1.6,marginBottom:28}}>{p.d}</div>
-        {ultimo?(
-          <div style={{display:'flex',flexDirection:'column',gap:10}}>
-            <Btn onClick={onSoLogotipo}>So quero por o meu logotipo</Btn>
-            <Btn v="secondary" onClick={onFechar}>Quero escolher as cores</Btn>
-          </div>
-        ):(
-          <div style={{display:'flex',gap:10}}>
-            <Btn onClick={()=>setPasso(passo+1)} style={{flex:1}}>Seguinte</Btn>
-            <Btn v="secondary" onClick={onFechar}>Saltar</Btn>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
+const PASSOS_GUIA=[
+  {alvo:'site-previa',titulo:'Este é o site dos teus clientes',
+   texto:'É aqui que eles escolhem o corte e marcam a hora. Já está a funcionar — isto é o site a sério, em pequeno.'},
+  {alvo:'site-previa',titulo:'Para mudar, toca na própria imagem',
+   texto:'Toca num título, num preço ou num botão aqui dentro. Abre a cor dessa peça e mudas ali mesmo, a ver o resultado.'},
+  {alvo:'site-logotipo',titulo:'O caminho curto: o teu logótipo',
+   texto:'Se não te apetece escolher nada, larga aqui o teu logótipo. Nós lemos as cores dele e montamos o desenho todo por ti.'},
+  {alvo:'site-separadores',titulo:'O resto está aqui',
+   texto:'Logótipo, cores, fundo, letra, textos e fotos. Um separador de cada vez, e nenhum é obrigatório.'},
+  {alvo:'site-guardar',titulo:'No fim, Guardar design',
+   texto:'Enquanto não carregares aqui, os teus clientes continuam a ver o site como está agora. Podes mexer à vontade.'},
+]
 // Pre-visualizacao do fundo animado. Repete o desenho do convecta-client em
 // pequeno, para se escolher a cor a olhar para o efeito e nao para um quadrado.
 // Se mexeres no desenho la, mexe aqui — sao dois sitios, nao ha volta a dar
@@ -663,14 +634,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
   const[larguraPrevia,setLarguraPrevia]=useState(()=>larguraDaPrevia())
   // Comeca no logotipo: e o caminho curto de quem nao quer escolher nada.
   const[painel,setPainel]=useState('marca')
-  // Uma vez so, e por barbearia: quem ja o viu nunca mais tropeca nele.
-  const[tutorial,setTutorial]=useState(()=>{
-    try{ return !localStorage.getItem(`${CHAVE_TUTORIAL}:${biz?.id||''}`) }catch{ return false }
-  })
-  const fecharTutorial=()=>{
-    try{ localStorage.setItem(`${CHAVE_TUTORIAL}:${biz?.id||''}`,'1') }catch{}
-    setTutorial(false)
-  }
+  const chaveGuia=`${CHAVE_TUTORIAL}:${biz?.id||''}`
   const[tema,setTema]=useState(()=>structuredClone(TEMA_OMISSAO))
   const[info,setInfo]=useState({tagline:'',description:'',coverImageUrl:'',
     amenities:[],social:{instagram:'',facebook:'',tiktok:''},loyalty:{...LOYALTY_OMISSAO}})
@@ -856,11 +820,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
       ?{display:'flex',flexDirection:'column',gap:22}
       :{display:'grid',gridTemplateColumns:'minmax(0,1fr) 360px',gap:22,alignItems:'start'}}>
 
-      {tutorial&&(
-        <TutorialPrimeiraVez
-          onFechar={fecharTutorial}
-          onSoLogotipo={()=>{fecharTutorial();setPainel('marca')}}/>
-      )}
+      <TourDemo passos={PASSOS_GUIA} chave={chaveGuia} ativo={!carregando}/>
 
       <div style={{display:'flex',flexDirection:'column',gap:18,minWidth:0}}>
 
@@ -884,7 +844,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
 
         {/* Sete separadores lado a lado num telemovel davam 45px cada: os
             nomes partiam-se ao meio. Em duas linhas de quatro leem-se. */}
-        <div className="sa-tira" style={telemovel
+        <div className="sa-tira" data-tour="site-separadores" style={telemovel
           ?{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:4,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}
           :{display:'flex',gap:3,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}}>
           {PAINEIS.filter(pn=>!(demo&&pn.id==='galeria')).map(pn=>(
@@ -1086,15 +1046,11 @@ export function DesignTab({biz,onGuardado,demo=false}){
                 <Lbl>Nome no separador do browser</Lbl>
                 <Inp value={tema.appName} onChange={e=>raiz('appName',e.target.value)}
                   placeholder={biz.name||'Nome da barbearia'}/>
-                <div style={{fontSize:14,color:T3,marginTop:6,lineHeight:1.5}}>
-                  Substitui o “Convecta Barbershop” fixo no index.html e no manifest.
-                  Deixa vazio para usar o nome da barbearia.
-                </div>
               </div>
               <div>
                 <Lbl>Logótipo</Lbl>
                 <div style={{display:'flex',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>
-                  <Largar onFicheiros={f=>enviarIcone(f)} aEnviar={iconeAEnviar} titulo="Larga"
+                  <Largar onFicheiros={f=>enviarIcone(f)} aEnviar={iconeAEnviar} titulo="Larga" dataTour="site-logotipo"
                     style={{minWidth:64,height:64,maxWidth:170,flexShrink:0,overflow:'hidden',background:BG,
                       display:'flex',alignItems:'center',justifyContent:'center',padding:4}}>
                     {iconeAEnviar
@@ -1110,12 +1066,6 @@ export function DesignTab({biz,onGuardado,demo=false}){
                     </div>
                   )}
                   <div style={{flex:1,minWidth:180}}>
-                    <div style={{fontSize:14,color:T3,lineHeight:1.5}}>
-                      Larga aqui o teu logótipo como o tiveres — ficheiro, print ou fotografia.
-                      Nós lemos a imagem, cortamos as margens, limpamos o fundo e deixamos o
-                      logótipo na forma dele para o topo da app. O ícone do telemóvel sai
-                      daqui também, esse em quadrado.
-                    </div>
                     {iconeEncolhido&&
                       <div style={{marginTop:10,padding:'9px 11px',borderRadius:9,lineHeight:1.5,
                         background:`${G}12`,border:`1px solid ${G}35`,fontSize:14,color:T2}}>
@@ -1131,15 +1081,6 @@ export function DesignTab({biz,onGuardado,demo=false}){
                     </div>
                   </div>
                 </div>
-              </div>
-              {/* Isto dizia ao barbeiro que as "chaves" gravadas eram --bg, --gold
-                  e --font-head, e falava do applyTheme. Era uma nota de
-                  programador a aparecer a quem so quer escolher uma cor.
-                  O que ele precisa de saber e uma coisa so: depois de gravar,
-                  recarrega o site para ver. */}
-              <div style={{padding:'12px 14px',borderRadius:10,background:`${O}0C`,border:`1px solid ${O}30`,
-                fontSize:14,color:T2,lineHeight:1.6}}>
-                Depois de gravares, recarrega o site da tua barbearia para veres as mudanças.
               </div>
             </div>
           </Card>
@@ -1165,7 +1106,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
           <span style={{fontSize:14,color:T3}}>Demonstração: nada é gravado.</span>
         </div>
         ):(
-        <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+        <div data-tour="site-guardar" style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
           <Btn onClick={guardar} disabled={guardando||!alterado}
             style={{display:'flex',alignItems:'center',gap:8,padding:'11px 20px'}}>
             {guardando?<><Spin/>A guardar…</>:'Guardar design'}
@@ -1196,7 +1137,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
             <Interruptor ligado={tocarParaMudar} onChange={v=>{setTocarParaMudar(v);if(!v)setAlvoEdicao(null)}}/>
           </label>
         </div>
-        <div style={{display:'flex',justifyContent:'center',position:'relative'}}>
+        <div data-tour="site-previa" style={{display:'flex',justifyContent:'center',position:'relative'}}>
           <Telemovel largura={telemovel?larguraPrevia:292}>
             <PreviaReal endereco={endereco} tema={tema} info={info} logoUrl={logoUrl}
               editar={tocarParaMudar} onEditar={setAlvoEdicao}/>
@@ -1328,7 +1269,7 @@ function PainelGaleria({biz}){
 // Zona onde se pode largar uma imagem, ou carregar para escolher. Serve os
 // quatro sitios que recebem fotos: logotipo, capa, icone e galeria. Aceita
 // tambem colar com Ctrl+V, que e como se traz uma captura de ecra.
-function Largar({onFicheiros,multiplas=false,aEnviar=false,children,style,titulo='Larga a imagem aqui'}){
+function Largar({onFicheiros,multiplas=false,aEnviar=false,children,style,titulo='Larga a imagem aqui',dataTour}){
   const[sobre,setSobre]=useState(false)
   const refInput=React.useRef(null)
 
@@ -1348,6 +1289,7 @@ function Largar({onFicheiros,multiplas=false,aEnviar=false,children,style,titulo
 
   return(
     <div
+      data-tour={dataTour}
       onDragOver={e=>{e.preventDefault();if(!aEnviar)setSobre(true)}}
       onDragEnter={e=>{e.preventDefault();if(!aEnviar)setSobre(true)}}
       onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget))setSobre(false)}}

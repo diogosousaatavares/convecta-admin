@@ -27,7 +27,14 @@ export default function AdminPage({ title, subtitle, actions, children, info, pa
               <h1>{title}</h1>
               {info && <PageInfo {...info} />}
             </div>
-            {subtitle && <p>{subtitle}</p>}
+            {/*
+                O subtitulo deixou de se desenhar a 28/09/2026.
+                Eram 45 paginas com uma frase cinzenta por baixo do titulo a
+                dizer, por outras palavras, o que o titulo ja dizia. Ninguem
+                a le, e era a primeira coisa a empurrar o conteudo para baixo
+                no telemovel. A propriedade continua a ser aceite para nao
+                partir as 45 chamadas.
+            */}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <BotaoAtualizar />

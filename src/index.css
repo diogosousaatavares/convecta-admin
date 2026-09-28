@@ -1789,10 +1789,17 @@ html.theme-light { --linha-agm: rgba(0, 0, 0, 0.13); }
     text-align: right;
     white-space: normal;
     flex-wrap: wrap;
-    font-size: 13px;
+    font-size: 14px;
+    /* O texto solto da celula — um email longo, um endereco — nao tinha
+       regra de quebra nenhuma: esticava a linha, a linha esticava o cartao
+       e o fim de cada linha saia pela direita do ecra. */
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
   /* nada dentro da celula pode sair do cartao */
   .table tbody td > *, .table tfoot td > * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+  /* e nada na pagina pode ser mais largo do que a pagina */
+  .admin-content, .admin-content > * { max-width: 100%; }
   .table tbody td .flex, .table tfoot td .flex { flex-wrap: wrap; min-width: 0; }
   .table tbody tr > td:first-child, .table tfoot tr > td:first-child { padding-top: 0; }
   .table tbody tr > td:last-child, .table tfoot tr > td:last-child { padding-bottom: 0; }

@@ -119,11 +119,11 @@ export default function TourDemo({ passos = [], chave = 'convecta_tour', ativo =
         borderRadius: 16, padding: '18px 20px', boxShadow: '0 18px 50px rgba(0,0,0,.5)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--gold, #C9A227)' }}>
+          <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--gold, #C9A227)' }}>
             Passo {i + 1} de {passos.length}
           </span>
           <button type="button" onClick={terminar}
-            style={{ background: 'none', border: 0, color: 'var(--text-ter, #5E584B)', fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', padding: 4 }}>
+            style={{ background: 'none', border: 0, color: 'var(--text-ter, #5E584B)', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', padding: 4 }}>
             Saltar
           </button>
         </div>
@@ -133,13 +133,13 @@ export default function TourDemo({ passos = [], chave = 'convecta_tour', ativo =
           {i > 0 && (
             <button type="button" onClick={anterior}
               style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border, #2A2620)', background: 'transparent',
-                color: 'var(--text-sec, #8A8272)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                color: 'var(--text-sec, #8A8272)', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
               Anterior
             </button>
           )}
           <button type="button" onClick={seguinte}
             style={{ padding: '10px 18px', borderRadius: 10, border: 0, background: 'var(--gold, #C9A227)',
-              color: '#0A0804', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+              color: '#0A0804', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
             {ultimo ? 'Concluir' : 'Seguinte'}
           </button>
         </div>
