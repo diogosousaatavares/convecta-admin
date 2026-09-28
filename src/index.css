@@ -808,7 +808,10 @@ a:focus:not(:focus-visible) { outline: none; }
 .text-sec { color: var(--text-sec); }
 .text-gold { color: var(--gold); }
 .text-center { text-align: center; }
-.text-sm { font-size: 13px; } .text-xs { font-size: 12px; }
+/* 28/09/2026: 13 e 12 px sao o tamanho a que se deixa de ler um ecra com o
+   telemovel na mao — e era com isso que estavam escritas as explicacoes
+   todas do painel. Sobem os dois um degrau. */
+.text-sm { font-size: 14px; } .text-xs { font-size: 13px; }
 .fw-600 { font-weight: 600; }
 .w-full { width: 100%; }
 .divider { height: 1px; background: var(--border); margin: 24px 0; border: none; }

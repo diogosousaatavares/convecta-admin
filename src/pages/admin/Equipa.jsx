@@ -64,8 +64,8 @@ function Distribuicao({ dono, pros, acessos, selecionado, onSelecionar, meuProfi
           <Crown size={18} style={{ color: 'var(--gold)', flexShrink: 0 }} />
           <div style={{ minWidth: 0 }}>
             <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dono.name || 'Dono'}</div>
-            <div className="text-sec text-xs" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dono.email}</div>
-            <div className="text-xs" style={{ color: 'var(--gold)', fontWeight: 600 }}>Dono · vê tudo</div>
+            <div className="text-sec text-sm" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dono.email}</div>
+            <div className="text-sm" style={{ color: 'var(--gold)', fontWeight: 600 }}>Dono · vê tudo</div>
           </div>
         </div>
         {/* Profissionais */}
@@ -80,8 +80,8 @@ function Distribuicao({ dono, pros, acessos, selecionado, onSelecionar, meuProfi
                 <Avatar name={p.name} src={p.photoUrl} />
                 <div className="fw-600" style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
               </div>
-              <div className="text-sec text-xs" style={{ marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.role || 'Profissional'}</div>
-              <div className="text-xs" style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600, background: 'var(--surface)', position: 'relative' }}>
+              <div className="text-sec text-sm" style={{ marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.role || 'Profissional'}</div>
+              <div className="text-sm" style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600, background: 'var(--surface)', position: 'relative' }}>
                 {euMesmo ? <><Crown size={13} /> És tu</> : a ? <><ShieldCheck size={13} /> Com acesso</> : <><ShieldOff size={13} /> Sem acesso</>}
               </div>
             </button>
@@ -124,7 +124,7 @@ export default function Equipa() {
     <AdminLayout>
       <div className="page-head">
         <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Users size={22} /> Equipa e acessos</h1>
-        <p>Quem entra no painel e o que cada um vê. {pros.length} {pros.length === 1 ? 'profissional' : 'profissionais'}, {comAcesso} com acesso.</p>
+        <p>{pros.length} {pros.length === 1 ? 'profissional' : 'profissionais'}, {comAcesso} com acesso ao painel.</p>
       </div>
 
       <Card className="mb-24">
@@ -132,7 +132,7 @@ export default function Equipa() {
           <Crown size={18} style={{ color: 'var(--gold)', flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 200 }}>
             <div className="fw-600">Tu, o dono, também cortas?</div>
-            <div className="text-sec text-xs">{minhaFicha ? `A tua conta está ligada à ficha «${minhaFicha.name}»: a tua coluna na agenda, as tuas comissões, os teus clientes.` : 'Liga a tua conta a uma ficha de profissional para teres a tua coluna na agenda e a tua conta de comissões.'}</div>
+            <div className="text-sec text-sm">{minhaFicha ? `Estás ligado à ficha «${minhaFicha.name}».` : 'Liga-te a uma ficha para teres coluna na agenda.'}</div>
           </div>
           {minhaFicha ? (
             <Button variant="ghost" size="sm" disabled={aLigar} onClick={() => ligarDono(null)}>Desligar</Button>
@@ -151,7 +151,7 @@ export default function Equipa() {
       <Card className="mb-24">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
           <div className="fw-600">Distribuição</div>
-          <div className="text-sec text-xs" style={{ display: estreito ? 'none' : 'flex', gap: 14, flexWrap: 'wrap' }}>
+          <div className="text-sec text-sm" style={{ display: estreito ? 'none' : 'flex', gap: 14, flexWrap: 'wrap' }}>
             <span><span style={{ display: 'inline-block', width: 18, borderTop: '2.5px solid var(--success)', verticalAlign: 'middle', marginRight: 6 }} />com acesso</span>
             <span><span style={{ display: 'inline-block', width: 18, borderTop: '2px dashed var(--border)', verticalAlign: 'middle', marginRight: 6 }} />sem acesso</span>
           </div>
@@ -162,7 +162,7 @@ export default function Equipa() {
               <Crown size={18} style={{ color: 'var(--gold)', flexShrink: 0 }} />
               <div style={{ minWidth: 0 }}>
                 <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dono.name || 'Dono'}{minhaFicha ? ` · ${minhaFicha.name}` : ''}</div>
-                <div className="text-xs" style={{ color: 'var(--gold)', fontWeight: 600 }}>Dono · vê tudo</div>
+                <div className="text-sm" style={{ color: 'var(--gold)', fontWeight: 600 }}>Dono · vê tudo</div>
               </div>
             </div>
             {pros.map(p => {
@@ -173,9 +173,9 @@ export default function Equipa() {
                   <Avatar name={p.name} src={p.photoUrl} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                    <div className="text-sec text-xs">{p.role || 'Profissional'}</div>
+                    <div className="text-sec text-sm">{p.role || 'Profissional'}</div>
                   </div>
-                  <div className="text-xs" style={{ display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  <div className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {euMesmo ? <><Crown size={13} /> És tu</> : a ? <><ShieldCheck size={13} /> Com acesso</> : <><ShieldOff size={13} /> Sem acesso</>}
                   </div>
                 </button>
@@ -185,14 +185,14 @@ export default function Equipa() {
         ) : (
           <Distribuicao dono={dono} pros={pros} acessos={acessos} selecionado={selecionado} onSelecionar={setSelecionado} meuProfissionalId={meuProfissionalId} />
         )}
-        <div className="text-sec text-xs" style={{ marginTop: 8 }}>Toca num profissional para dar ou tirar o acesso.</div>
+        <div className="text-sec text-sm" style={{ marginTop: 8 }}>Toca num profissional para dar ou tirar o acesso.</div>
         {pro && (
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Avatar name={pro.name} src={pro.photoUrl} />
               <div style={{ flex: 1 }}>
                 <div className="fw-600">{pro.name}</div>
-                <div className="text-sec text-xs">{pro.role || 'Profissional'}{pro.email ? ` · ${pro.email}` : ' · sem email na ficha'}</div>
+                <div className="text-sec text-sm">{pro.role || 'Profissional'}{pro.email ? ` · ${pro.email}` : ' · sem email na ficha'}</div>
               </div>
               <Link to="/admin/profissionais"><Button size="sm" variant="ghost">Editar ficha</Button></Link>
             </div>
@@ -201,7 +201,9 @@ export default function Equipa() {
         )}
       </Card>
 
-      <Card>
+      {/* No telemovel esta tabela de referencia era o terco de baixo do ecra
+          em letra miuda, e nao se faz nada com ela. Fica no computador. */}
+      <Card style={{ display: estreito ? 'none' : undefined }}>
         <div className="fw-600" style={{ marginBottom: 4 }}>Quem vê o quê</div>
         <p className="text-sec text-sm" style={{ marginTop: 0 }}>É a regra da casa, trancada na base de dados. O dono vê tudo; um profissional com acesso vê só o que lhe toca. O que se pode ajustar em cada um está no bloco de acesso (toca no profissional em cima).</p>
         {estreito ? (
@@ -221,7 +223,7 @@ export default function Equipa() {
                       <ShieldCheck size={13} style={{ color: 'var(--success)' }} /><Ponto nivel={a.pro} />
                     </span>
                   </div>
-                  {a.notaPro && <div className="text-sec text-xs" style={{ marginTop: 4 }}>{a.notaPro}</div>}
+                  {a.notaPro && <div className="text-sec text-sm" style={{ marginTop: 4 }}>{a.notaPro}</div>}
                 </div>
               ))}
             </div>
@@ -243,7 +245,7 @@ export default function Equipa() {
                   <td><Ponto nivel={a.dono} /></td>
                   <td>
                     <Ponto nivel={a.pro} />
-                    {a.notaPro && <div className="text-sec text-xs" style={{ marginTop: 2 }}>{a.notaPro}</div>}
+                    {a.notaPro && <div className="text-sec text-sm" style={{ marginTop: 2 }}>{a.notaPro}</div>}
                   </td>
                 </tr>
               ))}
