@@ -49,15 +49,15 @@ const CAMPOS_COR=[
  */
 const CtxCodigos = React.createContext(false)
 const TEMA_OMISSAO={
-  colors:{bg:'#0A0807',surface:'#141210',elevated:'#1C1915',gold:'#C9A227',
+  colors:{bg:'#0A0807',surface:'#141210',elevated:'#1C1915',gold:'#FFFFFF',
           text:'#EDE8DF',textSec:'#8A8272',border:'#221E18'},
   fonts:{heading:'Playfair Display',body:'Inter'},
   radius:12,
   appName:'',
   favicon:'',
-  // Fundo animado da app de cliente. Desligado por omissao: e uma escolha de
-  // estilo, nao um valor por defeito que se impoe a toda a gente.
-  background:{ativo:false,cor:'#FFFFFF',intensidade:0.5,velocidade:1},
+  // Preto e branco com o fundo animado ligado: decisao do Diogo a 28/09/2026.
+  // E a cara com que uma barbearia nova nasce, e o que o «Repor cores» devolve.
+  background:{ativo:true,cor:'#FFFFFF',intensidade:0.5,velocidade:1},
 }
 // Desligado por omissao. Estava ligado: gravar o site escrevia ativo:true
 // no cartao, e uma barbearia que nunca o quis ficava com ele.
