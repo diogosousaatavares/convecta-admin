@@ -97,9 +97,11 @@ export default function RelatorioContabilista() {
           {r.totais.descontos > 0 && linha('Descontos', '− ' + formatPrice(r.totais.descontos))}
           {r.totais.gorjetas > 0 && linha('Gorjetas', formatPrice(r.totais.gorjetas))}
           {r.packs?.length > 0 && linha(`Packs vendidos (${r.packs.length})`, formatPrice(r.totalPacks))}
-          {linha('Total cobrado', formatPrice(r.totais.total + (r.totalPacks || 0)), true)}
-          <div className="text-sec text-xs" style={{ marginTop: 12 }}>
-            Sem IVA — os valores são os cobrados ao cliente.
+          {linha('Total em serviços e packs', formatPrice(r.totais.total + (r.totalPacks || 0)), true)}
+          <div className="text-sec text-sm" style={{ marginTop: 12 }}>
+            Sem IVA — os valores são os cobrados ao cliente. Os produtos
+            vendidos ao balcão não entram nesta folha; estão na Caixa e no
+            Resumo do negócio.
           </div>
         </div>
       )}

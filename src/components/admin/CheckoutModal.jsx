@@ -215,7 +215,12 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
 
         <div className="grid-2" style={{ gap: 12 }}>
           <div className="field" style={{ marginBottom: 0 }}>
-            <label className="label">Desconto</label>
+            {/* O desconto aplica-se ao servico, nao aos produtos: a comissao
+                do barbeiro sai do servico, e baixar o preco de um produto
+                que se comprou ao fornecedor e outra conta. Quem nao sabe
+                disto faz 10% sobre 12+12 e ve -1,20 em vez de -2,40, e
+                pensa que a app se enganou. Passa a estar escrito. */}
+            <label className="label">Desconto no serviço</label>
             <div className="flex gap-8">
               <input type="number" className="input" placeholder="0" value={discountValue} onChange={e => setDiscountValue(e.target.value)} min="0" step="0.01" />
               <div className="ag-viewseg" style={{ height: 44 }}>
@@ -229,6 +234,11 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
             <input className="input" placeholder="Ex: cliente VIP" value={discountReason} onChange={e => setDiscountReason(e.target.value)} />
           </div>
         </div>
+        {manualDiscount > 0 && totalProdutos > 0 && (
+          <div className="text-sec text-sm" style={{ marginTop: 8 }}>
+            O desconto é sobre o serviço ({formatPrice(base)}). Os produtos ficam pelo preço de venda.
+          </div>
+        )}
 
         <div className="grid-2 mt-16" style={{ gap: 12 }}>
           <div className="field" style={{ marginBottom: 0 }}>
