@@ -197,7 +197,7 @@ export default function AdminAppointments() {
         <Card>
           <table className="table">
             <thead>
-              <tr><th>Ref.</th><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Data</th><th>Hora</th><th>Estado</th><th></th></tr>
+              <tr><th className="ref">Ref.</th><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Data</th><th>Hora</th><th>Estado</th><th></th></tr>
             </thead>
             <tbody>
               {appts.map(a => {
@@ -209,7 +209,7 @@ export default function AdminAppointments() {
                 const badgeVariant = blocked ? 'default' : a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : a.status === 'completed' ? 'success' : 'success';
                 return (
                   <tr key={a.id}>
-                    <td className="text-gold fw-600 text-sm">{a.bookingRef || '—'}</td>
+                    <td className="ref text-gold fw-600 text-sm">{a.bookingRef || '—'}</td>
                     <td>
                       <div className="flex items-center gap-8">
                         <Avatar name={cust?.name} />

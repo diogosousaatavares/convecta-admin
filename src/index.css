@@ -766,7 +766,26 @@ html.theme-light .page-hero-sub { color: #5A544B; text-shadow: 0 1px 12px rgba(2
   display: block;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  /*
+   * Uma tabela mais larga do que a caixa desliza para o lado — mas nada no
+   * ecra dizia isso, e a coluna da direita (o ESTADO, nas marcacoes)
+   * aparecia cortada como se fosse um erro.
+   *
+   * Estas quatro camadas sao o truque das sombras de scroll, so em CSS: as
+   * duas primeiras sao a cor do cartao presa ao CONTEUDO (`local`), as duas
+   * seguintes sao sombras presas ao ECRA (`scroll`). Quando ha mais tabela
+   * para esse lado, a cor do cartao desliza para fora e a sombra fica a
+   * vista. Ao chegar ao fim, a cor tapa a sombra outra vez.
+   */
+  background:
+    linear-gradient(to right, var(--surface) 30%, rgba(0,0,0,0)) left center / 44px 100% no-repeat local,
+    linear-gradient(to left,  var(--surface) 30%, rgba(0,0,0,0)) right center / 44px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.45), rgba(0,0,0,0)) left center / 16px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.45), rgba(0,0,0,0)) right center / 16px 100% no-repeat scroll;
 }
+/* Uma referencia ("CB-QAS6") e um codigo: partida em duas linhas deixa de
+   se poder ler de relance, que e a unica coisa para que serve. */
+.table td.ref, .table th.ref { white-space: nowrap; }
 .table th { text-align: left; padding: 12px 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-sec); border-bottom: 1px solid var(--border); font-weight: 600; }
 .table td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
 .table tr:hover td { background: rgba(255,255,255,0.02); }
@@ -2203,20 +2222,33 @@ html.theme-light { --linha-agm: rgba(0, 0, 0, 0.13); }
    Substitui o <motion.div> do framer-motion, que eram 112 kB de biblioteca
    carregados em todas as aberturas do painel para fazer subir a pagina 28
    pixeis. O browser faz isto sozinho, sem descarregar nada. */
-@keyframes pagina-entra-sobe {
-  from { transform: translateY(28px); }
-  to   { transform: translateY(0); }
+/*
+ * ESTA ANIMACAO NAO PODE TER `transform`. Aprendido a mal, a 28/09/2026.
+ *
+ * Comecou por ser um translateY(28px) -> 0 com fill-mode `both`. O `both`
+ * deixa o transform aplicado para sempre depois de a animacao acabar — e
+ * QUALQUER transform diferente de `none` faz desse elemento o ponto de
+ * referencia dos filhos com `position: fixed`, em vez do ecra.
+ *
+ * Este elemento embrulha a app toda. Resultado:
+ *   - a barra lateral, que e fixed, passou a deslizar com o scroll: com a
+ *     pagina a 333px, ficava em top:-333px e o logotipo saia do ecra;
+ *   - as janelas (Modal) deixaram de abrir centradas no ecra e apareciam
+ *     encavalitadas no topo do conteudo.
+ *
+ * Com opacidade nao ha ponto de referencia nenhum a mudar. Se um dia
+ * quiseres a pagina a subir, poe o transform no .admin-content, que nao
+ * tem nada fixed la dentro — nunca aqui.
+ */
+@keyframes pagina-entra-aparece {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 .pagina-entra {
-  animation: pagina-entra-sobe 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: pagina-entra-aparece 260ms ease-out both;
 }
 .pagina-entra-curta {
-  animation-duration: 250ms;
-  animation-name: pagina-entra-sobe-curta;
-}
-@keyframes pagina-entra-sobe-curta {
-  from { transform: translateY(6px); }
-  to   { transform: translateY(0); }
+  animation-duration: 180ms;
 }
 /* Quem pediu menos movimento ao sistema nao leva movimento nenhum. */
 @media (prefers-reduced-motion: reduce) {
