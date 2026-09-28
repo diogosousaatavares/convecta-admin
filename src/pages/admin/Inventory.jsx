@@ -47,6 +47,10 @@ export default function Inventory() {
     if (cat && !categoriasProduto.some(c => c.toLowerCase() === cat.toLowerCase())) {
       try { await dataService.updateBusiness({ productCategories: [...categoriasProduto, cat] }); } catch { /* o produto grava na mesma */ }
     }
+    // Vender abaixo do que custou e quase sempre um engano de quem trocou
+    // os dois campos. Pergunta-se uma vez; quem esta em saldo, confirma.
+    if (Number(form.price) > 0 && Number(form.cost) > 0 && Number(form.price) < Number(form.cost)
+        && !window.confirm(`O preço de venda (${Number(form.price).toFixed(2)} €) é menor do que o custo (${Number(form.cost).toFixed(2)} €). Cada venda dá prejuízo. Gravar assim?`)) return;
     const forn = fornecedores.find(f => f.id === form.supplierId);
     const dados = { ...form, supplierId: forn?.id || null, supplier: forn?.name || '', stock: Number(form.stock), minStock: Number(form.minStock), cost: Number(form.cost), price: Number(form.price) };
     try {
@@ -72,7 +76,12 @@ export default function Inventory() {
     }
   };
 
-  const remove = async () => { await dataService.deleteProduct(delId); toast.info('Produto removido'); setDelId(null); };
+  const remove = async () => {
+    const r = await dataService.deleteProduct(delId);
+    if (r === 'inativado') toast.success('Produto desativado', 'Já teve movimentos, por isso a ficha fica guardada para o histórico. Deixa de aparecer nas vendas.');
+    else toast.info('Produto removido');
+    setDelId(null);
+  };
 
   return (
     <AdminLayout>

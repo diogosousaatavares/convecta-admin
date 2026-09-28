@@ -124,7 +124,29 @@ let state = {
 let initialized = false;
 const listeners = new Set();
 
-function notify() { listeners.forEach(fn => fn(state)); }
+/*
+ * Avisar os ecras de que os dados mudaram.
+ *
+ * Ate 28/09/2026 isto era so `listeners.forEach(...)`, e havia um buraco:
+ * tudo aqui dentro mexe nas listas no proprio sitio — `state.services.push(s)`,
+ * `state.appointments[i] = ...`. A lista muda, mas continua a ser o MESMO
+ * array. Um ecra que agrupe ou ordene com useMemo([data.services]) nunca
+ * recalcula, porque para o React nada mudou.
+ *
+ * Dava isto: criava-se um servico, a contagem no titulo subia para 21 (le-se
+ * direto do .length) e a grelha continuava a mostrar 20 ate se sair e voltar
+ * a pagina. O barbeiro pensa que nao gravou e cria outra vez.
+ *
+ * Trocar as listas por copias antes de avisar resolve a classe toda de uma
+ * vez, e nao so o caso dos servicos. Sao arrays de centenas de linhas: copiar
+ * a casca nao custa nada.
+ */
+function notify() {
+  for (const chave of Object.keys(state)) {
+    if (Array.isArray(state[chave])) state[chave] = state[chave].slice();
+  }
+  listeners.forEach(fn => fn(state));
+}
 
 // ─── DEFAULT DATA ─────────────────────────────────────────────────────────────
 function _defaultTypologies() {
@@ -675,7 +697,7 @@ function wlFromRow(row) {
     id: row.id, businessId: row.business_id,
     customerId: row.customer_id, serviceId: row.service_id,
     preferredDate: row.preferred_date, status: row.status,
-    priority: m.priority || 'normal', createdAt: row.created_at,
+    priority: m.priority || 'normal', notes: m.notes || '', createdAt: row.created_at,
     // Lista de espera a serio (LISTA_DE_ESPERA.sql): barbeiro, hora, oferta.
     professionalId: row.professional_id || null,
     startAt: row.start_at || null, expiraEm: row.expira_em || null, oferecidoEm: row.oferecido_em || null,
@@ -946,6 +968,12 @@ async function init() {
   state.packSales = await lerVendasPacks();
   recalcularClientes();
   initialized = true;
+  // Os dados acabaram de chegar da base de dados: isto E um refresco. Sem
+  // esta linha o painel dizia "ainda nao atualizado" em todas as paginas ao
+  // entrar — com os dados de ha dois segundos a frente dos olhos — e so
+  // passava a dizer a verdade depois de alguem carregar no botao.
+  _ultimoRefresco = Date.now();
+  _avisar();
   notify();
 }
 
@@ -1137,6 +1165,32 @@ const dataService = {
     const i = state.customers.findIndex(x => x.id === id);
     if (i >= 0) state.customers[i] = c;
     notify(); return c;
+  },
+  /*
+   * Apagar uma ficha de cliente.
+   *
+   * So se nunca ninguem a usou. Um cliente com marcacoes, vendas ou packs
+   * esta agarrado ao historico: apaga-lo levava a caixa, as comissoes e os
+   * relatorios com ele. Nesses casos diz-se porque nao, em vez de deixar o
+   * servidor devolver um erro de chave estrangeira que ninguem percebe.
+   *
+   * Ate 28/09/2026 nao havia forma nenhuma de apagar um cliente pelo painel:
+   * uma ficha criada por engano ficava la para sempre.
+   */
+  async deleteCustomer(id) {
+    const usos = [];
+    if ((state.appointments || []).some(a => a.customerId === id)) usos.push('marcações');
+    if ((state.sales || []).some(v => v.customerId === id)) usos.push('vendas');
+    if ((state.packSales || []).some(v => v.customerId === id)) usos.push('packs');
+    if (usos.length) {
+      const e = new Error(`Este cliente tem ${usos.join(' e ')} no histórico. Apagá-lo levava esses registos com ele.`);
+      e.temHistorico = true;
+      throw e;
+    }
+    const { error } = await supabase.from('customers').delete().eq('id', id);
+    if (error) throw traduzirErro(error);
+    state.customers = state.customers.filter(c => c.id !== id);
+    notify(); return true;
   },
   async adjustCustomerBalance(id, delta) {
     const c = await fichaFresca(id);
@@ -1560,7 +1614,28 @@ const dataService = {
     if (existing && diff !== 0) await registarMovimento(id, Math.abs(diff), diff > 0 ? 'in' : 'out', 'Acerto na ficha do produto');
     notify(); return p;
   },
+  /*
+   * Apagar um produto.
+   *
+   * Um produto que ja teve entradas, saidas ou vendas nao se apaga: passa a
+   * inactivo. Apagar deixava os movimentos de stock sem dono — uma lista de
+   * entradas e saidas com o nome "—" em cada linha, que nao serve para
+   * conferir nada e nunca mais se recupera. Inactivo desaparece das vendas
+   * e do catalogo, e o historico continua a saber de quem fala.
+   *
+   * So um produto que nunca foi usado e mesmo apagado.
+   */
   async deleteProduct(id) {
+    const temHistorico = (state.stockMovements || []).some(m => m.productId === id)
+      || (state.sales || []).some(v => (v.items || []).some(i => i.productId === id));
+    if (temHistorico) {
+      const { error } = await supabase.from('products').update({ is_active: false }).eq('id', id);
+      if (error) throw traduzirErro(error);
+      const i = state.products.findIndex(p => p.id === id);
+      if (i >= 0) state.products[i] = { ...state.products[i], isActive: false };
+      notify();
+      return 'inativado';
+    }
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) throw traduzirErro(error);
     state.products = state.products.filter(p => p.id !== id); notify(); return true;
@@ -1719,7 +1794,7 @@ const dataService = {
   // ── WAITLIST ──
   listWaitlist() { return Promise.resolve([...state.waitlist].sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))); },
   async addWaitlist(data) {
-    const row = { business_id: BUSINESS_ID, customer_id: data.customerId || null, service_id: data.serviceId || null, preferred_date: data.preferredDate || null, status: 'waiting', metadata: { priority: data.priority || 'normal' } };
+    const row = { business_id: BUSINESS_ID, customer_id: data.customerId || null, service_id: data.serviceId || null, preferred_date: data.preferredDate || null, status: 'waiting', metadata: { priority: data.priority || 'normal', notes: (data.notes || '').trim() } };
     const { data: created, error } = await supabase.from('waitlist').insert(row).select().single();
     if (error) throw traduzirErro(error);
     const w = wlFromRow(created); state.waitlist.push(w); notify(); return w;

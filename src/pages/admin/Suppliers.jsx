@@ -6,6 +6,7 @@ import { Card, Button, EmptyState, Modal, Badge } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
+import { emailTorto, telefoneTorto } from '@/lib/validar';
 
 const blank = { name: '', contact: '', email: '', phone: '' };
 
@@ -24,6 +25,8 @@ export default function Suppliers() {
 
   const save = async () => {
     if (!form.name) { toast.error('Nome obrigatório'); return; }
+    if (emailTorto(form.email)) { toast.error('Email inválido', 'Falta o @ ou o ponto. Deixa vazio se não souberes.'); return; }
+    if (telefoneTorto(form.phone)) { toast.error('Telefone inválido', 'Só números, pelo menos nove. Deixa vazio se não souberes.'); return; }
     try {
       if (editingId) { await dataService.updateSupplier(editingId, form); toast.success('Fornecedor atualizado'); }
       else { await dataService.createSupplier(form); toast.success('Fornecedor criado'); }

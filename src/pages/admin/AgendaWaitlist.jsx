@@ -7,6 +7,7 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatDateNum, todayStr } from '@/lib/format';
+import { nomeSemRepetir } from '@/lib/nomes';
 
 const PRIOS = { normal: 'Normal', alta: 'Alta', urgente: 'Urgente' };
 const STATUS = { waiting: 'À espera', oferecido: 'Vaga oferecida', marcado: 'Marcou', expirou: 'Deixou expirar', cancelado: 'Saiu', contacted: 'Contactado', scheduled: 'Agendado', closed: 'Fechado' };
@@ -35,6 +36,8 @@ export default function AgendaWaitlist() {
     catch (e) { toast.error('Não deu', e.message); }
   };
   const [vista, setVista] = useState('ativos');
+  // Tirar alguem da lista nao tem volta: perde o lugar na fila.
+  const [aApagar, setAApagar] = useState(null);
   const rowsVis = rows.filter(w => vista === 'todos' ? true : ['waiting', 'oferecido', 'contacted', 'scheduled'].includes(w.status))
     .sort((a, b) => (a.startAt || a.preferredDate || '9').localeCompare(b.startAt || b.preferredDate || '9'));
 
@@ -51,7 +54,7 @@ export default function AgendaWaitlist() {
       ) : (
         <Card>
           <table className="table">
-            <thead><tr><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Hora pedida</th><th>Estado</th><th></th></tr></thead>
+            <thead><tr><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Hora pedida</th><th>Prioridade</th><th>Estado</th><th></th></tr></thead>
             <tbody>
               {rowsVis.map(w => (
                 <tr key={w.id}>
@@ -59,6 +62,9 @@ export default function AgendaWaitlist() {
                   <td>{data.services.find(s => s.id === w.serviceId)?.name || '—'}</td>
                   <td>{!w.professionalId || w.professionalId === 'any' ? 'Qualquer' : data.professionals.find(p => p.id === w.professionalId)?.name || '—'}</td>
                   <td className="text-sm">{w.startAt ? `${dia(w.startAt)} · ${hora(w.startAt)}` : (w.preferredDate ? formatDateNum(w.preferredDate) : '—')}</td>
+                  {/* A prioridade e as observacoes escreviam-se no formulario e
+                      nunca mais apareciam em lado nenhum. */}
+                  <td><Badge variant={w.priority === 'alta' ? 'warning' : 'default'}>{PRIOS[w.priority] || 'Normal'}</Badge>{w.notes && <div className="text-sec text-xs" style={{ marginTop: 4 }}>{w.notes}</div>}</td>
                   <td>
                     <Badge variant={COR[w.status] || 'default'}>{STATUS[w.status] || w.status}</Badge>
                     {w.status === 'oferecido' && w.expiraEm && <div className="text-sec text-xs">confirma até às {hora(w.expiraEm)}</div>}
@@ -69,7 +75,7 @@ export default function AgendaWaitlist() {
                       </select>
                     )}
                   </td>
-                  <td><button className="btn btn-ghost btn-icon" aria-label="Remover da lista de espera" title="Remover da lista de espera" onClick={() => dataService.removeWaitlist(w.id)}><Trash2 size={15} /></button></td>
+                  <td><button className="btn btn-ghost btn-icon" aria-label="Remover da lista de espera" title="Remover da lista de espera" onClick={() => setAApagar(w)}><Trash2 size={15} /></button></td>
                 </tr>
               ))}
             </tbody>
@@ -77,10 +83,18 @@ export default function AgendaWaitlist() {
         </Card>
       )}
 
+      <Modal open={!!aApagar} onClose={() => setAApagar(null)} title="Tirar da lista de espera?"
+        footer={<>
+          <Button variant="secondary" onClick={() => setAApagar(null)}>Cancelar</Button>
+          <Button variant="danger" onClick={async () => { await dataService.removeWaitlist(aApagar.id); setAApagar(null); }}>Tirar da lista</Button>
+        </>}>
+        <p><strong>{data.customers.find(c => c.id === aApagar?.customerId)?.name || 'Este cliente'}</strong> perde o lugar na fila. Se uma hora vagar, deixa de ser avisado.</p>
+      </Modal>
+
       <Modal open={modal} onClose={() => setModal(false)} title="Adicionar à lista de espera">
         <div className="field"><label className="label">Cliente</label>
           <select className="select" value={form.customerId} onChange={e => setForm(f => ({ ...f, customerId: e.target.value }))}>
-            <option value="">Selecionar…</option>{data.customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            <option value="">Selecionar…</option>{data.customers.map(c => <option key={c.id} value={c.id}>{nomeSemRepetir(data.customers, c)}</option>)}
           </select></div>
         <div className="field"><label className="label">Serviço</label>
           <select className="select" value={form.serviceId} onChange={e => setForm(f => ({ ...f, serviceId: e.target.value }))}>

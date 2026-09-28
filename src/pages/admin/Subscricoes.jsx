@@ -8,6 +8,7 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice, formatDateShortNum, todayStr } from '@/lib/format';
+import { nomeSemRepetir } from '@/lib/nomes';
 
 const TAB_PATH = { planos: 'planos', subscritores: 'subscritores', pagamentos: 'pagamentos', utilizacao: 'utilizacao', atraso: 'atraso' };
 const PLAN_BLANK = { name: '', price: 0, period: 'Mensal', servicesIncluded: '', benefits: '', active: true };
@@ -143,7 +144,7 @@ export default function Subscricoes() {
       </Modal>
 
       <Modal open={subModal} onClose={() => setSubModal(false)} title="Novo subscritor">
-        <div className="field"><label className="label">Cliente</label><select className="select" value={sub.customerId} onChange={e => setSub(f => ({ ...f, customerId: e.target.value }))}><option value="">Selecionar…</option>{data.customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+        <div className="field"><label className="label">Cliente</label><select className="select" value={sub.customerId} onChange={e => setSub(f => ({ ...f, customerId: e.target.value }))}><option value="">Selecionar…</option>{data.customers.map(c => <option key={c.id} value={c.id}>{nomeSemRepetir(data.customers, c)}</option>)}</select></div>
         <div className="field"><label className="label">Plano</label><select className="select" value={sub.planId} onChange={e => setSub(f => ({ ...f, planId: e.target.value }))}><option value="">Selecionar…</option>{plans.filter(p => p.active).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
         <div className="grid-2">
           <div className="field"><label className="label">Início</label><input type="date" className="input" value={sub.startedAt} onChange={e => setSub(f => ({ ...f, startedAt: e.target.value }))} /></div>

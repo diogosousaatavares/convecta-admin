@@ -6,6 +6,7 @@ import { Card, Button, EmptyState, Modal, Badge } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
+import { nomeSemRepetir } from '@/lib/nomes';
 
 const TYPES = { stamp: 'Carimbo', reward: 'Recompensa', redeem: 'Resgate', adjust: 'Ajuste' };
 
@@ -53,7 +54,7 @@ export default function FidelizacaoPontos() {
       )}
       <Modal open={modal} onClose={() => setModal(false)} title="Novo movimento de fidelização">
         <div className="field"><label className="label">Cliente</label>
-          <select className="select" value={form.customerId} onChange={e => setForm(f => ({ ...f, customerId: e.target.value }))}><option value="">Selecionar…</option>{data.customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+          <select className="select" value={form.customerId} onChange={e => setForm(f => ({ ...f, customerId: e.target.value }))}><option value="">Selecionar…</option>{data.customers.map(c => <option key={c.id} value={c.id}>{nomeSemRepetir(data.customers, c)}</option>)}</select></div>
         <div className="grid-2">
           <div className="field"><label className="label">Tipo</label><select className="select" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>{Object.entries(TYPES).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></div>
           <div className="field"><label className="label">Quantidade</label><input type="number" className="input" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} /></div>

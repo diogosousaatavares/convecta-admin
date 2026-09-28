@@ -7,6 +7,7 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { todayStr, formatDate } from '@/lib/format';
+import { nomeSemRepetir } from '@/lib/nomes';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
@@ -65,7 +66,7 @@ export default function AgendaFitIns() {
 
       <Modal open={!!modal} onClose={() => setModal(null)} title="Novo encaixe">
         <div className="field"><label className="label">Cliente</label>
-          <select className="select" value={form.customerId} onChange={e => setForm(f => ({ ...f, customerId: e.target.value }))}><option value="">Selecionar…</option>{data.customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+          <select className="select" value={form.customerId} onChange={e => setForm(f => ({ ...f, customerId: e.target.value }))}><option value="">Selecionar…</option>{data.customers.map(c => <option key={c.id} value={c.id}>{nomeSemRepetir(data.customers, c)}</option>)}</select></div>
         <div className="field"><label className="label">Serviço</label>
           <select className="select" value={form.serviceId} onChange={e => setForm(f => ({ ...f, serviceId: e.target.value }))}><option value="">Selecionar…</option>{data.services.filter(s => s.isActive).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
         <div className="grid-2">

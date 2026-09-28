@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Users, Search, ArrowUpDown, ArrowUp, ArrowDown, Mail, Phone, Plus, Pencil } from 'lucide-react';
+import { Users, Search, ArrowUpDown, ArrowUp, ArrowDown, Mail, Phone, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, Avatar, EmptyState, Badge, Button, Modal } from '@/components/ui';
 import { formatPrice, formatDateShortNum } from '@/lib/format';
 import CustomerProfileModal from '@/components/admin/CustomerProfileModal';
+import { emailTorto, telefoneTorto } from '@/lib/validar';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 
@@ -25,6 +26,7 @@ export default function Customers() {
 
   useEffect(() => { setCustomerList(data.customers); }, [data.customers]);
 
+  const [aApagar, setAApagar] = useState(null);
   const openNew = () => { setForm(empty); setEditing('new'); };
   const openEdit = (c) => { setForm({ name: c.name, email: c.email || '', phone: c.phone || '', birthDate: c.birthDate || '' }); setEditing(c.id); };
   const close = () => setEditing(null);
@@ -35,9 +37,6 @@ export default function Customers() {
    * email torto e uma marcacao que nunca chega ao cliente, e ninguem
    * descobre porque o painel nao da sinal de nada.
    */
-  const emailTorto = (e) => !!e.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
-  const telefoneTorto = (t) => { const d = t.replace(/[\s.()-]/g, ''); return !!d && (!/^\+?\d+$/.test(d) || d.replace(/\D/g, '').length < 9); };
-
   const save = async () => {
     if (!form.name.trim()) { toast.error('Nome obrigatório'); return; }
     if (emailTorto(form.email || '')) { toast.error('Email inválido', 'Falta o @ ou o ponto. Deixa vazio se não souberes.'); return; }
@@ -145,7 +144,8 @@ export default function Customers() {
                       <td className="text-sm">{c.lastVisit ? formatDateShortNum(c.lastVisit) : '—'}</td>
                       <td>{(c.loyalty?.stamps || 0) > 0 ? <span className="text-sm">{'★'.repeat(Math.min(c.loyalty.stamps, 5))}<span className="text-sec text-xs"> {c.loyalty.stamps}/10</span></span> : <span className="text-sec text-xs">—</span>}</td>
                       <td onClick={e => { e.preventDefault(); e.stopPropagation(); }}>
-                        <Button size="sm" variant="ghost" onClick={e => { e.preventDefault(); e.stopPropagation(); openEdit(c); }}><Pencil size={13} /></Button>
+                        <Button size="sm" variant="ghost" title="Editar ficha" onClick={e => { e.preventDefault(); e.stopPropagation(); openEdit(c); }}><Pencil size={13} /></Button>
+                        <Button size="sm" variant="ghost" title="Apagar ficha" onClick={e => { e.preventDefault(); e.stopPropagation(); setAApagar(c); }}><Trash2 size={13} /></Button>
                       </td>
                     </tr>
                   ))}
@@ -168,6 +168,26 @@ export default function Customers() {
         <div className="field"><label className="label">Email</label><input className="input" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" /></div>
         <div className="field"><label className="label">Telefone</label><input className="input" type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+351 9XX XXX XXX" /></div>
         <div className="field"><label className="label">Data de nascimento</label><input className="input" type="date" value={form.birthDate} onChange={e => setForm({ ...form, birthDate: e.target.value })} /></div>
+      </Modal>
+
+      {/* Apagar uma ficha criada por engano. So vai avante se ninguem a usou
+          — o dataService verifica e diz porque nao, quando nao da. */}
+      <Modal open={!!aApagar} onClose={() => setAApagar(null)} title="Apagar este cliente?"
+        footer={<>
+          <Button variant="secondary" onClick={() => setAApagar(null)}>Cancelar</Button>
+          <Button variant="danger" onClick={async () => {
+            try {
+              await dataService.deleteCustomer(aApagar.id);
+              toast.success('Cliente apagado', aApagar.name);
+              setCustomerList([...(await dataService.listCustomers())]);
+              setAApagar(null);
+            } catch (err) {
+              toast.error(err.temHistorico ? 'Não dá para apagar' : 'Erro ao apagar', err.message || String(err));
+              if (err.temHistorico) setAApagar(null);
+            }
+          }}>Apagar</Button>
+        </>}>
+        <p>A ficha de <strong>{aApagar?.name}</strong> desaparece do painel. Não há volta a dar.</p>
       </Modal>
 
       <CustomerProfileModal customer={selected} onClose={() => setSelected(null)} />

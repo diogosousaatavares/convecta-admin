@@ -467,7 +467,14 @@ export default function AdminLayout({ children }) {
             }
             <div className="admin-search-wrap" ref={searchRef}>
               <Search className="admin-search-icon" size={16} />
-              <input className="admin-search-input" value={query} onChange={event => { setQuery(event.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} placeholder="Pesquisar clientes ou serviços..." aria-label="Pesquisa global" />
+              {/* Escape fecha a lista, e uma segunda vez limpa o que esta
+                  escrito. Era a unica caixa do painel de onde nao se saia
+                  sem ir com o rato a outro sitio. */}
+              <input className="admin-search-input" value={query}
+                onChange={event => { setQuery(event.target.value); setSearchOpen(true); }}
+                onFocus={() => setSearchOpen(true)}
+                onKeyDown={event => { if (event.key === 'Escape') { if (searchOpen) setSearchOpen(false); else { setQuery(''); event.currentTarget.blur(); } } }}
+                placeholder="Pesquisar clientes ou serviços..." aria-label="Pesquisa global" />
               {searchOpen && query.trim().length >= 2 && <div className="admin-search-dropdown">
                 {searchResults.length === 0 ? <div className="admin-search-empty">Sem resultados</div> : searchResults.map(result => (
                   <button key={`${result.type}-${result.id}`} className="admin-search-result" onClick={() => selectSearchResult(result)}>

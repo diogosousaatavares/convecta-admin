@@ -17,6 +17,7 @@ import CheckoutModal from '@/components/admin/CheckoutModal';
 import VendaAvulsoModal from '@/components/admin/VendaAvulsoModal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { packsActivosDoCliente, saldoParaServico } from '@/lib/packsService';
+import { nomeSemRepetir } from '@/lib/nomes';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
@@ -37,12 +38,6 @@ function rotuloEstado(a) {
 
 // Dois clientes (ou barbeiros) com o mesmo nome apareciam iguais na lista.
 // Quando o nome se repete, junta-se o telefone/email (ou a função).
-function nomeSemRepetir(lista, item, extra) {
-  const nome = (item.name || '').trim();
-  const repetido = lista.filter(x => (x.name || '').trim().toLowerCase() === nome.toLowerCase()).length > 1;
-  return repetido ? `${nome} · ${extra || item.id.slice(0, 4)}` : nome;
-}
-
 export default function Agenda() {
   const data = useStore();
   const telemovel = useIsMobile();
@@ -71,7 +66,7 @@ export default function Agenda() {
     // pessoa na agenda sem saber onde carregar.
     try { return new URLSearchParams(window.location.search).get('nova') === '1'; } catch { return false; }
   });
-  const [quick, setQuick] = useState({ customerId: '', serviceId: '', professionalId: '', startTime: '', usaPack: false });
+  const [quick, setQuick] = useState({ customerId: '', serviceId: '', professionalId: '', data: '', startTime: '', usaPack: false });
   // Os packs do cliente escolhido no encaixe. Quem tem pack e liga para
   // marcar tem de o poder usar — senao o barbeiro cobrava-lhe duas vezes.
   const [packsDoCliente, setPacksDoCliente] = useState([]);
@@ -190,7 +185,7 @@ export default function Agenda() {
   const [bloqDur, setBloqDur] = useState('30');
   const abrirMarcacao = (professionalId, startTime) => {
     setQuickError('');
-    setQuick({ customerId: '', serviceId: '', professionalId: so || professionalId, startTime, usaPack: false });
+    setQuick({ customerId: '', serviceId: '', professionalId: so || professionalId, data: date, startTime, usaPack: false });
     setQuickOpen(true);
   };
   const novaNaHora = (professionalId, startTime) => {
@@ -210,21 +205,27 @@ export default function Agenda() {
       return;
     }
     const svc = data.services.find(s => s.id === quick.serviceId);
+    const dia = quick.data || date;
+    // Marcar para uma hora que ja passou e quase sempre engano de quem
+    // escreveu mal a hora. Pergunta-se uma vez; quem quiser mesmo, confirma.
+    if (`${dia} ${quick.startTime}` < `${todayStr()} ${new Date().toTimeString().slice(0, 5)}`
+        && !window.confirm('Essa hora já passou. Queres mesmo marcar para trás?')) return;
     await dataService.createAppointment({
       customerId: quick.customerId,
       serviceId: quick.serviceId,
       professionalId: quick.professionalId,
-      date,
+      date: dia,
       startTime: quick.startTime,
       endTime: toTime(toMin(quick.startTime) + svc.durationMinutes),
       status: 'confirmed',
       usaPack: quick.usaPack && saldoPackEncaixe > 0,
     });
-    toast.success('Encaixe criado', quick.usaPack && saldoPackEncaixe > 0
+    if (dia !== date) setDate(dia);
+    toast.success('Marcação criada', quick.usaPack && saldoPackEncaixe > 0
       ? 'Marcação confirmada — paga com o pack do cliente.'
       : 'Marcação confirmada na agenda.');
     setQuickOpen(false);
-    setQuick({ customerId: '', serviceId: '', professionalId: '', startTime: '', usaPack: false });
+    setQuick({ customerId: '', serviceId: '', professionalId: '', data: '', startTime: '', usaPack: false });
     } catch (e) { falhou(e); }
   };
 
@@ -500,7 +501,7 @@ export default function Agenda() {
                   {[['30', '30 min'], ['60', '1 h'], ['90', '1 h 30'], ['120', '2 h'], ['180', '3 h'], ['240', '4 h']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
               </div>
-              <Button variant="secondary" block style={{ marginTop: 10 }} onClick={async () => { const e = escolha; setEscolha(null); await handleBlock(e.professionalId, e.startTime, bloqMotivo.trim(), bloqDur); }}>Bloquear</Button>
+              <Button variant="secondary" block style={{ marginTop: 10 }} onClick={async () => { const e = escolha; setEscolha(null); await handleBlock(e.professionalId, e.startTime, bloqMotivo.trim(), bloqDur); setBloqMotivo(''); }}>Bloquear</Button>
             </div>
           </div>
         )}
@@ -532,6 +533,10 @@ export default function Agenda() {
             </select>
           </div>
           <div className="field">
+            <label className="label">Dia</label>
+            <input type="date" className="input" value={quick.data || date} onChange={e => setQuick(f => ({ ...f, data: e.target.value }))} />
+          </div>
+          <div className="field">
             <label className="label">Hora de início</label>
             <input type="time" className="input" value={quick.startTime} onChange={e => setQuick(f => ({ ...f, startTime: e.target.value }))} />
           </div>
@@ -543,7 +548,7 @@ export default function Agenda() {
           )}
           <div className="ag-detail-actions" style={{ justifyContent: 'flex-end' }}>
             <Button size="sm" variant="secondary" onClick={() => setQuickOpen(false)}>Cancelar</Button>
-            <Button size="sm" variant="primary" onClick={submitQuick}>Criar encaixe</Button>
+            <Button size="sm" variant="primary" onClick={submitQuick}>Criar marcação</Button>
           </div>
         </div>
       </Modal>
@@ -577,7 +582,7 @@ export default function Agenda() {
           <>
             <div className="ag-detail-row"><span className="l">Cliente</span><span className="v">{data.customers.find(c => c.id === cancelTarget.customerId)?.name || '—'}</span></div>
             <div className="ag-detail-row"><span className="l">Serviço</span><span className="v">{data.services.find(s => s.id === cancelTarget.serviceId)?.name || '—'}</span></div>
-            <div className="ag-detail-row"><span className="l">Data</span><span className="v">{cancelTarget.startTime} · {cancelTarget.date}</span></div>
+            <div className="ag-detail-row"><span className="l">Data</span><span className="v">{cancelTarget.startTime} · {formatDate(cancelTarget.date)}</span></div>
           </>
         )}
         message={cancelTarget && (cancelTarget.blocked || cancelTarget.status === 'blocked') ? 'O bloqueio será removido da agenda.' : 'Esta ação irá alterar o estado da marcação para Cancelada.'}
