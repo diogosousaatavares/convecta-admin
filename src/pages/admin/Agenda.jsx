@@ -158,7 +158,14 @@ export default function Agenda() {
 
   const handleBlock = async (proId, startTime, motivo, duracao) => { try {
     if (so && proId !== so) { soATua(); return; }
-    const label = motivo != null ? (motivo || 'Bloqueado') : (window.prompt('Motivo do bloqueio (opcional):', 'Bloqueado') || 'Bloqueado');
+    /*
+     * Aqui estava um window.prompt. Um prompt nativo trava o browser todo
+     * enquanto esta aberto — numa auditoria bastou um para o separador
+     * deixar de responder, e no telemovel nem sempre aparece. O motivo ja
+     * se escreve na janela que abre ao tocar numa hora; sem motivo, o
+     * bloqueio chama-se "Bloqueado" e pronto.
+     */
+    const label = (motivo || '').trim() || 'Bloqueado';
     const dur = Number(duracao) || 30;
     await dataService.createAppointment({
       blocked: true,
@@ -387,7 +394,10 @@ export default function Agenda() {
               <div className="flex-col gap-8">
                 {vendasDoDia.map(v => (
                   <div key={v.id} className="flex items-center gap-12" style={{ padding: '9px 12px', background: 'var(--elevated)', borderRadius: 8, border: '1px solid var(--border)' }}>
-                    <span className="text-sec text-xs" style={{ whiteSpace: 'nowrap' }}>{(v.soldAt || '').slice(11, 16)}</span>
+                    {/* Cortar a string ISO dava a hora em UTC: uma venda das
+                        11:03 aparecia aqui como 10:03, e na Caixa como 11:03.
+                        Duas horas diferentes para a mesma venda. */}
+                    <span className="text-sec text-xs" style={{ whiteSpace: 'nowrap' }}>{v.soldAt ? new Date(v.soldAt).toLocaleTimeString('pt-PT').slice(0, 5) : ''}</span>
                     <span className="flex-1 text-sm">{(v.items || []).map(i => `${i.qty}× ${i.name}`).join(', ')}</span>
                     <span className="text-sec text-xs">{data.customers.find(c => c.id === v.customerId)?.name || ''}</span>
                     <span className="fw-600 text-sm" style={{ whiteSpace: 'nowrap' }}>{formatPrice(v.total)}</span>

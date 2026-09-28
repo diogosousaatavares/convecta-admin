@@ -29,8 +29,19 @@ export default function Customers() {
   const openEdit = (c) => { setForm({ name: c.name, email: c.email || '', phone: c.phone || '', birthDate: c.birthDate || '' }); setEditing(c.id); };
   const close = () => setEditing(null);
 
+  /*
+   * Ate 28/09/2026 so o nome era verificado: um email escrito como
+   * "naoeemail" e um telefone escrito como "abc" entravam na ficha. Um
+   * email torto e uma marcacao que nunca chega ao cliente, e ninguem
+   * descobre porque o painel nao da sinal de nada.
+   */
+  const emailTorto = (e) => !!e.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e.trim());
+  const telefoneTorto = (t) => { const d = t.replace(/[\s.()-]/g, ''); return !!d && (!/^\+?\d+$/.test(d) || d.replace(/\D/g, '').length < 9); };
+
   const save = async () => {
     if (!form.name.trim()) { toast.error('Nome obrigatório'); return; }
+    if (emailTorto(form.email || '')) { toast.error('Email inválido', 'Falta o @ ou o ponto. Deixa vazio se não souberes.'); return; }
+    if (telefoneTorto(form.phone || '')) { toast.error('Telefone inválido', 'Só números, pelo menos nove. Deixa vazio se não souberes.'); return; }
     try {
       if (editing === 'new') {
         await dataService.createCustomer({ ...form, name: form.name.trim() });
