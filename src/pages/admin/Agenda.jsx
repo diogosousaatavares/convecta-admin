@@ -321,9 +321,24 @@ export default function Agenda() {
             <Button size="sm" variant="secondary" onClick={() => setDate(todayStr())}>Hoje</Button>
             <button className="ag-nav-btn" aria-label="Dia seguinte" onClick={() => shift(1)} title="Dia seguinte"><ChevronRight size={18} /></button>
           </div>
+          {/*
+              O botao amarelo dizia "Encaixe". Quem esta a comecar nao sabe o
+              que e um encaixe — e, pior, o que ele faz e abrir uma marcacao
+              normal. Passa a dizer o que faz.
+
+              O bloqueio de horas era uma caixa de marcar solta, debaixo do
+              calendario do mes, onde ninguem a procurava. Passa a ser um
+              botao aqui, ao lado da accao principal, e diz-se o que fica
+              ligado enquanto estiver activo.
+          */}
           <div className="ag-tb-actions">
-            <Button size="sm" variant="primary" onClick={() => novaNaHora('', '')}><Plus size={15} /> Encaixe</Button>
+            <Button size="sm" variant="primary" onClick={() => novaNaHora('', '')}><Plus size={15} /> Nova marcação</Button>
             <button className="btn-gold-pill btn-sm" onClick={() => setVendaOpen(true)}><ShoppingBag size={15} /> Venda</button>
+            <Button size="sm" variant={blockMode ? 'primary' : 'secondary'}
+              onClick={() => setBlockMode(!blockMode)}
+              title={blockMode ? 'A seguir, toca numa hora para a bloquear' : 'Bloquear horas (almoço, folga, formação)'}>
+              <Clock size={15} /> {blockMode ? 'A bloquear — toca numa hora' : 'Bloquear tempo'}
+            </Button>
           </div>
         </div>
         <h2 className="ag-date">{formatDate(date)}</h2>

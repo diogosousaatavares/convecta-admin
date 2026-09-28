@@ -7,6 +7,7 @@ import {
 import { useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 import { todayStr } from '@/lib/format';
+import { Link } from 'react-router-dom';
 
 /*
  * A agenda no telemovel.
@@ -187,9 +188,19 @@ export default function AgendaTelemovel({
 
           {/* ---- A grelha do dia ---- */}
           {!aberto ? (
-            <div className="agm-fechado">Encerrado neste dia.<span>Não há horário de funcionamento definido.</span></div>
+            /* O mesmo beco sem saida que havia no computador, e aqui e pior:
+               no telemovel e o primeiro ecra que ele ve. */
+            <div className="agm-fechado">
+              Ainda não definiste o horário.
+              <span>Sem horário, os teus clientes não conseguem marcar.</span>
+              <Link to="/admin/horarios" className="btn btn-primary btn-sm" style={{ textDecoration: 'none', marginTop: 12 }}>Definir horário agora</Link>
+            </div>
           ) : !pro ? (
-            <div className="agm-fechado">Ainda não há profissionais.<span>Adiciona um em Profissionais para veres a agenda.</span></div>
+            <div className="agm-fechado">
+              Ainda não há profissionais.
+              <span>Adiciona um para veres a agenda.</span>
+              <Link to="/admin/profissionais" className="btn btn-primary btn-sm" style={{ textDecoration: 'none', marginTop: 12 }}>Adicionar barbeiro</Link>
+            </div>
           ) : (
             <div className="agm-grelha">
               <div className="agm-grelha-topo">

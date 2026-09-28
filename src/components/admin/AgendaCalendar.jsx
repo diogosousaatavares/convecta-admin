@@ -2,6 +2,8 @@ import dataService from '@/lib/dataService';
 import React from 'react';
 import { useStore } from '@/hooks/useStore';
 import { todayStr } from '@/lib/format';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
 const SLOT_H = 48;
 const STEP = 30;
@@ -30,10 +32,27 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
   const hours = data.business.openingHours.find(h => h.day === DAY_NAMES[dow]);
 
   if (!hours || !hours.isOpen) {
+    /*
+     * Isto dizia so "Encerrado neste dia. Nao ha horario de funcionamento
+     * definido." e acabava ali — um beco sem saida, e logo no ecra onde o
+     * barbeiro passa o dia. Quem acabou de montar a barbearia chega aqui no
+     * primeiro minuto e nao ha nada para carregar.
+     */
+    const semHorarioNenhum = !(data.business.openingHours || []).some(h => h.isOpen);
     return (
       <div className="ag-grid">
         <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-sec)' }}>
-          Encerrado neste dia. Não há horário de funcionamento definido.
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
+            {semHorarioNenhum ? 'Ainda não definiste o horário da barbearia.' : 'Fechado neste dia.'}
+          </div>
+          <div style={{ fontSize: 13, marginBottom: 18 }}>
+            {semHorarioNenhum
+              ? 'Sem horário, os teus clientes não conseguem marcar.'
+              : 'Podes abrir este dia no horário da barbearia.'}
+          </div>
+          <Link to="/admin/horarios" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
+            Definir horário agora <ArrowRight size={15} />
+          </Link>
         </div>
       </div>
     );
