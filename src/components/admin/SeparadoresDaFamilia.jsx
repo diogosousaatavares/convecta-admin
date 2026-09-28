@@ -55,7 +55,7 @@ const FAMILIAS = [
       { to: '/admin/definicoes/notificacoes', label: 'Notificações' },
       { to: '/admin/definicoes/clientes', label: 'Clientes' },
       { to: '/admin/definicoes/documentos', label: 'Documentos' },
-      { to: '/admin/definicoes/tema', label: 'Cores deste painel' },
+      { to: '/admin/definicoes/tema', label: 'Cores do painel' },
       { to: '/admin/definicoes/utilizadores', label: 'Utilizadores' },
       { to: '/admin/definicoes/seguranca', label: 'Segurança' },
       { to: '/admin/definicoes/parametros', label: 'Mais opções' },
@@ -83,15 +83,14 @@ export default function SeparadoresDaFamilia() {
     caminho === aba.to || (aba.tambem || []).includes(caminho);
 
   return (
-    <div className="bp-tabs" role="tablist" aria-label="Secções desta área">
+    <div className="fam-tabs" role="tablist" aria-label="Secções desta área">
       {familia.abas.map(aba => (
         <NavLink
           key={aba.to}
           to={aba.to}
           role="tab"
           aria-selected={aceso(aba)}
-          className={`bp-tab ${aceso(aba) ? 'active' : ''}`}
-          style={{ textDecoration: 'none', display: 'inline-block' }}
+          className={`fam-tab ${aceso(aba) ? 'active' : ''}`}
         >
           {aba.label}
         </NavLink>

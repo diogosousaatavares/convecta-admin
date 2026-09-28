@@ -1096,6 +1096,21 @@ html.theme-light .svc-price-label { opacity: 0.7; }
 .bp-amenity svg { color: var(--gold); }
 
 .bp-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 20px; -webkit-overflow-scrolling: touch; }
+
+/* Os separadores de uma familia de paginas.
+   Nao reaproveitam o .bp-tabs de proposito: aquele desliza para o lado, e as
+   Definicoes tem ONZE seccoes — numa linha que desliza, a ultima fica
+   escondida na margem e ninguem sabe que existe. Aqui mudam de linha. */
+.fam-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; max-width: 100%; }
+.fam-tab {
+  flex-shrink: 0; padding: 7px 13px; border-radius: var(--radius-pill);
+  background: transparent; border: 1px solid var(--border); color: var(--text-sec);
+  font-size: 12.5px; font-weight: 500; cursor: pointer; text-decoration: none;
+  white-space: nowrap; transition: all 200ms ease;
+}
+.fam-tab:hover { color: var(--text); border-color: var(--text-ter); }
+.fam-tab.active { background: var(--gold); color: #0A0804; border-color: var(--gold); font-weight: 600; }
+@media (max-width: 640px) { .fam-tab { padding: 6px 11px; font-size: 12px; } }
 .bp-tabs::-webkit-scrollbar { display: none; }
 .bp-tab { flex-shrink: 0; padding: 8px 14px; border-radius: var(--radius-pill); background: transparent; border: 1px solid var(--border); color: var(--text-sec); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 200ms ease; }
 .bp-tab.active { background: var(--gold); color: #0A0804; border-color: var(--gold); }

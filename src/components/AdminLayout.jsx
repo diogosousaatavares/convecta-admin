@@ -92,23 +92,33 @@ const GROUPS_TODOS = [
   { type: 'item', to: '/admin/o-meu-site', label: 'O meu site', icon: Palette },
 
   /*
-   * A gaveta. Tudo o que nao se usa todas as semanas, uma linha por assunto.
+   * A gaveta. Tudo o que nao se usa todas as semanas, arrumado por assunto.
    *
    * Tinha trinta e duas linhas ate as Definicoes, as Comandas, os Relatorios
    * e as Promocoes ganharem separadores por dentro (ver
-   * SeparadoresDaFamilia). A partir dai, o menu so precisa da porta: as
-   * paginas irmas alcancam-se umas as outras la dentro.
+   * SeparadoresDaFamilia). A partir dai o menu so precisa da porta de cada
+   * familia — as paginas irmas encontram-se la dentro.
+   *
+   * As linhas que sobram continuam agrupadas por assunto: dez linhas
+   * seguidas ainda e uma lista para ler, e nao um sitio onde se procura.
    */
   { type: 'group', label: 'Mais', icon: MoreHorizontal, items: [
+    { titulo: 'Como vai o negócio' },
     { to: '/admin/dashboard', label: 'Resumo do negócio', exact: true },
     { to: '/admin/relatorios', label: 'Relatórios' },
     { to: '/admin/profissionais/desempenho', label: 'Desempenho da equipa' },
+
+    { titulo: 'Fidelizar e vender mais' },
     { to: '/admin/fidelizacao', label: 'Cartão de fidelidade' },
     { to: '/admin/packs', label: 'Packs' },
     { to: '/admin/agenda/pack', label: 'Pack mensal' },
     { to: '/admin/promocoes', label: 'Promoções e cupões' },
+
+    { titulo: 'A barbearia' },
     { to: '/admin/redes-sociais', label: 'Redes sociais' },
     { to: '/admin/definicoes', label: 'Definições' },
+
+    { titulo: 'A Convecta' },
     { to: '/admin/subscricao', label: 'A minha subscrição' }
   ]}
 ];
