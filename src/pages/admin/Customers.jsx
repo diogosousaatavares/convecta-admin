@@ -190,7 +190,7 @@ export default function Customers() {
         <p>A ficha de <strong>{aApagar?.name}</strong> desaparece do painel. Não há volta a dar.</p>
       </Modal>
 
-      <CustomerProfileModal customer={selected} onClose={() => setSelected(null)} />
+      <CustomerProfileModal customer={selected} onClose={() => setSelected(null)} onEditar={c => { setSelected(null); openEdit(c); }} />
     </AdminLayout>
   );
 }

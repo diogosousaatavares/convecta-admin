@@ -182,10 +182,13 @@ export default function Agenda() {
   // bloquear. O botão Encaixe (sem hora) vai direto à marcação.
   const [escolha, setEscolha] = useState(null);   // {professionalId, startTime}
   const [bloqMotivo, setBloqMotivo] = useState('');
+  const [avisoPassado, setAvisoPassado] = useState(false);
+  const jaPassou = (dia, hora) => `${dia} ${hora}` < `${todayStr()} ${new Date().toTimeString().slice(0, 5)}`;
   const [bloqDur, setBloqDur] = useState('30');
   const abrirMarcacao = (professionalId, startTime) => {
     setQuickError('');
     setQuick({ customerId: '', serviceId: '', professionalId: so || professionalId, data: date, startTime, usaPack: false });
+    setAvisoPassado(false);
     setQuickOpen(true);
   };
   const novaNaHora = (professionalId, startTime) => {
@@ -206,10 +209,16 @@ export default function Agenda() {
     }
     const svc = data.services.find(s => s.id === quick.serviceId);
     const dia = quick.data || date;
-    // Marcar para uma hora que ja passou e quase sempre engano de quem
-    // escreveu mal a hora. Pergunta-se uma vez; quem quiser mesmo, confirma.
-    if (`${dia} ${quick.startTime}` < `${todayStr()} ${new Date().toTimeString().slice(0, 5)}`
-        && !window.confirm('Essa hora já passou. Queres mesmo marcar para trás?')) return;
+    /*
+     * Marcar para uma hora que ja passou e quase sempre engano de quem
+     * escreveu mal a hora — mas as vezes e de proposito, a lancar um corte
+     * que ja foi feito. Por isso avisa-se, nao se proibe.
+     *
+     * O aviso e dentro da janela, nao num window.confirm: uma caixa nativa
+     * trava o browser todo, e foi por isso que o prompt do bloqueio saiu
+     * daqui a 28/09. O botao muda de nome e o segundo toque e a confirmacao.
+     */
+    if (jaPassou(dia, quick.startTime) && !avisoPassado) { setAvisoPassado(true); return; }
     await dataService.createAppointment({
       customerId: quick.customerId,
       serviceId: quick.serviceId,
@@ -534,11 +543,11 @@ export default function Agenda() {
           </div>
           <div className="field">
             <label className="label">Dia</label>
-            <input type="date" className="input" value={quick.data || date} onChange={e => setQuick(f => ({ ...f, data: e.target.value }))} />
+            <input type="date" className="input" value={quick.data || date} onChange={e => { setQuick(f => ({ ...f, data: e.target.value })); setAvisoPassado(false); }} />
           </div>
           <div className="field">
             <label className="label">Hora de início</label>
-            <input type="time" className="input" value={quick.startTime} onChange={e => setQuick(f => ({ ...f, startTime: e.target.value }))} />
+            <input type="time" className="input" value={quick.startTime} onChange={e => { setQuick(f => ({ ...f, startTime: e.target.value })); setAvisoPassado(false); }} />
           </div>
           {saldoPackEncaixe > 0 && (
             <label className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px' }}>
@@ -546,9 +555,16 @@ export default function Agenda() {
               Usar o pack do cliente ({saldoPackEncaixe} corte{saldoPackEncaixe > 1 ? 's' : ''} por usar) — fica a 0 €
             </label>
           )}
+          {avisoPassado && (
+            <div className="text-sm" style={{ color: 'var(--error)', margin: '0 0 12px' }}>
+              Essa hora já passou. Se for um corte que já foi feito, toca outra vez para marcar.
+            </div>
+          )}
           <div className="ag-detail-actions" style={{ justifyContent: 'flex-end' }}>
             <Button size="sm" variant="secondary" onClick={() => setQuickOpen(false)}>Cancelar</Button>
-            <Button size="sm" variant="primary" onClick={submitQuick}>Criar marcação</Button>
+            <Button size="sm" variant={avisoPassado ? 'danger' : 'primary'} onClick={submitQuick}>
+              {avisoPassado ? 'Marcar mesmo assim' : 'Criar marcação'}
+            </Button>
           </div>
         </div>
       </Modal>

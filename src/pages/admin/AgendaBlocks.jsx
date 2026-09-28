@@ -17,6 +17,8 @@ export default function AgendaBlocks() {
   const falhou = (e) => toast.error('Não ficou gravado', (e && e.message) || 'Verifica a internet e tenta outra vez.');
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({ professionalId: '', date: todayStr(), startTime: '09:00', endTime: '10:00', label: 'Bloqueado' });
+  // Tirar um bloqueio abre a hora a quem quiser marcar. Pergunta-se primeiro.
+  const [aApagar, setAApagar] = useState(null);
 
   const blocks = (data.appointments || []).filter(a => a.blocked || a.status === 'blocked').sort((a, b) => (b.date + b.startTime).localeCompare(a.date + a.startTime));
 
@@ -45,14 +47,25 @@ export default function AgendaBlocks() {
                   <td className="fw-600">{data.professionals.find(p => p.id === b.professionalId)?.name || '—'}</td>
                   <td>{formatDateShortNum(b.date)}</td>
                   <td>{b.startTime} – {b.endTime}</td>
-                  <td className="text-sec">{b.label}</td>
-                  <td><button className="btn btn-ghost btn-icon" aria-label="Eliminar bloqueio" title="Eliminar bloqueio" onClick={async () => { try { await dataService.deleteAppointment(b.id); toast.success('Bloqueio removido'); } catch (e) { falhou(e); } }}><Trash2 size={15} /></button></td>
+                  <td className="text-sec">{b.label || '—'}</td>
+                  <td><button className="btn btn-ghost btn-icon" aria-label="Eliminar bloqueio" title="Eliminar bloqueio" onClick={() => setAApagar(b)}><Trash2 size={15} /></button></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </Card>
       )}
+
+      <Modal open={!!aApagar} onClose={() => setAApagar(null)} title="Tirar este bloqueio?"
+        footer={<>
+          <Button variant="secondary" onClick={() => setAApagar(null)}>Cancelar</Button>
+          <Button variant="danger" onClick={async () => {
+            try { await dataService.deleteAppointment(aApagar.id); toast.success('Bloqueio removido'); setAApagar(null); }
+            catch (e) { falhou(e); }
+          }}>Tirar bloqueio</Button>
+        </>}>
+        <p>A hora volta a ficar livre e qualquer cliente pode marcar nela.</p>
+      </Modal>
 
       <Modal open={modal} onClose={() => setModal(false)} title="Novo bloqueio">
         <div className="field"><label className="label">Profissional</label>

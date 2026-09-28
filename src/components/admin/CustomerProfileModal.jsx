@@ -1,15 +1,19 @@
 import React, { useState, useMemo } from 'react';
-import { Phone, Mail, MessageCircle, Save, CalendarDays } from 'lucide-react';
+import { Phone, Mail, MessageCircle, Save, CalendarDays, Pencil, Trash2 } from 'lucide-react';
 import { Modal, Button, Avatar, Badge, EmptyState } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatDateNum, formatDateShortNum, formatPrice, todayStr } from '@/lib/format';
 
-export default function CustomerProfileModal({ customer, onClose }) {
+export default function CustomerProfileModal({ customer, onClose, onEditar }) {
   const data = useStore();
   const toast = useToast();
   const [notes, setNotes] = useState(customer?.notes || '');
+  // Ate 28/09/2026 aqui so se guardavam notas: nem editar nem apagar. Uma
+  // ficha criada por engano nao tinha forma nenhuma de sair do painel, e era
+  // aqui que se ia procurar, nao na lista.
+  const [aApagar, setAApagar] = useState(false);
 
   const history = useMemo(() =>
     (data.appointments || []).filter(a => a.customerId === customer?.id).sort((a, b) => (b.date + b.startTime).localeCompare(a.date + b.startTime)),
@@ -40,14 +44,35 @@ export default function CustomerProfileModal({ customer, onClose }) {
 
   return (
     <Modal open={!!customer} onClose={onClose} title="Perfil do cliente" >
-      <div className="flex items-center gap-16 mb-24">
+      <div className="flex items-center gap-16 mb-24" style={{ flexWrap: 'wrap' }}>
         <Avatar name={customer.name} size="lg" />
-        <div className="flex-1">
+        <div className="flex-1" style={{ minWidth: 160 }}>
           <div className="fw-600" style={{ fontSize: 18 }}>{customer.name}</div>
           <div className="text-sec text-sm mt-8">{customer.email}</div>
           {customer.phone && <div className="text-sec text-sm">{customer.phone}</div>}
         </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {onEditar && <Button size="sm" variant="secondary" onClick={() => onEditar(customer)}><Pencil size={14} /> Editar</Button>}
+          <Button size="sm" variant="ghost" onClick={() => setAApagar(true)}><Trash2 size={14} /> Apagar</Button>
+        </div>
       </div>
+
+      {aApagar && (
+        <div className="card card-pad mb-24" style={{ borderColor: 'var(--error)' }}>
+          <div className="fw-600 mb-8">Apagar a ficha de {customer.name}?</div>
+          <div className="text-sec text-sm mb-16">
+            Desaparece do painel e não há volta a dar. Um cliente com marcações,
+            vendas ou packs não pode ser apagado — levava o histórico com ele.
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Button size="sm" variant="danger" onClick={async () => {
+              try { await dataService.deleteCustomer(customer.id); toast.success('Cliente apagado', customer.name); setAApagar(false); onClose(); }
+              catch (err) { toast.error(err.temHistorico ? 'Não dá para apagar' : 'Erro ao apagar', err.message || String(err)); setAApagar(false); }
+            }}>Apagar mesmo</Button>
+            <Button size="sm" variant="secondary" onClick={() => setAApagar(false)}>Cancelar</Button>
+          </div>
+        </div>
+      )}
 
       <div className="grid-3 mb-24" style={{ gap: 10 }}>
         <div className="kpi" style={{ padding: 14 }}><div className="label">Visitas</div><div className="value" style={{ fontSize: 22 }}>{customer.totalAppointments || 0}</div></div>

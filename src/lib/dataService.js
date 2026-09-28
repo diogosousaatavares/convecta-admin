@@ -532,6 +532,7 @@ function apptFromRow(row) {
     notes: row.notes || '', bookingRef: row.booking_ref,
     unitPriceSnapshot: row.price_snapshot != null ? Number(row.price_snapshot) : null,
     payment: pd.payment || null, paymentMethod: pd.paymentMethod || null,
+    label: m.label || '',
     serviceNameSnapshot: m.serviceNameSnapshot,
     professionalNameSnapshot: m.professionalNameSnapshot,
     durationSnapshot: m.durationSnapshot,
@@ -584,6 +585,12 @@ function apptToRow(a) {
       // apagava o «pago» da marcacao.
       mbway: a.mbway || undefined,
       blocked: a.blocked,
+      // O motivo do bloqueio ("almoco", "fornecedor") era pedido em tres
+      // sitios diferentes e nunca era gravado em nenhum: nem o apptToRow o
+      // escrevia, nem o apptFromRow o lia. A coluna MOTIVO da pagina dos
+      // Bloqueios vinha sempre vazia e ninguem sabia porque tinha fechado
+      // aquela hora.
+      label: a.label || undefined,
       confirmedAt: a.confirmedAt, completedAt: a.completedAt,
       cancelledAt: a.cancelledAt, attendedAt: a.attendedAt,
       cancelledBy: a.cancelledBy || null,

@@ -29,11 +29,17 @@ export default function AgendaFitIns() {
 
   const openCreate = (slot) => {
     setForm({ customerId: '', serviceId: '', professionalId: slot?.availablePros?.[0] || 'any', startTime: slot?.startTime || '' });
+    setAvisoPassado(false);
     setModal({});
   };
 
+  const [avisoPassado, setAvisoPassado] = useState(false);
+  const jaPassou = (hora) => `${date} ${hora}` < `${todayStr()} ${new Date().toTimeString().slice(0, 5)}`;
+
   const submit = async () => { try {
     if (!form.customerId || !form.serviceId || !form.startTime) { toast.error('Dados incompletos'); return; }
+    // Mesmo aviso da agenda, e pela mesma razao: avisa-se, nao se proibe.
+    if (jaPassou(form.startTime) && !avisoPassado) { setAvisoPassado(true); return; }
     const svc = data.services.find(s => s.id === form.serviceId);
     let profId = form.professionalId;
     if (profId === 'any') { const a = await dataService.assignProfessionalForSlot(date, form.startTime, svc.durationMinutes); profId = a.id; }
@@ -72,9 +78,10 @@ export default function AgendaFitIns() {
         <div className="grid-2">
           <div className="field"><label className="label">Profissional</label>
             <select className="select" value={form.professionalId} onChange={e => setForm(f => ({ ...f, professionalId: e.target.value }))}><option value="any">Qualquer (auto)</option>{data.professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
-          <div className="field"><label className="label">Hora de início</label><input type="time" className="input" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} /></div>
+          <div className="field"><label className="label">Hora de início</label><input type="time" className="input" value={form.startTime} onChange={e => { setForm(f => ({ ...f, startTime: e.target.value })); setAvisoPassado(false); }} /></div>
         </div>
-        <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}><Button variant="secondary" onClick={() => setModal(null)}>Cancelar</Button><Button variant="primary" onClick={submit}>Criar encaixe</Button></div>
+        {avisoPassado && <div className="text-sm" style={{ color: 'var(--error)', margin: '0 0 12px' }}>Essa hora já passou. Se for um corte que já foi feito, toca outra vez.</div>}
+        <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}><Button variant="secondary" onClick={() => setModal(null)}>Cancelar</Button><Button variant={avisoPassado ? 'danger' : 'primary'} onClick={submit}>{avisoPassado ? 'Criar mesmo assim' : 'Criar encaixe'}</Button></div>
       </Modal>
     </AdminPage>
   );
