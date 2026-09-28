@@ -43,6 +43,12 @@ const GROUPS_TODOS = [
     { to: '/admin/agenda/bloqueios', label: 'Bloqueios' }
   ]},
 
+  /*
+   * O Resumo era a primeira linha da gaveta "Mais" e ninguem o encontrava.
+   * E o segundo ecra mais aberto a seguir a agenda: fica a seguir a ela.
+   */
+  { type: 'item', to: '/admin/dashboard', label: 'Resumo', icon: LayoutDashboard },
+
   { type: 'group', label: 'Clientes', icon: Users, items: [
     { to: '/admin/clientes', label: 'Clientes', exact: true },
     { to: '/admin/clientes/aniversarios', label: 'Aniversários' },
@@ -104,7 +110,6 @@ const GROUPS_TODOS = [
    */
   { type: 'group', label: 'Mais', icon: MoreHorizontal, items: [
     { titulo: 'Como vai o negócio' },
-    { to: '/admin/dashboard', label: 'Resumo do negócio', exact: true },
     { to: '/admin/relatorios', label: 'Relatórios' },
     { to: '/admin/profissionais/desempenho', label: 'Desempenho da equipa' },
 

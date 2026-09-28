@@ -4,14 +4,15 @@ import dataService from '@/lib/dataService';
 import { DOMINIO_BASE } from '@/lib/designService';
 
 /*
- * O endereço da barbearia, sempre à mão, no Dashboard.
+ * O endereço da barbearia, no topo do Dashboard.
  *
  * É a coisa que o barbeiro mais vai partilhar — no Instagram, no WhatsApp,
- * no balcão. Se tiver de o ir procurar a «O meu site», não partilha. Fica
- * aqui, no primeiro ecrã, com um botão que o copia e outro que o abre.
+ * no balcão. Se tiver de o ir procurar a «O meu site», não partilha.
  *
- * No telemóvel há também «Partilhar», que abre o menu nativo: é um toque
- * para o mandar por WhatsApp a um cliente.
+ * Até 28/09/2026 isto era uma linha discreta com um rótulo minúsculo em
+ * maiúsculas. Ninguém lê rótulos minúsculos. Agora diz, em letra grande e
+ * por palavras, a única coisa que ele tem de fazer com este link:
+ * mandá-lo aos clientes. Sem isso a agenda fica vazia.
  */
 export default function LinkDaBarbearia() {
   const [endereco, setEndereco] = useState('');
@@ -48,25 +49,34 @@ export default function LinkDaBarbearia() {
 
   return (
     <div data-tour="link-barbearia" style={{
-      display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-      border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px',
-      background: 'var(--surface)', margin: '0 0 14px',
+      border: '1px solid rgba(var(--gold-rgb),0.45)', borderRadius: 14,
+      padding: '18px 20px', background: 'rgba(var(--gold-rgb),0.06)',
+      margin: '0 0 18px',
     }}>
-      <div style={{ flex: 1, minWidth: 200 }}>
-        <div className="text-sec" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: .8 }}>O site da tua barbearia</div>
-        <div id="link-da-barbearia" className="fw-600" style={{ fontSize: 15, wordBreak: 'break-all', marginTop: 2 }}>{endereco}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.3 }}>
+        Manda este link aos teus clientes
       </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <button type="button" className="btn btn-primary" onClick={copiar} style={{ fontSize: 13 }}>
-          {copiado ? <Check size={15} /> : <Copy size={15} />} {copiado ? 'Copiado' : 'Copiar link'}
+      <div style={{ fontSize: 15, marginTop: 4, opacity: .85 }}>
+        É por aqui que eles marcam. Põe-no no Instagram e no WhatsApp.
+      </div>
+
+      <div id="link-da-barbearia" style={{
+        fontSize: 17, fontWeight: 700, wordBreak: 'break-all',
+        margin: '14px 0 14px', padding: '12px 14px', borderRadius: 10,
+        background: 'var(--surface)', border: '1px solid var(--border)',
+      }}>{endereco}</div>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <button type="button" className="btn btn-primary" onClick={copiar}>
+          {copiado ? <Check size={16} /> : <Copy size={16} />} {copiado ? 'Copiado' : 'Copiar link'}
         </button>
         {podePartilhar && (
-          <button type="button" className="btn btn-ghost" onClick={partilhar} style={{ fontSize: 13 }}>
-            <Share2 size={15} /> Partilhar
+          <button type="button" className="btn btn-secondary" onClick={partilhar}>
+            <Share2 size={16} /> Partilhar
           </button>
         )}
-        <a className="btn btn-ghost" href={url} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
-          <ExternalLink size={15} /> Abrir
+        <a className="btn btn-secondary" href={url} target="_blank" rel="noreferrer">
+          <ExternalLink size={16} /> Ver o site
         </a>
       </div>
     </div>

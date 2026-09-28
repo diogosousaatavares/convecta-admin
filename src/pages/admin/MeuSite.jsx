@@ -532,64 +532,62 @@ function Previsualizacao({tema,info,biz,endereco}){
 }
 
 // ── Aba Design ─────────────────────────────────────────────────────────────
-const PAINEIS=[{id:'guia',l:'Guia'},{id:'sugestao',l:'Sugestão'},{id:'cores',l:'Cores'},{id:'fundo',l:'Fundo'},
-               {id:'tipo',l:'Tipografia'},{id:'info',l:'Conteúdo'},{id:'galeria',l:'Galeria'},{id:'marca',l:'Marca'}]
+const PAINEIS=[{id:'marca',l:'Logótipo'},{id:'sugestao',l:'Sugestão'},{id:'cores',l:'Cores'},{id:'fundo',l:'Fundo'},
+               {id:'tipo',l:'Letra'},{id:'info',l:'Conteúdo'},{id:'galeria',l:'Fotos'}]
 
 /*
- * O guia.
+ * O tutorial da primeira vez.
  *
- * Ate 25/09/2026 quem abria "O Meu Site" caia directamente na lista de cores:
- * sete linhas seguidas, cada uma com um codigo. Um barbeiro numa visita olhou
- * e disse "isto e cheio de codigos" — e tinha razao, porque nada ali lhe dizia
- * por onde comecar nem que podia nao comecar de todo.
+ * Substitui o painel "Guia", que era um separador entre outros sete: quem
+ * nao carregasse nele nunca o via, e quem carregasse levava com dois
+ * caminhos a competir no mesmo ecra.
  *
- * Este ecra e agora o primeiro. Da duas saidas, e a primeira e a de quem nao
- * quer mexer em nada: poe o logotipo e nos fazemos o desenho. So depois vem o
- * passo a passo para quem quer escolher.
+ * Isto aparece sozinho, uma vez, por cima de tudo. Tres ecras, uma frase
+ * cada, letra grande. No fim ha duas saidas — e a primeira e a de quem nao
+ * quer mexer em nada.
  */
+const CHAVE_TUTORIAL='convecta:meusite:tutorial'
 
-function PainelGuia({demo,temLogo,ir}){
+function TutorialPrimeiraVez({onFechar,onSoLogotipo}){
+  const[passo,setPasso]=useState(0)
+  const passos=[
+    {t:'Este e o site dos teus clientes',
+     d:'E aqui que eles escolhem o corte e marcam a hora. Esta pronto a funcionar.'},
+    {t:'Para mudar, toca na propria imagem',
+     d:'Toca num titulo, num botao ou num preco do telemovel ao lado. Abre a cor dessa peca e mudas ali mesmo.'},
+    {t:'No fim, carrega em Guardar',
+     d:'Enquanto nao guardares, os teus clientes continuam a ver o site como esta agora.'},
+  ]
+  const p=passos[passo]
+  const ultimo=passo===passos.length-1
   return(
-    <div style={{display:'flex',flexDirection:'column',gap:16}}>
-      <Card>
-        <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:4}}>Isto é o site que os teus clientes veem</div>
-        <div style={{fontSize:12.5,color:T2,lineHeight:1.6}}>
-          Muda o que quiseres e vê o resultado no telemóvel aqui ao lado.
-          {demo
-            ?' Nesta demonstração nada é gravado — mexe à vontade.'
-            :' Nada chega ao site dos teus clientes até carregares em Guardar, aqui em baixo.'}
+    <div style={{position:'fixed',inset:0,zIndex:80,background:'rgba(0,0,0,.72)',
+      display:'grid',placeItems:'center',padding:20}}>
+      <div style={{width:'min(100%,460px)',background:W,border:`1px solid ${BD}`,
+        borderRadius:18,padding:'28px 26px'}}>
+        <div style={{display:'flex',gap:6,marginBottom:22}}>
+          {passos.map((_,i)=>(
+            <div key={i} style={{height:4,flex:1,borderRadius:2,
+              background:i<=passo?Y:BD}}/>
+          ))}
         </div>
-      </Card>
-
-      <Card>
-        <div style={{fontSize:11,letterSpacing:1,textTransform:'uppercase',color:T3,fontWeight:700,marginBottom:6}}>
-          O caminho curto
-        </div>
-        <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:4}}>Não queres andar a escolher cores?</div>
-        <div style={{fontSize:12.5,color:T2,lineHeight:1.6,marginBottom:12}}>
-          Põe o teu logótipo e nós tratamos do resto: lemos as cores dele e montamos
-          três desenhos prontos. Escolhes o que gostares mais e está feito — sem
-          escolher uma cor sequer.
-        </div>
-        <Btn onClick={()=>ir(temLogo?'sugestao':'marca')}>
-          {temLogo?'Ver os três desenhos':'Pôr o meu logótipo'}
-        </Btn>
-      </Card>
-
-      {/*
-        Aqui estava "OU FAZES TU — Quatro passos, por esta ordem": quatro
-        passos com o seu texto e um botao cada. Tirado a 28/09/2026.
-
-        O problema nao era o conteudo, era haver dois caminhos a competir no
-        mesmo ecra. Quem chega aqui ou quer que lhe facam o desenho, ou vai
-        direito ao separador que lhe interessa — e os separadores estao
-        mesmo ali por cima. Um guia com dois caminhos obriga a escolher
-        antes de comecar, que e o contrario de guiar.
-      */}
+        <div style={{fontSize:24,fontWeight:700,color:T,lineHeight:1.25,marginBottom:12}}>{p.t}</div>
+        <div style={{fontSize:16,color:T2,lineHeight:1.6,marginBottom:28}}>{p.d}</div>
+        {ultimo?(
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            <Btn onClick={onSoLogotipo}>So quero por o meu logotipo</Btn>
+            <Btn v="secondary" onClick={onFechar}>Quero escolher as cores</Btn>
+          </div>
+        ):(
+          <div style={{display:'flex',gap:10}}>
+            <Btn onClick={()=>setPasso(passo+1)} style={{flex:1}}>Seguinte</Btn>
+            <Btn v="secondary" onClick={onFechar}>Saltar</Btn>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
-
 
 // Pre-visualizacao do fundo animado. Repete o desenho do convecta-client em
 // pequeno, para se escolher a cor a olhar para o efeito e nao para um quadrado.
@@ -663,8 +661,16 @@ export function DesignTab({biz,onGuardado,demo=false}){
   // No telemovel a pre-visualizacao abre-se por cima, a pedido.
   const[previaAberta,setPreviaAberta]=useState(false)
   const[larguraPrevia,setLarguraPrevia]=useState(()=>larguraDaPrevia())
-  // Comecava em 'cores' — a lista de codigos era a primeira coisa que ele via.
-  const[painel,setPainel]=useState('guia')
+  // Comeca no logotipo: e o caminho curto de quem nao quer escolher nada.
+  const[painel,setPainel]=useState('marca')
+  // Uma vez so, e por barbearia: quem ja o viu nunca mais tropeca nele.
+  const[tutorial,setTutorial]=useState(()=>{
+    try{ return !localStorage.getItem(`${CHAVE_TUTORIAL}:${biz?.id||''}`) }catch{ return false }
+  })
+  const fecharTutorial=()=>{
+    try{ localStorage.setItem(`${CHAVE_TUTORIAL}:${biz?.id||''}`,'1') }catch{}
+    setTutorial(false)
+  }
   const[tema,setTema]=useState(()=>structuredClone(TEMA_OMISSAO))
   const[info,setInfo]=useState({tagline:'',description:'',coverImageUrl:'',
     amenities:[],social:{instagram:'',facebook:'',tiktok:''},loyalty:{...LOYALTY_OMISSAO}})
@@ -849,19 +855,26 @@ export function DesignTab({biz,onGuardado,demo=false}){
     <div style={telemovel
       ?{display:'flex',flexDirection:'column',gap:22}
       :{display:'grid',gridTemplateColumns:'minmax(0,1fr) 360px',gap:22,alignItems:'start'}}>
+
+      {tutorial&&(
+        <TutorialPrimeiraVez
+          onFechar={fecharTutorial}
+          onSoLogotipo={()=>{fecharTutorial();setPainel('marca')}}/>
+      )}
+
       <div style={{display:'flex',flexDirection:'column',gap:18,minWidth:0}}>
 
         {demo?(
           <Card style={{padding:'16px 20px'}}>
-            <div style={{fontSize:13.5,color:T,fontWeight:700,marginBottom:4}}>Demonstração ao vivo</div>
-            <div style={{fontSize:12.5,color:T2,lineHeight:1.55}}>{telemovel?'Toca numa peça do telemóvel acima e depois em «Editar». Ou escolhe as cores aqui em baixo. ':''}É exatamente o editor que tens no teu painel. Muda à vontade: nada do que fizeres aqui é gravado.</div>
+            <div style={{fontSize:14,color:T,fontWeight:700,marginBottom:4}}>Demonstração ao vivo</div>
+            <div style={{fontSize:14,color:T2,lineHeight:1.55}}>{telemovel?'Toca numa peça do telemóvel acima e depois em «Editar». Ou escolhe as cores aqui em baixo. ':''}É exatamente o editor que tens no teu painel. Muda à vontade: nada do que fizeres aqui é gravado.</div>
           </Card>
         ):(
         <Card style={{padding:'18px 20px'}}>
-          <div style={{fontSize:12.5,color:T2,fontWeight:600,marginBottom:10}}>Link para dar ao cliente</div>
+          <div style={{fontSize:14,color:T2,fontWeight:600,marginBottom:10}}>Link para dar ao cliente</div>
           <div style={{display:'flex',gap:10,alignItems:'center'}}>
             <div style={{flex:1,padding:'10px 13px',borderRadius:10,background:W2,border:`1px solid ${BD}`,
-              fontFamily:'monospace',fontSize:12.5,color:Y,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+              fontFamily:'monospace',fontSize:14,color:Y,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
               https://{endereco}
             </div>
             <Btn v="secondary" onClick={copiar} style={{flexShrink:0}}>{copiado?'Copiado':'Copiar'}</Btn>
@@ -878,15 +891,11 @@ export function DesignTab({biz,onGuardado,demo=false}){
             <button key={pn.id} onClick={()=>setPainel(pn.id)}
               style={{flex:telemovel?undefined:1,padding:telemovel?'10px 4px':'9px 6px',
                 borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',
-                fontSize:12.5,fontWeight:painel===pn.id?700:600,
+                fontSize:14,fontWeight:painel===pn.id?700:600,
                 background:painel===pn.id?`linear-gradient(100deg,${YD}33,${Y}18)`:'transparent',
                 color:painel===pn.id?Y:T2,transition:'background .15s,color .15s'}}>{pn.l}</button>
           ))}
         </div>
-
-        {painel==='guia'&&(
-          <PainelGuia demo={demo} temLogo={!!(logoUrl||tema.favicon)} ir={setPainel}/>
-        )}
 
         {painel==='sugestao'&&(
           <SugestaoDesign biz={bizVisto} logo={logoUrl||tema.favicon} endereco={endereco}
@@ -897,7 +906,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
         {painel==='cores'&&(
           <Card>
             <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:4}}>Cores</div>
-            <div style={{fontSize:12.5,color:T2,marginBottom:6}}>
+            <div style={{fontSize:14,color:T2,marginBottom:6}}>
               Toca no círculo de cada linha e escolhe a cor. Vês logo o resultado ao lado.
             </div>
             <CtxCodigos.Provider value={codigosDeCor}>
@@ -905,7 +914,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
             </CtxCodigos.Provider>
             <button type="button" onClick={()=>setCodigosDeCor(v=>!v)}
               style={{marginTop:12,background:'none',border:'none',padding:0,cursor:'pointer',
-                font:'inherit',fontSize:11.5,color:T3,textDecoration:'underline'}}>
+                font:'inherit',fontSize:14,color:T3,textDecoration:'underline'}}>
               {codigosDeCor?'Esconder os códigos de cor':'Tenho o código da minha cor (ex.: #C9A227)'}
             </button>
           </Card>
@@ -914,15 +923,15 @@ export function DesignTab({biz,onGuardado,demo=false}){
         {painel==='fundo'&&(
           <Card>
             <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:4}}>Fundo animado</div>
-            <div style={{fontSize:12.5,color:T2,marginBottom:14,lineHeight:1.55}}>
+            <div style={{fontSize:14,color:T2,marginBottom:14,lineHeight:1.55}}>
               Linhas de luz a atravessar o ecrã por trás de todo o site do cliente.
               Fica bem em fundos escuros; num fundo claro não se vê.
             </div>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',
               padding:'12px 0',borderBottom:`1px solid ${BD}`}}>
               <div>
-                <div style={{fontSize:13,fontWeight:600,color:T}}>Ligado</div>
-                <div style={{fontSize:11,color:T3,marginTop:1}}>Desligado, o fundo fica liso.</div>
+                <div style={{fontSize:14,fontWeight:600,color:T}}>Ligado</div>
+                <div style={{fontSize:14,color:T3,marginTop:1}}>Desligado, o fundo fica liso.</div>
               </div>
               <Interruptor ligado={tema.background.ativo}
                 onChange={v=>fundo({ativo:v})}/>
@@ -938,7 +947,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
                   value={Math.round(tema.background.intensidade*100)}
                   onChange={e=>fundo({intensidade:Number(e.target.value)/100})}
                   style={{width:'100%',accentColor:Y}}/>
-                <div style={{fontSize:11,color:T3,marginTop:4}}>
+                <div style={{fontSize:14,color:T3,marginTop:4}}>
                   Quanto brilham. Alto demais rouba atenção ao conteúdo.
                 </div>
               </div>
@@ -949,7 +958,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
                   value={Math.round(tema.background.velocidade*10)}
                   onChange={e=>fundo({velocidade:Number(e.target.value)/10})}
                   style={{width:'100%',accentColor:Y}}/>
-                <div style={{fontSize:11,color:T3,marginTop:4}}>
+                <div style={{fontSize:14,color:T3,marginTop:4}}>
                   Devagar lê-se como tecido; depressa lê-se como ecrã de protecção.
                 </div>
               </div>
@@ -998,7 +1007,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
                 <textarea value={info.description} onChange={e=>inf('description',e.target.value)}
                   placeholder="Uma barbearia com atenção ao detalhe, no coração da cidade."
                   style={{width:'100%',padding:10,borderRadius:8,border:`1px solid ${BD}`,
-                    background:'rgba(255,255,255,.04)',color:T,fontSize:13,fontFamily:'inherit',
+                    background:'rgba(255,255,255,.04)',color:T,fontSize:14,fontFamily:'inherit',
                     resize:'vertical',minHeight:70,outline:'none'}}/>
               </div>
               <div>
@@ -1008,15 +1017,15 @@ export function DesignTab({biz,onGuardado,demo=false}){
                     style={{flex:1,display:'flex',alignItems:'center',gap:12,padding:8}}>
                     <div style={{width:82,height:52,borderRadius:9,flexShrink:0,border:`1px solid ${BD}`,
                       background:info.coverImageUrl?`url(${info.coverImageUrl}) center/cover`:W2,
-                      display:'grid',placeItems:'center',fontSize:10.5,color:T3}}>
+                      display:'grid',placeItems:'center',fontSize:14,color:T3}}>
                       {!info.coverImageUrl&&(aEnviar?<Spin size={14}/>:'sem imagem')}
                     </div>
-                    <div style={{fontSize:12.5,color:T2,lineHeight:1.5}}>
-                      {aEnviar?'A enviar…':<>Larga a imagem aqui<br/><span style={{color:T3,fontSize:11.5}}>ou carrega para escolher</span></>}
+                    <div style={{fontSize:14,color:T2,lineHeight:1.5}}>
+                      {aEnviar?'A enviar…':<>Larga a imagem aqui<br/><span style={{color:T3,fontSize:14}}>ou carrega para escolher</span></>}
                     </div>
                   </Largar>
                   {info.coverImageUrl&&(
-                    <Btn v="ghost" style={{fontSize:12}} onClick={()=>inf('coverImageUrl','')}>Remover</Btn>
+                    <Btn v="ghost" style={{fontSize:14}} onClick={()=>inf('coverImageUrl','')}>Remover</Btn>
                   )}
                 </div>
               </div>
@@ -1031,11 +1040,11 @@ export function DesignTab({biz,onGuardado,demo=false}){
                     <input type="checkbox" checked={info.loyalty.ativo===true}
                       onChange={e=>inf('loyalty',{...info.loyalty,ativo:e.target.checked})}
                       style={{width:16,height:16,accentColor:YD,cursor:'pointer'}}/>
-                    <span style={{fontSize:12.5,color:T2}}>Mostrar no site</span>
+                    <span style={{fontSize:14,color:T2}}>Mostrar no site</span>
                   </label>
                 </div>
                 {info.loyalty.ativo!==true&&(
-                  <div style={{fontSize:11.5,color:T3,marginBottom:10,lineHeight:1.5}}>
+                  <div style={{fontSize:14,color:T3,marginBottom:10,lineHeight:1.5}}>
                     Desligado, o cartão não aparece em lado nenhum do site do cliente.
                     Os carimbos já dados ficam guardados.
                   </div>
@@ -1043,12 +1052,12 @@ export function DesignTab({biz,onGuardado,demo=false}){
                 <div style={{display:'grid',gridTemplateColumns:telemovel?'1fr':'1fr 1fr',gap:14,
                   opacity:info.loyalty.ativo!==true?.4:1,pointerEvents:info.loyalty.ativo!==true?'none':'auto'}}>
                   <div>
-                    <div style={{fontSize:11.5,color:T3,marginBottom:5}}>Cortes necessários</div>
+                    <div style={{fontSize:14,color:T3,marginBottom:5}}>Cortes necessários</div>
                     <Inp type="number" min="1" max="30" value={info.loyalty.stampsNeeded}
                       onChange={e=>inf('loyalty',{...info.loyalty,stampsNeeded:Number(e.target.value)||1})}/>
                   </div>
                   <div>
-                    <div style={{fontSize:11.5,color:T3,marginBottom:5}}>Validade (meses)</div>
+                    <div style={{fontSize:14,color:T3,marginBottom:5}}>Validade (meses)</div>
                     <Inp type="number" min="1" max="36" value={info.loyalty.validMonths}
                       onChange={e=>inf('loyalty',{...info.loyalty,validMonths:Number(e.target.value)||1})}/>
                   </div>
@@ -1077,7 +1086,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
                 <Lbl>Nome no separador do browser</Lbl>
                 <Inp value={tema.appName} onChange={e=>raiz('appName',e.target.value)}
                   placeholder={biz.name||'Nome da barbearia'}/>
-                <div style={{fontSize:11.5,color:T3,marginTop:6,lineHeight:1.5}}>
+                <div style={{fontSize:14,color:T3,marginTop:6,lineHeight:1.5}}>
                   Substitui o “Convecta Barbershop” fixo no index.html e no manifest.
                   Deixa vazio para usar o nome da barbearia.
                 </div>
@@ -1092,16 +1101,16 @@ export function DesignTab({biz,onGuardado,demo=false}){
                       ?<Spin size={16}/>
                       :(logoUrl||tema.favicon)
                         ?<img src={logoUrl||tema.favicon} alt="" style={{height:'100%',width:'auto',maxWidth:160,objectFit:'contain',borderRadius:6}}/>
-                        :<span style={{fontSize:10,color:T3}}>sem logótipo</span>}
+                        :<span style={{fontSize:14,color:T3}}>sem logótipo</span>}
                   </Largar>
                   {tema.favicon&&!iconeAEnviar&&(
                     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
                       <img src={tema.favicon} alt="" style={{width:44,height:44,borderRadius:10,objectFit:'cover',border:`1px solid ${BD}`}}/>
-                      <span style={{fontSize:10,color:T3}}>ícone</span>
+                      <span style={{fontSize:14,color:T3}}>ícone</span>
                     </div>
                   )}
                   <div style={{flex:1,minWidth:180}}>
-                    <div style={{fontSize:11.5,color:T3,lineHeight:1.5}}>
+                    <div style={{fontSize:14,color:T3,lineHeight:1.5}}>
                       Larga aqui o teu logótipo como o tiveres — ficheiro, print ou fotografia.
                       Nós lemos a imagem, cortamos as margens, limpamos o fundo e deixamos o
                       logótipo na forma dele para o topo da app. O ícone do telemóvel sai
@@ -1109,15 +1118,15 @@ export function DesignTab({biz,onGuardado,demo=false}){
                     </div>
                     {iconeEncolhido&&
                       <div style={{marginTop:10,padding:'9px 11px',borderRadius:9,lineHeight:1.5,
-                        background:`${G}12`,border:`1px solid ${G}35`,fontSize:11.5,color:T2}}>
+                        background:`${G}12`,border:`1px solid ${G}35`,fontSize:14,color:T2}}>
                         {iconeEncolhido}
                       </div>}
                     <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:10}}>
                       {logoOriginal&&!iconeAEnviar&&
-                        <Btn v="ghost" style={{padding:'7px 10px',fontSize:12}}
+                        <Btn v="ghost" style={{padding:'7px 10px',fontSize:14}}
                           onClick={()=>enviarIcone([logoOriginal],true)}>Usar a imagem como está</Btn>}
                       {(logoUrl||tema.favicon)&&
-                        <Btn v="secondary" style={{padding:'7px 12px',fontSize:12}}
+                        <Btn v="secondary" style={{padding:'7px 12px',fontSize:14}}
                           onClick={()=>setPainel('sugestao')}>Ver design de acordo com este logótipo</Btn>}
                     </div>
                   </div>
@@ -1129,7 +1138,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
                   O que ele precisa de saber e uma coisa so: depois de gravar,
                   recarrega o site para ver. */}
               <div style={{padding:'12px 14px',borderRadius:10,background:`${O}0C`,border:`1px solid ${O}30`,
-                fontSize:12,color:T2,lineHeight:1.6}}>
+                fontSize:14,color:T2,lineHeight:1.6}}>
                 Depois de gravares, recarrega o site da tua barbearia para veres as mudanças.
               </div>
             </div>
@@ -1138,7 +1147,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
 
         {erro&&(
           <div style={{padding:'12px 16px',borderRadius:10,background:`${R}12`,border:`1px solid ${R}38`,
-            color:R,fontSize:13,lineHeight:1.5}}>{erro}</div>
+            color:R,fontSize:14,lineHeight:1.5}}>{erro}</div>
         )}
 
         {demo?(
@@ -1153,7 +1162,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
               Voltar ao original
             </Btn>
           )}
-          <span style={{fontSize:12.5,color:T3}}>Demonstração: nada é gravado.</span>
+          <span style={{fontSize:14,color:T3}}>Demonstração: nada é gravado.</span>
         </div>
         ):(
         <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
@@ -1167,8 +1176,8 @@ export function DesignTab({biz,onGuardado,demo=false}){
               Descartar alterações
             </Btn>
           )}
-          {sucesso&&<span style={{fontSize:13,color:G,fontWeight:600}}>Guardado.</span>}
-          {alterado&&!sucesso&&<span style={{fontSize:12.5,color:T3}}>Alterações por guardar</span>}
+          {sucesso&&<span style={{fontSize:14,color:G,fontWeight:600}}>Guardado.</span>}
+          {alterado&&!sucesso&&<span style={{fontSize:14,color:T3}}>Alterações por guardar</span>}
         </div>
         )}
 
@@ -1179,20 +1188,14 @@ export function DesignTab({biz,onGuardado,demo=false}){
           abre a cor dele por cima do telemovel. */}
       <div style={telemovel?(demo?{order:-1,marginBottom:4}:{marginTop:26}):{position:'sticky',top:20}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
-          <div style={{fontSize:11,color:T3,fontWeight:700,letterSpacing:'.6px'}}>
-            {demo?`SITE DE DEMONSTRAÇÃO${alterado?' · COM AS TUAS MUDANÇAS':''}`:`O TEU SITE${alterado?' · COM O QUE AINDA NÃO GRAVASTE':''}`}
+          <div style={{fontSize:15,color:T,fontWeight:700}}>
+            {demo?'Site de demonstração':(alterado?'Por guardar':'O teu site')}
           </div>
-          <label style={{display:'flex',alignItems:'center',gap:8,fontSize:12,color:T2,cursor:'pointer'}}>
+          <label style={{display:'flex',alignItems:'center',gap:8,fontSize:14,color:T2,cursor:'pointer'}}>
             Tocar para mudar
             <Interruptor ligado={tocarParaMudar} onChange={v=>{setTocarParaMudar(v);if(!v)setAlvoEdicao(null)}}/>
           </label>
         </div>
-
-        {!alvoEdicao&&tocarParaMudar&&(
-          <div style={{fontSize:12,color:T2,marginBottom:10,lineHeight:1.5}}>
-            Toca numa peça do site — um título, um texto, um botão, um ícone — e depois em «Editar» para mudar a cor só dessa peça.
-          </div>
-        )}
         <div style={{display:'flex',justifyContent:'center',position:'relative'}}>
           <Telemovel largura={telemovel?larguraPrevia:292}>
             <PreviaReal endereco={endereco} tema={tema} info={info} logoUrl={logoUrl}
@@ -1209,10 +1212,8 @@ export function DesignTab({biz,onGuardado,demo=false}){
             </div>
           )}
         </div>
-        <div style={{fontSize:11.5,color:T3,marginTop:12,lineHeight:1.55,textAlign:'center'}}>
-          {tocarParaMudar
-            ?'Desliga «Tocar para mudar» para navegar no site como um cliente.'
-            :'Estás a navegar como um cliente. Liga «Tocar para mudar» para escolher cores.'}
+        <div style={{fontSize:14,color:T2,marginTop:12,lineHeight:1.5,textAlign:'center'}}>
+          {tocarParaMudar?'Toca numa parte do site para mudar a cor.':'Estás a ver o site como um cliente.'}
         </div>
       </div>
     </div>
@@ -1264,7 +1265,7 @@ function PainelGaleria({biz}){
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,marginBottom:6}}>
         <div style={{fontWeight:700,fontSize:15,color:T}}>Galeria</div>
       </div>
-      <div style={{fontSize:11.5,color:T3,marginBottom:12,lineHeight:1.5}}>
+      <div style={{fontSize:14,color:T3,marginBottom:12,lineHeight:1.5}}>
         Aparecem no site da barbearia, na secção de galeria. As horizontais ficam melhor.
         São reduzidas automaticamente antes de subir, por isso não te preocupes com o tamanho.
         {fotos?.length>0&&<> · <b style={{color:fotos.length>=LIMITE_GALERIA?Y:T2}}>{fotos.length} de {LIMITE_GALERIA}</b></>}
@@ -1273,24 +1274,24 @@ function PainelGaleria({biz}){
       <Largar onFicheiros={enviar} multiplas aEnviar={aEnviar} titulo="Larga as fotos aqui"
         style={{padding:'22px 18px',marginBottom:16,textAlign:'center'}}>
         {aEnviar
-          ?<div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,color:T2,fontSize:13}}>
+          ?<div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,color:T2,fontSize:14}}>
              <Spin size={15}/> A enviar…
            </div>
           :<>
-             <div style={{fontSize:13.5,color:T,fontWeight:600,marginBottom:3}}>Larga as fotos aqui</div>
-             <div style={{fontSize:11.5,color:T3}}>ou carrega para escolher · várias de uma vez · colar também dá</div>
+             <div style={{fontSize:14,color:T,fontWeight:600,marginBottom:3}}>Larga as fotos aqui</div>
+             <div style={{fontSize:14,color:T3}}>ou carrega para escolher · várias de uma vez · colar também dá</div>
            </>}
       </Largar>
 
-      {erro&&<div style={{padding:'11px 13px',borderRadius:9,marginBottom:14,fontSize:12.5,lineHeight:1.5,
+      {erro&&<div style={{padding:'11px 13px',borderRadius:9,marginBottom:14,fontSize:14,lineHeight:1.5,
         background:`${R}10`,border:`1px solid ${R}35`,color:'#F0A0A0'}}>{erro}</div>}
 
       {fotos===null&&<div style={{padding:'26px 0',textAlign:'center'}}><Spin/></div>}
 
       {fotos!==null&&fotos.length===0&&!erro&&(
         <div style={{padding:'34px 18px',textAlign:'center',border:`1px dashed ${BD}`,borderRadius:12}}>
-          <div style={{fontSize:13.5,color:T2,marginBottom:4}}>Ainda sem fotos.</div>
-          <div style={{fontSize:12,color:T3}}>Sem galeria, essa secção não aparece no site.</div>
+          <div style={{fontSize:14,color:T2,marginBottom:4}}>Ainda sem fotos.</div>
+          <div style={{fontSize:14,color:T3}}>Sem galeria, essa secção não aparece no site.</div>
         </div>
       )}
 
@@ -1306,14 +1307,14 @@ function PainelGaleria({biz}){
                   onBlur={()=>gravarLegenda(f)}
                   onKeyDown={e=>{if(e.key==='Enter')e.currentTarget.blur()}}/>
                 <div style={{display:'flex',gap:6,marginTop:8,flexWrap:'wrap'}}>
-                  <Btn v="secondary" style={{padding:'4px 9px',fontSize:11}} disabled={i===0}
+                  <Btn v="secondary" style={{padding:'4px 9px',fontSize:14}} disabled={i===0}
                     onClick={()=>mover(f,'cima')}>↑</Btn>
-                  <Btn v="secondary" style={{padding:'4px 9px',fontSize:11}} disabled={i===fotos.length-1}
+                  <Btn v="secondary" style={{padding:'4px 9px',fontSize:14}} disabled={i===fotos.length-1}
                     onClick={()=>mover(f,'baixo')}>↓</Btn>
-                  <Btn v="secondary" style={{padding:'4px 9px',fontSize:11}} onClick={()=>alternar(f)}>
+                  <Btn v="secondary" style={{padding:'4px 9px',fontSize:14}} onClick={()=>alternar(f)}>
                     {f.is_active?'Esconder':'Mostrar'}
                   </Btn>
-                  <Btn v="ghost" style={{padding:'4px 9px',fontSize:11,color:R}} onClick={()=>apagar(f)}>Apagar</Btn>
+                  <Btn v="ghost" style={{padding:'4px 9px',fontSize:14,color:R}} onClick={()=>apagar(f)}>Apagar</Btn>
                 </div>
               </div>
             </div>
@@ -1364,7 +1365,7 @@ function Largar({onFicheiros,multiplas=false,aEnviar=false,children,style,titulo
       {children}
       {sobre&&(
         <div style={{position:'absolute',inset:0,borderRadius:12,display:'grid',placeItems:'center',
-          background:'rgba(10,8,7,.82)',color:Y,fontSize:13,fontWeight:700,pointerEvents:'none'}}>
+          background:'rgba(10,8,7,.82)',color:Y,fontSize:14,fontWeight:700,pointerEvents:'none'}}>
           {titulo}
         </div>
       )}
