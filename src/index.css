@@ -258,12 +258,18 @@ input, textarea, select { font-family: inherit; }
    de linha em vez de ser cortada. */
 .agenda-toolbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-bottom: 18px; max-width: 100%; }
 .agenda-toolbar > * { min-width: 0; }
-.ag-tb-left { display: flex; align-items: center; gap: 8px; }
-.ag-tb-nav, .ag-tb-actions { display: flex; align-items: center; gap: 8px; }
+.ag-tb-left { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ag-tb-nav, .ag-tb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 /* Faixa de dias: so existe no telemovel */
 .ag-faixa { display: none; }
 .ag-tb-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
 .agenda-toolbar .ag-date { font-family: var(--font-head); font-size: 19px; font-weight: 600; text-align: center; line-height: 1.25; }
+@media (max-width: 1200px) {
+  .agenda-toolbar { grid-template-columns: 1fr auto; grid-template-areas: 'data data' 'esq dir'; }
+  .agenda-toolbar .ag-date { grid-area: data; text-align: left; }
+  .ag-tb-left { grid-area: esq; }
+  .ag-tb-right { grid-area: dir; }
+}
 @media (max-width: 767px) {
   /* Telemovel: a agenda em primeiro, o resto a seguir ou escondido.
      Linha 1: data com setas. Linha 2: vistas + accoes. Depois a faixa de

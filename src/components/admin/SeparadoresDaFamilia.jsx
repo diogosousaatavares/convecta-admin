@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { moduloIndisponivel } from '@/lib/modulos';
 
 /*
  * Os separadores de uma familia de paginas.
@@ -79,12 +80,21 @@ export default function SeparadoresDaFamilia() {
   const familia = FAMILIAS.find(f => caminho === f.prefixo || caminho.startsWith(f.prefixo + '/'));
   if (!familia) return null;
 
+  /*
+   * Um separador para um modulo desligado e uma porta pintada na parede:
+   * quem lhe toca e mandado de volta para a agenda sem explicacao. A lista
+   * de modulos por acabar esta em lib/modulos.js e e a mesma que o menu le.
+   * Sobrando um separador so, nao ha para onde ir — nao se desenha nada.
+   */
+  const abas = familia.abas.filter(aba => !moduloIndisponivel(aba.to));
+  if (abas.length < 2) return null;
+
   const aceso = (aba) =>
     caminho === aba.to || (aba.tambem || []).includes(caminho);
 
   return (
     <div className="fam-tabs" role="tablist" aria-label="Secções desta área">
-      {familia.abas.map(aba => (
+      {abas.map(aba => (
         <NavLink
           key={aba.to}
           to={aba.to}
