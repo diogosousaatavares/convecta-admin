@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Save, RotateCcw } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
-import { Card, Button, Modal } from '@/components/ui';
+import { Card, Button } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
@@ -12,17 +12,10 @@ export default function Settings() {
   const data = useStore();
   const toast = useToast();
   const [form, setForm] = useState({ ...data.business });
-  const [resetOpen, setResetOpen] = useState(false);
 
   const save = async () => {
     await dataService.updateBusiness(form);
     toast.success('Definições guardadas');
-  };
-
-  const reset = async () => {
-    await dataService.resetData();
-    toast.success('Dados restaurados', 'Os dados demo foram repostos.');
-    setResetOpen(false);
   };
 
   return (
@@ -54,16 +47,17 @@ export default function Settings() {
         <Button variant="primary" onClick={save}><Save size={16} /> Guardar</Button>
       </div>
 
-      <Card className="card-pad mt-32" style={{ borderColor: 'rgba(239,68,68,0.3)' }}>
-        <h3 style={{ fontSize: 16, marginBottom: 8, color: 'var(--text-sec)' }}>Ferramentas de desenvolvimento</h3>
-        <p className="text-sec text-sm mb-16">Ações avançadas e destrutivas. Não usar em ambiente de produção.</p>
-        <Button variant="danger" onClick={() => setResetOpen(true)}><RotateCcw size={16} /> Restaurar dados demo</Button>
-      </Card>
+      {/*
+        Aqui estava "Ferramentas de desenvolvimento — Restaurar dados demo":
+        um botao que apagava TODAS as marcacoes, clientes e alteracoes da
+        barbearia, sem guarda nenhuma. Qualquer barbeiro lhe chegava em dois
+        cliques, na conta real dele, e o aviso dizia-lhe apenas "nao usar em
+        ambiente de producao" — que e precisamente onde ele estava.
 
-      <Modal open={resetOpen} onClose={() => setResetOpen(false)} title="Restaurar dados demo"
-        footer={<><Button variant="ghost" onClick={() => setResetOpen(false)}>Cancelar</Button><Button variant="danger" onClick={reset}>Restaurar</Button></>}>
-        <p className="text-sec">Isto vai apagar todas as marcações, clientes e alterações, restaurando os dados iniciais. Continuar?</p>
-      </Modal>
+        Encontrado a 28/09/2026, no dia em que a primeira barbearia comecou a
+        receber marcacoes a serio. Nao volta ao painel do barbeiro: uma
+        ferramenta destas, se for precisa, vive no super admin.
+      */}
     </AdminLayout>
   );
 }
