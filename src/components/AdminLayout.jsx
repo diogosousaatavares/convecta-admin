@@ -259,6 +259,13 @@ export default function AdminLayout({ children }) {
 
 
   const isActive = (it) => {
+    // Um cabecalho (`titulo`) nao tem endereco nenhum. E como nao tem, nunca
+    // pode estar activo — mas sem esta linha a pergunta era feita na mesma e
+    // o painel inteiro rebentava com "Cannot read properties of undefined".
+    // Aconteceu em producao a 28/09/2026, no dia em que os cabecalhos
+    // entraram: o menu percorre TODOS os itens para saber que grupo deve
+    // abrir, e um deles ja nao era um link.
+    if (!it || !it.to) return false;
     if (it.exact) return location.pathname === it.to;
     if (it.to.includes('?')) {
       const [path, query] = it.to.split('?');
