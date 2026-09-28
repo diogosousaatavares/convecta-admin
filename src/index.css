@@ -250,34 +250,36 @@ input, textarea, select { font-family: inherit; }
 .agenda-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: stretch; width: 100%; }
 @media (max-width: 991px) { .agenda-wrap { grid-template-columns: 1fr; } }
 
-/* As tres colunas nao podiam encolher: uma grelha da, por omissao, largura
-   minima igual ao conteudo a cada coluna. Com a data por extenso
-   ("segunda-feira, 28 de setembro") e os botoes dos dois lados, a soma
-   passava a largura do ecra — a pagina ganhava barra de scroll para o lado e
-   a data aparecia cortada. Com min-width 0 as colunas cedem, e a data muda
-   de linha em vez de ser cortada. */
-.agenda-toolbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-bottom: 18px; max-width: 100%; }
+/* A barra da agenda: a data em cima, os botoes por baixo.
+ *
+ * Isto ja foi uma grelha de tres colunas com a data ao meio. Era bonito e
+ * era fragil: a largura de cada coluna dependia do texto de dentro, e o
+ * texto muda — a data por extenso em dezembro e mais longa, o botao de
+ * bloquear muda de nome enquanto esta ligado. Bastou juntar um botao a
+ * esquerda para a soma passar a largura do ecra e a data ser escrita por
+ * cima dos botoes.
+ *
+ * Agora sao duas linhas e uma regra so: a data ocupa a primeira linha
+ * inteira, os botoes ficam na segunda e mudam de linha se nao couberem.
+ * Nada depende do comprimento de nada. */
+.agenda-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; max-width: 100%; }
 .agenda-toolbar > * { min-width: 0; }
+.agenda-toolbar .ag-date { flex: 1 0 100%; order: -1; margin: 0; font-family: var(--font-head); font-size: 20px; font-weight: 600; text-align: left; line-height: 1.25; }
 .ag-tb-left { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.ag-tb-nav, .ag-tb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ag-tb-nav, .ag-tb-actions { display: flex; align-items: center; gap: 8px; }
 /* Faixa de dias: so existe no telemovel */
 .ag-faixa { display: none; }
-.ag-tb-right { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
-.agenda-toolbar .ag-date { font-family: var(--font-head); font-size: 19px; font-weight: 600; text-align: center; line-height: 1.25; }
-@media (max-width: 1200px) {
-  .agenda-toolbar { grid-template-columns: 1fr auto; grid-template-areas: 'data data' 'esq dir'; }
-  .agenda-toolbar .ag-date { grid-area: data; text-align: left; }
-  .ag-tb-left { grid-area: esq; }
-  .ag-tb-right { grid-area: dir; }
-}
+.ag-tb-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 @media (max-width: 767px) {
   /* Telemovel: a agenda em primeiro, o resto a seguir ou escondido.
      Linha 1: data com setas. Linha 2: vistas + accoes. Depois a faixa de
      dias, depois a grelha. A barra lateral do desktop nao aparece. */
-  .agenda-toolbar { grid-template-columns: 1fr; grid-template-areas: 'data' 'esq' 'dir'; gap: 10px; }
-  .agenda-toolbar .ag-date { grid-area: data; font-size: 17px; min-width: 0; }
-  .ag-tb-left { grid-area: esq; justify-content: space-between; }
-  .ag-tb-right { grid-area: dir; justify-content: stretch; }
+  .agenda-toolbar { gap: 10px; }
+  .agenda-toolbar .ag-date { font-size: 17px; }
+  .ag-tb-left { flex: 1 1 100%; }
+  /* No telemovel os tres botoes nao cabem numa linha: deixam-se mudar. */
+  .ag-tb-nav, .ag-tb-actions { flex-wrap: wrap; }
+  .ag-tb-right { flex: 1 1 100%; margin-left: 0; }
   .ag-tb-right .ag-viewseg { flex: 1; display: flex; }
   .ag-tb-right .ag-viewseg button { flex: 1; }
   .ag-so-desktop { display: none !important; }
@@ -1655,7 +1657,6 @@ html.theme-light .admin-layout {
   }
   /* Agenda toolbar melhorado no mobile */
   .agenda-toolbar {
-    grid-template-columns: 1fr;
     gap: 8px;
   }
   .ag-tb-left {
