@@ -177,10 +177,10 @@ export default function Reports() {
                   <stop offset="100%" stopColor={GOLD} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="label" tick={{ fill: '#8A8272', fontSize: 11 }} interval="preserveStartEnd" minTickGap={20} />
-              <YAxis tick={{ fill: '#8A8272', fontSize: 11 }} tickFormatter={(v) => `${v}€`} />
-              <Tooltip contentStyle={{ background: '#1C1915', border: '1px solid #221E18', borderRadius: 8, color: '#EDE8DF' }} formatter={(v) => formatPrice(v)} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--linha-grafico)" />
+              <XAxis dataKey="label" tick={{ fill: 'var(--text-ter)', fontSize: 11 }} interval="preserveStartEnd" minTickGap={20} />
+              <YAxis tick={{ fill: 'var(--text-ter)', fontSize: 11 }} tickFormatter={(v) => `${v}€`} />
+              <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)' }} formatter={(v) => formatPrice(v)} />
               <Area type="monotone" dataKey="receita" stroke={GOLD} strokeWidth={2} fill="url(#goldGrad)" />
             </AreaChart>
           </ResponsiveContainer>
@@ -197,10 +197,10 @@ export default function Reports() {
             <div className="chart-box">
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={byBarber} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" horizontal={false} />
-                  <XAxis type="number" tick={{ fill: '#8A8272', fontSize: 11 }} tickFormatter={(v) => `${v}€`} />
-                  <YAxis type="category" dataKey="name" tick={{ fill: '#8A8272', fontSize: 12 }} width={70} />
-                  <Tooltip contentStyle={{ background: '#1C1915', border: '1px solid #221E18', borderRadius: 8, color: '#EDE8DF' }} formatter={(v) => formatPrice(v)} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--linha-grafico)" horizontal={false} />
+                  <XAxis type="number" tick={{ fill: 'var(--text-ter)', fontSize: 11 }} tickFormatter={(v) => `${v}€`} />
+                  <YAxis type="category" dataKey="name" tick={{ fill: 'var(--text-ter)', fontSize: 12 }} width={70} />
+                  <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)' }} formatter={(v) => formatPrice(v)} />
                   <Bar dataKey="receita" fill={GOLD} radius={[0, 6, 6, 0]} barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
@@ -218,10 +218,10 @@ export default function Reports() {
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie data={statusDist} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={2}>
-                    {statusDist.map((e, i) => <Cell key={i} fill={e.color} stroke="#141210" strokeWidth={2} />)}
+                    {statusDist.map((e, i) => <Cell key={i} fill={e.color} stroke="var(--surface)" strokeWidth={2} />)}
                   </Pie>
-                  <Tooltip contentStyle={{ background: '#1C1915', border: '1px solid #221E18', borderRadius: 8, color: '#EDE8DF' }} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: '#8A8272' }} />
+                  <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)' }} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: 'var(--text-ter)' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -238,10 +238,10 @@ export default function Reports() {
           <div className="chart-box">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={byService} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="name" tick={{ fill: '#8A8272', fontSize: 11 }} interval={0} angle={-12} textAnchor="end" height={50} />
-                <YAxis tick={{ fill: '#8A8272', fontSize: 11 }} tickFormatter={(v) => `${v}€`} />
-                <Tooltip contentStyle={{ background: '#1C1915', border: '1px solid #221E18', borderRadius: 8, color: '#EDE8DF' }} formatter={(v) => formatPrice(v)} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--linha-grafico)" />
+                <XAxis dataKey="name" tick={{ fill: 'var(--text-ter)', fontSize: 11 }} interval={0} angle={-12} textAnchor="end" height={50} />
+                <YAxis tick={{ fill: 'var(--text-ter)', fontSize: 11 }} tickFormatter={(v) => `${v}€`} />
+                <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)' }} formatter={(v) => formatPrice(v)} />
                 {byService.map((_, i) => <Bar key={i} dataKey="receita" fill={PALETTE[i % PALETTE.length]} radius={[6,6,0,0]} barSize={36} />)}
               </BarChart>
             </ResponsiveContainer>

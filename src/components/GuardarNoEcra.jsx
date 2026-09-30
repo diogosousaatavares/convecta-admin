@@ -69,7 +69,7 @@ export default function GuardarNoEcra() {
       <span style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gold)', color: '#100E0B', fontWeight: 800,
         fontSize: 13, display: 'grid', placeItems: 'center', flexShrink: 0 }}>{n}</span>
       <span style={{ flex: 1, fontSize: 14.5, lineHeight: 1.5, color: 'var(--text)' }}>{children}</span>
-      {Icone && <Icone size={22} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />}
+      {Icone && <Icone size={22} style={{ color: 'var(--gold-tinta)', flexShrink: 0, marginTop: 2 }} />}
     </li>
   );
 
@@ -79,7 +79,7 @@ export default function GuardarNoEcra() {
       <div style={{ width: '100%', maxWidth: 480, background: 'var(--surface, #16130F)', borderRadius: '20px 20px 0 0',
         border: '1px solid var(--border)', padding: '22px 20px calc(22px + env(safe-area-inset-bottom, 0px))', maxHeight: '92vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-          <Bell size={22} style={{ color: 'var(--gold)' }} />
+          <Bell size={22} style={{ color: 'var(--gold-tinta)' }} />
           <h2 id="guardar-titulo" style={{ margin: 0, fontSize: 19, flex: 1 }}>Guarda o painel no ecrã principal</h2>
           <button onClick={adiar} aria-label="Fechar" style={{ background: 'none', border: 'none', color: 'var(--text-sec)', cursor: 'pointer', padding: 4 }}><X size={20} /></button>
         </div>

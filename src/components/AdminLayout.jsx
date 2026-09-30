@@ -14,6 +14,32 @@ import AvisoSubscricao from '@/components/AvisoSubscricao';
 import BemVindo from '@/components/BemVindo';
 import GuardarNoEcra from '@/components/GuardarNoEcra';
 import SinoAvisos from '@/components/SinoAvisos';
+import { Sun, Moon } from 'lucide-react';
+import { applyTheme, lerModo } from '@/lib/temaPainel';
+import dataServiceTema from '@/lib/dataService';
+
+/*
+ * Claro ou escuro, sem ir às Definições. A escolha fica guardada na conta
+ * (config.theme.modo), por isso segue o barbeiro para o telemóvel; se a
+ * gravação falhar, fica pelo menos guardada neste dispositivo.
+ */
+function BotaoModo() {
+  const [modo, setModo] = React.useState(() => lerModo());
+  const trocar = async () => {
+    const novo = modo === 'claro' ? 'escuro' : 'claro';
+    const tema = dataServiceTema.getState().business?.config?.theme || null;
+    applyTheme(tema, novo);
+    setModo(novo);
+    try { await dataServiceTema.updateConfig('theme', { ...(tema || {}), modo: novo }); } catch (e) {}
+  };
+  return (
+    <button className="theme-toggle" onClick={trocar}
+      title={modo === 'claro' ? 'Passar para escuro' : 'Passar para claro'}
+      aria-label={modo === 'claro' ? 'Passar para escuro' : 'Passar para claro'}>
+      {modo === 'claro' ? <Moon size={17} /> : <Sun size={17} />}
+    </button>
+  );
+}
 import AcordoRgpd from '@/components/AcordoRgpd';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 import PrimeirosPassos from '@/components/PrimeirosPassos';
@@ -401,7 +427,7 @@ export default function AdminLayout({ children }) {
       <button className="admin-support-link" onClick={() => setSupportOpen(true)} aria-label="Abrir apoio ao cliente">
         <HelpCircle size={16} /> Apoio ao cliente
       </button>
-      <div style={{ padding: '16px 24px', borderTop: '1px solid #243036' }}>
+      <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)' }}>
         
         <button className="btn btn-ghost btn-sm btn-block" onClick={handleLogout} aria-label="Terminar sessão">
           <LogOut size={16} /> Terminar sessão
@@ -447,7 +473,7 @@ export default function AdminLayout({ children }) {
         {!emDemo && <TourDemo passos={PASSOS_BARBEIRO} chave="convecta_visita_barbeiro" ativo={visitaBarbeiro} />}
         {emDemo && (
           <div style={{
-            background: 'var(--gold)', color: '#100E0B', fontSize: 13, fontWeight: 700,
+            background: 'var(--gold)', color: 'var(--on-gold)', fontSize: 13, fontWeight: 700,
             textAlign: 'center', padding: '7px 12px', borderRadius: 8, marginBottom: 14,
           }}>
             Demonstração — mexe à vontade. Os dados voltam ao início de hora a hora.
@@ -488,6 +514,7 @@ export default function AdminLayout({ children }) {
           <div className="admin-topbar-right">
             {/* O sino abre a lista do que aconteceu (marcações novas, canceladas,
                 packs, avaliações, Convecta) — o mesmo que chega por push. */}
+            <BotaoModo />
             <SinoAvisos businessId={data.business?.id} porConfirmar={porConfirmar} />
             <div className="admin-topbar-user">
               <div className="admin-topbar-avatar">{(user?.name || user?.email || 'A').charAt(0).toUpperCase()}</div>

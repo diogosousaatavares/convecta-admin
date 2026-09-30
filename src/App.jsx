@@ -228,11 +228,14 @@ export default function App() {
   useEffect(() => {
     // Sempre: sem tema guardado aplica-se o «Convecta». As variáveis derivadas
     // (texto sobre o destaque, transparências) só existem depois disto.
+    // O tema guardado traz também o modo (claro/escuro). Enquanto os dados
+    // não chegam, vale o que este dispositivo escolheu da última vez — é o
+    // applyTheme que o vai buscar sozinho.
     applySavedTheme(dataService.getState().business?.config?.theme || null);
   }, []);
 
   const { loading } = useStore();
-  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0d0d0d' }}><p style={{ color: '#C9A84C' }}>A carregar...</p></div>;
+  if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)' }}><p style={{ color: 'var(--gold-tinta)' }}>A carregar...</p></div>;
 
   /*
    * O QueryClientProvider e o <Toaster/> sairam daqui a 28/09/2026.

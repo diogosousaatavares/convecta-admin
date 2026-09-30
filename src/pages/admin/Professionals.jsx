@@ -124,7 +124,7 @@ export default function Professionals() {
       {(lugares.cheio || lugares.acima) && (
         <Card className="card-pad mb-24" style={{ borderColor: 'var(--gold)' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <Lock size={16} style={{ marginTop: 2, flexShrink: 0, color: 'var(--gold)' }} />
+            <Lock size={16} style={{ marginTop: 2, flexShrink: 0, color: 'var(--gold-tinta)' }} />
             <div>
               <div className="fw-600">
                 {lugares.acima

@@ -61,11 +61,11 @@ function Distribuicao({ dono, pros, acessos, selecionado, onSelecionar, meuProfi
         </svg>
         {/* Dono */}
         <div style={{ position: 'absolute', left: xDono - 110, top: yDono, width: 220, padding: '12px 14px', borderRadius: 12, background: 'var(--surface)', border: '2px solid var(--gold)', boxShadow: 'var(--shadow-gold)', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Crown size={18} style={{ color: 'var(--gold)', flexShrink: 0 }} />
+          <Crown size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0 }} />
           <div style={{ minWidth: 0 }}>
             <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dono.name || 'Dono'}</div>
             <div className="text-sec text-sm" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dono.email}</div>
-            <div className="text-sm" style={{ color: 'var(--gold)', fontWeight: 600 }}>Dono · vê tudo</div>
+            <div className="text-sm" style={{ color: 'var(--gold-tinta)', fontWeight: 600 }}>Dono · vê tudo</div>
           </div>
         </div>
         {/* Profissionais */}
@@ -129,7 +129,7 @@ export default function Equipa() {
 
       <Card className="mb-24">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <Crown size={18} style={{ color: 'var(--gold)', flexShrink: 0 }} />
+          <Crown size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 200 }}>
             <div className="fw-600">Tu, o dono, também cortas?</div>
             <div className="text-sec text-sm">{minhaFicha ? `Estás ligado à ficha «${minhaFicha.name}».` : 'Liga-te a uma ficha para teres coluna na agenda.'}</div>
@@ -159,10 +159,10 @@ export default function Equipa() {
         {estreito ? (
           <div style={{ display: 'grid', gap: 8 }}>
             <div style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--surface)', border: '2px solid var(--gold)', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Crown size={18} style={{ color: 'var(--gold)', flexShrink: 0 }} />
+              <Crown size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0 }} />
               <div style={{ minWidth: 0 }}>
                 <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dono.name || 'Dono'}{minhaFicha ? ` · ${minhaFicha.name}` : ''}</div>
-                <div className="text-sm" style={{ color: 'var(--gold)', fontWeight: 600 }}>Dono · vê tudo</div>
+                <div className="text-sm" style={{ color: 'var(--gold-tinta)', fontWeight: 600 }}>Dono · vê tudo</div>
               </div>
             </div>
             {pros.map(p => {
@@ -217,7 +217,7 @@ export default function Equipa() {
                   <div className="fw-600" style={{ fontSize: 13 }}>{a.nome}</div>
                   <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 5 }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                      <Crown size={13} style={{ color: 'var(--gold)' }} /><Ponto nivel={a.dono} />
+                      <Crown size={13} style={{ color: 'var(--gold-tinta)' }} /><Ponto nivel={a.dono} />
                     </span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                       <ShieldCheck size={13} style={{ color: 'var(--success)' }} /><Ponto nivel={a.pro} />
@@ -234,7 +234,7 @@ export default function Equipa() {
             <thead>
               <tr>
                 <th>Área</th>
-                <th><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Crown size={14} style={{ color: 'var(--gold)' }} /> Dono</span></th>
+                <th><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Crown size={14} style={{ color: 'var(--gold-tinta)' }} /> Dono</span></th>
                 <th><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ShieldCheck size={14} style={{ color: 'var(--success)' }} /> Profissional com acesso</span></th>
               </tr>
             </thead>

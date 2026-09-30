@@ -227,7 +227,7 @@ export default function AdminAppointments() {
                       {(() => { const mb = dataService.mbwayDe?.(a.id); return mb ? <Badge variant={mb.estado === 'pago' ? 'success' : 'warning'} style={{ marginLeft: 6 }}>{mb.estado === 'pago' ? 'Pago MB WAY' : 'MB WAY por confirmar'}</Badge> : null; })()}
                       {/* A avaliação que o cliente deixou deste corte. */}
                       {avaliacaoDe(a.id) && (
-                        <span title={avaliacaoDe(a.id).comment || 'Sem comentário'} style={{ marginLeft: 6, display: 'inline-flex', alignItems: 'center', gap: 2, color: 'var(--gold)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        <span title={avaliacaoDe(a.id).comment || 'Sem comentário'} style={{ marginLeft: 6, display: 'inline-flex', alignItems: 'center', gap: 2, color: 'var(--gold-tinta)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
                           <Star size={12} fill="currentColor" />{avaliacaoDe(a.id).rating}
                         </span>
                       )}

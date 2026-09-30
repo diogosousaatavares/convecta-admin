@@ -462,7 +462,7 @@ export default function Subscricao() {
 
           {!sub.cancelaNoFim && sub.estado === 'em_teste' && sub.fimDoTeste && (
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-              <Clock size={18} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
+              <Clock size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0, marginTop: 2 }} />
               <div className="text-sm">
                 {/* Dizer a data E os dias: a data é o que conta, os dias é o
                     que a pessoa sente. */}
@@ -540,7 +540,7 @@ export default function Subscricao() {
           <section className="sub-card sub-hero">
             <div className="sub-hero-topo">
               <div className="sub-ico"><CreditCard size={24} /></div>
-              <div className="sub-pill"><Lock size={13} style={{ color: 'var(--gold)' }} /> Pagamento seguro</div>
+              <div className="sub-pill"><Lock size={13} style={{ color: 'var(--gold-tinta)' }} /> Pagamento seguro</div>
             </div>
             <h2 className="sub-hero-h1">{sub?.estado === 'cancelada' ? 'Reactiva a tua conta' : 'Activa a tua conta'}</h2>
             <p className="sub-hero-sub">Adiciona o teu cartão para começares a receber marcações.</p>
@@ -604,7 +604,7 @@ export default function Subscricao() {
                           <div style={{ margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {plano.caracteristicas.map((c, i) => (
                               <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                                <Check size={15} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
+                                <Check size={15} style={{ color: 'var(--gold-tinta)', flexShrink: 0, marginTop: 2 }} />
                                 <span className="text-sm">{c}</span>
                               </div>
                             ))}

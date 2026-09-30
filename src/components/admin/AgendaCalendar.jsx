@@ -158,7 +158,7 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                       ) : (
                         <>
                           <div className="ag-b-time">
-                            {a.usaPack && <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', background: '#C9A227', color: '#0A0804', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
+                            {a.usaPack && <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', background: 'var(--gold)', color: 'var(--on-gold)', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
                             {(() => {
                               const mb = dataService.mbwayDe?.(a.id);
                               if (!mb) return null;

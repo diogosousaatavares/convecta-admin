@@ -74,7 +74,7 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
         <Bell size={16} />
         {total > 0 && (
           <span style={{ position: 'absolute', top: 2, right: 2, minWidth: 15, height: 15, padding: '0 4px', borderRadius: 8,
-            background: '#C9A227', color: '#100D08', fontSize: 10, fontWeight: 700, lineHeight: '15px', textAlign: 'center' }}>
+            background: 'var(--gold)', color: 'var(--on-gold)', fontSize: 10, fontWeight: 700, lineHeight: '15px', textAlign: 'center' }}>
             {total > 9 ? '9+' : total}
           </span>
         )}
@@ -83,7 +83,7 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
       {aberto && (
         <div className="sino-caixa" style={{ zIndex: 60,
           background: 'var(--surface, #16130F)', border: '1px solid var(--border)', borderRadius: 14,
-          boxShadow: '0 22px 50px rgba(0,0,0,.55)', overflow: 'hidden' }}>
+          boxShadow: '0 22px 50px rgba(0,0,0,.20)', overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 14 }}>Avisos</div>
           <div style={{ maxHeight: 'min(420px, 70dvh)', overflowY: 'auto' }}>
             {porConfirmar > 0 && (

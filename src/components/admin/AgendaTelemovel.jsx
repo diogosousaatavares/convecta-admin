@@ -265,7 +265,7 @@ export default function AgendaTelemovel({
                         <span className="agm-bloco-ico"><Icone size={18} /></span>
                         <span className="agm-bloco-hora">{a.startTime} – {a.endTime}</span>
                         <span className="agm-bloco-svc">
-                          {a.usaPack && !a.blocked && <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', background: '#C9A227', color: '#0A0804', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
+                          {a.usaPack && !a.blocked && <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', background: 'var(--gold)', color: 'var(--on-gold)', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
                           {(() => {
                             const mb = !a.blocked && dataService.mbwayDe?.(a.id);
                             if (!mb) return null;

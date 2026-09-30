@@ -41,10 +41,10 @@ export default function FluxoCaixa() {
         <div className="chart-box">
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={chart} margin={{ left: -12, right: 8, top: 8, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="day" stroke="#8A8272" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="#8A8272" fontSize={12} tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={{ background: '#1C1915', border: '1px solid #221E18', borderRadius: 8, fontSize: 13 }} labelStyle={{ color: '#EDE8DF' }} formatter={(v) => formatPrice(v)} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--linha-grafico)" />
+              <XAxis dataKey="day" stroke="var(--text-ter)" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis stroke="var(--text-ter)" fontSize={12} tickLine={false} axisLine={false} />
+              <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13 }} labelStyle={{ color: 'var(--text)' }} formatter={(v) => formatPrice(v)} />
               <Legend wrapperStyle={{ fontSize: 13 }} />
               <Bar dataKey="entradas" fill={CHART_GOLD} radius={[4, 4, 0, 0]} />
               <Bar dataKey="saidas" fill="#5a5a5a" radius={[4, 4, 0, 0]} />

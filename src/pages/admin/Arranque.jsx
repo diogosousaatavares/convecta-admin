@@ -163,7 +163,7 @@ export default function Arranque() {
       <div style={{ maxWidth: 620, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         <div>
-          <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.4, fontWeight: 700, color: 'var(--gold)' }}>
+          <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.4, fontWeight: 700, color: 'var(--gold-tinta)' }}>
             Um minuto, e está teu
           </div>
           <h1 style={{ margin: '8px 0 6px', fontSize: 26, lineHeight: 1.2 }}>
@@ -177,7 +177,7 @@ export default function Arranque() {
 
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
-            <Scissors size={16} style={{ color: 'var(--gold)' }} />
+            <Scissors size={16} style={{ color: 'var(--gold-tinta)' }} />
             <span className="fw-600" style={{ fontSize: 15 }}>O que fazes, e a quanto</span>
           </div>
           <p style={{ margin: '0 0 14px', fontSize: 12.5, color: 'var(--text-sec)' }}>
@@ -219,7 +219,7 @@ export default function Arranque() {
 
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
-            <Clock size={16} style={{ color: 'var(--gold)' }} />
+            <Clock size={16} style={{ color: 'var(--gold-tinta)' }} />
             <span className="fw-600" style={{ fontSize: 15 }}>A que horas abres</span>
           </div>
           <p style={{ margin: '0 0 14px', fontSize: 12.5, color: 'var(--text-sec)' }}>
@@ -265,7 +265,7 @@ export default function Arranque() {
             disto era pedir uma decisão a quem ainda não tinha nada seu. */}
         <Card style={{ borderColor: 'rgba(201,162,39,0.4)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
-            <CreditCard size={16} style={{ color: 'var(--gold)' }} />
+            <CreditCard size={16} style={{ color: 'var(--gold-tinta)' }} />
             <span className="fw-600" style={{ fontSize: 15 }}>Quando quiseres receber marcações</span>
           </div>
           <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--text-sec)', lineHeight: 1.6 }}>

@@ -24,7 +24,7 @@ export function ToastProvider({ children }) {
           <div key={t.id} className={`toast toast-${t.type}`}>
             {t.type === 'success' && <CheckCircle2 size={18} style={{ color: 'var(--success)', flexShrink: 0 }} />}
             {t.type === 'error' && <XCircle size={18} style={{ color: 'var(--error)', flexShrink: 0 }} />}
-            {t.type === 'info' && <Info size={18} style={{ color: 'var(--gold)', flexShrink: 0 }} />}
+            {t.type === 'info' && <Info size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0 }} />}
             <div>
               <div className="toast-title">{t.title}</div>
               {t.msg && <div className="toast-msg">{t.msg}</div>}

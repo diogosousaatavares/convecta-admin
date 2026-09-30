@@ -36,7 +36,7 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
     return (
       <div style={destaque ? { marginTop: 16, padding: '12px 14px', borderRadius: 10, background: 'rgba(var(--gold-rgb),0.10)', border: '1px solid rgba(var(--gold-rgb),0.45)' } : { marginTop: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-          <Crown size={16} style={{ color: 'var(--gold)' }} />
+          <Crown size={16} style={{ color: 'var(--gold-tinta)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="fw-600">Este és tu, o dono</div>
             <div className="text-sec text-xs">Entras com a tua conta e vês tudo. Podes mudar isto em Equipa e acessos.</div>

@@ -149,8 +149,8 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
           </div>
           <div style={{ textAlign: 'right' }}>
             <div className="text-gold fw-600" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>{formatPrice(base)}</div>
-            {cortesGratis && <div className="text-xs fw-600" style={{ color: 'var(--gold)' }}>🎁 Corte grátis do cartão</div>}
-            {appointment?.usaPack && <div className="text-xs fw-600" style={{ color: 'var(--gold)' }}>Pago com o pack</div>}
+            {cortesGratis && <div className="text-xs fw-600" style={{ color: 'var(--gold-tinta)' }}>🎁 Corte grátis do cartão</div>}
+            {appointment?.usaPack && <div className="text-xs fw-600" style={{ color: 'var(--gold-tinta)' }}>Pago com o pack</div>}
             {mbway?.estado === 'pago' && <div className="text-xs fw-600" style={{ color: 'var(--success)' }}>Já pago por MB WAY</div>}
           </div>
         </div>
@@ -257,7 +257,7 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
             <label className="label">Valor entregue (€)</label>
             <input type="number" className="input" placeholder={total.toFixed(2)} value={amountPaid} onChange={e => setAmountPaid(e.target.value)} min="0" step="0.01" />
             {amountPaid && (Number(amountPaid) || 0) >= total && (
-              <div className="text-sm mt-8" style={{ color: 'var(--gold)' }}>Troco: <span className="fw-600">{formatPrice(change)}</span></div>
+              <div className="text-sm mt-8" style={{ color: 'var(--gold-tinta)' }}>Troco: <span className="fw-600">{formatPrice(change)}</span></div>
             )}
           </div>
         )}

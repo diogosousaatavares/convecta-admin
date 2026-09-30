@@ -646,7 +646,7 @@ export default function Packs() {
           </div>
         </div>
         {pendentes.some(p => p.customerId === venda.customerId) && (
-          <p className="text-sm" style={{ lineHeight: 1.55, color: 'var(--gold)' }}>
+          <p className="text-sm" style={{ lineHeight: 1.55, color: 'var(--gold-tinta)' }}>
             {pendentes.some(p => p.customerId === venda.customerId && p.packId === venda.packId)
               ? 'Este cliente pediu este pack na app. Registar a venda confirma o pedido dele.'
               : 'Este cliente tem um pedido de outro pack na app. Esse pedido fica à espera — recusa-o em «Pedidos» se não fizer sentido.'}

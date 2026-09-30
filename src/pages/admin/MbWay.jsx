@@ -230,7 +230,7 @@ export default function MbWay() {
       </Card>
 
       <Card className="card-pad" style={{ marginBottom: 16, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-        <AlertTriangle size={18} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
+        <AlertTriangle size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0, marginTop: 2 }} />
         <div className="text-sec text-xs" style={{ lineHeight: 1.6 }}>
           Confirma só depois de veres o dinheiro na app do teu banco — um print pode ser editado.
           O MB WAY não substitui a fatura: continua a passá-la como para qualquer outro pagamento.

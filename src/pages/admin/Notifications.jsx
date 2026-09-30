@@ -174,7 +174,7 @@ export default function Notifications() {
           <div className="notif-ico" style={{ width: 36, height: 36 }}><Send size={17} /></div>
           <div>
             <div className="text-xs" style={{ color: '#7A746A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ativas</div>
-            <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, color: 'var(--gold)' }}>{activeCount}</div>
+            <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, color: 'var(--gold-tinta)' }}>{activeCount}</div>
           </div>
         </div>
         <Button variant="primary" onClick={openNew} style={{ marginLeft: 'auto' }}>

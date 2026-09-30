@@ -93,7 +93,7 @@ export default function Services() {
                   {s.isPopular && <Badge variant="gold">Popular</Badge>}
                   {!s.isActive && <Badge variant="default">Inativo</Badge>}
                 </div>
-                <span style={{ fontFamily: 'var(--font-head)', fontSize: 22, color: 'var(--gold)' }}>{formatPrice(s.price)}</span>
+                <span style={{ fontFamily: 'var(--font-head)', fontSize: 22, color: 'var(--gold-tinta)' }}>{formatPrice(s.price)}</span>
               </div>
               <p className="text-sec text-sm mt-8">{s.description}</p>
               <div className="flex items-center justify-between mt-16">

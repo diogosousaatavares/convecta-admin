@@ -69,7 +69,7 @@ export default function FormularioDemo({ origem = 'site', titulo = 'Antes de ent
         {campo('Email', 'email', 'email', { autoComplete: 'email', inputMode: 'email' })}
 
         {erro && <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(239,68,68,.12)',
-          border: '1px solid rgba(239,68,68,.35)', color: '#F87171', fontSize: 13, marginBottom: 12 }}>{erro}</div>}
+          border: '1px solid rgba(239,68,68,.35)', color: 'var(--error)', fontSize: 13, marginBottom: 12 }}>{erro}</div>}
 
         <button type="submit" disabled={aEnviar}
           style={{ width: '100%', padding: '13px 16px', borderRadius: 11, border: 0, cursor: aEnviar ? 'wait' : 'pointer',

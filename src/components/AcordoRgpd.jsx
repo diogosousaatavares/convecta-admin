@@ -40,7 +40,7 @@ export default function AcordoRgpd() {
       padding: '14px 16px', borderRadius: 12, marginBottom: 16,
       border: '1px solid rgba(201,162,39,.45)', background: 'rgba(201,162,39,.08)',
     }}>
-      <ShieldCheck size={22} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
+      <ShieldCheck size={22} style={{ color: 'var(--gold-tinta)', flexShrink: 0, marginTop: 2 }} />
       <div style={{ flex: '1 1 260px', minWidth: 0, fontSize: 13.5, lineHeight: 1.55 }}>
         <b>Falta aceitar o acordo de proteção de dados.</b><br />
         <span className="text-sec">
