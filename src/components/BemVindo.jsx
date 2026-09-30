@@ -104,7 +104,7 @@ export default function BemVindo() {
           <div className="bv-tempo">
             <div className="bv-tempo-i"><b>Agora</b><span>Os teus preços e o teu horário</span></div>
             <div className="bv-tempo-i"><b>Depois</b><span>O cartão, quando quiseres receber marcações</span></div>
-            <div className="bv-tempo-i"><b>1 mês</b><span>Grátis, e cancelas sozinho</span></div>
+            <div className="bv-tempo-i"><b>14 dias</b><span>Grátis, e cancelas sozinho</span></div>
           </div>
           <p className="bv-p bv-mini">Não te pedimos cartão nenhum para isto.</p>
         </>

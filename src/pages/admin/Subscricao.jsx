@@ -204,7 +204,7 @@ function Cartoes() {
 
 const PERGUNTAS = [
   { q: 'Quando sou cobrado?', r: 'Só no 8.º dia. Hoje o Stripe guarda o cartão e não tira nada. Avisamos-te por email antes.' },
-  { q: 'Posso cancelar quando quiser?', r: 'Sim, aqui no painel, sozinho. Durante o mês grátis não pagas nada; depois, cancelas e não há mês seguinte.' },
+  { q: 'Posso cancelar quando quiser?', r: 'Sim, aqui no painel, sozinho. Durante os 14 dias grátis não pagas nada; depois, cancelas e não há mês seguinte.' },
   { q: 'É seguro adicionar o meu cartão?', r: 'O cartão é escrito numa página do Stripe. Nós nunca o vemos nem o guardamos.' },
 ];
 
@@ -363,9 +363,16 @@ export default function Subscricao() {
   const estado = ESTADOS[sub?.estado] || ESTADOS.sem_cartao;
   const precisaDeCartao = !sub || sub.estado === 'sem_cartao' || sub.estado === 'cancelada';
   const nomeDoPlano = planoDaCasa?.nome || NOMES_DOS_PLANOS[sub?.plano] || 'o teu plano';
-  // 30 dias: a oferta passou de 7 dias para um mes a 26/09/2026, porque foi
-  // o que dois barbeiros pediram pelo nome na mesma tarde.
-  const diaDaCobranca = daquiA(30);
+  /*
+   * QUANTOS DIAS DURA O TESTE.
+   * A fonte da verdade e' o Stripe: convecta-superadmin, supabase/functions/
+   * criar-sessao-pagamento, `trial_period_days`. Isto aqui tem de dizer o
+   * mesmo — se mudares um, mudas o outro na mesma tarde, senao o painel
+   * promete uma data e o Stripe cobra noutra.
+   *   7 dias ate 26/09/2026 · 30 dias ate 30/09/2026 · 14 desde entao.
+   */
+  const DIAS_DE_TESTE = 14;
+  const diaDaCobranca = daquiA(DIAS_DE_TESTE);
 
   // Na venda não há cabeçalho de página nem botão de actualizar: é um ecrã
   // só, limpo, com uma coisa para fazer. Quando já há subscrição, é uma
@@ -552,7 +559,7 @@ export default function Subscricao() {
             </div>
             {precoDaCasa ? (
               <button className="sub-btn" onClick={() => assinar(precoDaCasa, true)} disabled={!!aAbrir}>
-                {aAbrir ? 'A abrir…' : 'Activar 1 mês grátis'} <ArrowRight size={20} />
+                {aAbrir ? 'A abrir…' : 'Activar 14 dias grátis'} <ArrowRight size={20} />
               </button>
             ) : (
               <button className="sub-btn" onClick={() => setVerPlanos(true)}>Escolher o plano <ArrowRight size={20} /></button>
@@ -612,7 +619,7 @@ export default function Subscricao() {
                         )}
                         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
                           <Button block onClick={() => assinar(preco, true)} disabled={!!aAbrir} icon={<CreditCard size={16} />}>
-                            {aAbrir === id + ':teste' ? 'A abrir…' : 'Activar · 1 mês grátis'}
+                            {aAbrir === id + ':teste' ? 'A abrir…' : 'Activar · 14 dias grátis'}
                           </Button>
                           <Button block variant="ghost" onClick={() => assinar(preco, false)} disabled={!!aAbrir}>
                             {aAbrir === id + ':ja' ? 'A abrir…' : 'Pagar já, sem experiência'}
@@ -640,7 +647,7 @@ export default function Subscricao() {
           <section className="sub-card">
             <div className="sub-titulo"><CalendarDays size={18} /> O que vai acontecer agora?</div>
             <ul className="sub-agora">
-              <li><i>1</i><div><b>Activas o mês grátis</b><span>Com o cartão, numa página segura. Menos de 2 minutos.</span></div></li>
+              <li><i>1</i><div><b>Activas os 14 dias grátis</b><span>Com o cartão, numa página segura. Menos de 2 minutos.</span></div></li>
               <li><i>2</i><div><b>A tua conta fica activa</b><span>Começas a receber marcações imediatamente.</span></div></li>
               <li><i>3</i><div><b>Primeiro pagamento só a {diaDaCobranca}</b><span>Até lá usas tudo, sem pagar nada.</span></div></li>
             </ul>
