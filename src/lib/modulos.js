@@ -27,11 +27,14 @@ export const MODULOS_POR_ACABAR = [
   // Tipologias soltas — data.typologies em memoria
   '/admin/tipos',
   // Definicoes que gravam num sitio que nenhum ecra le (auditoria de 14/09):
-  // slot e antecedencia (o site do cliente nao os usa), metodos de pagamento,
-  // regras de clientes, permissoes dos profissionais ("estrutura preparada"),
-  // tipos de documentos, seguranca (so mostra a sessao). Voltam quando forem
-  // lidos por alguem.
-  '/admin/definicoes/agenda',
+  // metodos de pagamento, regras de clientes, permissoes dos profissionais
+  // ("estrutura preparada"), tipos de documentos, seguranca (so mostra a
+  // sessao). Voltam quando forem lidos por alguem.
+  //
+  // Definicoes -> Agenda saiu desta lista a 01/10/2026: passou a ter uma
+  // definicao que e mesmo lida — de quanto em quanto tempo abrem as horas,
+  // na agenda do painel e no site do cliente. As que nao eram lidas (slot
+  // antigo, antecedencia, lista de espera, encaixes) sairam do ecra.
   '/admin/definicoes/profissionais',
   '/admin/definicoes/pagamentos',
   '/admin/definicoes/clientes',

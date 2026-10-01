@@ -50,15 +50,18 @@ export default function Definicoes() {
         <AvisoPush businessId={data.business?.id} userId={session?.id} papel="admin" comTeste sempre />
       </div>
 
+      {/*
+        Este separador esteve escondido (lib/modulos.js) porque nao gravava
+        nada que alguem lesse: o «slot» e a antecedencia iam para a tabela
+        config e morriam la. Volta agora com uma coisa so — a unica que e
+        mesmo lida, na agenda e no site do cliente.
+
+        A antecedencia minima, a lista de espera e os encaixes sairam daqui:
+        continuam sem ninguem que os leia. Voltam quando forem usados, nao
+        antes — uma definicao que nao faz nada e pior do que nao existir.
+      */}
       {section === 'agenda' && (
-        <Card className="card-pad" style={{ maxWidth: 520 }}>
-          <div className="grid-2">
-            <div className="field"><label className="label">Antecedência mínima (h)</label><input type="number" className="input" defaultValue={cfg.agenda?.minAdvanceHours || 2} onBlur={e => saveAgenda({ minAdvanceHours: Number(e.target.value) })} /></div>
-          </div>
-          <div className="flex-col gap-8 mt-16">
-            <label className="flex items-center gap-8 text-sm"><input type="checkbox" defaultChecked={cfg.agenda?.allowWaitlist !== false} onChange={e => saveAgenda({ allowWaitlist: e.target.checked })} /> Permitir lista de espera</label>
-            <label className="flex items-center gap-8 text-sm"><input type="checkbox" defaultChecked={cfg.agenda?.allowFitIns !== false} onChange={e => saveAgenda({ allowFitIns: e.target.checked })} /> Permitir encaixes</label>
-          </div>
+        <Card className="card-pad" style={{ maxWidth: 560 }}>
           <HorasQueAbrem cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
         </Card>
       )}
@@ -156,8 +159,8 @@ function HorasQueAbrem({ cfg, onGuardar }) {
     fontFamily: 'inherit', color: 'inherit', width: '100%',
   });
   return (
-    <div style={{ marginTop: 20, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
-      <label className="label">De quanto em quanto tempo abrem as horas</label>
+    <div>
+      <h3 style={{ fontSize: 18, marginBottom: 6 }}>De quanto em quanto tempo abrem as horas</h3>
       <p className="text-sec text-sm" style={{ marginTop: -4, marginBottom: 12 }}>
         Vale para a agenda e para as horas que o cliente vê no site.
       </p>
