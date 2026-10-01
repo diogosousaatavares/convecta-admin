@@ -22,8 +22,8 @@ import { Link } from 'react-router-dom';
 
 // Ver AgendaCalendar: a grelha e a altura seguem Definicoes -> Agenda.
 const ALTURA_POR_30 = 64;
-function grelhaDe(business) {
-  const { modo, passo } = agendaDaBarbearia(business);
+function grelhaDe(business, dateStr) {
+  const { modo, passo } = agendaDaBarbearia(business, dateStr);
   const STEP = modo === 'encostado' ? 30 : Math.max(10, Math.min(120, passo));
   return { STEP, SLOT_H: Math.round(ALTURA_POR_30 * (STEP / 30)) };
 }
@@ -114,7 +114,7 @@ export default function AgendaTelemovel({
   const horario = data.business.openingHours.find(h => h.day === NOMES_DIA[dow]);
   const aberto = !!(horario && horario.isOpen);
 
-  const { STEP, SLOT_H } = grelhaDe(data.business);
+  const { STEP, SLOT_H } = grelhaDe(data.business, date);
   const abreMin = aberto ? paraMinutos(horario.open) : 0;
   const fechaMin = aberto ? paraMinutos(horario.close) : 0;
   const horas = useMemo(() => {

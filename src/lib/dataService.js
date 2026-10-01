@@ -1037,23 +1037,49 @@ function horasDoDia(dateStr, professionalId, st = state) {
  * barbearias ja tinham. Quem nao for as Definicoes nao ve diferenca nenhuma.
  */
 export const PASSOS = [10, 15, 20, 30, 45, 60];
-function agendaDaCasa(st = state) {
-  const a = st.business?.config?.agenda || {};
-  const passo = Number(a.slotMinutes);
+
+/*
+ * E POR DIA, NAO E SO UM VALOR.
+ *
+ * Segunda e uma manha morta e o barbeiro quer uma hora por cabeca; sexta e
+ * sabado estao cheios e ele quer de 30 em 30 para nao deixar ninguem de
+ * fora. Sao a mesma barbearia e sao dois ritmos diferentes.
+ *
+ * Por isso ha um valor da casa (slotMode/slotMinutes) e, por cima dele,
+ * `porDia` — um por cada dia da semana, so para os dias que o dono quis
+ * mudar. Dia sem nada escrito segue a casa: quem nunca abrir isto nao ve
+ * diferenca nenhuma.
+ */
+function daCasa(a) {
+  const passo = Number(a?.slotMinutes);
   return {
-    modo: a.slotMode === 'encostado' ? 'encostado' : 'grelha',
+    modo: a?.slotMode === 'encostado' ? 'encostado' : 'grelha',
     passo: passo > 0 ? passo : 30,
   };
 }
 
-// A mesma leitura, para quem desenha a agenda (so recebe o business).
-export function agendaDaBarbearia(business) { return agendaDaCasa({ business }); }
+function agendaDaCasa(st = state, dateStr) {
+  const a = st.business?.config?.agenda || {};
+  const base = daCasa(a);
+  if (!dateStr) return base;
+  const dia = DAY_NAMES[new Date(dateStr + 'T00:00:00').getDay()];
+  const d = (a.porDia || {})[dia];
+  // Nada escrito para este dia, ou escrito a dizer «igual»: segue a casa.
+  if (!d || (!d.slotMode && !(Number(d.slotMinutes) > 0))) return base;
+  return {
+    modo: d.slotMode ? (d.slotMode === 'encostado' ? 'encostado' : 'grelha') : base.modo,
+    passo: Number(d.slotMinutes) > 0 ? Number(d.slotMinutes) : base.passo,
+  };
+}
+
+// A mesma leitura, para quem desenha a agenda (so recebe o business e o dia).
+export function agendaDaBarbearia(business, dateStr) { return agendaDaCasa({ business }, dateStr); }
 
 function generateSlotsForDay(dateStr, professionalId, durationMinutes, existingAppointments) {
   const horas = horasDoDia(dateStr, professionalId);
   if (!horas) return [];
   const { open, close, pausas } = horas;
-  const { modo, passo } = agendaDaCasa();
+  const { modo, passo } = agendaDaCasa(state, dateStr);
 
   const marcados = (existingAppointments || [])
     .filter(a => a.professionalId === professionalId && a.date === dateStr && a.status !== 'cancelled')
@@ -1940,6 +1966,8 @@ const dataService = {
       slotMinutes: v => Math.max(5, Math.min(240, Number(v) || 30)),
       // Ate quando o cliente pode marcar. Eram 14 dias escritos no site.
       horizonDays: v => Math.max(1, Math.min(365, Number(v) || 60)),
+      // Os dias que fogem ao valor da casa. Vai inteiro, nao por pedacos.
+      porDia: v => (v && typeof v === 'object' ? v : {}),
     };
     const mapa = section === 'agenda' ? ESPELHADOS_AGENDA : ESPELHADOS;
     const mudados = Object.keys(mapa).filter(k =>

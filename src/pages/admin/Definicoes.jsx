@@ -63,6 +63,7 @@ export default function Definicoes() {
       {section === 'agenda' && (
         <Card className="card-pad" style={{ maxWidth: 560 }}>
           <HorasQueAbrem cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
+          <DiasQueFogemARegra cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
           <AteQuandoSePodeMarcar cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
         </Card>
       )}
@@ -248,6 +249,88 @@ function AteQuandoSePodeMarcar({ cfg, onGuardar }) {
           ? 'Duas semanas é pouco para quem marca o corte do mês seguinte.'
           : 'Marcações de pack vão sempre até ao fim da validade do pack, mesmo que passe daqui.'}
       </p>
+    </div>
+  );
+}
+
+/*
+ * OS DIAS QUE FOGEM A REGRA.
+ *
+ * Segunda e uma manha morta e o barbeiro quer uma hora por cabeca; sexta e
+ * sabado estao cheios e ele quer de 30 em 30 para nao deixar ninguem de
+ * fora. Sao a mesma barbearia e sao dois ritmos.
+ *
+ * Por isso isto nao e uma segunda grelha: e uma excecao por dia, por cima
+ * do valor da casa. «Igual» e o estado normal, e e o que esta em todos os
+ * dias ate alguem mexer — quem nunca abrir isto nao ve diferenca nenhuma.
+ */
+const DIAS_DA_SEMANA = [
+  { v: 'monday',    l: 'Segunda' },
+  { v: 'tuesday',   l: 'Terça' },
+  { v: 'wednesday', l: 'Quarta' },
+  { v: 'thursday',  l: 'Quinta' },
+  { v: 'friday',    l: 'Sexta' },
+  { v: 'saturday',  l: 'Sábado' },
+  { v: 'sunday',    l: 'Domingo' },
+];
+
+function DiasQueFogemARegra({ cfg, onGuardar }) {
+  const porDia = cfg.porDia || {};
+  const base = cfg.slotMode === 'encostado'
+    ? 'encostado'
+    : (Number(cfg.slotMinutes) > 0 ? Number(cfg.slotMinutes) : 30);
+  const rotuloBase = base === 'encostado' ? 'encostado' : base === 60 ? '1 hora' : `${base} min`;
+
+  const mudar = (dia, valor) => {
+    const novo = { ...porDia };
+    if (!valor) delete novo[dia];
+    else if (valor === 'encostado') novo[dia] = { slotMode: 'encostado' };
+    else novo[dia] = { slotMode: 'grelha', slotMinutes: Number(valor) };
+    onGuardar({ porDia: novo });
+  };
+
+  const valorDe = dia => {
+    const d = porDia[dia];
+    if (!d) return '';
+    if (d.slotMode === 'encostado') return 'encostado';
+    return Number(d.slotMinutes) > 0 ? String(d.slotMinutes) : '';
+  };
+
+  const excecoes = Object.keys(porDia).length;
+
+  return (
+    <div style={{ marginTop: 24, borderTop: '1px solid var(--border)', paddingTop: 18 }}>
+      <h3 style={{ fontSize: 18, marginBottom: 6 }}>Dias que fogem à regra</h3>
+      <p className="text-sec text-sm" style={{ marginBottom: 12 }}>
+        Segunda de hora em hora e sábado de 30 em 30, por exemplo. O que ficar em
+        «igual» segue o de cima ({rotuloBase}).
+      </p>
+      <div className="flex-col gap-8" style={{ maxWidth: 360 }}>
+        {DIAS_DA_SEMANA.map(d => (
+          <div key={d.v} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span className="text-sm" style={{ width: 86, flexShrink: 0,
+              color: valorDe(d.v) ? 'var(--text)' : 'var(--text-sec)',
+              fontWeight: valorDe(d.v) ? 700 : 500 }}>{d.l}</span>
+            <select className="input" style={{ flex: 1 }} value={valorDe(d.v)}
+              onChange={e => mudar(d.v, e.target.value)}>
+              <option value="">Igual ({rotuloBase})</option>
+              <option value="10">10 min</option>
+              <option value="15">15 min</option>
+              <option value="20">20 min</option>
+              <option value="30">30 min</option>
+              <option value="45">45 min</option>
+              <option value="60">1 hora</option>
+              <option value="encostado">Encostado, sem buracos</option>
+            </select>
+          </div>
+        ))}
+      </div>
+      {excecoes > 0 && (
+        <p className="text-sec text-sm" style={{ marginTop: 12 }}>
+          {excecoes === 1 ? 'Um dia foge à regra.' : `${excecoes} dias fogem à regra.`}
+          {' '}Os outros seguem {rotuloBase}.
+        </p>
+      )}
     </div>
   );
 }

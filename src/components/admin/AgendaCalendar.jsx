@@ -13,8 +13,8 @@ import IndicadoresCliente from '@/components/admin/IndicadoresCliente';
  * minuto nao mudarem: um corte de 45 min ocupa sempre o mesmo espaco.
  */
 const ALTURA_POR_30 = 48;
-function grelhaDe(business) {
-  const { modo, passo } = agendaDaBarbearia(business);
+function grelhaDe(business, dateStr) {
+  const { modo, passo } = agendaDaBarbearia(business, dateStr);
   // No modo encostado as horas nao sao fixas; a grelha fica na meia hora.
   const STEP = modo === 'encostado' ? 30 : Math.max(10, Math.min(120, passo));
   return { STEP, SLOT_H: Math.round(ALTURA_POR_30 * (STEP / 30)) };
@@ -56,7 +56,7 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
     );
   }
 
-  const { STEP, SLOT_H } = grelhaDe(data.business);
+  const { STEP, SLOT_H } = grelhaDe(data.business, date);
   const openMin = toMin(hours.open);
   const closeMin = toMin(hours.close);
   const slotCount = Math.round((closeMin - openMin) / STEP);
