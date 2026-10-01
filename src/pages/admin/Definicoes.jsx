@@ -63,6 +63,7 @@ export default function Definicoes() {
       {section === 'agenda' && (
         <Card className="card-pad" style={{ maxWidth: 560 }}>
           <HorasQueAbrem cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
+          <AteQuandoSePodeMarcar cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
         </Card>
       )}
 
@@ -204,6 +205,48 @@ function HorasQueAbrem({ cfg, onGuardar }) {
           : passo >= 60
             ? 'Cada cliente ocupa uma hora inteira na agenda, mesmo que o corte demore menos.'
             : `As horas abrem de ${passo} em ${passo} minutos.`}
+      </p>
+    </div>
+  );
+}
+
+/*
+ * ATE QUANDO O CLIENTE PODE MARCAR.
+ *
+ * Eram 14 dias escritos no codigo do site. A RastaVillage bateu nisso na
+ * primeira semana: quem queria o corte do mes seguinte nao encontrava o dia
+ * e ia marcar por telefone — ou nao marcava. Sessenta dias por omissao, e
+ * quem quiser aperta ou alarga aqui.
+ */
+const HORIZONTES = [
+  { v: 14, l: '2 semanas' }, { v: 30, l: '1 mês' },
+  { v: 60, l: '2 meses' }, { v: 90, l: '3 meses' },
+];
+
+function AteQuandoSePodeMarcar({ cfg, onGuardar }) {
+  const dias = Number(cfg.horizonDays) > 0 ? Number(cfg.horizonDays) : 60;
+  return (
+    <div style={{ marginTop: 24, borderTop: '1px solid var(--border)', paddingTop: 18 }}>
+      <h3 style={{ fontSize: 18, marginBottom: 6 }}>Até quando o cliente pode marcar</h3>
+      <p className="text-sec text-sm" style={{ marginBottom: 12 }}>
+        Quanto do futuro aparece no site, a contar de hoje.
+      </p>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {HORIZONTES.map(h => (
+          <button key={h.v} type="button" onClick={() => onGuardar({ horizonDays: h.v })}
+            style={{ padding: '8px 15px', borderRadius: 999, cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 13.5, fontWeight: dias === h.v ? 700 : 500,
+              background: dias === h.v ? 'var(--gold)' : 'transparent',
+              color: dias === h.v ? 'var(--on-gold, #1a1a1a)' : 'var(--text-sec)',
+              border: `1px solid ${dias === h.v ? 'var(--gold)' : 'var(--border)'}` }}>
+            {h.l}
+          </button>
+        ))}
+      </div>
+      <p className="text-sec text-sm" style={{ marginTop: 12 }}>
+        {dias <= 14
+          ? 'Duas semanas é pouco para quem marca o corte do mês seguinte.'
+          : 'Marcações de pack vão sempre até ao fim da validade do pack, mesmo que passe daqui.'}
       </p>
     </div>
   );

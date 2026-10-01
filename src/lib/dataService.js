@@ -1938,6 +1938,8 @@ const dataService = {
     const ESPELHADOS_AGENDA = {
       slotMode: v => (v === 'encostado' ? 'encostado' : 'grelha'),
       slotMinutes: v => Math.max(5, Math.min(240, Number(v) || 30)),
+      // Ate quando o cliente pode marcar. Eram 14 dias escritos no site.
+      horizonDays: v => Math.max(1, Math.min(365, Number(v) || 60)),
     };
     const mapa = section === 'agenda' ? ESPELHADOS_AGENDA : ESPELHADOS;
     const mudados = Object.keys(mapa).filter(k =>
