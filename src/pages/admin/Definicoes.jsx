@@ -162,26 +162,19 @@ function HorasQueAbrem({ cfg, onGuardar }) {
   });
   return (
     <div>
-      <h3 style={{ fontSize: 18, marginBottom: 6 }}>De quanto em quanto tempo abrem as horas</h3>
-      <p className="text-sec text-sm" style={{ marginTop: -4, marginBottom: 12 }}>
-        Vale para a agenda e para as horas que o cliente vê no site.
-      </p>
-
+      <h3 style={{ fontSize: 18, marginBottom: 14 }}>De quanto em quanto tempo abrem as horas</h3>
       <div className="flex-col gap-8">
         <button type="button" style={caixa(!encostado)}
           onClick={() => onGuardar({ slotMode: 'grelha' })}>
-          <div style={{ fontWeight: 700, fontSize: 14.5 }}>Horas certas</div>
-          <div className="text-sec text-sm">
-            Sempre as mesmas horas, caiam como caírem os cortes.
-          </div>
+          <div style={{ fontWeight: 700, fontSize: 15.5 }}>Horas certas</div>
         </button>
 
         {!encostado && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '2px 2px 4px 14px' }}>
             {PASSOS_HORA.map(p => (
               <button key={p.v} type="button" onClick={() => onGuardar({ slotMinutes: p.v })}
-                style={{ padding: '7px 13px', borderRadius: 999, cursor: 'pointer',
-                  fontFamily: 'inherit', fontSize: 13, fontWeight: passo === p.v ? 700 : 500,
+                style={{ padding: '9px 15px', borderRadius: 999, cursor: 'pointer',
+                  fontFamily: 'inherit', fontSize: 15, fontWeight: passo === p.v ? 700 : 500,
                   background: passo === p.v ? 'var(--gold)' : 'transparent',
                   color: passo === p.v ? 'var(--on-gold, #1a1a1a)' : 'var(--text-sec)',
                   border: `1px solid ${passo === p.v ? 'var(--gold)' : 'var(--border)'}` }}>
@@ -193,20 +186,9 @@ function HorasQueAbrem({ cfg, onGuardar }) {
 
         <button type="button" style={caixa(encostado)}
           onClick={() => onGuardar({ slotMode: 'encostado' })}>
-          <div style={{ fontWeight: 700, fontSize: 14.5 }}>Encostado, sem buracos</div>
-          <div className="text-sec text-sm">
-            A hora seguinte começa onde a anterior acabou. Um corte de 45 min às 09:00 abre as 09:45.
-          </div>
+          <div style={{ fontWeight: 700, fontSize: 15.5 }}>Encostado, sem buracos</div>
         </button>
       </div>
-
-      <p className="text-sec text-sm" style={{ marginTop: 12 }}>
-        {encostado
-          ? 'O dia enche-se de ponta a ponta. Em troca, o cliente vê menos horas à escolha.'
-          : passo >= 60
-            ? 'Cada cliente ocupa uma hora inteira na agenda, mesmo que o corte demore menos.'
-            : `As horas abrem de ${passo} em ${passo} minutos.`}
-      </p>
     </div>
   );
 }
@@ -228,15 +210,12 @@ function AteQuandoSePodeMarcar({ cfg, onGuardar }) {
   const dias = Number(cfg.horizonDays) > 0 ? Number(cfg.horizonDays) : 60;
   return (
     <div style={{ marginTop: 24, borderTop: '1px solid var(--border)', paddingTop: 18 }}>
-      <h3 style={{ fontSize: 18, marginBottom: 6 }}>Até quando o cliente pode marcar</h3>
-      <p className="text-sec text-sm" style={{ marginBottom: 12 }}>
-        Quanto do futuro aparece no site, a contar de hoje.
-      </p>
+      <h3 style={{ fontSize: 18, marginBottom: 14 }}>Até quando o cliente pode marcar</h3>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {HORIZONTES.map(h => (
           <button key={h.v} type="button" onClick={() => onGuardar({ horizonDays: h.v })}
-            style={{ padding: '8px 15px', borderRadius: 999, cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: 13.5, fontWeight: dias === h.v ? 700 : 500,
+            style={{ padding: '9px 16px', borderRadius: 999, cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 15, fontWeight: dias === h.v ? 700 : 500,
               background: dias === h.v ? 'var(--gold)' : 'transparent',
               color: dias === h.v ? 'var(--on-gold, #1a1a1a)' : 'var(--text-sec)',
               border: `1px solid ${dias === h.v ? 'var(--gold)' : 'var(--border)'}` }}>
@@ -244,11 +223,6 @@ function AteQuandoSePodeMarcar({ cfg, onGuardar }) {
           </button>
         ))}
       </div>
-      <p className="text-sec text-sm" style={{ marginTop: 12 }}>
-        {dias <= 14
-          ? 'Duas semanas é pouco para quem marca o corte do mês seguinte.'
-          : 'Marcações de pack vão sempre até ao fim da validade do pack, mesmo que passe daqui.'}
-      </p>
     </div>
   );
 }
@@ -296,19 +270,13 @@ function DiasQueFogemARegra({ cfg, onGuardar }) {
     return Number(d.slotMinutes) > 0 ? String(d.slotMinutes) : '';
   };
 
-  const excecoes = Object.keys(porDia).length;
-
   return (
     <div style={{ marginTop: 24, borderTop: '1px solid var(--border)', paddingTop: 18 }}>
-      <h3 style={{ fontSize: 18, marginBottom: 6 }}>Dias que fogem à regra</h3>
-      <p className="text-sec text-sm" style={{ marginBottom: 12 }}>
-        Segunda de hora em hora e sábado de 30 em 30, por exemplo. O que ficar em
-        «igual» segue o de cima ({rotuloBase}).
-      </p>
+      <h3 style={{ fontSize: 18, marginBottom: 14 }}>Dias que fogem à regra</h3>
       <div className="flex-col gap-8" style={{ maxWidth: 360 }}>
         {DIAS_DA_SEMANA.map(d => (
           <div key={d.v} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span className="text-sm" style={{ width: 86, flexShrink: 0,
+            <span style={{ width: 92, flexShrink: 0, fontSize: 15,
               color: valorDe(d.v) ? 'var(--text)' : 'var(--text-sec)',
               fontWeight: valorDe(d.v) ? 700 : 500 }}>{d.l}</span>
             <select className="input" style={{ flex: 1 }} value={valorDe(d.v)}
@@ -325,12 +293,6 @@ function DiasQueFogemARegra({ cfg, onGuardar }) {
           </div>
         ))}
       </div>
-      {excecoes > 0 && (
-        <p className="text-sec text-sm" style={{ marginTop: 12 }}>
-          {excecoes === 1 ? 'Um dia foge à regra.' : `${excecoes} dias fogem à regra.`}
-          {' '}Os outros seguem {rotuloBase}.
-        </p>
-      )}
     </div>
   );
 }
