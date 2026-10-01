@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -51,6 +52,18 @@ export default function Agenda() {
   const podeMexer = (a) => !so || !a || a.professionalId === so;
   const soATua = () => toast.error('Só na tua coluna', 'Podes marcar, bloquear e cobrar só as tuas marcações.');
   const [date, setDate] = useState(() => {
+    /*
+     * O dia em que a agenda abre.
+     *
+     * `?dia=2026-10-15` vem dos avisos: uma notificação de uma marcação do
+     * dia 15 tem de abrir no dia 15. Abrir sempre em hoje obrigava o
+     * barbeiro a adivinhar a data a partir do texto do aviso e a andar
+     * para a frente dia a dia — e o aviso sabe a data, só não a passava.
+     */
+    try {
+      const d = new URLSearchParams(window.location.search).get('dia');
+      if (/^\d{4}-\d{2}-\d{2}$/.test(d || '')) return d;
+    } catch {}
     // Vindo da demo do site: abre no dia da marcacao que a pessoa fez la.
     try {
       const d = sessionStorage.getItem('convecta_agenda_dia');
@@ -58,6 +71,17 @@ export default function Agenda() {
     } catch {}
     return todayStr();
   });
+  /*
+   * Já estar na agenda e clicar num aviso de outro dia não remonta a página,
+   * por isso o `useState` acima não voltaria a correr e o dia ficava onde
+   * estava. Isto é o que faz o segundo aviso funcionar como o primeiro.
+   */
+  const { search } = useLocation();
+  useEffect(() => {
+    const d = new URLSearchParams(search).get('dia');
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d || '')) setDate(d);
+  }, [search]);
+
   const [mode, setMode] = useState('grid');
   const [blockMode, setBlockMode] = useState(false);
   const [selected, setSelected] = useState(null);
