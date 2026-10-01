@@ -17,11 +17,26 @@
     <meta name="apple-mobile-web-app-title" content="Admin" />
 
     <!-- Android / Chrome -->
-    <meta name="theme-color" content="#0A0807" />
+    <meta name="theme-color" content="#F4F4F6" />
     <meta name="mobile-web-app-capable" content="yes" />
 
     <meta name="robots" content="noindex, nofollow" />
     <title>Admin</title>
+
+    <!--
+      O painel abre claro. Isto corre antes de haver React, para nao haver um
+      relampago preto no arranque: a classe `theme-light` e posta a mao e o
+      JavaScript do tema confirma-a (ou troca-a) logo a seguir. So o 'escuro'
+      escrito de proposito e que abre escuro.
+    -->
+    <script>
+      (function () {
+        try {
+          var m = localStorage.getItem('convecta-painel-modo');
+          if (m !== 'escuro') document.documentElement.classList.add('theme-light');
+        } catch (e) { document.documentElement.classList.add('theme-light'); }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

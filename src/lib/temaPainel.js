@@ -30,14 +30,26 @@ const BASE_CLARO = {
 };
 
 export const MODOS = [
+  { v: 'claro',  l: 'Claro',  nota: 'o normal' },
   { v: 'escuro', l: 'Escuro', nota: 'para a barbearia à noite' },
-  { v: 'claro',  l: 'Claro',  nota: 'para a luz do dia e para imprimir' },
 ];
+/*
+ * O PAINEL ABRE CLARO.
+ *
+ * Abria escuro, e o escuro e uma escolha, nao um sitio onde se aterra: a
+ * barbearia a luz do dia, o telemovel na rua e o papel quando se imprime
+ * sao todos claros. Quem quiser escuro carrega no sol/lua la em cima e
+ * fica assim — a escolha segue a conta (config.theme.modo), por isso
+ * tambem o segue para o telemovel.
+ *
+ * So o 'escuro' escrito de proposito conta como escuro. Sem nada escrito,
+ * e claro — incluindo em quem nunca mexeu nisto.
+ */
 const CHAVE_MODO = 'convecta-painel-modo';
 export const lerModo = () => {
-  try { return localStorage.getItem(CHAVE_MODO) === 'claro' ? 'claro' : 'escuro' } catch { return 'escuro' }
+  try { return localStorage.getItem(CHAVE_MODO) === 'escuro' ? 'escuro' : 'claro' } catch { return 'claro' }
 };
-export const guardarModo = m => { try { localStorage.setItem(CHAVE_MODO, m === 'claro' ? 'claro' : 'escuro') } catch {} };
+export const guardarModo = m => { try { localStorage.setItem(CHAVE_MODO, m === 'escuro' ? 'escuro' : 'claro') } catch {} };
 
 export const PRESETS = [
   { label: 'Convecta', nota: 'o amarelo do logótipo', gold: '#F8CF00' },
