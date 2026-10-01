@@ -1,4 +1,4 @@
-import dataService from '@/lib/dataService';
+import dataService, { agendaDaBarbearia } from '@/lib/dataService';
 import IndicadoresCliente from '@/components/admin/IndicadoresCliente';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -20,8 +20,13 @@ import { Link } from 'react-router-dom';
  * trabalho, sem arrastar nada para o lado.
  */
 
-const SLOT_H = 64;       // altura de meia hora
-const STEP = 30;         // minutos por linha
+// Ver AgendaCalendar: a grelha e a altura seguem Definicoes -> Agenda.
+const ALTURA_POR_30 = 64;
+function grelhaDe(business) {
+  const { modo, passo } = agendaDaBarbearia(business);
+  const STEP = modo === 'encostado' ? 30 : Math.max(10, Math.min(120, passo));
+  return { STEP, SLOT_H: Math.round(ALTURA_POR_30 * (STEP / 30)) };
+}
 const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const NOMES_DIA = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -109,13 +114,14 @@ export default function AgendaTelemovel({
   const horario = data.business.openingHours.find(h => h.day === NOMES_DIA[dow]);
   const aberto = !!(horario && horario.isOpen);
 
+  const { STEP, SLOT_H } = grelhaDe(data.business);
   const abreMin = aberto ? paraMinutos(horario.open) : 0;
   const fechaMin = aberto ? paraMinutos(horario.close) : 0;
   const horas = useMemo(() => {
     if (!aberto) return [];
     const n = Math.round((fechaMin - abreMin) / STEP);
     return Array.from({ length: n }, (_, i) => paraHoras(abreMin + i * STEP));
-  }, [aberto, abreMin, fechaMin]);
+  }, [aberto, abreMin, fechaMin, STEP]);
 
   const agora = new Date();
   const eHoje = date === todayStr();

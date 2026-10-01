@@ -1019,25 +1019,75 @@ function horasDoDia(dateStr, professionalId, st = state) {
   return { open, close, pausas };
 }
 
+/*
+ * DE QUANTO EM QUANTO TEMPO COMECA UMA MARCACAO.
+ *
+ * Nao ha uma resposta certa, e por isso e uma decisao da barbearia
+ * (Definicoes -> Agenda). Ha duas maneiras de ver isto:
+ *
+ *   grelha     — as horas sao sempre as mesmas, caiam como caiam os cortes.
+ *                O Rasta quer de hora em hora: 09:00, 10:00, 11:00. Com
+ *                passo 30 fica 09:00, 09:30, 10:00 (era o que havia antes,
+ *                escrito no codigo).
+ *   encostado  — a vaga seguinte comeca onde a anterior acabou. Um corte de
+ *                45 min as 09:00 abre as 09:45, nao as 10:00. Nao sobram
+ *                buracos de 15 minutos que nao dao para nada.
+ *
+ * Nao mexer no valor por omissao: 'grelha' de 30 em 30 e o que todas as
+ * barbearias ja tinham. Quem nao for as Definicoes nao ve diferenca nenhuma.
+ */
+export const PASSOS = [10, 15, 20, 30, 45, 60];
+function agendaDaCasa(st = state) {
+  const a = st.business?.config?.agenda || {};
+  const passo = Number(a.slotMinutes);
+  return {
+    modo: a.slotMode === 'encostado' ? 'encostado' : 'grelha',
+    passo: passo > 0 ? passo : 30,
+  };
+}
+
+// A mesma leitura, para quem desenha a agenda (so recebe o business).
+export function agendaDaBarbearia(business) { return agendaDaCasa({ business }); }
+
 function generateSlotsForDay(dateStr, professionalId, durationMinutes, existingAppointments) {
   const horas = horasDoDia(dateStr, professionalId);
   if (!horas) return [];
   const { open, close, pausas } = horas;
-  const slots = [];
-  for (let t = open; t + durationMinutes <= close; t += 30) {
-    if (pausas.some(b => !(t + durationMinutes <= b.start || t >= b.end))) continue;
+  const { modo, passo } = agendaDaCasa();
+
+  const marcados = (existingAppointments || [])
+    .filter(a => a.professionalId === professionalId && a.date === dateStr && a.status !== 'cancelled')
+    .map(a => ({ start: toMinutes(a.startTime), end: toMinutes(a.endTime) }));
+
+  const inicios = [];
+  if (modo === 'encostado') {
+    // Os bocados do dia que estao mesmo livres — tudo o que nao e pausa nem
+    // marcacao. Dentro de cada um, encadeia-se pela duracao do servico.
+    const ocupado = [...pausas, ...marcados].sort((a, b) => a.start - b.start);
+    const livres = [];
+    let t = open;
+    ocupado.forEach(b => {
+      if (b.start > t) livres.push([t, Math.min(b.start, close)]);
+      t = Math.max(t, b.end);
+    });
+    if (t < close) livres.push([t, close]);
+    livres.forEach(([a, b]) => {
+      for (let x = a; x + durationMinutes <= b; x += durationMinutes) inicios.push(x);
+    });
+  } else {
+    for (let t = open; t + durationMinutes <= close; t += passo) inicios.push(t);
+  }
+
+  return inicios.map(t => {
     const start = toTime(t), end = toTime(t + durationMinutes);
-    const conflict = existingAppointments.some(a =>
-      a.professionalId === professionalId && a.date === dateStr && a.status !== 'cancelled' &&
-      !(toMinutes(a.endTime) <= t || toMinutes(a.startTime) >= t + durationMinutes)
-    );
-    slots.push({
+    const emPausa = pausas.some(b => !(t + durationMinutes <= b.start || t >= b.end));
+    const conflict = emPausa || marcados.some(a => !(a.end <= t || a.start >= t + durationMinutes));
+    return {
       id: `slot_${professionalId}_${dateStr}_${start}`, professionalId,
       date: dateStr, startTime: start, endTime: end,
       isBooked: conflict, isPast: new Date(dateStr + 'T' + start + ':00') < new Date(),
-    });
-  }
-  return slots;
+    };
+  }).filter(s => !s.isBooked || modo !== 'encostado');
 }
 
 // ─── DATA SERVICE ─────────────────────────────────────────────────────────────
@@ -1882,13 +1932,21 @@ const dataService = {
       allowClientCancel: v => v !== false,
       cancelMinHours: v => Math.max(0, Number(v) || 0),
     };
-    const mudados = Object.keys(ESPELHADOS).filter(k =>
+    // O mesmo para a agenda: de quanto em quanto tempo abrem as vagas e uma
+    // decisao do dono que o site do cliente tem de respeitar, senao ele
+    // continua a oferecer de 30 em 30.
+    const ESPELHADOS_AGENDA = {
+      slotMode: v => (v === 'encostado' ? 'encostado' : 'grelha'),
+      slotMinutes: v => Math.max(5, Math.min(240, Number(v) || 30)),
+    };
+    const mapa = section === 'agenda' ? ESPELHADOS_AGENDA : ESPELHADOS;
+    const mudados = Object.keys(mapa).filter(k =>
       Object.prototype.hasOwnProperty.call(updates, k));
-    if (section === 'params' && mudados.length) {
+    if ((section === 'params' || section === 'agenda') && mudados.length) {
       try {
         const { data: b } = await supabase.from('businesses').select('settings').eq('id', BUSINESS_ID).maybeSingle();
         const novas = { ...(b?.settings || {}) };
-        mudados.forEach(k => { novas[k] = ESPELHADOS[k](updates[k]); });
+        mudados.forEach(k => { novas[k] = mapa[k](updates[k]); });
         const { error: e2 } = await supabase.from('businesses').update({ settings: novas }).eq('id', BUSINESS_ID);
         if (e2) throw e2;
         if (state.business) state.business._settings = novas;

@@ -53,13 +53,13 @@ export default function Definicoes() {
       {section === 'agenda' && (
         <Card className="card-pad" style={{ maxWidth: 520 }}>
           <div className="grid-2">
-            <div className="field"><label className="label">Duração do slot (min)</label><input type="number" className="input" defaultValue={cfg.agenda?.slotMinutes || 30} onBlur={e => saveAgenda({ slotMinutes: Number(e.target.value) })} /></div>
             <div className="field"><label className="label">Antecedência mínima (h)</label><input type="number" className="input" defaultValue={cfg.agenda?.minAdvanceHours || 2} onBlur={e => saveAgenda({ minAdvanceHours: Number(e.target.value) })} /></div>
           </div>
           <div className="flex-col gap-8 mt-16">
             <label className="flex items-center gap-8 text-sm"><input type="checkbox" defaultChecked={cfg.agenda?.allowWaitlist !== false} onChange={e => saveAgenda({ allowWaitlist: e.target.checked })} /> Permitir lista de espera</label>
             <label className="flex items-center gap-8 text-sm"><input type="checkbox" defaultChecked={cfg.agenda?.allowFitIns !== false} onChange={e => saveAgenda({ allowFitIns: e.target.checked })} /> Permitir encaixes</label>
           </div>
+          <HorasQueAbrem cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
         </Card>
       )}
 
@@ -125,5 +125,83 @@ export default function Definicoes() {
         </Card>
       )}
     </AdminPage>
+  );
+}
+/*
+ * DE QUANTO EM QUANTO TEMPO ABREM AS HORAS.
+ *
+ * Nao ha uma resposta certa e por isso nao fica escrita no codigo. Havia um
+ * campo «Duracao do slot (min)» aqui que nao fazia nada: gravava o numero e
+ * ninguem o lia. Agora le-se — na agenda do painel e no site onde o cliente
+ * marca.
+ *
+ * Duas maneiras, porque os barbeiros pedem as duas:
+ *   · Horas certas  — 09:00, 10:00, 11:00. O Rasta quer assim.
+ *   · Encostado     — a vaga seguinte comeca onde a anterior acabou. Um
+ *                     corte de 45 min as 09:00 abre as 09:45. Nao sobram
+ *                     bocados de 15 minutos que nao dao para nada.
+ */
+const PASSOS_HORA = [
+  { v: 10, l: '10 min' }, { v: 15, l: '15 min' }, { v: 20, l: '20 min' },
+  { v: 30, l: '30 min' }, { v: 45, l: '45 min' }, { v: 60, l: '1 hora' },
+];
+
+function HorasQueAbrem({ cfg, onGuardar }) {
+  const encostado = cfg.slotMode === 'encostado';
+  const passo = Number(cfg.slotMinutes) > 0 ? Number(cfg.slotMinutes) : 30;
+  const caixa = (ativo) => ({
+    textAlign: 'left', padding: '12px 14px', borderRadius: 10, cursor: 'pointer',
+    background: ativo ? 'var(--elevated)' : 'transparent',
+    border: `1px solid ${ativo ? 'var(--gold)' : 'var(--border)'}`,
+    fontFamily: 'inherit', color: 'inherit', width: '100%',
+  });
+  return (
+    <div style={{ marginTop: 20, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+      <label className="label">De quanto em quanto tempo abrem as horas</label>
+      <p className="text-sec text-sm" style={{ marginTop: -4, marginBottom: 12 }}>
+        Vale para a agenda e para as horas que o cliente vê no site.
+      </p>
+
+      <div className="flex-col gap-8">
+        <button type="button" style={caixa(!encostado)}
+          onClick={() => onGuardar({ slotMode: 'grelha' })}>
+          <div style={{ fontWeight: 700, fontSize: 14.5 }}>Horas certas</div>
+          <div className="text-sec text-sm">
+            Sempre as mesmas horas, caiam como caírem os cortes.
+          </div>
+        </button>
+
+        {!encostado && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '2px 2px 4px 14px' }}>
+            {PASSOS_HORA.map(p => (
+              <button key={p.v} type="button" onClick={() => onGuardar({ slotMinutes: p.v })}
+                style={{ padding: '7px 13px', borderRadius: 999, cursor: 'pointer',
+                  fontFamily: 'inherit', fontSize: 13, fontWeight: passo === p.v ? 700 : 500,
+                  background: passo === p.v ? 'var(--gold)' : 'transparent',
+                  color: passo === p.v ? 'var(--on-gold, #1a1a1a)' : 'var(--text-sec)',
+                  border: `1px solid ${passo === p.v ? 'var(--gold)' : 'var(--border)'}` }}>
+                {p.l}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <button type="button" style={caixa(encostado)}
+          onClick={() => onGuardar({ slotMode: 'encostado' })}>
+          <div style={{ fontWeight: 700, fontSize: 14.5 }}>Encostado, sem buracos</div>
+          <div className="text-sec text-sm">
+            A hora seguinte começa onde a anterior acabou. Um corte de 45 min às 09:00 abre as 09:45.
+          </div>
+        </button>
+      </div>
+
+      <p className="text-sec text-sm" style={{ marginTop: 12 }}>
+        {encostado
+          ? 'O dia enche-se de ponta a ponta. Em troca, o cliente vê menos horas à escolha.'
+          : passo >= 60
+            ? 'Cada cliente ocupa uma hora inteira na agenda, mesmo que o corte demore menos.'
+            : `As horas abrem de ${passo} em ${passo} minutos.`}
+      </p>
+    </div>
   );
 }

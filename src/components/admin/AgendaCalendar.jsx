@@ -1,4 +1,4 @@
-import dataService from '@/lib/dataService';
+import dataService, { agendaDaBarbearia } from '@/lib/dataService';
 import React from 'react';
 import { useStore } from '@/hooks/useStore';
 import { todayStr } from '@/lib/format';
@@ -6,8 +6,19 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import IndicadoresCliente from '@/components/admin/IndicadoresCliente';
 
-const SLOT_H = 48;
-const STEP = 30;
+/*
+ * A grelha segue o que a barbearia escolheu em Definicoes -> Agenda. Quem
+ * marca de hora em hora ve linhas de hora em hora, e nao 48 linhas de meia
+ * hora quase todas vazias. A altura acompanha o passo para os pixels por
+ * minuto nao mudarem: um corte de 45 min ocupa sempre o mesmo espaco.
+ */
+const ALTURA_POR_30 = 48;
+function grelhaDe(business) {
+  const { modo, passo } = agendaDaBarbearia(business);
+  // No modo encostado as horas nao sao fixas; a grelha fica na meia hora.
+  const STEP = modo === 'encostado' ? 30 : Math.max(10, Math.min(120, passo));
+  return { STEP, SLOT_H: Math.round(ALTURA_POR_30 * (STEP / 30)) };
+}
 const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
@@ -45,6 +56,7 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
     );
   }
 
+  const { STEP, SLOT_H } = grelhaDe(data.business);
   const openMin = toMin(hours.open);
   const closeMin = toMin(hours.close);
   const slotCount = Math.round((closeMin - openMin) / STEP);
