@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useStore'
 import { supabase, sessaoPersistente, aplicarPreferenciaSessao } from '@/lib/supabase'
-import FundoLogin from '@/components/FundoLogin'
 import FormularioDemo, { jaPediuDemo } from '@/components/admin/FormularioDemo'
 
 const GOLD = '#C9A227'
-const GOLD_HI = '#F5D66B'
 
 /* ── Ícones ──────────────────────────────────────────────────────────────── */
 const Ico = ({ d, size = 16, stroke = 1.6, fill = 'none', ...p }) => (
@@ -43,13 +41,13 @@ function Feature({ Icon, titulo, sub }) {
   return (
     <div style={{ display:'flex', alignItems:'center', gap:16 }}>
       <div style={{ width:52, height:52, borderRadius:15, flexShrink:0, display:'grid', placeItems:'center',
-        background:'linear-gradient(160deg, rgba(201,162,39,.16), rgba(201,162,39,.05))',
-        border:'1px solid rgba(201,162,39,.20)', color:GOLD_HI }}>
+        background:'#FFF8DC',
+        border:'1px solid #E2E2E7', color:'#8A7300' }}>
         <Icon size={21}/>
       </div>
       <div>
-        <div style={{ fontSize:15, fontWeight:600, color:'#EDE8DF', marginBottom:2 }}>{titulo}</div>
-        <div style={{ fontSize:13, color:'#7E7767' }}>{sub}</div>
+        <div style={{ fontSize:15, fontWeight:600, color:'#17171B', marginBottom:2 }}>{titulo}</div>
+        <div style={{ fontSize:13, color:'#8A8A93' }}>{sub}</div>
       </div>
     </div>
   )
@@ -170,16 +168,16 @@ export default function LoginPage() {
 
   const campo = {
     width:'100%', padding:'13px 14px 13px 44px', borderRadius:11,
-    border:'1px solid rgba(201,162,39,.16)', background:'rgba(255,255,255,.035)',
-    color:'#EDE8DF', fontSize:14.5, outline:'none', boxSizing:'border-box',
+    border:'1px solid #E2E2E7', background:'#FFFFFF',
+    color:'#17171B', fontSize:14.5, outline:'none', boxSizing:'border-box',
   }
   const iconeCampo = {
     position:'absolute', left:15, top:'50%', transform:'translateY(-50%)',
-    color:'#6E6757', pointerEvents:'none', display:'flex',
+    color:'#8A8A93', pointerEvents:'none', display:'flex',
   }
 
   return (
-    <div style={{ minHeight:'100vh', position:'relative', overflow:'hidden', background:'#0A0807',
+    <div style={{ minHeight:'100vh', position:'relative', overflow:'hidden', background:'#F4F4F6',
                   display:'flex', alignItems:'center', justifyContent:'center', padding:'32px 24px' }}>
       <style>{`
         .cv-side { display:block }
@@ -191,7 +189,7 @@ export default function LoginPage() {
         .cv-entrar:hover:not(:disabled) { filter:brightness(1.07); transform:translateY(-1px) }
         .cv-olho:hover { color:#C9A227 !important }
         .cv-esqueci { background:none; border:none; padding:0; cursor:pointer; font-size:13;
-                      color:#8A8272; transition:color .18s }
+                      color:#5A5A63; transition:color .18s }
         .cv-esqueci:hover { color:#C9A227 }
         @media (max-width:1180px) {
           .cv-grid { grid-template-columns:1fr; justify-items:center; gap:0 }
@@ -204,21 +202,19 @@ export default function LoginPage() {
 
       `}</style>
 
-      <FundoLogin/>
-
       <div className="cv-grid" style={{ position:'relative', zIndex:1 }}>
 
         {/* Esquerda */}
         <div className="cv-side" style={{ animationDelay:'.12s' }}>
           <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:26 }}>
             <span style={{ width:42, height:1.5, background:GOLD }}/>
-            <span style={{ fontSize:11, letterSpacing:'.24em', color:'#8A8272', fontWeight:600 }}>PLATAFORMA DE GESTÃO</span>
+            <span style={{ fontSize:11, letterSpacing:'.24em', color:'#5A5A63', fontWeight:600 }}>PLATAFORMA DE GESTÃO</span>
           </div>
           <h1 style={{ margin:0, fontSize:'clamp(40px,4.4vw,62px)', lineHeight:1.08, fontWeight:700,
-                       color:'#F2EDE4', letterSpacing:'-.028em' }}>
-            A tua barbearia,<br/>sob <span style={{ color:GOLD_HI }}>controlo.</span>
+                       color:'#17171B', letterSpacing:'-.028em' }}>
+            A tua barbearia,<br/>sob <span style={{ color:GOLD }}>controlo.</span>
           </h1>
-          <p style={{ marginTop:24, marginBottom:0, fontSize:16.5, lineHeight:1.65, color:'#8A8272', maxWidth:400 }}>
+          <p style={{ marginTop:24, marginBottom:0, fontSize:16.5, lineHeight:1.65, color:'#5A5A63', maxWidth:400 }}>
             Agenda, clientes e serviços num só painel — sempre a par do que acontece.
           </p>
         </div>
@@ -226,16 +222,16 @@ export default function LoginPage() {
         {/* Cartão */}
         <div>
         <div style={{ position:'relative', borderRadius:23, padding:1.4,
-          background:`linear-gradient(152deg, ${GOLD_HI} 0%, rgba(201,162,39,.42) 16%, rgba(255,255,255,.06) 42%, rgba(255,255,255,.03) 100%)`,
-          boxShadow:'0 0 70px rgba(201,162,39,.12), 0 34px 80px rgba(0,0,0,.72)' }}>
+          background:'#E2E2E7',
+          boxShadow:'0 18px 50px rgba(23,23,27,.08)' }}>
           <div className="cv-cartao" style={{ borderRadius:21.6, padding:'40px 36px 32px',
-            background:'linear-gradient(168deg, #17140F 0%, #100E0B 100%)' }}>
+            background:'#FFFFFF' }}>
 
             <div style={{ textAlign:'center', marginBottom:26 }}>
               <img src="/admin-logo.png?v=2" alt="" className="marca-claro" style={{ width:62, height:62, objectFit:'contain', margin:'0 auto 14px' }}/>
               <img src="/admin-logo-escuro.png?v=2" alt="" className="marca-escuro" style={{ width:62, height:62, objectFit:'contain', margin:'0 auto 14px' }}/>
-              <div style={{ fontSize:29, fontWeight:700, color:'#F2EDE4', letterSpacing:'-.022em' }}>Convecta</div>
-              <div style={{ fontSize:14, color:'#8A8272', marginTop:4 }}>Painel de Administração</div>
+              <div style={{ fontSize:29, fontWeight:700, color:'#17171B', letterSpacing:'-.022em' }}>Convecta</div>
+              <div style={{ fontSize:14, color:'#5A5A63', marginTop:4 }}>Painel de Administração</div>
             </div>
 
             {pedirDados && (
@@ -248,15 +244,15 @@ export default function LoginPage() {
                 style={{
                   width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10,
                   padding:'13px 16px', borderRadius:11, marginBottom:12,
-                  border:`1px solid ${GOLD}55`, background:`${GOLD}14`,
-                  color:GOLD_HI, fontSize:14.5, fontWeight:700, cursor: loadingDemo ? 'wait' : 'pointer',
+                  border:`1px solid ${GOLD}55`, background:'#FFF8DC',
+                  color:GOLD, fontSize:14.5, fontWeight:700, cursor: loadingDemo ? 'wait' : 'pointer',
                   opacity: loadingDemo ? .65 : 1,
                 }}>
                 {loadingDemo ? 'A entrar…' : 'Ver demonstração  →'}
               </button>
             )}
             {demo && (
-              <div style={{ fontSize:12, color:'#8A8272', textAlign:'center', marginBottom:18 }}>
+              <div style={{ fontSize:12, color:'#5A5A63', textAlign:'center', marginBottom:18 }}>
                 Sem registo. Os dados voltam ao início de hora a hora.
               </div>
             )}
@@ -267,26 +263,26 @@ export default function LoginPage() {
               style={{
                 width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10,
                 padding:'13px 16px', borderRadius:11, marginBottom:18,
-                border:'1px solid rgba(255,255,255,.10)',
-                background:'rgba(255,255,255,.06)',
-                color:'#EDE8DF', fontSize:14.5, fontWeight:600, cursor: loadingGoogle ? 'wait' : 'pointer',
+                border:'1px solid #E2E2E7',
+                background:'#FFFFFF',
+                color:'#17171B', fontSize:14.5, fontWeight:600, cursor: loadingGoogle ? 'wait' : 'pointer',
                 opacity: loadingGoogle ? .65 : 1,
               }}>
               {loadingGoogle
-                ? <span style={{ fontSize:14, color:'#8A8272' }}>A redirecionar…</span>
+                ? <span style={{ fontSize:14, color:'#5A5A63' }}>A redirecionar…</span>
                 : <><GoogleIcon size={18}/> Entrar com Google</>
               }
             </button>
 
             <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24 }}>
-              <span style={{ flex:1, height:1, background:'rgba(201,162,39,.16)' }}/>
-              <span style={{ fontSize:12, color:'#5E584B' }}>ou com email</span>
-              <span style={{ flex:1, height:1, background:'rgba(201,162,39,.16)' }}/>
+              <span style={{ flex:1, height:1, background:'#E2E2E7' }}/>
+              <span style={{ fontSize:12, color:'#8A8A93' }}>ou com email</span>
+              <span style={{ flex:1, height:1, background:'#E2E2E7' }}/>
             </div>
 
             <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:17 }}>
               <div>
-                <label style={{ fontSize:13, color:'#B8B0A0', marginBottom:8, display:'block', fontWeight:500 }}>Email</label>
+                <label style={{ fontSize:13, color:'#5A5A63', marginBottom:8, display:'block', fontWeight:500 }}>Email</label>
                 <div style={{ position:'relative' }}>
                   <span style={iconeCampo}><IcoMail size={17}/></span>
                   <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
@@ -295,7 +291,7 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label style={{ fontSize:13, color:'#B8B0A0', marginBottom:8, display:'block', fontWeight:500 }}>Password</label>
+                <label style={{ fontSize:13, color:'#5A5A63', marginBottom:8, display:'block', fontWeight:500 }}>Password</label>
                 <div style={{ position:'relative' }}>
                   <span style={iconeCampo}><IcoLock size={17}/></span>
                   <input type={verPass ? 'text' : 'password'} required value={password}
@@ -305,7 +301,7 @@ export default function LoginPage() {
                           aria-label={verPass ? 'Ocultar password' : 'Mostrar password'}
                           style={{ position:'absolute', right:13, top:'50%', transform:'translateY(-50%)',
                                    background:'none', border:'none', padding:4, cursor:'pointer',
-                                   color:'#6E6757', display:'flex' }}>
+                                   color:'#8A8A93', display:'flex' }}>
                     {verPass ? <IcoEyeOff size={17}/> : <IcoEye size={17}/>}
                   </button>
                 </div>
@@ -315,7 +311,7 @@ export default function LoginPage() {
                 <label style={{ display:'flex', alignItems:'center', gap:9, cursor:'pointer', userSelect:'none' }}>
                   <input type="checkbox" checked={lembrar} onChange={e => setLembrar(e.target.checked)}
                          style={{ width:16, height:16, accentColor:GOLD, cursor:'pointer' }}/>
-                  <span style={{ fontSize:13, color:'#B8B0A0' }}>Manter sessão iniciada</span>
+                  <span style={{ fontSize:13, color:'#5A5A63' }}>Manter sessão iniciada</span>
                 </label>
                 <button type="button" className="cv-esqueci" onClick={() => setForgotOpen(true)}>
                   Esqueceu-se da password?
@@ -323,24 +319,24 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <div style={{ padding:'11px 13px', borderRadius:10, background:'rgba(239,68,68,.09)',
-                              border:'1px solid rgba(239,68,68,.28)', color:'#F08A8A', fontSize:13.5, lineHeight:1.45 }}>
+                <div style={{ padding:'11px 13px', borderRadius:10, background:'#FEF2F2',
+                              border:'1px solid #FECACA', color:'#B91C1C', fontSize:13.5, lineHeight:1.45 }}>
                   {error}
                 </div>
               )}
 
               <button type="submit" disabled={loading} className="cv-entrar" style={{
                 marginTop:5, padding:'14px', borderRadius:11, border:'none',
-                background:`linear-gradient(100deg, ${GOLD} 0%, ${GOLD_HI} 52%, ${GOLD} 100%)`,
+                background:GOLD,
                 color:'#100E0B', fontSize:15, fontWeight:700, letterSpacing:'.01em',
                 cursor: loading ? 'wait' : 'pointer', opacity: loading ? .65 : 1,
-                boxShadow:'0 8px 26px rgba(201,162,39,.24)',
+                boxShadow:'0 8px 26px #E2E2E7',
               }}>
                 {loading ? 'A entrar…' : 'Entrar  →'}
               </button>
             </form>
 
-            <div style={{ marginTop:24, display:'flex', alignItems:'center', justifyContent:'center', gap:7, color:'#5E584B' }}>
+            <div style={{ marginTop:24, display:'flex', alignItems:'center', justifyContent:'center', gap:7, color:'#8A8A93' }}>
               <IcoLock size={12}/>
               <span style={{ fontSize:12 }}>Ligação segura e encriptada</span>
             </div>
@@ -360,19 +356,19 @@ export default function LoginPage() {
 
       {/* Rodapés */}
       <div className="cv-rodape" style={{ position:'absolute', top:44, right:44, textAlign:'right', zIndex:2 }}>
-        <div style={{ fontSize:10.5, color:'#8A8272', letterSpacing:'.26em', lineHeight:2, fontWeight:600 }}>
+        <div style={{ fontSize:10.5, color:'#5A5A63', letterSpacing:'.26em', lineHeight:2, fontWeight:600 }}>
           A TUA AGENDA,<br/>SEMPRE<br/>À MÃO.
         </div>
         <span style={{ display:'block', width:34, height:1.5, background:GOLD, marginLeft:'auto', marginTop:14 }}/>
       </div>
       <div className="cv-rodape" style={{ position:'absolute', bottom:40, left:38, zIndex:2 }}>
         <span style={{ display:'block', width:34, height:1.5, background:GOLD, marginBottom:14 }}/>
-        <div style={{ fontSize:10.5, color:'#6E6757', letterSpacing:'.26em', lineHeight:2, fontWeight:600 }}>
+        <div style={{ fontSize:10.5, color:'#8A8A93', letterSpacing:'.26em', lineHeight:2, fontWeight:600 }}>
           AGENDA<br/>CLIENTES<br/>RESULTADOS
         </div>
       </div>
       <div className="cv-rodape" style={{ position:'absolute', bottom:40, right:44, textAlign:'right', zIndex:2 }}>
-        <div style={{ fontSize:10.5, color:'#5E584B', letterSpacing:'.26em', lineHeight:2, fontWeight:600 }}>
+        <div style={{ fontSize:10.5, color:'#8A8A93', letterSpacing:'.26em', lineHeight:2, fontWeight:600 }}>
           CONVECTA<br/>ADMIN<br/>V1.0
         </div>
       </div>
@@ -382,24 +378,24 @@ export default function LoginPage() {
         <div onClick={closeForgot} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.78)', display:'flex',
                                             alignItems:'center', justifyContent:'center', zIndex:1000, padding:24 }}>
           <div onClick={e => e.stopPropagation()} style={{ width:'100%', maxWidth:400, borderRadius:19, padding:1.2,
-            background:`linear-gradient(152deg, ${GOLD_HI} 0%, rgba(201,162,39,.34) 18%, rgba(255,255,255,.05) 46%, rgba(255,255,255,.02) 100%)`,
-            boxShadow:'0 0 60px rgba(201,162,39,.10), 0 30px 70px rgba(0,0,0,.7)' }}>
+            background:`linear-gradient(152deg, ${GOLD} 0%, rgba(201,162,39,.34) 18%, #F4F4F6 46%, #F4F4F6 100%)`,
+            boxShadow:'0 0 60px #E2E2E7, 0 30px 70px rgba(0,0,0,.7)' }}>
             <div style={{ borderRadius:18, padding:'28px 28px 24px',
-                          background:'linear-gradient(168deg, #17140F 0%, #100E0B 100%)' }}>
+                          background:'#FFFFFF' }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
-                <h2 style={{ fontSize:17, fontWeight:700, margin:0, color:'#F2EDE4' }}>Recuperar palavra-passe</h2>
+                <h2 style={{ fontSize:17, fontWeight:700, margin:0, color:'#17171B' }}>Recuperar palavra-passe</h2>
                 <button onClick={closeForgot} aria-label="Fechar"
-                        style={{ background:'none', border:'none', color:'#6E6757', cursor:'pointer', padding:4, display:'flex' }}>
+                        style={{ background:'none', border:'none', color:'#8A8A93', cursor:'pointer', padding:4, display:'flex' }}>
                   <IcoX size={18}/>
                 </button>
               </div>
 
               {!forgotSent ? (
                 <form onSubmit={sendReset}>
-                  <p style={{ fontSize:13.5, color:'#8A8272', marginTop:0, marginBottom:20, lineHeight:1.55 }}>
+                  <p style={{ fontSize:13.5, color:'#5A5A63', marginTop:0, marginBottom:20, lineHeight:1.55 }}>
                     Indica o teu email e enviamos um link para criares uma nova palavra-passe.
                   </p>
-                  <label style={{ fontSize:13, color:'#B8B0A0', marginBottom:8, display:'block', fontWeight:500 }}>Email</label>
+                  <label style={{ fontSize:13, color:'#5A5A63', marginBottom:8, display:'block', fontWeight:500 }}>Email</label>
                   <div style={{ position:'relative', marginBottom:16 }}>
                     <span style={iconeCampo}><IcoMail size={17}/></span>
                     <input type="email" required autoFocus value={forgotEmail}
@@ -407,17 +403,17 @@ export default function LoginPage() {
                            placeholder="admin@exemplo.pt" style={campo}/>
                   </div>
                   {forgotError && (
-                    <div style={{ padding:'11px 13px', borderRadius:10, background:'rgba(239,68,68,.09)',
-                                  border:'1px solid rgba(239,68,68,.28)', color:'#F08A8A', fontSize:13.5, marginBottom:16 }}>
+                    <div style={{ padding:'11px 13px', borderRadius:10, background:'#FEF2F2',
+                                  border:'1px solid #FECACA', color:'#B91C1C', fontSize:13.5, marginBottom:16 }}>
                       {forgotError}
                     </div>
                   )}
                   <button type="submit" disabled={forgotLoading} className="cv-entrar" style={{
                     width:'100%', padding:'13px', borderRadius:11, border:'none',
-                    background:`linear-gradient(100deg, ${GOLD} 0%, ${GOLD_HI} 52%, ${GOLD} 100%)`,
+                    background:GOLD,
                     color:'#100E0B', fontSize:14.5, fontWeight:700,
                     cursor: forgotLoading ? 'wait' : 'pointer', opacity: forgotLoading ? .65 : 1,
-                    boxShadow:'0 8px 26px rgba(201,162,39,.24)',
+                    boxShadow:'0 8px 26px #E2E2E7',
                   }}>
                     {forgotLoading ? 'A enviar…' : 'Enviar link de recuperação'}
                   </button>
@@ -425,18 +421,18 @@ export default function LoginPage() {
               ) : (
                 <div style={{ textAlign:'center', padding:'8px 0' }}>
                   <div style={{ width:56, height:56, borderRadius:16, margin:'0 auto 16px', display:'grid', placeItems:'center',
-                    background:'linear-gradient(160deg, rgba(201,162,39,.16), rgba(201,162,39,.05))',
-                    border:'1px solid rgba(201,162,39,.20)', color:GOLD_HI }}>
+                    background:'linear-gradient(160deg, #E2E2E7, rgba(201,162,39,.05))',
+                    border:'1px solid #E2E2E7', color:GOLD }}>
                     <IcoMail size={24}/>
                   </div>
-                  <div style={{ fontSize:15.5, fontWeight:600, marginBottom:8, color:'#F2EDE4' }}>Email enviado</div>
-                  <div style={{ fontSize:13.5, color:'#8A8272', marginBottom:22, lineHeight:1.55 }}>
-                    Verifica a caixa de entrada de <strong style={{ color:'#C4BCA9' }}>{forgotEmail}</strong> e clica no link para redefinir a palavra-passe.
+                  <div style={{ fontSize:15.5, fontWeight:600, marginBottom:8, color:'#17171B' }}>Email enviado</div>
+                  <div style={{ fontSize:13.5, color:'#5A5A63', marginBottom:22, lineHeight:1.55 }}>
+                    Verifica a caixa de entrada de <strong style={{ color:'#5A5A63' }}>{forgotEmail}</strong> e clica no link para redefinir a palavra-passe.
                   </div>
                   <button onClick={closeForgot} style={{
                     width:'100%', padding:'13px', borderRadius:11, cursor:'pointer',
-                    border:'1px solid rgba(201,162,39,.22)', background:'rgba(255,255,255,.035)',
-                    color:'#C4BCA9', fontSize:14.5, fontWeight:600,
+                    border:'1px solid #E2E2E7', background:'#FFFFFF',
+                    color:'#5A5A63', fontSize:14.5, fontWeight:600,
                   }}>
                     Fechar
                   </button>
