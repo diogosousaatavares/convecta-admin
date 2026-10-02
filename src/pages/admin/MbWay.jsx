@@ -173,12 +173,7 @@ export default function MbWay() {
       <Card className="card-pad" style={{ marginBottom: 16 }}>
         <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div>
-            <div className="fw-600 text-sm">Pagamento por MB WAY {ligado ? 'ligado' : 'desligado'}</div>
-            <div className="text-sec text-xs" style={{ marginTop: 3, lineHeight: 1.5, maxWidth: 560 }}>
-              {ligado
-                ? 'Ao marcar, o cliente pode escolher «Pagar já por MB WAY». Continua a poder pagar na barbearia.'
-                : 'Desligado, a app não fala em MB WAY. Liga depois de escreveres o número.'}
-            </div>
+            <div className="fw-600" style={{ fontSize: 16 }}>Pagamento por MB WAY {ligado ? 'ligado' : 'desligado'}</div>
           </div>
           <input type="checkbox" checked={ligado} disabled={aGravar} onChange={alternar} style={{ width: 20, height: 20 }} />
         </label>
@@ -217,12 +212,12 @@ export default function MbWay() {
         {ligado && (
           <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
             <div>
-              <div className="fw-600 text-sm">Atingi o limite do MB WAY este mês</div>
-              <div className="text-sec text-xs" style={{ marginTop: 3, lineHeight: 1.5, maxWidth: 560 }}>
-                {limiteEsteMes
-                  ? 'A app deixou de oferecer MB WAY. No dia 1 do mês que vem volta sozinha.'
-                  : `Recebido este mês por aqui: ${formatPrice(recebidoEsteMes)}. O teu banco tem um limite de recebimentos por mês — quando chegares lá, liga isto.`}
-              </div>
+              <div className="fw-600" style={{ fontSize: 16 }}>Atingi o limite do MB WAY este mês</div>
+              {!limiteEsteMes && (
+                <div className="text-sec" style={{ marginTop: 3, fontSize: 14.5 }}>
+                  Recebido este mês: {formatPrice(recebidoEsteMes)}
+                </div>
+              )}
             </div>
             <input type="checkbox" checked={limiteEsteMes} disabled={aGravar} onChange={alternarLimite} style={{ width: 20, height: 20 }} />
           </label>

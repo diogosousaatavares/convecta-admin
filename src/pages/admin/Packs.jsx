@@ -302,26 +302,19 @@ export default function Packs() {
       <Card className="card-pad" style={{ marginBottom: 16 }}>
         <label className="loyalty-toggle-row" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div>
-            <div className="fw-600 text-sm">Programa de packs {ligado ? 'ligado' : 'desligado'}</div>
-            <div className="text-sec text-xs" style={{ marginTop: 3, lineHeight: 1.5, maxWidth: 560 }}>
-              {ligado
-                ? 'O cliente com pack vê o cartão do pack na app, ao lado do cartão de fidelidade, e usa-o ao marcar. A cada corte feito, o cartão é picotado.'
-                : 'Desligado, os packs não aparecem em lado nenhum da app do cliente e a agenda não os oferece. Liga para começares a vender.'}
-            </div>
+            <div className="fw-600" style={{ fontSize: 16 }}>Programa de packs {ligado ? 'ligado' : 'desligado'}</div>
           </div>
           <input type="checkbox" checked={ligado} disabled={aMudar} onChange={alternarPrograma} style={{ width: 20, height: 20 }} />
         </label>
         {ligado && (
           <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
             <div>
-              <div className="fw-600 text-sm">Os cortes do pack dão carimbo no cartão de fidelidade</div>
-              <div className="text-sec text-xs" style={{ marginTop: 3, lineHeight: 1.5, maxWidth: 560 }}>
-                {data.business?.loyalty?.ativo !== true
-                  ? 'O cartão de fidelidade está desligado, por isso isto não conta agora.'
-                  : carimbos
-                    ? 'Cada corte do pack conta também para o cartão de fidelidade.'
-                    : 'Desligado (recomendado): o pack já é o desconto. Os dois cartões continuam na app, mas só os cortes pagos à parte levam carimbo.'}
-              </div>
+              <div className="fw-600" style={{ fontSize: 16 }}>Carimbo de fidelidade nos cortes do pack</div>
+              {data.business?.loyalty?.ativo !== true && (
+                <div className="text-sec" style={{ marginTop: 3, fontSize: 14.5 }}>
+                  O cartão de fidelidade está desligado.
+                </div>
+              )}
             </div>
             <input type="checkbox" checked={carimbos} disabled={aMudar} onChange={alternarCarimbos} style={{ width: 20, height: 20 }} />
           </label>

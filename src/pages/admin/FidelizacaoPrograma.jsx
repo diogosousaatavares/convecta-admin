@@ -71,8 +71,7 @@ export default function FidelizacaoPrograma() {
         <Card className="card-pad" style={{ flex: '1 1 320px', maxWidth: 460 }}>
           <label className="loyalty-toggle-row" style={{ cursor: 'pointer' }}>
             <div>
-              <div className="fw-600 text-sm">Cartão ativo</div>
-              <div className="text-sec text-xs">Ligado: aparece ao cliente, o balcão carimba ao cobrar, o corte grátis pode ser usado. Desligado: nada disto acontece.</div>
+              <div className="fw-600" style={{ fontSize: 16 }}>Cartão de fidelidade ativo</div>
             </div>
             <input type="checkbox" checked={ativo} onChange={e => setAtivo(e.target.checked)} />
           </label>

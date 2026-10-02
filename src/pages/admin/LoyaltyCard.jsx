@@ -64,7 +64,7 @@ export default function LoyaltyCard() {
       <div className="grid-2 loyalty-card-editor">
         <Card className="card-pad">
           <h3 style={{ fontSize: 18, marginBottom: 20 }}>Configuração</h3>
-          <div className="loyalty-toggle-row"><div><div className="fw-600 text-sm">Cartão ativo</div><div className="text-sec text-xs">Mostra o cartão na área do cliente.</div></div><input type="checkbox" checked={config.enabled} onChange={event => update('enabled', event.target.checked)} /></div>
+          <div className="loyalty-toggle-row"><div><div className="fw-600" style={{ fontSize: 16 }}>Cartão ativo</div></div><input type="checkbox" checked={config.enabled} onChange={event => update('enabled', event.target.checked)} /></div>
           <div className="field"><label className="label">Título do cartão</label><input className="input" value={config.title} onChange={event => update('title', event.target.value)} /></div>
           <div className="field"><label className="label">Nº de carimbos para recompensa</label><input className="input" type="number" min="3" max="20" value={config.totalStamps} onChange={event => update('totalStamps', event.target.value)} /></div>
           <div className="field"><label className="label">Descrição da recompensa</label><input className="input" value={config.reward} onChange={event => update('reward', event.target.value)} /></div>
