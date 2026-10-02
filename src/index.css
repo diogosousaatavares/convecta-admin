@@ -420,7 +420,11 @@ input, textarea, select { font-family: inherit; }
 .support-contact:hover { border-color: var(--gold); }
 .support-contact span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .support-contact small { color: var(--text-sec); font-size: 13px; overflow-wrap: anywhere; }
-.admin-content { flex: 1; min-width: 0; width: 100%; margin-left: 240px; padding: 0 32px 40px; display: flex; flex-direction: column; transition: margin-left 360ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* --pad-lado: a margem lateral do conteudo. Tem nome porque ha coisas que
+   precisam de sair dela para tocar nas duas bordas (a faixa do link). Era
+   isso que estava escrito a mao em tres sitios, com tres numeros diferentes
+   — e por isso a faixa acabava antes da borda e o ecra deslizava de lado. */
+.admin-content { --pad-lado: 32px; flex: 1; min-width: 0; width: 100%; margin-left: 240px; padding: 0 var(--pad-lado) 40px; display: flex; flex-direction: column; transition: margin-left 360ms cubic-bezier(0.22, 1, 0.36, 1); }
 .admin-topbar { display: flex; align-items: center; gap: 12px; padding: 14px 0 20px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
 .admin-search-wrap { position: relative; flex: 1 1 520px; max-width: 520px; min-width: 240px; }
 .admin-search-input { width: 100%; height: 40px; padding: 0 12px 0 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 15px; outline: none; }
@@ -452,7 +456,7 @@ input, textarea, select { font-family: inherit; }
   .admin-sidebar.open { transform: translateX(0); }
   .admin-sidebar.collapsed { width: 260px; }
   .sidebar-collapsed .admin-content,
-  .admin-content { margin-left: 0 !important; padding: 0 16px 20px; }
+  .admin-content { --pad-lado: 16px; margin-left: 0 !important; padding: 0 var(--pad-lado) 20px; }
 }
 
 /* Admin Topbar */
@@ -470,7 +474,13 @@ input, textarea, select { font-family: inherit; }
  */
 .link-faixa {
   display: flex; align-items: center; gap: 10px;
-  margin: -14px -32px 22px; padding: 9px 24px;
+  box-sizing: border-box;
+  /* De borda a borda, seja qual for a margem do conteudo. Sai pelos dois
+     lados exactamente o que o conteudo tem de margem — nem mais, senao o
+     ecra desliza de lado, nem menos, senao sobra branco na direita. */
+  margin: -14px calc(var(--pad-lado) * -1) 22px;
+  width: calc(100% + var(--pad-lado) * 2);
+  padding: 9px var(--pad-lado);
   background: rgba(var(--gold-rgb), 0.08);
   border-bottom: 1px solid var(--border);
 }
@@ -497,7 +507,7 @@ input, textarea, select { font-family: inherit; }
 }
 .link-faixa-ico:hover { color: var(--text); border-color: var(--text-ter); }
 @media (max-width: 767px) {
-  .link-faixa { margin: -14px -16px 18px; padding: 9px 14px; gap: 8px; }
+  .link-faixa { margin: -14px calc(var(--pad-lado) * -1) 18px; padding: 9px var(--pad-lado); gap: 8px; }
   .link-faixa-rotulo { display: none; }
   .link-faixa-btn span { display: none; }
   .link-faixa-btn { padding: 8px 11px; }
