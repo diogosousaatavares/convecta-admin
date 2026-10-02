@@ -39,6 +39,13 @@ export default function DemoPersonalizacao() {
       try {
         document.documentElement.style.background = 'transparent';
         document.body.style.background = 'transparent';
+        // Sem isto apareciam as duas barras de deslocacao da moldura — uma
+        // ao lado do telemovel e outra por baixo. Aqui dentro nao ha nada
+        // para percorrer: o que se percorre e o site DENTRO do telemovel,
+        // que tem a sua propria area.
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        document.body.style.margin = '0';
       } catch (e) {}
     }
 

@@ -103,13 +103,23 @@ function LinhaCor({campo,valor,onChange}){
   )
 }
 
-function Interruptor({ligado,onChange}){
+/*
+ * `claro` e para quando este interruptor aparece em fundo claro — no site da
+ * Convecta. Desligado, o fundo era branco a 12% e o botao um castanho
+ * escuro: em fundo escuro le-se, em fundo claro desaparecia quase todo, e um
+ * interruptor que nao se ve nao e um convite a mexer.
+ */
+function Interruptor({ligado,onChange,claro=false}){
   return(
     <button onClick={()=>onChange(!ligado)} role="switch" aria-checked={ligado}
-      style={{width:40,height:23,borderRadius:12,border:'none',cursor:'pointer',flexShrink:0,padding:0,
-        background:ligado?Y:'rgba(255,255,255,.12)',position:'relative',transition:'background .18s'}}>
-      <span style={{position:'absolute',top:3,left:ligado?20:3,width:17,height:17,borderRadius:'50%',
-        background:ligado?TY:'#6E6757',transition:'left .18s'}}/>
+      style={{width:40,height:23,borderRadius:12,cursor:'pointer',flexShrink:0,padding:0,
+        border:claro&&!ligado?'1px solid rgba(0,0,0,.18)':'none',boxSizing:'border-box',
+        background:ligado?Y:(claro?'rgba(0,0,0,.10)':'rgba(255,255,255,.12)'),
+        position:'relative',transition:'background .18s'}}>
+      <span style={{position:'absolute',top:claro&&!ligado?2:3,left:ligado?20:3,width:17,height:17,
+        borderRadius:'50%',transition:'left .18s',
+        background:ligado?TY:(claro?'#fff':'#6E6757'),
+        boxShadow:claro&&!ligado?'0 1px 3px rgba(0,0,0,.3)':'none'}}/>
     </button>
   )
 }
@@ -817,6 +827,16 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
 
   if(carregando)return<div style={{display:'flex',justifyContent:'center',padding:70}}><Spin size={30}/></div>
 
+  /*
+   * As cores do painel sao para fundo escuro (T e quase branco). Dentro do
+   * site da Convecta, que e claro, o "Site de demonstracao" ficava branco
+   * sobre branco — lia-se mal ou nao se lia. Com soPrevia usa-se a tinta do
+   * site: #17171B no titulo, #5A5A63 no resto. Sao os mesmos valores do
+   * --cv-ink e --cv-ink-2 de convecta.pt, para nao haver dois pretos.
+   */
+  const tintaForte=soPrevia?'#17171B':T
+  const tintaFraca=soPrevia?'#5A5A63':T2
+
   /* A pre-visualizacao e o site verdadeiro. No computador vive ao lado,
      fixa; no telemovel fica por baixo do formulario. Tocar num elemento abre
      a cor dele por cima do telemovel. Com soPrevia e a pagina toda. */
@@ -824,12 +844,13 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
       <div style={soPrevia?{width:'100%'}
         :telemovel?(demo?{order:-1,marginBottom:4}:{marginTop:26}):{position:'sticky',top:20}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
-          <div style={{fontSize:15,color:T,fontWeight:700}}>
+          <div style={{fontSize:soPrevia?16:15,color:tintaForte,fontWeight:700}}>
             {demo?'Site de demonstração':(alterado?'Por guardar':'O teu site')}
           </div>
-          <label style={{display:'flex',alignItems:'center',gap:8,fontSize:14,color:T2,cursor:'pointer'}}>
+          <label style={{display:'flex',alignItems:'center',gap:8,fontSize:soPrevia?16:14,
+            color:tintaForte,fontWeight:soPrevia?600:400,cursor:'pointer'}}>
             Tocar para mudar
-            <Interruptor ligado={tocarParaMudar} onChange={v=>{setTocarParaMudar(v);if(!v)setAlvoEdicao(null)}}/>
+            <Interruptor claro={soPrevia} ligado={tocarParaMudar} onChange={v=>{setTocarParaMudar(v);if(!v)setAlvoEdicao(null)}}/>
           </label>
         </div>
         <div data-tour="site-previa" style={{display:'flex',justifyContent:'center',position:'relative'}}>
@@ -848,7 +869,7 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
             </div>
           )}
         </div>
-        <div style={{fontSize:14,color:T2,marginTop:12,lineHeight:1.5,textAlign:'center'}}>
+        <div style={{fontSize:soPrevia?15:14,color:tintaFraca,marginTop:12,lineHeight:1.5,textAlign:'center'}}>
           {tocarParaMudar?'Toca numa parte do site para mudar a cor.':'Estás a ver o site como um cliente.'}
         </div>
       </div>
