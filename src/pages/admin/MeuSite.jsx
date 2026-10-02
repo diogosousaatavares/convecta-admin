@@ -626,7 +626,11 @@ function paraDataUrl(file){
   return new Promise((ok,falha)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>falha(new Error('Não foi possível ler a imagem.'));r.readAsDataURL(file)})
 }
 
-export function DesignTab({biz,onGuardado,demo=false}){
+// `soPrevia` serve o site da Convecta: mostra so o telemovel com a app
+// aberta e, por cima dele, o interruptor de mudar o design. Sem a coluna
+// do editor. Quem visita convecta.pt nao quer um editor — quer ver a app
+// da barbearia e perceber, em dois segundos, que a pode pintar.
+export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
   // Esta pagina nasceu no super admin, que se usa num computador. Aqui e o
   // barbeiro que a abre, e o barbeiro tem o telemovel na mao.
   const telemovel=useIsMobile()
@@ -812,6 +816,45 @@ export function DesignTab({biz,onGuardado,demo=false}){
   }
 
   if(carregando)return<div style={{display:'flex',justifyContent:'center',padding:70}}><Spin size={30}/></div>
+
+  /* A pre-visualizacao e o site verdadeiro. No computador vive ao lado,
+     fixa; no telemovel fica por baixo do formulario. Tocar num elemento abre
+     a cor dele por cima do telemovel. Com soPrevia e a pagina toda. */
+  const blocoPrevia=(
+      <div style={soPrevia?{width:'100%'}
+        :telemovel?(demo?{order:-1,marginBottom:4}:{marginTop:26}):{position:'sticky',top:20}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
+          <div style={{fontSize:15,color:T,fontWeight:700}}>
+            {demo?'Site de demonstração':(alterado?'Por guardar':'O teu site')}
+          </div>
+          <label style={{display:'flex',alignItems:'center',gap:8,fontSize:14,color:T2,cursor:'pointer'}}>
+            Tocar para mudar
+            <Interruptor ligado={tocarParaMudar} onChange={v=>{setTocarParaMudar(v);if(!v)setAlvoEdicao(null)}}/>
+          </label>
+        </div>
+        <div data-tour="site-previa" style={{display:'flex',justifyContent:'center',position:'relative'}}>
+          <Telemovel largura={telemovel?larguraPrevia:292}>
+            <PreviaReal endereco={endereco} tema={tema} info={info} logoUrl={logoUrl}
+              editar={tocarParaMudar} onEditar={setAlvoEdicao}/>
+          </Telemovel>
+          {/* As cores abrem por cima do telemovel, onde o barbeiro esta a olhar. */}
+          {alvoEdicao&&(
+            <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',bottom:8,
+              width:telemovel?'min(100%, 380px)':340,maxHeight:'70%',display:'flex',zIndex:5}}>
+              <div style={{width:'100%'}}>
+                <EditorDePeca peca={alvoEdicao} tema={tema} onMudar={mudarPeca}
+                  onRepor={reporPeca} onFechar={()=>setAlvoEdicao(null)}/>
+              </div>
+            </div>
+          )}
+        </div>
+        <div style={{fontSize:14,color:T2,marginTop:12,lineHeight:1.5,textAlign:'center'}}>
+          {tocarParaMudar?'Toca numa parte do site para mudar a cor.':'Estás a ver o site como um cliente.'}
+        </div>
+      </div>
+  )
+
+  if(soPrevia)return blocoPrevia
 
   return(
     // No computador: os controlos a esquerda, o telemovel fixo a direita.
@@ -1126,39 +1169,7 @@ export function DesignTab({biz,onGuardado,demo=false}){
 
       </div>
 
-      {/* A pre-visualizacao e o site verdadeiro. No computador vive ao lado,
-          fixa; no telemovel fica por baixo do formulario. Tocar num elemento
-          abre a cor dele por cima do telemovel. */}
-      <div style={telemovel?(demo?{order:-1,marginBottom:4}:{marginTop:26}):{position:'sticky',top:20}}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
-          <div style={{fontSize:15,color:T,fontWeight:700}}>
-            {demo?'Site de demonstração':(alterado?'Por guardar':'O teu site')}
-          </div>
-          <label style={{display:'flex',alignItems:'center',gap:8,fontSize:14,color:T2,cursor:'pointer'}}>
-            Tocar para mudar
-            <Interruptor ligado={tocarParaMudar} onChange={v=>{setTocarParaMudar(v);if(!v)setAlvoEdicao(null)}}/>
-          </label>
-        </div>
-        <div data-tour="site-previa" style={{display:'flex',justifyContent:'center',position:'relative'}}>
-          <Telemovel largura={telemovel?larguraPrevia:292}>
-            <PreviaReal endereco={endereco} tema={tema} info={info} logoUrl={logoUrl}
-              editar={tocarParaMudar} onEditar={setAlvoEdicao}/>
-          </Telemovel>
-          {/* As cores abrem por cima do telemovel, onde o barbeiro esta a olhar. */}
-          {alvoEdicao&&(
-            <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',bottom:8,
-              width:telemovel?'min(100%, 380px)':340,maxHeight:'70%',display:'flex',zIndex:5}}>
-              <div style={{width:'100%'}}>
-                <EditorDePeca peca={alvoEdicao} tema={tema} onMudar={mudarPeca}
-                  onRepor={reporPeca} onFechar={()=>setAlvoEdicao(null)}/>
-              </div>
-            </div>
-          )}
-        </div>
-        <div style={{fontSize:14,color:T2,marginTop:12,lineHeight:1.5,textAlign:'center'}}>
-          {tocarParaMudar?'Toca numa parte do site para mudar a cor.':'Estás a ver o site como um cliente.'}
-        </div>
-      </div>
+      {blocoPrevia}
     </div>
   )
 }
