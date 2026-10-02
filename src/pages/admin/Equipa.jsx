@@ -131,8 +131,8 @@ export default function Equipa() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <Crown size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 200 }}>
-            <div className="fw-600">Tu, o dono, também cortas?</div>
-            <div className="text-sec text-sm">{minhaFicha ? `Estás ligado à ficha «${minhaFicha.name}».` : 'Liga-te a uma ficha para teres coluna na agenda.'}</div>
+            <div className="fw-600" style={{ fontSize: 16 }}>Tu, o dono, também cortas?</div>
+            {minhaFicha && <div className="text-sec text-sm">Ligado à ficha «{minhaFicha.name}».</div>}
           </div>
           {minhaFicha ? (
             <Button variant="ghost" size="sm" disabled={aLigar} onClick={() => ligarDono(null)}>Desligar</Button>
@@ -185,12 +185,12 @@ export default function Equipa() {
         ) : (
           <Distribuicao dono={dono} pros={pros} acessos={acessos} selecionado={selecionado} onSelecionar={setSelecionado} meuProfissionalId={meuProfissionalId} />
         )}
-        <div className="text-sec text-sm" style={{ marginTop: 8 }}>Toca num profissional para dar ou tirar o acesso.</div>
+
         {pro && (
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Avatar name={pro.name} src={pro.photoUrl} />
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
                 <div className="fw-600">{pro.name}</div>
                 <div className="text-sec text-sm">{pro.role || 'Profissional'}{pro.email ? ` · ${pro.email}` : ' · sem email na ficha'}</div>
               </div>

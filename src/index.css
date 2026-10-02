@@ -2549,3 +2549,35 @@ html:not(.theme-light) .marca-escuro { display: block !important; }
      aparecer uma faixa branca quando se estica. */
   body { background: var(--bg); }
 }
+
+
+/* ============================================================
+   NO TELEMOVEL, A PAGINA NUNCA DESLIZA DE LADO
+   ------------------------------------------------------------
+   Um email comprido, uma referencia, um nome sem espacos: basta um para a
+   pagina ficar mais larga do que o ecra. A partir dai tudo parece cortado,
+   e o barbeiro culpa a app — com razao, porque numa app isso nao acontece.
+
+   Duas regras, e a ordem importa:
+     1. o texto parte-se onde for preciso, mesmo a meio de uma palavra. E a
+        correccao verdadeira: o conteudo passa a caber.
+     2. o conteudo e cortado em vez de deslizar. E a rede por baixo, para
+        quando aparecer um caso que a primeira nao apanha.
+
+   `clip` e nao `hidden`: o `hidden` faria a barra de cima deixar de ficar
+   colada ao topo.
+
+   As filas que deslizam de proposito — filtros, separadores — tem a sua
+   propria barra interna e nao sao afectadas.
+   ============================================================ */
+@media (max-width: 767px) {
+  .admin-content { overflow-x: clip; }
+  .admin-content :where(p, span, div, a, td, th, li, dd, h1, h2, h3, h4) {
+    overflow-wrap: anywhere;
+  }
+  /* Excepcao: o que e para ler de relance nao se parte a meio — numeros,
+     horas, precos e etiquetas de estado. */
+  .admin-content :where(.kpi .value, .ag-b-time, .badge, .chip, .fam-tab, .bp-tab, .link-faixa-endereco) {
+    overflow-wrap: normal;
+  }
+}
