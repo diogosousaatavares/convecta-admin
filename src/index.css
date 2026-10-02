@@ -926,6 +926,36 @@ a:focus:not(:focus-visible) { outline: none; }
   margin-left: -4px;
 }
 .chip-row::-webkit-scrollbar { display: none; }
+
+/*
+ * AS FILAS DE BOTOES DO PAINEL, TODAS IGUAIS.
+ *
+ * Os filtros das Marcacoes, os separadores de familia (Definicoes,
+ * Relatorios, Comandas) e os do Financeiro eram tres comportamentos
+ * diferentes: um deslizava, outro mudava de linha, outro era uma grelha de
+ * quatro colunas. Ao telemovel isso dava duas e tres linhas de botoes antes
+ * de se ver o conteudo da pagina.
+ *
+ * Passam a ser a mesma coisa: uma linha que se arrasta com o dedo.
+ */
+.chip-row, .fam-tabs, .bp-tabs, .sa-tira {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.chip-row::-webkit-scrollbar,
+.fam-tabs::-webkit-scrollbar,
+.bp-tabs::-webkit-scrollbar,
+.sa-tira::-webkit-scrollbar { display: none; }
+.fam-tabs > *, .bp-tabs > *, .sa-tira > * { flex: 0 0 auto; }
+
+/* O esbatimento na ponta so vai onde nao ha moldura por baixo: a fila do
+   MeuSite tem fundo e contorno proprios, e ali o esbatimento comia-os. */
+.fam-tabs, .bp-tabs {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+}
 /* Uma fila que desliza e que acaba a direito na borda parece partida. O
    esbatimento na ponta diz, sem uma palavra, que ha mais para o lado — e
    desaparece quando se chega ao fim. */
@@ -1261,10 +1291,14 @@ html.theme-light .svc-price-label { opacity: 0.7; }
 .bp-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 20px; -webkit-overflow-scrolling: touch; }
 
 /* Os separadores de uma familia de paginas.
-   Nao reaproveitam o .bp-tabs de proposito: aquele desliza para o lado, e as
-   Definicoes tem ONZE seccoes — numa linha que desliza, a ultima fica
-   escondida na margem e ninguem sabe que existe. Aqui mudam de linha. */
-.fam-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; max-width: 100%; }
+   Mudavam de linha, e o argumento era este: as Definicoes tinham ONZE
+   seccoes, e numa linha que desliza a ultima fica escondida na margem.
+   Duas coisas mudaram desde entao — as seccoes que nao funcionavam sairam
+   (sao cinco), e as filas que deslizam passaram a ter o esbatimento na
+   ponta, que e exactamente o sinal de que ha mais para o lado.
+   Agora e uma linha so, como a das Marcacoes: duas e tres linhas de botoes
+   no topo de cada pagina eram meio ecra gasto antes de se ver o conteudo. */
+.fam-tabs { display: flex; gap: 6px; margin-bottom: 20px; max-width: 100%; }
 .fam-tab {
   flex-shrink: 0; padding: 7px 13px; border-radius: var(--radius-pill);
   background: transparent; border: 1px solid var(--border); color: var(--text-sec);

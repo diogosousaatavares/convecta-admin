@@ -843,14 +843,15 @@ export function DesignTab({biz,onGuardado,demo=false}){
         </Card>
         )}
 
-        {/* Sete separadores lado a lado num telemovel davam 45px cada: os
-            nomes partiam-se ao meio. Em duas linhas de quatro leem-se. */}
-        <div className="sa-tira" data-tour="site-separadores" style={telemovel
-          ?{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',gap:4,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}
-          :{display:'flex',gap:3,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}}>
+        {/* Eram sete separadores em duas linhas de quatro ao telemovel, porque
+            lado a lado davam 45px cada e os nomes partiam-se. Agora e uma
+            linha que se arrasta com o dedo, como as outras filas do painel:
+            os nomes cabem inteiros e nao se gastam duas linhas de ecra. */}
+        <div className="sa-tira" data-tour="site-separadores"
+          style={{display:'flex',gap:3,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}}>
           {PAINEIS.filter(pn=>!(demo&&pn.id==='galeria')).map(pn=>(
             <button key={pn.id} onClick={()=>setPainel(pn.id)}
-              style={{flex:telemovel?undefined:1,padding:telemovel?'10px 4px':'9px 6px',
+              style={{flex:telemovel?'0 0 auto':1,padding:telemovel?'10px 14px':'9px 6px',
                 borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',
                 fontSize:14,fontWeight:painel===pn.id?700:600,
                 background:painel===pn.id?`linear-gradient(100deg,${YD}33,${Y}18)`:'transparent',
