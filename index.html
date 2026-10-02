@@ -39,6 +39,71 @@
     </script>
   </head>
   <body>
+        <!--
+      Ecra de abertura. Fica aqui, em HTML e CSS puros, e nao num componente
+      React: assim pinta no primeiro frame, antes de o bundle existir. Se
+      fosse um componente, via-se primeiro um ecra branco e so depois a
+      animacao, que e o contrario do que se quer.
+
+      A sequencia: o simbolo e desenhado a traco (preto primeiro, amarelo
+      150ms depois), o traco transforma-se em cheio, o conjunto da um salto
+      curto, e no fim o amarelo inunda o ecra e desvanece para dentro da app.
+
+      O `--s` encurta ou alonga tudo de uma vez (1 = o tempo de referencia).
+      O `data-fim` diz ao script quando pode tirar isto do caminho.
+    -->
+    <div id="cv-abertura" aria-hidden="true" data-fim="2850">
+      <svg class="cv-logo" viewBox="355 840 470 382" aria-hidden="true" focusable="false">
+        <g class="cv-g">
+          <path class="cv-b" pathLength="1" d="M478 962 L594 962 C613 962 629 977 629 996 C629 1015 613 1031 594 1031 L565 1031 C537 1031 512 1054 512 1082 C512 1110 535 1133 563 1133 L658 1133 C665 1133 669 1140 666 1146 C648 1185 613 1212 577 1212 L470 1212 C412 1212 365 1160 365 1100 L365 1075 C365 1013 418 962 478 962 Z"></path>
+          <path class="cv-y" pathLength="1" d="M512 932 C522 885 560 852 602 852 L708 852 C770 852 815 900 815 965 L815 1012 C815 1070 770 1116 715 1116 L598 1116 C580 1116 564 1101 564 1083 C564 1065 580 1050 598 1050 L636 1050 C665 1050 688 1026 688 997 C688 968 665 944 636 944 L518 944 C512 944 510 938 512 932 Z"></path>
+        </g>
+        <circle class="cv-flood" cx="690" cy="985" r="40"></circle>
+      </svg>
+    </div>
+    <style>
+      #cv-abertura{--s:1;position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;
+        overflow:hidden;background:#fff;
+        animation:cv-fim calc(var(--s)*300ms) ease calc(var(--s)*2440ms) forwards}
+      @keyframes cv-fim{to{opacity:0;pointer-events:none}}
+      /* O limite de 300px existe porque 46% de um ecra de portatil dava um
+         logotipo de 800px, o que nao e uma abertura, e um cartaz. */
+      .cv-logo{width:min(46%,300px);height:auto;overflow:visible}
+      .cv-logo .cv-g,.cv-logo .cv-flood{transform-box:fill-box;transform-origin:center}
+      .cv-logo .cv-b,.cv-logo .cv-y{stroke-width:7;stroke-linejoin:round;
+        stroke-dasharray:1;stroke-dashoffset:1;fill-opacity:0;
+        animation:cv-draw calc(var(--s)*900ms) cubic-bezier(.65,0,.35,1) both,
+                  cv-fill calc(var(--s)*320ms) ease-out calc(var(--s)*820ms) forwards}
+      .cv-logo .cv-b{stroke:#0b0b0b;fill:#0b0b0b}
+      .cv-logo .cv-y{stroke:#ffe45f;fill:#ffe45f;
+        animation-delay:calc(var(--s)*150ms),calc(var(--s)*950ms)}
+      .cv-logo .cv-g{animation:cv-pop calc(var(--s)*420ms) cubic-bezier(.3,1.6,.5,1) calc(var(--s)*1200ms) both}
+      /* 90 e o que faz a mancha chegar aos cantos de um ecra grande: o raio
+         fica em ~2000px mesmo com o logotipo no tamanho maximo. */
+      .cv-logo .cv-flood{fill:#ffe45f;transform:scale(0);
+        animation:cv-flood calc(var(--s)*600ms) cubic-bezier(.7,0,.3,1) calc(var(--s)*1800ms) forwards}
+      @keyframes cv-draw{to{stroke-dashoffset:0}}
+      @keyframes cv-fill{to{fill-opacity:1;stroke-width:0}}
+      @keyframes cv-pop{0%{transform:scale(1) rotate(0)}45%{transform:scale(1.08) rotate(-4deg)}100%{transform:scale(1) rotate(0)}}
+      @keyframes cv-flood{to{transform:scale(90)}}
+      @media (prefers-reduced-motion:reduce){
+        #cv-abertura{animation-delay:calc(var(--s)*700ms)}
+        .cv-logo .cv-b,.cv-logo .cv-y{animation:none;stroke-dashoffset:0;fill-opacity:1;stroke-width:0}
+        .cv-logo .cv-g,.cv-logo .cv-flood{animation:none}}
+    </style>
+    <script>
+      (function () {
+        var e = document.getElementById('cv-abertura');
+        if (!e) return;
+        var s = parseFloat(getComputedStyle(e).getPropertyValue('--s')) || 1;
+        setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); },
+                   (parseInt(e.dataset.fim, 10) || 2850) * s);
+      })();
+    </script>
+    <style>
+      html:not(.theme-light) #cv-abertura{background:#17171B}
+      html:not(.theme-light) .cv-logo .cv-b{stroke:#fff;fill:#fff}
+    </style>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
