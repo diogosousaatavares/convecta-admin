@@ -522,9 +522,9 @@ export default function AdminLayout({ children }) {
                 packs, avaliações, Convecta) — o mesmo que chega por push. */}
             <BotaoModo />
             <SinoAvisos businessId={data.business?.id} porConfirmar={porConfirmar} />
-            <div className="admin-topbar-user">
-              <div className="admin-topbar-avatar">{(user?.name || user?.email || 'A').charAt(0).toUpperCase()}</div>
-            </div>
+            {/* A bola com a inicial saiu a 02/10/2026. Nao se clicava nela,
+                nao abria nada, e so havia uma conta a sessao: dizia a quem
+                estava ligado a uma pessoa que ja sabia. */}
             <button className="btn btn-ghost btn-icon" onClick={handleLogout} title="Terminar sessão" aria-label="Terminar sessão">
               <LogOut size={16} />
             </button>

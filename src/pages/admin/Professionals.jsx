@@ -95,7 +95,38 @@ export default function Professionals() {
     close();
   };
 
-  const remove = async () => { await dataService.deleteProfessional(deleteTarget.id); toast.success('Eliminado'); setDeleteTarget(null); };
+  /*
+   * Quantas marcacoes tem a ficha. Nao e informacao de enfeite: se tiver
+   * alguma, a base de dados nao a deixa apagar (a marcacao aponta para ela), e
+   * ainda que deixasse nao se devia — era apagar o historico da casa. Por isso
+   * nem se oferece o botao: oferece-se desativar, que e o que ele quer mesmo
+   * quando diz «este ja nao trabalha aqui».
+   */
+  const marcacoesDe = (id) => (data.appointments || []).filter(a => a.professionalId === id).length;
+
+  const remove = async () => {
+    try {
+      await dataService.deleteProfessional(deleteTarget.id);
+      toast.success('Eliminado');
+      setDeleteTarget(null);
+    } catch (err) {
+      // Sem este catch, a promessa rebentava sozinha: a janela ficava aberta,
+      // nao aparecia aviso nenhum, e ninguem sabia porque e que nao dava.
+      toast.error('Não foi possível eliminar', err.message);
+    }
+  };
+
+  const mudarEstado = async (p, ativo) => {
+    try {
+      await dataService.updateProfessional(p.id, { isActive: ativo });
+      toast.success(ativo ? 'Reativado' : 'Desativado',
+        ativo ? `${p.name} volta a aparecer na agenda e nas marcações.`
+              : `${p.name} deixa de aparecer na agenda e nas marcações. O histórico fica.`);
+      setDeleteTarget(null);
+    } catch (err) {
+      toast.error(ativo ? 'Não foi possível reativar' : 'Não foi possível desativar', err.message);
+    }
+  };
 
   return (
     <AdminLayout>
@@ -160,11 +191,13 @@ export default function Professionals() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
                     <div className="text-sec text-xs" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {p.role}{av.total > 0 ? ` · ${av.media.toFixed(1)} ★ (${av.total})` : ''}
+                      {p.isActive === false ? 'Inativo · ' : ''}{p.role}{av.total > 0 ? ` · ${av.media.toFixed(1)} ★ (${av.total})` : ''}
                     </div>
                   </div>
                   <Button size="sm" variant="ghost" aria-label={`Editar ${p.name}`} title="Editar ficha" onClick={() => openEdit(p)}><Pencil size={15} /></Button>
-                  <Button size="sm" variant="ghost" aria-label={`Eliminar ${p.name}`} title="Eliminar" onClick={() => setDeleteTarget(p)}><Trash2 size={15} /></Button>
+                  {p.isActive === false
+                    ? <Button size="sm" variant="ghost" onClick={() => mudarEstado(p, true)}>Reativar</Button>
+                    : <Button size="sm" variant="ghost" aria-label={`Eliminar ${p.name}`} title="Eliminar" onClick={() => setDeleteTarget(p)}><Trash2 size={15} /></Button>}
                 </div>
 
                 {/* O acesso nao se gere aqui: mostra-se como esta e leva-se a
@@ -217,7 +250,9 @@ export default function Professionals() {
               <AcessoProfissional profissional={p} acesso={acessos.de(p.id)} onMudou={acessos.recarregar} destaque />
               <div className="flex gap-8 mt-16">
                   <Button size="sm" variant="secondary" block onClick={() => openEdit(p)}><Pencil size={14} /> Editar</Button>
-                  <Button size="sm" variant="ghost" aria-label="Eliminar profissional" title="Eliminar profissional" onClick={() => setDeleteTarget(p)}><Trash2 size={14} /></Button>
+                  {p.isActive === false
+                    ? <Button size="sm" variant="ghost" onClick={() => mudarEstado(p, true)}>Reativar</Button>
+                    : <Button size="sm" variant="ghost" aria-label="Eliminar profissional" title="Eliminar profissional" onClick={() => setDeleteTarget(p)}><Trash2 size={14} /></Button>}
               </div>
             </Card>
           ))}
@@ -253,9 +288,33 @@ export default function Professionals() {
         )}
       </Modal>
 
-      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Eliminar profissional"
-        footer={<><Button variant="ghost" onClick={() => setDeleteTarget(null)}>Cancelar</Button><Button variant="danger" onClick={remove}>Eliminar</Button></>}>
-        <p className="text-sec">Eliminar <span className="text-gold fw-600">{deleteTarget?.name}</span>?</p>
+      {/* Duas janelas numa. Com marcacoes no historico, «Eliminar» nao e uma
+          opcao — nem da base de dados nem do negocio — e o que se oferece e
+          desativar. Sem marcacoes, apaga-se e pronto. */}
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)}
+        title={deleteTarget && marcacoesDe(deleteTarget.id) > 0 ? 'Tirar da equipa' : 'Eliminar profissional'}
+        footer={deleteTarget && marcacoesDe(deleteTarget.id) > 0 ? (
+          <>
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>Cancelar</Button>
+            <Button variant="primary" onClick={() => mudarEstado(deleteTarget, false)}>Desativar</Button>
+          </>
+        ) : (
+          <>
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>Cancelar</Button>
+            <Button variant="danger" onClick={remove}>Eliminar</Button>
+          </>
+        )}>
+        {deleteTarget && marcacoesDe(deleteTarget.id) > 0 ? (
+          <p>
+            <span className="text-gold fw-600">{deleteTarget.name}</span> tem {marcacoesDe(deleteTarget.id)}{' '}
+            {marcacoesDe(deleteTarget.id) === 1 ? 'marcação' : 'marcações'} no histórico, por isso a ficha
+            não se pode apagar — apagá-la levava o histórico atrás.
+            {' '}Desativar deixa tudo como está: desaparece da agenda, do site e das marcações novas,
+            e o que já aconteceu continua nas contas.
+          </p>
+        ) : (
+          <p>Eliminar <span className="text-gold fw-600">{deleteTarget?.name}</span>?</p>
+        )}
       </Modal>
     </AdminLayout>
   );

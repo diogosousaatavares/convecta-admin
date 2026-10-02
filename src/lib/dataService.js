@@ -67,6 +67,15 @@ import { buildSnapshot, assertNoConflict, canTransition, appointmentDuration, pr
 // barbeiro. Traduz-se aqui, uma vez, para nao andar espalhado pelos ecras.
 function traduzirErro(error) {
   if (!error) return error;
+  /*
+   * 23503 e a chave estrangeira: esta-se a apagar uma linha de que outra
+   * tabela ainda depende. Sem isto, o barbeiro carregava em «Eliminar» e nao
+   * acontecia nada — a base de dados recusava com uma frase em ingles que
+   * nunca chegava ao ecra.
+   */
+  if (error.code === '23503') {
+    return new Error('Isto ainda está a ser usado noutro sítio — por marcações, por uma venda ou por um horário — e por isso a base de dados não deixa apagar. Desativa em vez de apagar: deixa de aparecer e o histórico fica inteiro.');
+  }
   if (error.code === '23P01') {
     return new Error('Esse horário já está ocupado com esse profissional. Escolhe outra hora.');
   }
@@ -1196,9 +1205,19 @@ const dataService = {
     if (i >= 0) state.professionals[i] = p;
     notify(); return p;
   },
+  /*
+   * O `.select()` nao e enfeite. Com RLS ligado, um DELETE que nao encontra
+   * (ou nao pode tocar) nenhuma linha devolve sucesso e zero linhas — nao da
+   * erro. Sem o select, o painel riscava o profissional da lista, dizia
+   * «Eliminado», e ele voltava a aparecer no refresco seguinte. Quem via isso
+   * do outro lado dizia, com razao, que nao conseguia eliminar ninguem.
+   */
   async deleteProfessional(id) {
-    const { error } = await supabase.from('professionals').delete().eq('id', id);
+    const { data: apagados, error } = await supabase.from('professionals').delete().eq('id', id).select('id');
     if (error) throw traduzirErro(error);
+    if (!apagados || apagados.length === 0) {
+      throw new Error('Não foi apagado nada. Ou a ficha já não existe, ou a tua conta não tem permissão para a apagar nesta barbearia.');
+    }
     state.professionals = state.professionals.filter(p => p.id !== id); notify(); return true;
   },
 

@@ -476,7 +476,7 @@ input, textarea, select { font-family: inherit; }
 
 /* Admin Topbar */
 .admin-topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 60; flex-shrink: 0; margin: 0 -32px 28px; width: calc(100% + 64px); max-width: none; }
-.admin-topbar-left, .admin-topbar-right, .admin-topbar-user { display: flex; align-items: center; }
+.admin-topbar-left, .admin-topbar-right { display: flex; align-items: center; }
 
 /*
  * A FAIXA DO LINK DA BARBEARIA.
@@ -537,7 +537,6 @@ input, textarea, select { font-family: inherit; }
 }
 .admin-topbar-left { gap: 12px; }
 .admin-topbar-right { gap: 8px; }
-.admin-topbar-user { gap: 10px; }
 .admin-topbar-hamburger { display: inline-flex; transition: transform 260ms ease, background 200ms ease; }
 .admin-topbar-hamburger:hover { transform: rotate(-5deg) scale(1.04); }
 .admin-sidebar.collapsed { width: 72px; box-shadow: 8px 0 24px rgba(0,0,0,0.18); }
@@ -560,7 +559,6 @@ input, textarea, select { font-family: inherit; }
 .admin-sidebar.collapsed > div:last-child { padding-left: 16px !important; padding-right: 16px !important; }
 .admin-sidebar.collapsed > div:last-child .btn { justify-content: center; padding-left: 0; padding-right: 0; }
 .admin-topbar-logo { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
-.admin-topbar-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--gold); color: #0d1518; font-size: 14.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .admin-topbar-email { font-size: 14.5px; color: var(--text-sec); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 768px) {
   .admin-topbar-email { display: none; }
@@ -1715,7 +1713,6 @@ html.theme-light .admin-content .text-gold { color: var(--text); }
   .admin-topbar-left { gap: 8px; flex: 1; min-width: 0; }
   .admin-topbar-right { flex-shrink: 0; gap: 6px; }
   .admin-topbar-logo { font-size: 14px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .admin-topbar-avatar { width: 30px; height: 30px; font-size: 13px; flex-shrink: 0; }
 
   /* --- Admin content: padding consistente + espaço extra em baixo --- */
   .admin-content { --pad-lado: 14px; padding: 0 var(--pad-lado) 48px; margin-left: 0 !important; }
