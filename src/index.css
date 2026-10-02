@@ -407,6 +407,21 @@ input, textarea, select { font-family: inherit; }
 .admin-sidebar-head { padding: 24px 24px 20px; border-bottom: 1px solid var(--border); }
 .admin-sidebar-head .logo { font-family: var(--font-head); font-size: 18px; font-weight: 700; }
 .admin-sidebar-head .sub { color: var(--text-sec); font-size: 14px; margin-top: 2px; }
+/* A contagem da experiencia, no topo do menu. Amarela enquanto e so
+   informacao; vermelha nos ultimos tres dias, que e quando passa a ser uma
+   coisa para resolver esta semana. */
+.dias-teste {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin: 0 0 4px; padding: 11px 20px; text-decoration: none;
+  background: rgba(var(--gold-rgb), 0.14);
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  color: var(--text); font-size: 15px;
+}
+.dias-teste strong { font-weight: 700; }
+.dias-teste span { font-size: 14px; color: var(--text-sec); white-space: nowrap; }
+.dias-teste.apertado { background: rgba(239, 68, 68, 0.10); }
+.dias-teste.apertado strong { color: #B91C1C; }
+
 .admin-nav { flex: 1; padding: 10px 0; overflow-y: auto; scrollbar-width: none; }
 .admin-nav::-webkit-scrollbar { display: none; }
 .admin-nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: var(--text-sec); font-size: 14px; font-weight: 500; transition: all 200ms ease; position: relative; border-left: 3px solid transparent; }

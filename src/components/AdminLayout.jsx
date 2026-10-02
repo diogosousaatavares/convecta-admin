@@ -42,6 +42,7 @@ function BotaoModo() {
 }
 import AcordoRgpd from '@/components/AcordoRgpd';
 import LinkDaBarbearia from '@/components/LinkDaBarbearia';
+import DiasDeTeste from '@/components/admin/DiasDeTeste';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 import PrimeirosPassos from '@/components/PrimeirosPassos';
 
@@ -387,6 +388,9 @@ export default function AdminLayout({ children }) {
           </div>
         </div>
       </div>
+      {/* Os dias que faltam da experiencia, no topo do menu: e o sitio por
+          onde ele passa varias vezes por dia. */}
+      <DiasDeTeste />
       <nav className="admin-nav">
         {grupos.map((g, i) => {
           if (g.type === 'item') {
