@@ -6,7 +6,6 @@ import { useAuth, useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
 import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import PageInfo from '@/components/admin/PageInfo';
-import LinkDaBarbearia from '@/components/LinkDaBarbearia';
 import { Card, Badge, Avatar, EmptyState } from '@/components/ui';
 import { formatPrice, formatDate, formatDateNum, todayStr, addDays, getDowShort } from '@/lib/format';
 import { getRevenue, getProductRevenue, getPackRevenue, getTotalRevenue, getExpensesTotal, getExpectedCash, getOccupancy, paidAppointments, netOfPayment, getCancellationCount, getCancellationRate, getNoShowCount, getNoShowRate } from '@/lib/domain/finance';
@@ -209,7 +208,6 @@ export default function Dashboard() {
         {period === 'custom' && <div className="flex gap-12 mb-16" style={{ flexWrap: 'wrap' }}><div className="field" style={{ marginBottom: 0 }}><label className="label">De</label><input type="date" className="input" value={custom.from} onChange={e => setCustom(f => ({ ...f, from: e.target.value }))} /></div><div className="field" style={{ marginBottom: 0 }}><label className="label">Até</label><input type="date" className="input" value={custom.to} onChange={e => setCustom(f => ({ ...f, to: e.target.value }))} /></div></div>}
       </div>
 
-      <LinkDaBarbearia />
 
       {/* A tira de avisos de stock saiu daqui a 28/09/2026: sao quatro
           rectangulos amarelos antes do primeiro numero, e o stock tem

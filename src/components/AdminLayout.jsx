@@ -41,6 +41,7 @@ function BotaoModo() {
   );
 }
 import AcordoRgpd from '@/components/AcordoRgpd';
+import LinkDaBarbearia from '@/components/LinkDaBarbearia';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 import PrimeirosPassos from '@/components/PrimeirosPassos';
 
@@ -525,12 +526,21 @@ export default function AdminLayout({ children }) {
             </button>
           </div>
         </div>
+        {/* O endereco da barbearia, logo por baixo da barra e em todas as
+            paginas. E a coisa que ele mais vai partilhar — no Instagram, no
+            WhatsApp, ao balcao — e estava so no Dashboard: quem passava o dia
+            na Agenda tinha de o ir procurar, e por isso nao o partilhava. */}
+        <LinkDaBarbearia />
+
         {/* As notificacoes pedem-se em todas as paginas, nao so na de
             Marcacoes: quem entra na Agenda e fica por la nunca era sequer
             perguntado — e ficava sem campainha nenhuma. */}
-        {/* Pedir para ligar: em todas as paginas. A linha "ligadas, testar":
-            so no Dashboard, e so uma vez por dia — em Definicoes esta sempre. */}
-        {location.pathname !== '/admin/subscricao' && <AvisoPush businessId={data.business?.id} userId={user?.id} papel="admin" comTeste={location.pathname === '/admin/dashboard'} />}
+        {/* Pedir para ligar: em todas as paginas, enquanto estiverem
+            desligadas. Quando ja estao ligadas o painel cala-se — dizer «as
+            notificacoes estao ligadas» todos os dias no topo do Dashboard e
+            ocupar o melhor sitio do ecra com uma coisa que nao pede nada.
+            Quem quiser testar tem o botao em Definicoes e em Avisos. */}
+        {location.pathname !== '/admin/subscricao' && <AvisoPush businessId={data.business?.id} userId={user?.id} papel="admin" />}
         {/* A subscricao vem DEPOIS das notificacoes de proposito: a campainha
             e o que faz o produto funcionar no primeiro dia; o cartao e o que
             o faz durar. Por esta ordem, e nao ao contrario. Na propria pagina
