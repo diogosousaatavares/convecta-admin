@@ -721,6 +721,14 @@ input, textarea, select { font-family: inherit; }
 .toast-error { border-left-color: var(--error); }
 .toast-title { font-weight: 600; font-size: 14px; }
 .toast-msg { font-size: 14.5px; color: var(--text-sec); margin-top: 2px; }
+
+/* O aviso manda-se embora para cima, com o dedo ou com um toque. A faixa de
+   toque nao e so o rectangulo visivel: o dedo poisa muitas vezes um bocado
+   acima dele. */
+.toast { touch-action: pan-x; cursor: pointer; transition: transform 160ms ease, opacity 160ms ease; }
+.toast-sai { transform: translateY(-120%); opacity: 0; }
+/* Sem isto, o texto do aviso fica seleccionado ao arrastar. */
+.toast-title, .toast-msg { -webkit-user-select: none; user-select: none; }
 @keyframes slidein { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
 
 /* ===== HERO ===== */
