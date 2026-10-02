@@ -2237,6 +2237,20 @@ html.theme-light .page-info-popover { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12)
 
 /* Logótipo A no topo do menu. Com o menu encolhido fica só ele. */
 .admin-sidebar-marca { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; display: block; }
+
+/*
+ * O SÍMBOLO EM DOIS TONS.
+ *
+ * O símbolo tem uma metade preta. Num painel escuro essa metade desaparece
+ * no fundo e fica meio logótipo — por isso há dois ficheiros e não um, e é
+ * o tema que escolhe. O painel abre claro; a versão escura só entra quando
+ * alguém carrega na lua.
+ */
+.marca-escuro { display: none !important; }
+html.theme-light .marca-claro { display: block !important; }
+html.theme-light .marca-escuro { display: none !important; }
+html:not(.theme-light) .marca-claro { display: none !important; }
+html:not(.theme-light) .marca-escuro { display: block !important; }
 .admin-sidebar.collapsed .admin-sidebar-head .sub { display: none; }
 
 /* Menu encolhido: o A ao centro da coluna, sem o texto ao lado (antes o
