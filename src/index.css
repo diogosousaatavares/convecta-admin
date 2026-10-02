@@ -2589,3 +2589,35 @@ html:not(.theme-light) .marca-escuro { display: block !important; }
     overflow-wrap: normal;
   }
 }
+
+/* ── Uma linha com um interruptor ──────────────────────────────────────────
+   Era um cartao inteiro — icone grande, moldura, margem — para dizer uma
+   coisa que cabe numa linha. Isto e a versao do tamanho do que diz, e serve
+   para qualquer definicao solta dentro de uma pagina. A linha toda e o
+   botao: no telemovel ninguem acerta so no interruptor. */
+.linha-opcao {
+  display: flex; align-items: center; gap: 11px; width: 100%;
+  margin: 0 0 16px; padding: 11px 14px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); font: inherit; text-align: left; cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+.linha-opcao[aria-checked="true"] {
+  border-color: rgba(var(--gold-rgb), 0.55);
+  background: rgba(var(--gold-rgb), 0.07);
+}
+.linha-opcao .rotulo { flex: 1; min-width: 0; font-weight: 600; font-size: 15.5px; }
+
+.interruptor {
+  position: relative; width: 44px; height: 25px; border-radius: 13px;
+  flex-shrink: 0; background: var(--border); transition: background 180ms ease;
+}
+.linha-opcao[aria-checked="true"] .interruptor { background: var(--gold); }
+.interruptor i {
+  position: absolute; top: 3px; left: 3px; width: 19px; height: 19px;
+  border-radius: 50%; background: #fff; transition: left 180ms ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+.linha-opcao[aria-checked="true"] .interruptor i { left: 22px; }
+
+@media (max-width: 639px) { .atualizar-quando { display: none; } }

@@ -12,9 +12,13 @@ import { formatDateShortNum, formatPrice, localDateStr } from '@/lib/format';
 import CheckoutModal from '@/components/admin/CheckoutModal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 
-// A confirmacao automatica vivia enterrada em Parametros → Agendamentos, onde
+// A confirmacao automatica vivia enterrada em Parametros -> Agendamentos, onde
 // ninguem ia. E uma decisao que se toma a olhar para as marcacoes — "estou
 // farto de aceitar uma a uma" — por isso o interruptor fica aqui.
+//
+// Era um cartao inteiro no topo da pagina, antes do titulo: o primeiro que se
+// via ao abrir as marcacoes era uma definicao, e nao as marcacoes. Agora e uma
+// linha so, debaixo do titulo, do tamanho do que diz.
 function InterruptorAutomatico() {
   const data = useStore();
   const toast = useToast();
@@ -36,35 +40,13 @@ function InterruptorAutomatico() {
   };
 
   return (
-    <Card className="mb-16" style={{ borderColor: ligado ? 'rgba(201,162,39,0.45)' : undefined }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-        <span style={{
-          width: 38, height: 38, borderRadius: 11, display: 'grid', placeItems: 'center', flexShrink: 0,
-          background: ligado ? 'rgba(201,162,39,0.14)' : 'var(--elevated)',
-          color: ligado ? '#C9A227' : 'var(--text-sec)',
-        }}>
-          <Zap size={18} />
-        </span>
-        <div style={{ flex: 1, minWidth: 180 }}>
-          <div className="fw-600" style={{ fontSize: 15.5 }}>Aceitar marcações automaticamente</div>
-        </div>
-        <button type="button" onClick={trocar} disabled={aGravar}
-          role="switch" aria-checked={ligado}
-          aria-label="Aceitar marcações automaticamente"
-          style={{
-            position: 'relative', width: 46, height: 26, borderRadius: 13, border: 'none',
-            cursor: aGravar ? 'wait' : 'pointer', flexShrink: 0, padding: 0,
-            background: ligado ? '#C9A227' : 'var(--border)',
-            opacity: aGravar ? 0.6 : 1, transition: 'background 180ms ease',
-          }}>
-          <span style={{
-            position: 'absolute', top: 3, left: ligado ? 23 : 3, width: 20, height: 20,
-            borderRadius: '50%', background: '#fff', transition: 'left 180ms ease',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
-          }} />
-        </button>
-      </div>
-    </Card>
+    <button type="button" className="linha-opcao" onClick={trocar} disabled={aGravar}
+      role="switch" aria-checked={ligado}
+      style={aGravar ? { opacity: 0.6, cursor: 'wait' } : undefined}>
+      <Zap size={17} style={{ flexShrink: 0, color: ligado ? 'var(--gold-tinta)' : 'var(--text-sec)' }} />
+      <span className="rotulo">Aceitar automaticamente</span>
+      <span className="interruptor" aria-hidden="true"><i /></span>
+    </button>
   );
 }
 
@@ -149,7 +131,6 @@ export default function AdminAppointments() {
 
   return (
     <AdminLayout>
-      <InterruptorAutomatico />
       <div className="page-head">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12 }}>
           <div>
@@ -169,6 +150,8 @@ export default function AdminAppointments() {
           </div>
         </div>
       </div>
+
+      <InterruptorAutomatico />
       <PageInfo page="marcacoes" />
 
       <div className="chip-row">

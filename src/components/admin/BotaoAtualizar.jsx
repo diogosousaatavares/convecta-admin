@@ -36,12 +36,14 @@ export default function BotaoAtualizar() {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} data-tour="atualizar">
-      <span className="text-sec" style={{ fontSize: 14 }}>{hMuito(ultimoRefresco())}</span>
+      {/* No telemovel esta etiqueta empurrava o "Nova marcacao" para a linha
+          de baixo. Fica no computador; no telemovel vive no title do botao. */}
+      <span className="text-sec atualizar-quando" style={{ fontSize: 14 }}>{hMuito(ultimoRefresco())}</span>
       <button
         type="button"
         onClick={atualizarAgora}
         disabled={ocupado}
-        title="Ir buscar as marcações mais recentes"
+        title={`Ir buscar as marcações mais recentes — atualizado ${hMuito(ultimoRefresco())}`}
         aria-label="Atualizar"
         className="ag-side-btn"
         style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15, opacity: ocupado ? 0.6 : 1 }}

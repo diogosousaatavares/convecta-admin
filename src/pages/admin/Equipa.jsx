@@ -39,61 +39,12 @@ function Ponto({ nivel }) {
   );
 }
 
-/* O "canvas": o dono em cima, os profissionais em baixo, ligados por linhas.
-   Desenhado em SVG para escalar com o ecrã; os cartões são HTML por cima. */
-function Distribuicao({ dono, pros, acessos, selecionado, onSelecionar, meuProfissionalId }) {
-  const n = Math.max(pros.length, 1);
-  const larguraCartao = 150, gap = 16;
-  const largura = Math.max(n * (larguraCartao + gap) + gap, 360);
-  const yDono = 20, yPro = 140, alturaCartao = 96;
-  const xDe = (i) => gap + i * (larguraCartao + gap) + larguraCartao / 2;
-  const xDono = largura / 2;
-  return (
-    <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
-      <div style={{ position: 'relative', width: largura, height: yPro + alturaCartao + 12, margin: '0 auto' }}>
-        <svg width={largura} height={yPro + alturaCartao + 12} style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
-          {pros.map((p, i) => {
-            const tem = !!acessos.de(p.id);
-            const eu = p.id === meuProfissionalId;
-            const x = xDe(i);
-            return <path key={p.id} d={`M ${xDono} ${yDono + 78} C ${xDono} ${yPro - 20}, ${x} ${yDono + 90}, ${x} ${yPro}`} fill="none" stroke={eu ? 'var(--gold)' : tem ? 'var(--success)' : 'var(--border)'} strokeWidth={tem || eu ? 2.5 : 2} strokeDasharray={tem || eu ? '' : '6 5'} />;
-          })}
-        </svg>
-        {/* Dono */}
-        <div style={{ position: 'absolute', left: xDono - 110, top: yDono, width: 220, padding: '12px 14px', borderRadius: 12, background: 'var(--surface)', border: '2px solid var(--gold)', boxShadow: 'var(--shadow-gold)', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Crown size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0 }} />
-          <div style={{ minWidth: 0 }}>
-            <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dono.name || 'Dono'}</div>
-            <div className="text-sec text-sm" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dono.email}</div>
-            <div className="text-sm" style={{ color: 'var(--gold-tinta)', fontWeight: 600 }}>Dono · vê tudo</div>
-          </div>
-        </div>
-        {/* Profissionais */}
-        {pros.map((p, i) => {
-          const a = acessos.de(p.id);
-          const ativo = selecionado === p.id;
-          const euMesmo = p.id === meuProfissionalId;
-          return (
-            <button key={p.id} type="button" onClick={() => onSelecionar(ativo ? null : p.id)}
-              style={{ position: 'absolute', left: xDe(i) - larguraCartao / 2, top: yPro, width: larguraCartao, height: alturaCartao, padding: '10px 10px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'inherit', background: 'var(--surface)', border: `2px solid ${ativo ? 'var(--gold)' : euMesmo ? 'rgba(var(--gold-rgb),0.6)' : a ? 'var(--success)' : 'var(--border)'}`, boxShadow: ativo ? 'var(--shadow-gold)' : 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Avatar name={p.name} src={p.photoUrl} />
-                <div className="fw-600" style={{ fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-              </div>
-              <div className="text-sec text-sm" style={{ marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.role || 'Profissional'}</div>
-              <div className="text-sm" style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600, background: 'var(--surface)', position: 'relative' }}>
-                {euMesmo ? <><Crown size={13} /> És tu</> : a ? <><ShieldCheck size={13} /> Com acesso</> : <><ShieldOff size={13} /> Sem acesso</>}
-              </div>
-            </button>
-          );
-        })}
-        {pros.length === 0 && (
-          <div className="text-sec text-sm" style={{ position: 'absolute', left: 0, right: 0, top: yPro + 30, textAlign: 'center' }}>Ainda não há profissionais. <Link to="/admin/profissionais">Criar o primeiro</Link>.</div>
-        )}
-      </div>
-    </div>
-  );
-}
+/* A arvore em SVG — o dono em cima, os profissionais em baixo, ligados por
+   linhas — foi-se embora a 02/10/2026. Quando o dono tambem corta, e o caso
+   normal numa barbearia pequena, ele aparecia no no de cima E outra vez na
+   linha dele em baixo: a mesma pessoa duas vezes no mesmo ecra, com dois
+   rotulos diferentes. Uma lista com uma linha por pessoa diz o mesmo e
+   le-se de uma vez. */
 
 export default function Equipa() {
   const data = useStore();
@@ -127,79 +78,80 @@ export default function Equipa() {
         <p>{pros.length} {pros.length === 1 ? 'profissional' : 'profissionais'}, {comAcesso} com acesso ao painel.</p>
       </div>
 
-      <Card className="mb-24">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <Crown size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0 }} />
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <div className="fw-600" style={{ fontSize: 16 }}>Tu, o dono, também cortas?</div>
-            {minhaFicha && <div className="text-sec text-sm">Ligado à ficha «{minhaFicha.name}».</div>}
+      {/* Uma linha por pessoa, e mais nada.
+
+          Antes eram tres blocos a dizer o mesmo: o cartao «Tu, o dono, tambem
+          cortas? Ligado a ficha X», o no «Dono · ve tudo» da Distribuicao, e
+          depois a mesma pessoa outra vez na lista com «Es tu». O que se quer
+          saber aqui e quem tem acesso ao painel — e isso le-se na lista. */}
+      <div style={{ display: 'grid', gap: 8, marginBottom: 16 }}>
+        {/* O dono so aparece a parte quando nao esta ligado a ficha nenhuma.
+            Se estiver, ja esta na lista, com a coroa. */}
+        {!minhaFicha && (
+          <div style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--surface)', border: '2px solid var(--gold)', display: 'flex', alignItems: 'center', gap: 11 }}>
+            <Crown size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
+              <div className="fw-600">{dono.name || 'Dono'}</div>
+              <div className="text-sec text-sm">Não corta</div>
+            </div>
+            <span className="text-sm" style={{ color: 'var(--gold-tinta)', fontWeight: 600, whiteSpace: 'nowrap' }}>Vê tudo</span>
           </div>
-          {minhaFicha ? (
-            <Button variant="ghost" size="sm" disabled={aLigar} onClick={() => ligarDono(null)}>Desligar</Button>
-          ) : (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <select className="select" value={escolhaDono} onChange={e => setEscolhaDono(e.target.value)} style={{ width: 'auto' }}>
-                <option value="">Qual ficha és tu?</option>
-                {pros.filter(p => !acessos.de(p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-              <Button variant="primary" size="sm" disabled={!escolhaDono || aLigar} onClick={() => ligarDono(escolhaDono)}>Ligar</Button>
+        )}
+
+        {pros.map(p => {
+          const a = acessos.de(p.id);
+          const ativo = selecionado === p.id;
+          const euMesmo = p.id === meuProfissionalId;
+          return (
+            <button key={p.id} type="button" onClick={() => setSelecionado(ativo ? null : p.id)}
+              style={{ padding: '10px 12px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'inherit', background: 'var(--surface)', border: `2px solid ${ativo ? 'var(--gold)' : euMesmo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', gap: 11 }}>
+              <Avatar name={p.name} src={p.photoUrl} />
+              <div style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
+                <div className="fw-600">{p.name}</div>
+                <div className="text-sec text-sm">{p.role || 'Profissional'}</div>
+              </div>
+              <span className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold-tinta)' : a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                {euMesmo ? <><Crown size={14} /> És tu</> : a ? <><ShieldCheck size={14} /> Com acesso</> : <><ShieldOff size={14} /> Sem acesso</>}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Ligar a conta do dono a uma ficha. So aparece quando ainda nao esta
+          ligada — depois disso a pergunta nao faz sentido, e desligar e uma
+          coisa que se faz na ficha, nao no topo da pagina. */}
+      {!minhaFicha && pros.some(p => !acessos.de(p.id)) && (
+        <div className="linha-opcao" style={{ cursor: 'default', flexWrap: 'wrap' }}>
+          <Crown size={17} style={{ flexShrink: 0, color: 'var(--gold-tinta)' }} />
+          <span className="rotulo">Também cortas?</span>
+          <select className="select" value={escolhaDono} onChange={e => setEscolhaDono(e.target.value)} style={{ width: 'auto' }}>
+            <option value="">Qual é a tua ficha</option>
+            {pros.filter(p => !acessos.de(p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <Button variant="primary" size="sm" disabled={!escolhaDono || aLigar} onClick={() => ligarDono(escolhaDono)}>Ligar</Button>
+        </div>
+      )}
+
+      {pro && (
+        <Card className="mb-24">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+            <Avatar name={pro.name} src={pro.photoUrl} />
+            <div style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
+              <div className="fw-600">{pro.name}</div>
+              <div className="text-sec text-sm">{pro.role || 'Profissional'}{pro.email ? ` · ${pro.email}` : ' · sem email na ficha'}</div>
+            </div>
+            <Link to="/admin/profissionais"><Button size="sm" variant="ghost">Editar ficha</Button></Link>
+          </div>
+          {pro.id === meuProfissionalId && (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 11, flexWrap: 'wrap' }}>
+              <span style={{ flex: 1, minWidth: 180 }}>És tu. A tua conta de dono está ligada a esta ficha.</span>
+              <Button variant="ghost" size="sm" disabled={aLigar} onClick={() => ligarDono(null)}>Desligar</Button>
             </div>
           )}
-        </div>
-      </Card>
-
-      <Card className="mb-24">
-        <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-          <div className="fw-600">Distribuição</div>
-          <div className="text-sec text-sm" style={{ display: estreito ? 'none' : 'flex', gap: 14, flexWrap: 'wrap' }}>
-            <span><span style={{ display: 'inline-block', width: 18, borderTop: '2.5px solid var(--success)', verticalAlign: 'middle', marginRight: 6 }} />com acesso</span>
-            <span><span style={{ display: 'inline-block', width: 18, borderTop: '2px dashed var(--border)', verticalAlign: 'middle', marginRight: 6 }} />sem acesso</span>
-          </div>
-        </div>
-        {estreito ? (
-          <div style={{ display: 'grid', gap: 8 }}>
-            <div style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--surface)', border: '2px solid var(--gold)', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Crown size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0 }} />
-              <div style={{ minWidth: 0 }}>
-                <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dono.name || 'Dono'}{minhaFicha ? ` · ${minhaFicha.name}` : ''}</div>
-                <div className="text-sm" style={{ color: 'var(--gold-tinta)', fontWeight: 600 }}>Dono · vê tudo</div>
-              </div>
-            </div>
-            {pros.map(p => {
-              const a = acessos.de(p.id); const ativo = selecionado === p.id; const euMesmo = p.id === meuProfissionalId;
-              return (
-                <button key={p.id} type="button" onClick={() => setSelecionado(ativo ? null : p.id)}
-                  style={{ padding: '10px 12px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'inherit', background: 'var(--surface)', border: `2px solid ${ativo ? 'var(--gold)' : euMesmo ? 'rgba(var(--gold-rgb),0.5)' : a ? 'var(--success)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Avatar name={p.name} src={p.photoUrl} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                    <div className="text-sec text-sm">{p.role || 'Profissional'}</div>
-                  </div>
-                  <div className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                    {euMesmo ? <><Crown size={13} /> És tu</> : a ? <><ShieldCheck size={13} /> Com acesso</> : <><ShieldOff size={13} /> Sem acesso</>}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <Distribuicao dono={dono} pros={pros} acessos={acessos} selecionado={selecionado} onSelecionar={setSelecionado} meuProfissionalId={meuProfissionalId} />
-        )}
-
-        {pro && (
-          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Avatar name={pro.name} src={pro.photoUrl} />
-              <div style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
-                <div className="fw-600">{pro.name}</div>
-                <div className="text-sec text-sm">{pro.role || 'Profissional'}{pro.email ? ` · ${pro.email}` : ' · sem email na ficha'}</div>
-              </div>
-              <Link to="/admin/profissionais"><Button size="sm" variant="ghost">Editar ficha</Button></Link>
-            </div>
-            <AcessoProfissional profissional={pro} acesso={acessos.de(pro.id)} onMudou={acessos.recarregar} destaque />
-          </div>
-        )}
-      </Card>
+          <AcessoProfissional profissional={pro} acesso={acessos.de(pro.id)} onMudou={acessos.recarregar} destaque />
+        </Card>
+      )}
 
       {/* No telemovel esta tabela de referencia era o terco de baixo do ecra
           em letra miuda, e nao se faz nada com ela. Fica no computador. */}
