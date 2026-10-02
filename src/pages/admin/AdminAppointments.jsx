@@ -171,7 +171,7 @@ export default function AdminAppointments() {
       </div>
       <PageInfo page="marcacoes" />
 
-      <div className="filtros-tira">
+      <div className="chip-row">
         {SCOPES.map(s => (
           <button key={s.key} className={`chip ${scope === s.key ? 'active' : ''}`} onClick={() => setScope(s.key)}>{s.label}</button>
         ))}
