@@ -55,8 +55,8 @@
     <div id="cv-abertura" aria-hidden="true" data-fim="2850">
       <svg class="cv-logo" viewBox="355 840 470 382" aria-hidden="true" focusable="false">
         <g class="cv-g">
-          <path class="cv-b" pathLength="1" d="M478 962 L594 962 C613 962 629 977 629 996 C629 1015 613 1031 594 1031 L565 1031 C537 1031 512 1054 512 1082 C512 1110 535 1133 563 1133 L658 1133 C665 1133 669 1140 666 1146 C648 1185 613 1212 577 1212 L470 1212 C412 1212 365 1160 365 1100 L365 1075 C365 1013 418 962 478 962 Z"></path>
-          <path class="cv-y" pathLength="1" d="M512 932 C522 885 560 852 602 852 L708 852 C770 852 815 900 815 965 L815 1012 C815 1070 770 1116 715 1116 L598 1116 C580 1116 564 1101 564 1083 C564 1065 580 1050 598 1050 L636 1050 C665 1050 688 1026 688 997 C688 968 665 944 636 944 L518 944 C512 944 510 938 512 932 Z"></path>
+          <path class="cv-b" d="M478 962 L594 962 C613 962 629 977 629 996 C629 1015 613 1031 594 1031 L565 1031 C537 1031 512 1054 512 1082 C512 1110 535 1133 563 1133 L658 1133 C665 1133 669 1140 666 1146 C648 1185 613 1212 577 1212 L470 1212 C412 1212 365 1160 365 1100 L365 1075 C365 1013 418 962 478 962 Z"></path>
+          <path class="cv-y" d="M512 932 C522 885 560 852 602 852 L708 852 C770 852 815 900 815 965 L815 1012 C815 1070 770 1116 715 1116 L598 1116 C580 1116 564 1101 564 1083 C564 1065 580 1050 598 1050 L636 1050 C665 1050 688 1026 688 997 C688 968 665 944 636 944 L518 944 C512 944 510 938 512 932 Z"></path>
         </g>
         <circle class="cv-flood" cx="690" cy="985" r="40"></circle>
       </svg>
@@ -71,7 +71,7 @@
       .cv-logo{width:min(46%,300px);height:auto;overflow:visible}
       .cv-logo .cv-g,.cv-logo .cv-flood{transform-box:fill-box;transform-origin:center}
       .cv-logo .cv-b,.cv-logo .cv-y{stroke-width:7;stroke-linejoin:round;
-        stroke-dasharray:1;stroke-dashoffset:1;fill-opacity:0;
+        stroke-dasharray:var(--L,2200);stroke-dashoffset:var(--L,2200);fill-opacity:0;
         animation:cv-draw calc(var(--s)*900ms) cubic-bezier(.65,0,.35,1) both,
                   cv-fill calc(var(--s)*320ms) ease-out calc(var(--s)*820ms) forwards}
       .cv-logo .cv-b{stroke:#0b0b0b;fill:#0b0b0b}
@@ -86,15 +86,26 @@
       @keyframes cv-fill{to{fill-opacity:1;stroke-width:0}}
       @keyframes cv-pop{0%{transform:scale(1) rotate(0)}45%{transform:scale(1.08) rotate(-4deg)}100%{transform:scale(1) rotate(0)}}
       @keyframes cv-flood{to{transform:scale(90)}}
+      @keyframes cv-surgir{from{opacity:0}to{opacity:1}}
       @media (prefers-reduced-motion:reduce){
-        #cv-abertura{animation-delay:calc(var(--s)*700ms)}
-        .cv-logo .cv-b,.cv-logo .cv-y{animation:none;stroke-dashoffset:0;fill-opacity:1;stroke-width:0}
+        #cv-abertura{animation-delay:calc(var(--s)*1100ms)}
+        .cv-logo .cv-b,.cv-logo .cv-y{stroke-dashoffset:0;fill-opacity:1;stroke-width:0;
+          animation:cv-surgir calc(var(--s)*500ms) ease both;animation-delay:0ms}
+        .cv-logo .cv-y{animation-delay:calc(var(--s)*120ms)}
         .cv-logo .cv-g,.cv-logo .cv-flood{animation:none}}
     </style>
     <script>
       (function () {
         var e = document.getElementById('cv-abertura');
         if (!e) return;
+        // Corre antes do primeiro frame, por estar aqui no corpo logo a
+        // seguir ao desenho: da a cada caminho o seu comprimento real.
+        try {
+          Array.prototype.forEach.call(e.querySelectorAll('.cv-b,.cv-y'), function (c) {
+            var L = c.getTotalLength();
+            if (L > 0) c.style.setProperty('--L', L);
+          });
+        } catch (err) {}
         var s = parseFloat(getComputedStyle(e).getPropertyValue('--s')) || 1;
         setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); },
                    (parseInt(e.dataset.fim, 10) || 2850) * s);
