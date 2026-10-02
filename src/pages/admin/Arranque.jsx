@@ -156,20 +156,20 @@ export default function Arranque() {
 
   if (!negocio) return null;
 
-  const rotulo = { fontSize: 12, color: 'var(--text-sec)', marginBottom: 6, display: 'block' };
+  const rotulo = { fontSize: 14, color: 'var(--text-sec)', marginBottom: 6, display: 'block' };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '28px 16px 40px' }}>
       <div style={{ maxWidth: 620, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         <div>
-          <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: 1.4, fontWeight: 700, color: 'var(--gold-tinta)' }}>
+          <div style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 1.4, fontWeight: 700, color: 'var(--gold-tinta)' }}>
             Um minuto, e está teu
           </div>
           <h1 style={{ margin: '8px 0 6px', fontSize: 26, lineHeight: 1.2 }}>
             Confirma os teus preços e o teu horário
           </h1>
-          <p style={{ margin: 0, color: 'var(--text-sec)', fontSize: 14, lineHeight: 1.6 }}>
+          <p style={{ margin: 0, color: 'var(--text-sec)', fontSize: 15.5, lineHeight: 1.6 }}>
             A {negocio.name} já está no ar{endereco ? ` em ${endereco}` : ''}, mas com preços e horário
             de exemplo. Corrige-os aqui — é o que os teus clientes vão ver.
           </p>
@@ -180,7 +180,7 @@ export default function Arranque() {
             <Scissors size={16} style={{ color: 'var(--gold-tinta)' }} />
             <span className="fw-600" style={{ fontSize: 15 }}>O que fazes, e a quanto</span>
           </div>
-          <p style={{ margin: '0 0 14px', fontSize: 12.5, color: 'var(--text-sec)' }}>
+          <p style={{ margin: '0 0 14px', fontSize: 14.5, color: 'var(--text-sec)' }}>
             Apaga o que não fazes e mete os teus preços. A duração é o que decide as horas que o cliente vê.
           </p>
 
@@ -222,7 +222,7 @@ export default function Arranque() {
             <Clock size={16} style={{ color: 'var(--gold-tinta)' }} />
             <span className="fw-600" style={{ fontSize: 15 }}>A que horas abres</span>
           </div>
-          <p style={{ margin: '0 0 14px', fontSize: 12.5, color: 'var(--text-sec)' }}>
+          <p style={{ margin: '0 0 14px', fontSize: 14.5, color: 'var(--text-sec)' }}>
             Fora destas horas ninguém consegue marcar. Se um dia for diferente dos outros, acertas depois em Horários.
           </p>
 
@@ -246,7 +246,7 @@ export default function Arranque() {
               return (
                 <button key={dia} type="button" onClick={() => virarDia(dia)} aria-pressed={on}
                   style={{ padding: '9px 13px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
-                    fontSize: 13, fontWeight: on ? 700 : 500,
+                    fontSize: 15, fontWeight: on ? 700 : 500,
                     border: `1px solid ${on ? 'var(--gold)' : 'var(--border)'}`,
                     background: on ? 'rgba(201,162,39,0.14)' : 'transparent',
                     color: on ? 'var(--gold)' : 'var(--text-ter)' }}>
@@ -268,7 +268,7 @@ export default function Arranque() {
             <CreditCard size={16} style={{ color: 'var(--gold-tinta)' }} />
             <span className="fw-600" style={{ fontSize: 15 }}>Quando quiseres receber marcações</span>
           </div>
-          <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--text-sec)', lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 12px', fontSize: 14.5, color: 'var(--text-sec)', lineHeight: 1.6 }}>
             Para os clientes poderem marcar, é preciso registar um cartão. Os primeiros
             14 dias não são cobrados e cancelas sozinho aqui no painel — não tens de
             decidir isso agora.
@@ -280,7 +280,7 @@ export default function Arranque() {
 
         <button type="button" onClick={agoraNao} disabled={aGravar}
           style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit',
-            fontSize: 12.5, color: 'var(--text-ter)', textDecoration: 'underline', padding: '4px 0' }}>
+            fontSize: 14.5, color: 'var(--text-ter)', textDecoration: 'underline', padding: '4px 0' }}>
           Faço isto depois
         </button>
       </div>

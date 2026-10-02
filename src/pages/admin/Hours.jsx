@@ -88,7 +88,7 @@ export default function Hours() {
                     <span className="text-sec">—</span>
                     <input className="input" type="time" value={h.close} onChange={e => update(day, 'close', e.target.value)} style={{ width: 110 }} />
                   </div>
-                  <button className="btn btn-ghost btn-sm" onClick={() => addBreak(day)} style={{ fontSize: 12, color: 'var(--text-sec)' }}><Plus size={13} /> Pausa</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => addBreak(day)} style={{ fontSize: 14, color: 'var(--text-sec)' }}><Plus size={13} /> Pausa</button>
                 </> : <span className="badge badge-default">Fechado</span>}
               </div>
 

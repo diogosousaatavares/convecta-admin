@@ -33,7 +33,7 @@ const TXT = { tudo: 'Vê e mexe', parcial: 'Só o dele', nada: 'Não vê' };
 function Ponto({ nivel }) {
   const Icone = nivel === 'nada' ? EyeOff : nivel === 'parcial' ? Pencil : Eye;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: COR[nivel], fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: COR[nivel], fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap' }}>
       <Icone size={14} /> {TXT[nivel]}
     </span>
   );
@@ -78,7 +78,7 @@ function Distribuicao({ dono, pros, acessos, selecionado, onSelecionar, meuProfi
               style={{ position: 'absolute', left: xDe(i) - larguraCartao / 2, top: yPro, width: larguraCartao, height: alturaCartao, padding: '10px 10px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'inherit', background: 'var(--surface)', border: `2px solid ${ativo ? 'var(--gold)' : euMesmo ? 'rgba(var(--gold-rgb),0.6)' : a ? 'var(--success)' : 'var(--border)'}`, boxShadow: ativo ? 'var(--shadow-gold)' : 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Avatar name={p.name} src={p.photoUrl} />
-                <div className="fw-600" style={{ fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                <div className="fw-600" style={{ fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
               </div>
               <div className="text-sec text-sm" style={{ marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.role || 'Profissional'}</div>
               <div className="text-sm" style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600, background: 'var(--surface)', position: 'relative' }}>
@@ -208,13 +208,13 @@ export default function Equipa() {
         <p className="text-sec text-sm" style={{ marginTop: 0 }}>É a regra da casa, trancada na base de dados. O dono vê tudo; um profissional com acesso vê só o que lhe toca. O que se pode ajustar em cada um está no bloco de acesso (toca no profissional em cima).</p>
         {estreito ? (
           <details style={{ marginTop: 10 }}>
-            <summary style={{ cursor: 'pointer', fontSize: 13, fontWeight: 600, padding: '9px 0' }}>
+            <summary style={{ cursor: 'pointer', fontSize: 15, fontWeight: 600, padding: '9px 0' }}>
               Ver área a área
             </summary>
             <div style={{ display: 'grid', gap: 8, marginTop: 6 }}>
               {AREAS.map(a => (
                 <div key={a.nome} style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid var(--border)' }}>
-                  <div className="fw-600" style={{ fontSize: 13 }}>{a.nome}</div>
+                  <div className="fw-600" style={{ fontSize: 15 }}>{a.nome}</div>
                   <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 5 }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                       <Crown size={13} style={{ color: 'var(--gold-tinta)' }} /><Ponto nivel={a.dono} />

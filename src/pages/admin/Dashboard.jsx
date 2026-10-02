@@ -192,7 +192,7 @@ export default function Dashboard() {
       <div className="page-head" style={{ paddingBottom: 0 }}>
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
           <div>
-            <div style={{ fontSize: 13, color: 'var(--text-sec)', marginBottom: 6 }}>👋 Olá, {user?.name || user?.email || 'Administrador'}</div>
+            <div style={{ fontSize: 15, color: 'var(--text-sec)', marginBottom: 6 }}>👋 Olá, {user?.name || user?.email || 'Administrador'}</div>
             <h1 style={{ marginBottom: 2 }}>Dashboard</h1>
             <p style={{ margin: 0 }}>{formatDateNum(range.from)}{range.from !== range.to ? ` → ${formatDateNum(range.to)}` : ''}</p>
           </div>
@@ -219,10 +219,10 @@ export default function Dashboard() {
         <Card className="mb-16" style={{ borderColor: 'rgba(201,162,39,0.45)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
             <Bell size={17} style={{ color: '#C9A227' }} />
-            <b style={{ fontSize: 14 }}>
+            <b style={{ fontSize: 15.5 }}>
               {porConfirmar.length === 1 ? '1 marcação por confirmar' : `${porConfirmar.length} marcações por confirmar`}
             </b>
-            <button className="btn btn-ghost" style={{ marginLeft: 'auto', fontSize: 12 }}
+            <button className="btn btn-ghost" style={{ marginLeft: 'auto', fontSize: 14 }}
               onClick={() => navigate('/admin/marcacoes')}>Ver todas <ChevronRight size={13} /></button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -237,15 +237,15 @@ export default function Dashboard() {
                     background: 'rgba(201,162,39,0.06)', border: '1px solid rgba(201,162,39,0.22)' }}>
                   <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#C9A227', flexShrink: 0 }} />
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+                    <span style={{ display: 'block', fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
                       {cliente?.name || a.customerNameSnapshot || 'Cliente'}
                     </span>
-                    <span style={{ display: 'block', fontSize: 12, color: 'var(--text-sec)' }}>
+                    <span style={{ display: 'block', fontSize: 14, color: 'var(--text-sec)' }}>
                       {servico?.name || a.serviceNameSnapshot || 'Serviço'}
                       {pro?.name ? ` · ${pro.name}` : ''}
                     </span>
                   </span>
-                  <span style={{ fontSize: 12, color: 'var(--text-sec)', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: 14, color: 'var(--text-sec)', whiteSpace: 'nowrap' }}>
                     {formatDateNum(a.date)} · {a.startTime}
                   </span>
                   <ChevronRight size={14} className="text-sec" />
@@ -266,9 +266,9 @@ export default function Dashboard() {
               <div key={n.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', border: `1px solid ${borderColor}`, borderRadius: 10, background: bg }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: dotColor, marginTop: 5, flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{n.title}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-sec)', lineHeight: 1.5 }}>{n.body}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-ter)', marginTop: 4 }}>{new Date(n.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} · Convecta</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{n.title}</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-sec)', lineHeight: 1.5 }}>{n.body}</div>
+                  <div style={{ fontSize: 13.5, color: 'var(--text-ter)', marginTop: 4 }}>{new Date(n.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} · Convecta</div>
                 </div>
                 <button onClick={() => handleDismissNotif(n.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-ter)', fontSize: 16, padding: '0 4px', lineHeight: 1, flexShrink: 0 }}>×</button>
               </div>

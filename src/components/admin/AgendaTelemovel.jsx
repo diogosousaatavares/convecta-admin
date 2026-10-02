@@ -271,13 +271,13 @@ export default function AgendaTelemovel({
                         <span className="agm-bloco-ico"><Icone size={18} /></span>
                         <span className="agm-bloco-hora">{a.startTime} – {a.endTime}</span>
                         <span className="agm-bloco-svc">
-                          {a.usaPack && !a.blocked && <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', background: 'var(--gold)', color: 'var(--on-gold)', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
+                          {a.usaPack && !a.blocked && <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.06em', background: 'var(--gold)', color: 'var(--on-gold)', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
                           {(() => {
                             const mb = !a.blocked && dataService.mbwayDe?.(a.id);
                             if (!mb) return null;
                             return mb.estado === 'pago'
-                              ? <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#16a34a', color: '#fff' }}>MB WAY ✓</span>
-                              : <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#f59e0b', color: '#1a1a1a' }}>MB WAY ?</span>;
+                              ? <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#16a34a', color: '#fff' }}>MB WAY ✓</span>
+                              : <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#f59e0b', color: '#1a1a1a' }}>MB WAY ?</span>;
                           })()}
                           {a.blocked ? (a.label || 'Bloqueado') : (svc?.name || 'Serviço')}
                         </span>

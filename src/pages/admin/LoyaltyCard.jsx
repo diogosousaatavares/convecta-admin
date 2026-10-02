@@ -25,7 +25,7 @@ function LoyaltyStampCard({ config, currentStamps = 4 }) {
   return (
     <div style={{ background: config.bgColor, border: `1px solid ${config.cardColor}4D`, borderRadius: 16, padding: 24, maxWidth: 360, color: config.textColor, boxShadow: `0 8px 26px ${config.cardColor}26` }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, marginBottom: 20 }}>
-        <span>{config.title}</span><span style={{ color: config.cardColor, fontSize: 13 }}>{currentStamps} / {total}</span>
+        <span>{config.title}</span><span style={{ color: config.cardColor, fontSize: 15 }}>{currentStamps} / {total}</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 44px)', gap: 10, justifyContent: 'center' }}>
         {stamps.map((_, index) => {
@@ -34,7 +34,7 @@ function LoyaltyStampCard({ config, currentStamps = 4 }) {
           return <div key={index} style={{ position: 'relative', width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: filled ? config.stampFilledColor : config.stampEmptyColor, border: filled ? 'none' : `1px dashed ${config.stampFilledColor}40`, color: filled ? config.bgColor : config.stampFilledColor, fontSize: filled ? 19 : isLast ? 9 : 16, fontWeight: 700, boxShadow: filled ? `0 3px 10px ${config.stampFilledColor}66` : 'none' }}>{isLast ? (filled ? '👑' : 'GRÁTIS') : filled ? config.stampEmoji : ''}</div>;
         })}
       </div>
-      <div style={{ marginTop: 20, fontSize: 13, opacity: 0.85 }}>Recompensa: {config.reward}</div>
+      <div style={{ marginTop: 20, fontSize: 15, opacity: 0.85 }}>Recompensa: {config.reward}</div>
       <div style={{ height: 5, marginTop: 18, borderRadius: 99, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}><div style={{ height: '100%', width: `${progress}%`, background: config.cardColor, borderRadius: 99 }} /></div>
     </div>
   );

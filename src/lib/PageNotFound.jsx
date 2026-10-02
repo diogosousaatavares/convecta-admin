@@ -16,7 +16,7 @@ export default function PageNotFound() {
           A página <strong>"{pageName}"</strong> não existe nesta aplicação.
         </p>
         {isAdmin && (
-          <p style={{ fontSize: 13, color: 'var(--gold-tinta)', marginBottom: 24 }}>
+          <p style={{ fontSize: 15, color: 'var(--gold-tinta)', marginBottom: 24 }}>
             Esta página poderá ainda não estar implementada.
           </p>
         )}

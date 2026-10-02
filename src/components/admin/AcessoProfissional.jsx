@@ -35,7 +35,7 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
   if (!isProfissional && meuProfissionalId && profissional?.id === meuProfissionalId) {
     return (
       <div style={destaque ? { marginTop: 16, padding: '12px 14px', borderRadius: 10, background: 'rgba(var(--gold-rgb),0.10)', border: '1px solid rgba(var(--gold-rgb),0.45)' } : { marginTop: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15 }}>
           <Crown size={16} style={{ color: 'var(--gold-tinta)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="fw-600">Este és tu, o dono</div>
@@ -94,7 +94,7 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
     };
     return (
       <div style={destaque ? caixa : { marginTop: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 13 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 15 }}>
           <ShieldCheck size={16} style={{ color: 'var(--success)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="fw-600">Acesso ao painel: ligado</div>
@@ -103,7 +103,7 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
           <Button size="sm" variant="ghost" onClick={remover} disabled={aEnviar}>Remover</Button>
         </div>
         <Confirmacao />
-        <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)', cursor: 'pointer', fontSize: 13 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)', cursor: 'pointer', fontSize: 15 }}>
           <input type="checkbox" checked={perm.agenda_toda !== false} onChange={e => mudar('agenda_toda', e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--gold)' }} />
           <span style={{ flex: 1 }}>
             <span className="fw-600">Vê a agenda toda</span>
@@ -116,7 +116,7 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
   if (!aberto) {
     return (
       <div style={destaque ? caixa : { marginTop: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 13 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 15 }}>
           <ShieldOff size={16} style={{ color: 'var(--text-sec)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="fw-600">Acesso ao painel: sem acesso</div>

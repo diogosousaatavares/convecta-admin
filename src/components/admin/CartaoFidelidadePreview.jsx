@@ -70,7 +70,7 @@ export default function CartaoFidelidadePreview({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div>
           <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 700, color: corTitulo }}>Cartão de Fidelidade</div>
-          <div style={{ fontSize: 12.5, color: marca, marginTop: 3, fontWeight: 500 }}>
+          <div style={{ fontSize: 14.5, color: marca, marginTop: 3, fontWeight: 500 }}>
             {feitos}/{n} cortes · {nome}
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function CartaoFidelidadePreview({
             <div key={i} style={{
               aspectRatio: '1', borderRadius: 6,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 11, fontWeight: 800,
+              fontSize: 13.5, fontWeight: 800,
               background: cheio
                 ? (doPremio ? 'linear-gradient(160deg,#4ADE80,#22C55E)' : `linear-gradient(160deg, ${marcaClaro}, ${marca})`)
                 : doPremio ? 'rgba(34,197,94,0.12)' : `rgba(${marcaRgb},${claro ? 0.14 : 0.1})`,
@@ -106,7 +106,7 @@ export default function CartaoFidelidadePreview({
         <div style={{ height: '100%', width: `${(feitos / n) * 100}%`, borderRadius: 999, background: `linear-gradient(90deg, ${marcaClaro}, ${marca})` }} />
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: corRodape, lineHeight: 1.4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13.5, color: corRodape, lineHeight: 1.4 }}>
         <CalendarClock size={14} style={{ color: '#4ADE80', flexShrink: 0 }} />
         <span>
           A cada {n} cortes, ganhas {nomeDoPremio.toLowerCase()}.{' '}

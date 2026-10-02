@@ -69,7 +69,7 @@ export default class Blindagem extends React.Component {
           <div style={{ fontSize: 19, fontWeight: 600, marginBottom: 10 }}>
             Alguma coisa correu mal aqui
           </div>
-          <p style={{ fontSize: 14.5, lineHeight: 1.6, color: 'var(--text-sec, #8A8272)', margin: '0 0 20px' }}>
+          <p style={{ fontSize: 16, lineHeight: 1.6, color: 'var(--text-sec, #8A8272)', margin: '0 0 20px' }}>
             Não foi por sua causa. Volte a carregar a página — normalmente é
             quanto basta.
           </p>
@@ -82,7 +82,7 @@ export default class Blindagem extends React.Component {
             }}>
             Voltar a carregar
           </button>
-          <div style={{ marginTop: 18, fontSize: 11.5, color: 'var(--text-ter, #524F49)', wordBreak: 'break-word' }}>
+          <div style={{ marginTop: 18, fontSize: 14, color: 'var(--text-ter, #524F49)', wordBreak: 'break-word' }}>
             {String(this.state.erro?.message || this.state.erro).slice(0, 160)}
           </div>
         </div>

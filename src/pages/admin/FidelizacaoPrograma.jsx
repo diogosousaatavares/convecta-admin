@@ -116,7 +116,7 @@ export default function FidelizacaoPrograma() {
         </Card>
 
         <div style={{ flex: '1 1 260px', minWidth: 260 }}>
-          <div className="text-sec text-sm mb-12" style={{ textTransform: 'uppercase', letterSpacing: '.06em', fontSize: 11 }}>
+          <div className="text-sec text-sm mb-12" style={{ textTransform: 'uppercase', letterSpacing: '.06em', fontSize: 13.5 }}>
             Como o cliente o vê
           </div>
           {ativo ? (

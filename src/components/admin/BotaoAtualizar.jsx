@@ -36,7 +36,7 @@ export default function BotaoAtualizar() {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} data-tour="atualizar">
-      <span className="text-sec" style={{ fontSize: 12 }}>{hMuito(ultimoRefresco())}</span>
+      <span className="text-sec" style={{ fontSize: 14 }}>{hMuito(ultimoRefresco())}</span>
       <button
         type="button"
         onClick={atualizarAgora}
@@ -44,7 +44,7 @@ export default function BotaoAtualizar() {
         title="Ir buscar as marcações mais recentes"
         aria-label="Atualizar"
         className="ag-side-btn"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, opacity: ocupado ? 0.6 : 1 }}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15, opacity: ocupado ? 0.6 : 1 }}
       >
         <RefreshCw size={14} style={ocupado ? { animation: 'girar 0.9s linear infinite' } : undefined} />
         {ocupado ? 'A atualizar…' : 'Atualizar'}

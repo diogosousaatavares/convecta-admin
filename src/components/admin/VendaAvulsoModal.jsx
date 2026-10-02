@@ -169,7 +169,7 @@ export default function VendaAvulsoModal({ open, onClose }) {
         </div>
 
         {items.length > 0 && <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
-          {items.map(item => <div key={item.productId} className="flex justify-between items-center" style={{ padding: '6px 10px', background: 'var(--elevated)', borderRadius: 8, fontSize: 13 }}>
+          {items.map(item => <div key={item.productId} className="flex justify-between items-center" style={{ padding: '6px 10px', background: 'var(--elevated)', borderRadius: 8, fontSize: 15 }}>
             <span className="fw-600">{item.name}</span><span className="text-sec" style={{ marginLeft: 8 }}>×{item.qty}</span><span style={{ marginLeft: 'auto', marginRight: 8 }}>{formatPrice(item.subtotal)}</span>
             <button onClick={() => removeItem(item.productId)} aria-label={`Remover ${item.name}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-sec)', display: 'flex', padding: 2 }}><X size={13} /></button>
           </div>)}

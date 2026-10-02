@@ -473,7 +473,7 @@ export default function AdminLayout({ children }) {
         {!emDemo && <TourDemo passos={PASSOS_BARBEIRO} chave="convecta_visita_barbeiro" ativo={visitaBarbeiro} />}
         {emDemo && (
           <div style={{
-            background: 'var(--gold)', color: 'var(--on-gold)', fontSize: 13, fontWeight: 700,
+            background: 'var(--gold)', color: 'var(--on-gold)', fontSize: 15, fontWeight: 700,
             textAlign: 'center', padding: '7px 12px', borderRadius: 8, marginBottom: 14,
           }}>
             Demonstração — mexe à vontade. Os dados voltam ao início de hora a hora.

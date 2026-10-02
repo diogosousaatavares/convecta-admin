@@ -74,7 +74,7 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
         <Bell size={16} />
         {total > 0 && (
           <span style={{ position: 'absolute', top: 2, right: 2, minWidth: 15, height: 15, padding: '0 4px', borderRadius: 8,
-            background: 'var(--gold)', color: 'var(--on-gold)', fontSize: 10, fontWeight: 700, lineHeight: '15px', textAlign: 'center' }}>
+            background: 'var(--gold)', color: 'var(--on-gold)', fontSize: 13, fontWeight: 700, lineHeight: '15px', textAlign: 'center' }}>
             {total > 9 ? '9+' : total}
           </span>
         )}
@@ -84,19 +84,19 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
         <div className="sino-caixa" style={{ zIndex: 60,
           background: 'var(--surface, #16130F)', border: '1px solid var(--border)', borderRadius: 14,
           boxShadow: '0 22px 50px rgba(0,0,0,.20)', overflow: 'hidden' }}>
-          <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 14 }}>Avisos</div>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 15.5 }}>Avisos</div>
           <div style={{ maxHeight: 'min(420px, 70dvh)', overflowY: 'auto' }}>
             {porConfirmar > 0 && (
               <button onClick={() => ir('/admin/marcacoes')} style={linha(true)}>
                 <span style={bola('#F59E0B')}><Clock size={15} /></span>
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <b style={{ fontSize: 13 }}>{porConfirmar} marcaç{porConfirmar === 1 ? 'ão' : 'ões'} por confirmar</b>
-                  <small style={{ display: 'block', color: 'var(--text-sec)', fontSize: 12 }}>Carrega para confirmar.</small>
+                  <b style={{ fontSize: 15 }}>{porConfirmar} marcaç{porConfirmar === 1 ? 'ão' : 'ões'} por confirmar</b>
+                  <small style={{ display: 'block', color: 'var(--text-sec)', fontSize: 14 }}>Carrega para confirmar.</small>
                 </span>
               </button>
             )}
             {avisos.length === 0 && porConfirmar === 0 && (
-              <div style={{ padding: '28px 16px', textAlign: 'center', color: 'var(--text-sec)', fontSize: 13 }}>
+              <div style={{ padding: '28px 16px', textAlign: 'center', color: 'var(--text-sec)', fontSize: 15 }}>
                 Ainda não há avisos. Quando entrar uma marcação, aparece aqui.
               </div>
             )}
@@ -106,10 +106,10 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
                 <button key={a.id} onClick={() => ir(a.url)} style={linha(!a.lido)}>
                   <span style={bola(COR[a.tipo] || '#C9A227')}><Icone size={15} /></span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <b style={{ fontSize: 13, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.titulo}</b>
-                    {a.mensagem && <small style={{ display: 'block', color: 'var(--text-sec)', fontSize: 12, lineHeight: 1.4 }}>{a.mensagem}</small>}
+                    <b style={{ fontSize: 15, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.titulo}</b>
+                    {a.mensagem && <small style={{ display: 'block', color: 'var(--text-sec)', fontSize: 14, lineHeight: 1.4 }}>{a.mensagem}</small>}
                   </span>
-                  <small style={{ color: 'var(--text-sec)', fontSize: 11, flexShrink: 0 }}>{haQuanto(a.created_at)}</small>
+                  <small style={{ color: 'var(--text-sec)', fontSize: 13.5, flexShrink: 0 }}>{haQuanto(a.created_at)}</small>
                 </button>
               );
             })}

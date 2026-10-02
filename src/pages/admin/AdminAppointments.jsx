@@ -46,12 +46,7 @@ function InterruptorAutomatico() {
           <Zap size={18} />
         </span>
         <div style={{ flex: 1, minWidth: 180 }}>
-          <div className="fw-600 text-sm">Aceitar marcações automaticamente</div>
-          <div className="text-sec" style={{ fontSize: 12, marginTop: 2, lineHeight: 1.5 }}>
-            {ligado
-              ? 'As marcações entram já confirmadas. Continua a receber o aviso no telemóvel — só não tem de aceitar.'
-              : 'Cada marcação fica pendente até a confirmar. Ligue se não quiser aceitar uma a uma.'}
-          </div>
+          <div className="fw-600" style={{ fontSize: 15.5 }}>Aceitar marcações automaticamente</div>
         </div>
         <button type="button" onClick={trocar} disabled={aGravar}
           role="switch" aria-checked={ligado}
@@ -176,14 +171,11 @@ export default function AdminAppointments() {
       </div>
       <PageInfo page="marcacoes" />
 
-      <div className="flex items-center gap-8 mb-16" style={{ marginBottom: 16 }}>
-        <span className="text-sec text-sm">Período:</span>
+      <div className="filtros-tira">
         {SCOPES.map(s => (
           <button key={s.key} className={`chip ${scope === s.key ? 'active' : ''}`} onClick={() => setScope(s.key)}>{s.label}</button>
         ))}
-      </div>
-      <div className="flex items-center gap-8 mb-16" style={{ marginBottom: 16 }}>
-        <span className="text-sec text-sm">Estado:</span>
+        <span className="filtros-risco" aria-hidden="true" />
         {FILTERS.map(f => (
           <button key={f.key} className={`chip ${filter === f.key ? 'active' : ''}`} onClick={() => setFilter(f.key)}>{f.label}</button>
         ))}
@@ -227,7 +219,7 @@ export default function AdminAppointments() {
                       {(() => { const mb = dataService.mbwayDe?.(a.id); return mb ? <Badge variant={mb.estado === 'pago' ? 'success' : 'warning'} style={{ marginLeft: 6 }}>{mb.estado === 'pago' ? 'Pago MB WAY' : 'MB WAY por confirmar'}</Badge> : null; })()}
                       {/* A avaliação que o cliente deixou deste corte. */}
                       {avaliacaoDe(a.id) && (
-                        <span title={avaliacaoDe(a.id).comment || 'Sem comentário'} style={{ marginLeft: 6, display: 'inline-flex', alignItems: 'center', gap: 2, color: 'var(--gold-tinta)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        <span title={avaliacaoDe(a.id).comment || 'Sem comentário'} style={{ marginLeft: 6, display: 'inline-flex', alignItems: 'center', gap: 2, color: 'var(--gold-tinta)', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}>
                           <Star size={12} fill="currentColor" />{avaliacaoDe(a.id).rating}
                         </span>
                       )}

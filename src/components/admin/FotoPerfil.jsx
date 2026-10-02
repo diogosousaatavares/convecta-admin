@@ -141,12 +141,12 @@ export default function FotoPerfil({ valor, nome, aEnviar, onEscolher }) {
         {valor
           ? <img src={valor} alt={`Fotografia de ${nome || 'profissional'}`} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, opacity: aEnviar ? .5 : 1 }} />
           : <span style={{ width: 64, height: 64, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'var(--elevated)', flexShrink: 0 }}><Upload size={22} /></span>}
-        <span style={{ fontSize: 13.5, lineHeight: 1.45 }}>
+        <span style={{ fontSize: 15, lineHeight: 1.45 }}>
           <b>{aEnviar ? 'A enviar…' : valor ? 'Trocar fotografia' : 'Adicionar fotografia'}</b><br />
           <span className="text-sec">Arrasta uma imagem para aqui, ou toca para escolher.</span>
         </span>
       </div>
-      {erro && <div style={{ color: 'var(--error)', fontSize: 12.5, marginTop: 6 }}>{erro}</div>}
+      {erro && <div style={{ color: 'var(--error)', fontSize: 14.5, marginTop: 6 }}>{erro}</div>}
       <input ref={input} type="file" accept="image/*" style={{ display: 'none' }}
         onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; carregar(f); }} />
     </div>

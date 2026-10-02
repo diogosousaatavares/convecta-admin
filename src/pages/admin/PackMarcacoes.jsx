@@ -152,7 +152,7 @@ export default function PackMarcacoes() {
                         }} title={feito ? 'Feito' : m ? `Marcado · ${formatDateShortNum(m.date)} ${m.startTime}` : 'Por marcar'}>
                           {feito && <Check size={14} strokeWidth={3} />}
                         </div>
-                        <span className="text-sec" style={{ fontSize: 10, textAlign: 'center', whiteSpace: 'nowrap' }}>{m ? formatDateShortNum(m.date) : ' '}</span>
+                        <span className="text-sec" style={{ fontSize: 13, textAlign: 'center', whiteSpace: 'nowrap' }}>{m ? formatDateShortNum(m.date) : ' '}</span>
                       </div>
                     );
                   })}

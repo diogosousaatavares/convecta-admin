@@ -67,8 +67,8 @@ export default function GuardarNoEcra() {
   const Passo = ({ n, icone: Icone, children }) => (
     <li style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '10px 0' }}>
       <span style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--gold)', color: '#100E0B', fontWeight: 800,
-        fontSize: 13, display: 'grid', placeItems: 'center', flexShrink: 0 }}>{n}</span>
-      <span style={{ flex: 1, fontSize: 14.5, lineHeight: 1.5, color: 'var(--text)' }}>{children}</span>
+        fontSize: 15, display: 'grid', placeItems: 'center', flexShrink: 0 }}>{n}</span>
+      <span style={{ flex: 1, fontSize: 16, lineHeight: 1.5, color: 'var(--text)' }}>{children}</span>
       {Icone && <Icone size={22} style={{ color: 'var(--gold-tinta)', flexShrink: 0, marginTop: 2 }} />}
     </li>
   );
@@ -83,7 +83,7 @@ export default function GuardarNoEcra() {
           <h2 id="guardar-titulo" style={{ margin: 0, fontSize: 19, flex: 1 }}>Guarda o painel no ecrã principal</h2>
           <button onClick={adiar} aria-label="Fechar" style={{ background: 'none', border: 'none', color: 'var(--text-sec)', cursor: 'pointer', padding: 4 }}><X size={20} /></button>
         </div>
-        <p style={{ margin: '0 0 6px', fontSize: 14, lineHeight: 1.55, color: 'var(--text-sec)' }}>
+        <p style={{ margin: '0 0 6px', fontSize: 15.5, lineHeight: 1.55, color: 'var(--text-sec)' }}>
           É assim que o teu telemóvel <b style={{ color: 'var(--text)' }}>toca quando entra uma marcação</b>.
           {iOS
             ? ' No iPhone, sem guardar no ecrã principal não recebes notificações nenhumas.'
@@ -113,7 +113,7 @@ export default function GuardarNoEcra() {
         )}
 
         {iOS && !/Safari/i.test(navigator.userAgent.replace(/CriOS|FxiOS|EdgiOS/g, '')) && (
-          <p style={{ fontSize: 12.5, color: 'var(--warning, #F59E0B)', margin: '6px 0 0' }}>
+          <p style={{ fontSize: 14.5, color: 'var(--warning, #F59E0B)', margin: '6px 0 0' }}>
             Atenção: isto só funciona no <b>Safari</b>. Se abriste noutro browser, copia o endereço e abre-o no Safari.
           </p>
         )}

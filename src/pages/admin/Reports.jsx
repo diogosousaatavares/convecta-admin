@@ -178,8 +178,8 @@ export default function Reports() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--linha-grafico)" />
-              <XAxis dataKey="label" tick={{ fill: 'var(--text-ter)', fontSize: 11 }} interval="preserveStartEnd" minTickGap={20} />
-              <YAxis tick={{ fill: 'var(--text-ter)', fontSize: 11 }} tickFormatter={(v) => `${v}€`} />
+              <XAxis dataKey="label" tick={{ fill: 'var(--text-ter)', fontSize: 13.5 }} interval="preserveStartEnd" minTickGap={20} />
+              <YAxis tick={{ fill: 'var(--text-ter)', fontSize: 13.5 }} tickFormatter={(v) => `${v}€`} />
               <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)' }} formatter={(v) => formatPrice(v)} />
               <Area type="monotone" dataKey="receita" stroke={GOLD} strokeWidth={2} fill="url(#goldGrad)" />
             </AreaChart>
@@ -198,8 +198,8 @@ export default function Reports() {
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={byBarber} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--linha-grafico)" horizontal={false} />
-                  <XAxis type="number" tick={{ fill: 'var(--text-ter)', fontSize: 11 }} tickFormatter={(v) => `${v}€`} />
-                  <YAxis type="category" dataKey="name" tick={{ fill: 'var(--text-ter)', fontSize: 12 }} width={70} />
+                  <XAxis type="number" tick={{ fill: 'var(--text-ter)', fontSize: 13.5 }} tickFormatter={(v) => `${v}€`} />
+                  <YAxis type="category" dataKey="name" tick={{ fill: 'var(--text-ter)', fontSize: 14 }} width={70} />
                   <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)' }} formatter={(v) => formatPrice(v)} />
                   <Bar dataKey="receita" fill={GOLD} radius={[0, 6, 6, 0]} barSize={20} />
                 </BarChart>
@@ -221,7 +221,7 @@ export default function Reports() {
                     {statusDist.map((e, i) => <Cell key={i} fill={e.color} stroke="var(--surface)" strokeWidth={2} />)}
                   </Pie>
                   <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)' }} />
-                  <Legend wrapperStyle={{ fontSize: 12, color: 'var(--text-ter)' }} />
+                  <Legend wrapperStyle={{ fontSize: 14, color: 'var(--text-ter)' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -239,8 +239,8 @@ export default function Reports() {
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={byService} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--linha-grafico)" />
-                <XAxis dataKey="name" tick={{ fill: 'var(--text-ter)', fontSize: 11 }} interval={0} angle={-12} textAnchor="end" height={50} />
-                <YAxis tick={{ fill: 'var(--text-ter)', fontSize: 11 }} tickFormatter={(v) => `${v}€`} />
+                <XAxis dataKey="name" tick={{ fill: 'var(--text-ter)', fontSize: 13.5 }} interval={0} angle={-12} textAnchor="end" height={50} />
+                <YAxis tick={{ fill: 'var(--text-ter)', fontSize: 13.5 }} tickFormatter={(v) => `${v}€`} />
                 <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)' }} formatter={(v) => formatPrice(v)} />
                 {byService.map((_, i) => <Bar key={i} dataKey="receita" fill={PALETTE[i % PALETTE.length]} radius={[6,6,0,0]} barSize={36} />)}
               </BarChart>

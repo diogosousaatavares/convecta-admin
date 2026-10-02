@@ -131,7 +131,7 @@ export default function ReporSenha() {
           <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-1px', color: '#fff' }}>
             Convecta<span style={{ color: 'var(--gold, #C9A84C)' }}>.</span>
           </div>
-          <div style={{ fontSize: 12, color: '#666', marginTop: 6, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 14, color: '#666', marginTop: 6, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             Painel de Administração
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function ReporSenha() {
           {stage === 'waiting' && (
             <div style={{ textAlign: 'center', padding: '16px 0' }}>
               <div style={{ width: 36, height: 36, border: '3px solid #333', borderTopColor: 'var(--gold, #C9A84C)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 20px' }} />
-              <div style={{ color: '#aaa', fontSize: 14 }}>A verificar o link de recuperação…</div>
+              <div style={{ color: '#aaa', fontSize: 15.5 }}>A verificar o link de recuperação…</div>
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
           )}
@@ -149,7 +149,7 @@ export default function ReporSenha() {
           {stage === 'confirmar' && (
             <div style={{ textAlign: 'center', padding: '8px 0' }}>
               <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Escolher a palavra-passe</div>
-              <div style={{ fontSize: 13, color: '#666', marginBottom: 24 }}>Carrega para continuar. Este passo só funciona uma vez.</div>
+              <div style={{ fontSize: 15, color: '#666', marginBottom: 24 }}>Carrega para continuar. Este passo só funciona uma vez.</div>
               <button className="btn btn-primary" disabled={loading} style={{ width: '100%', justifyContent: 'center', height: 44 }} onClick={confirmarToken}>{loading ? 'A confirmar…' : 'Continuar'} <ArrowRight size={16} /></button>
             </div>
           )}
@@ -159,18 +159,18 @@ export default function ReporSenha() {
             <div style={{ textAlign: 'center', padding: '8px 0' }}>
               <AlertCircle size={40} style={{ color: '#f87171', margin: '0 auto 16px', display: 'block' }} />
               <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Link inválido ou expirado</div>
-              <div style={{ fontSize: 13, color: '#666', marginBottom: 20 }}>
+              <div style={{ fontSize: 15, color: '#666', marginBottom: 20 }}>
                 {motivo || 'Este link já não é válido. Cada link só serve uma vez e tem prazo.'} Pede um novo aqui: chega por email em segundos.
               </div>
               {pedido ? (
-                <div style={{ fontSize: 13, color: '#166534', background: '#dcfce7', padding: '10px 12px', borderRadius: 8, marginBottom: 16 }}>Enviado. Vê o email {emailNovo} (e o spam) e abre o link mais recente.</div>
+                <div style={{ fontSize: 15, color: '#166534', background: '#dcfce7', padding: '10px 12px', borderRadius: 8, marginBottom: 16 }}>Enviado. Vê o email {emailNovo} (e o spam) e abre o link mais recente.</div>
               ) : (
                 <form onSubmit={async (e) => { e.preventDefault(); setLoading(true);
                   const { error: err } = await supabase.auth.resetPasswordForEmail(emailNovo.trim(), { redirectTo: `${window.location.origin}/repor-senha` });
                   setLoading(false); if (err) { setError(err.message); return; } setPedido(true); }}
                   style={{ display: 'grid', gap: 10, marginBottom: 16 }}>
                   <input className="input" type="email" required placeholder="o teu email" value={emailNovo} onChange={e => setEmailNovo(e.target.value)} style={{ height: 44 }} />
-                  {error && <div style={{ fontSize: 13, color: '#b91c1c' }}>{error}</div>}
+                  {error && <div style={{ fontSize: 15, color: '#b91c1c' }}>{error}</div>}
                   <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%', justifyContent: 'center', height: 44 }}>{loading ? 'A enviar…' : 'Enviar novo link'}</button>
                 </form>
               )}
@@ -189,11 +189,11 @@ export default function ReporSenha() {
             <>
               <div style={{ marginBottom: 28 }}>
                 <h1 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 4px' }}>{conviteInfo ? `Olá${conviteInfo.nome ? ' ' + String(conviteInfo.nome).split(' ')[0] : ''}!` : 'Nova palavra-passe'}</h1>
-                <p style={{ fontSize: 13, color: '#666', margin: 0 }}>{conviteInfo ? `Escolhe a tua palavra-passe para entrar na agenda da ${conviteInfo.barbearia || 'barbearia'} com o email ${conviteInfo.email}.` : 'Escolhe uma nova palavra-passe segura'}</p>
+                <p style={{ fontSize: 15, color: '#666', margin: 0 }}>{conviteInfo ? `Escolhe a tua palavra-passe para entrar na agenda da ${conviteInfo.barbearia || 'barbearia'} com o email ${conviteInfo.email}.` : 'Escolhe uma nova palavra-passe segura'}</p>
               </div>
               <form onSubmit={submit}>
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#aaa', marginBottom: 6, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#aaa', marginBottom: 6, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                     Nova palavra-passe
                   </label>
                   <div style={{ position: 'relative' }}>
@@ -217,7 +217,7 @@ export default function ReporSenha() {
                   </div>
                 </div>
                 <div style={{ marginBottom: 24 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#aaa', marginBottom: 6, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#aaa', marginBottom: 6, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                     Confirmar palavra-passe
                   </label>
                   <input
@@ -230,7 +230,7 @@ export default function ReporSenha() {
                   />
                 </div>
                 {error && (
-                  <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#f87171', marginBottom: 20 }}>
+                  <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 8, padding: '10px 14px', fontSize: 15, color: '#f87171', marginBottom: 20 }}>
                     {error}
                   </div>
                 )}
@@ -252,7 +252,7 @@ export default function ReporSenha() {
             <div style={{ textAlign: 'center', padding: '8px 0' }}>
               <CheckCircle size={40} style={{ color: '#22c55e', margin: '0 auto 16px', display: 'block' }} />
               <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Palavra-passe alterada!</div>
-              <div style={{ fontSize: 13, color: '#666' }}>A redirecionar para o login…</div>
+              <div style={{ fontSize: 15, color: '#666' }}>A redirecionar para o login…</div>
             </div>
           )}
         </div>

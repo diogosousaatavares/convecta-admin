@@ -44,7 +44,7 @@ export default function FormularioDemo({ origem = 'site', titulo = 'Antes de ent
 
   const campo = (rotulo, k, tipo = 'text', extra = {}) => (
     <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-sec, #8A8272)', marginBottom: 5 }}>{rotulo}</span>
+      <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-sec, #8A8272)', marginBottom: 5 }}>{rotulo}</span>
       <input type={tipo} value={f[k]} onChange={set(k)} disabled={aEnviar} {...extra}
         style={{ width: '100%', boxSizing: 'border-box', padding: '11px 13px', borderRadius: 10,
           border: '1px solid var(--border, #2A2620)', background: 'var(--elevated, #1C1915)',
@@ -59,7 +59,7 @@ export default function FormularioDemo({ origem = 'site', titulo = 'Antes de ent
         style={{ width: '100%', maxWidth: 420, background: 'var(--surface, #16130F)', border: '1px solid var(--border, #2A2620)',
           borderRadius: 16, padding: 24, boxSizing: 'border-box', maxHeight: '92vh', overflowY: 'auto' }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text, #EDE8DF)', marginBottom: 6, fontFamily: 'var(--font-head, inherit)' }}>{titulo}</div>
-        <div style={{ fontSize: 13.5, color: 'var(--text-sec, #8A8272)', lineHeight: 1.55, marginBottom: 18 }}>
+        <div style={{ fontSize: 15, color: 'var(--text-sec, #8A8272)', lineHeight: 1.55, marginBottom: 18 }}>
           Diz-nos quem és para podermos falar contigo depois. Trinta segundos, e entras.
         </div>
 
@@ -69,7 +69,7 @@ export default function FormularioDemo({ origem = 'site', titulo = 'Antes de ent
         {campo('Email', 'email', 'email', { autoComplete: 'email', inputMode: 'email' })}
 
         {erro && <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(239,68,68,.12)',
-          border: '1px solid rgba(239,68,68,.35)', color: 'var(--error)', fontSize: 13, marginBottom: 12 }}>{erro}</div>}
+          border: '1px solid rgba(239,68,68,.35)', color: 'var(--error)', fontSize: 15, marginBottom: 12 }}>{erro}</div>}
 
         <button type="submit" disabled={aEnviar}
           style={{ width: '100%', padding: '13px 16px', borderRadius: 11, border: 0, cursor: aEnviar ? 'wait' : 'pointer',
@@ -77,7 +77,7 @@ export default function FormularioDemo({ origem = 'site', titulo = 'Antes de ent
             opacity: aEnviar ? .65 : 1 }}>
           {aEnviar ? 'A entrar…' : 'Entrar na demonstração'}
         </button>
-        <div style={{ fontSize: 11.5, color: 'var(--text-ter, #5E584B)', textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 14, color: 'var(--text-ter, #5E584B)', textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
           Usamos estes dados só para te contactar sobre a Convecta.
         </div>
       </form>

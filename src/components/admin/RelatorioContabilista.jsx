@@ -54,7 +54,7 @@ export default function RelatorioContabilista() {
   const linha = (rotulo, valor, forte = false) => (
     <div key={rotulo} style={{
       display: 'flex', justifyContent: 'space-between', padding: '7px 0',
-      borderBottom: '1px solid var(--border)', fontSize: 13,
+      borderBottom: '1px solid var(--border)', fontSize: 15,
     }}>
       <span className="text-sec">{rotulo}</span>
       <span className={forte ? 'fw-600 text-gold' : 'fw-600'}>{valor}</span>

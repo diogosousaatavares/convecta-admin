@@ -43,7 +43,7 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
           <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
             {semHorarioNenhum ? 'Ainda não definiste o horário da barbearia.' : 'Fechado neste dia.'}
           </div>
-          <div style={{ fontSize: 13, marginBottom: 18 }}>
+          <div style={{ fontSize: 15, marginBottom: 18 }}>
             {semHorarioNenhum
               ? 'Sem horário, os teus clientes não conseguem marcar.'
               : 'Podes abrir este dia no horário da barbearia.'}
@@ -124,7 +124,7 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                         justifyContent: 'center',
                       }}
                     >
-                      <span style={{ fontSize: 10, color: 'var(--text-ter)', background: 'var(--surface)', padding: '1px 6px', borderRadius: 4, opacity: 0.9 }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-ter)', background: 'var(--surface)', padding: '1px 6px', borderRadius: 4, opacity: 0.9 }}>
                         {b.start}–{b.end}
                       </span>
                     </div>
@@ -170,13 +170,13 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                       ) : (
                         <>
                           <div className="ag-b-time">
-                            {a.usaPack && <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.06em', background: 'var(--gold)', color: 'var(--on-gold)', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
+                            {a.usaPack && <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.06em', background: 'var(--gold)', color: 'var(--on-gold)', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle' }}>PACK</span>}
                             {(() => {
                               const mb = dataService.mbwayDe?.(a.id);
                               if (!mb) return null;
                               return mb.estado === 'pago'
-                                ? <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#16a34a', color: '#fff' }}>MB WAY ✓</span>
-                                : <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#f59e0b', color: '#1a1a1a' }} title="O cliente diz que pagou por MB WAY — confirma em MB WAY">MB WAY ?</span>;
+                                ? <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#16a34a', color: '#fff' }}>MB WAY ✓</span>
+                                : <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.04em', borderRadius: 4, padding: '1px 5px', marginRight: 5, verticalAlign: 'middle', background: '#f59e0b', color: '#1a1a1a' }} title="O cliente diz que pagou por MB WAY — confirma em MB WAY">MB WAY ?</span>;
                             })()}
                             {a.startTime} · {svc?.name}{curto ? ' ·' : ''}
                           </div>

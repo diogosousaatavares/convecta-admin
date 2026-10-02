@@ -347,11 +347,11 @@ export default function Subscricao() {
     return (
       <AdminPage title="Subscrição" subtitle="O teu plano na Convecta.">
         <Card className="card-pad" style={{ maxWidth: 720 }}>
-          <div className="text-sec" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: .8 }}>Estado</div>
+          <div className="text-sec" style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: .8 }}>Estado</div>
           <div className="fw-600" style={{ fontSize: 20, color: ESTADOS.gratis.cor, marginTop: 4 }}>
             {ESTADOS.gratis.texto}
           </div>
-          <p className="text-sec" style={{ fontSize: 14, lineHeight: 1.6, margin: '12px 0 0' }}>
+          <p className="text-sec" style={{ fontSize: 15.5, lineHeight: 1.6, margin: '12px 0 0' }}>
             A tua barbearia não paga mensalidade. Não precisas de registar cartão —
             as marcações estão abertas e tens o painel completo.
           </p>
@@ -387,7 +387,7 @@ export default function Subscricao() {
             <AlertTriangle size={18} style={{ color: 'var(--error, #EF4444)', flexShrink: 0, marginTop: 2 }} />
             <div>
               <div className="fw-600 text-sm">Não foi possível ler a subscrição</div>
-              <div className="text-sec" style={{ fontSize: 12, marginTop: 2 }}>{erro}</div>
+              <div className="text-sec" style={{ fontSize: 14, marginTop: 2 }}>{erro}</div>
             </div>
           </div>
         </Card>
@@ -423,11 +423,11 @@ export default function Subscricao() {
         <Card className="card-pad" style={{ maxWidth: 720, marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <div>
-              <div className="text-sec" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: .8 }}>Estado</div>
+              <div className="text-sec" style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: .8 }}>Estado</div>
               <div className="fw-600" style={{ fontSize: 20, color: sub.cancelaNoFim ? 'var(--text-sec)' : estado.cor, marginTop: 4 }}>
                 {sub.cancelaNoFim ? 'A terminar' : estado.texto}
               </div>
-              <div className="text-sec" style={{ fontSize: 13, marginTop: 6 }}>
+              <div className="text-sec" style={{ fontSize: 15, marginTop: 6 }}>
                 Plano <strong style={{ color: 'var(--text)' }}>{NOMES_DOS_PLANOS[sub.plano] || sub.plano || '—'}</strong>
                 {sub.periodo ? ` · ${sub.periodo}` : ''}
                 {sub.limiteProfissionais ? ` · até ${sub.limiteProfissionais} profissionais` : ''}
@@ -442,7 +442,7 @@ export default function Subscricao() {
                 {aAbrir === 'portal' ? 'A abrir…' : 'Gerir subscrição'}
               </Button>
             ) : (
-              <div className="text-sec" style={{ fontSize: 12, maxWidth: 260, textAlign: 'right' }}>
+              <div className="text-sec" style={{ fontSize: 14, maxWidth: 260, textAlign: 'right' }}>
                 Esta barbearia foi criada antes dos pagamentos automáticos.
                 A subscrição é tratada connosco directamente.
               </div>
@@ -460,7 +460,7 @@ export default function Subscricao() {
                 {(sub.fimDoTeste || sub.fimDoPeriodo)
                   ? <> A barbearia continua a receber marcações até <strong>{dataCurta(sub.fimDoTeste || sub.fimDoPeriodo)}</strong>, e nesse dia fecha.</>
                   : <> A barbearia continua a funcionar até ao fim do período pago.</>}
-                <div className="text-sec" style={{ fontSize: 12, marginTop: 4 }}>
+                <div className="text-sec" style={{ fontSize: 14, marginTop: 4 }}>
                   Mudaste de ideias? Em «Gerir subscrição» retomas, e fica tudo como estava.
                 </div>
               </div>
@@ -476,7 +476,7 @@ export default function Subscricao() {
                 A experiência acaba a <strong>{dataCurta(sub.fimDoTeste)}</strong>
                 {diasAte(sub.fimDoTeste) >= 0 ? ` (faltam ${diasAte(sub.fimDoTeste)} dias)` : ''}.
                 Se não cancelares até lá, o cartão é cobrado nesse dia.
-                <div className="text-sec" style={{ fontSize: 12, marginTop: 4 }}>
+                <div className="text-sec" style={{ fontSize: 14, marginTop: 4 }}>
                   Cancelar durante a experiência não custa nada — não é cobrado nenhum valor.
                 </div>
               </div>
@@ -484,7 +484,7 @@ export default function Subscricao() {
           )}
 
           {!sub.cancelaNoFim && sub.estado === 'activa' && sub.fimDoPeriodo && (
-            <div className="text-sec" style={{ fontSize: 13, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+            <div className="text-sec" style={{ fontSize: 15, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
               Próxima cobrança a <strong style={{ color: 'var(--text)' }}>{dataCurta(sub.fimDoPeriodo)}</strong>.
             </div>
           )}
@@ -495,7 +495,7 @@ export default function Subscricao() {
               <div className="text-sm">
                 O último pagamento não passou. <strong>A barbearia continua a funcionar normalmente</strong> —
                 vamos tentar cobrar outra vez nos próximos dias.
-                <div className="text-sec" style={{ fontSize: 12, marginTop: 4 }}>
+                <div className="text-sec" style={{ fontSize: 14, marginTop: 4 }}>
                   Se o cartão expirou ou mudou, actualiza-o em «Gerir subscrição» e fica resolvido.
                 </div>
               </div>
@@ -508,7 +508,7 @@ export default function Subscricao() {
       {!precisaDeCartao && sub?.temCliente && (
         <Card className="card-pad" style={{ maxWidth: 720, marginBottom: 16 }}>
           <div className="sub-titulo"><Receipt size={18} /> Pagamentos</div>
-          <div className="text-sec" style={{ fontSize: 12, marginTop: 4 }}>
+          <div className="text-sec" style={{ fontSize: 14, marginTop: 4 }}>
             Os recibos do Stripe, do mais recente para o mais antigo.
           </div>
           {!pagamentos && <div style={{ marginTop: 12 }}><Spinner label="A ler os pagamentos…" /></div>}
@@ -578,7 +578,7 @@ export default function Subscricao() {
                 <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
                   {['mensal', 'anual'].map(p => (
                     <button key={p} onClick={() => setPeriodo(p)} className="fw-600" style={{
-                      padding: '8px 16px', borderRadius: 999, fontSize: 13, cursor: 'pointer',
+                      padding: '8px 16px', borderRadius: 999, fontSize: 15, cursor: 'pointer',
                       border: `1px solid ${periodo === p ? 'var(--gold)' : 'var(--border)'}`,
                       background: periodo === p ? 'var(--gold)' : 'transparent',
                       color: periodo === p ? '#111' : 'var(--text-sec)',
@@ -602,10 +602,10 @@ export default function Subscricao() {
                       <div key={plano.id} className={`sub-card sub-plano${teu ? ' teu' : ''}`}>
                         {teu && <div className="sub-plano-etq">O teu plano</div>}
                         <div className="fw-600" style={{ fontSize: 17 }}>{plano.nome}</div>
-                        {plano.descricao && <div className="text-sec" style={{ fontSize: 12, marginTop: 6, lineHeight: 1.5 }}>{plano.descricao}</div>}
+                        {plano.descricao && <div className="text-sec" style={{ fontSize: 14, marginTop: 6, lineHeight: 1.5 }}>{plano.descricao}</div>}
                         <div style={{ margin: '14px 0 12px' }}>
                           <span className="fw-600" style={{ fontSize: 28 }}>{euros(preco.centimos)}</span>
-                          <span className="text-sec" style={{ fontSize: 13 }}>{ehAnual ? ' /ano' : ' /mês'}</span>
+                          <span className="text-sec" style={{ fontSize: 15 }}>{ehAnual ? ' /ano' : ' /mês'}</span>
                         </div>
                         {plano.caracteristicas?.length > 0 && (
                           <div style={{ margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>

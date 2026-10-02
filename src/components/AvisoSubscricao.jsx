@@ -101,14 +101,14 @@ export default function AvisoSubscricao() {
     }}>
       <Icone size={20} style={{ color: aviso.cor, flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 220 }}>
-        <div className="fw-600" style={{ fontSize: 13 }}>{aviso.titulo}</div>
-        <div className="text-sec" style={{ fontSize: 12, marginTop: 2, lineHeight: 1.45 }}>{aviso.texto}</div>
+        <div className="fw-600" style={{ fontSize: 15 }}>{aviso.titulo}</div>
+        <div className="text-sec" style={{ fontSize: 14, marginTop: 2, lineHeight: 1.45 }}>{aviso.texto}</div>
       </div>
       <Link
         to="/admin/subscricao"
         className="fw-600"
         style={{
-          flexShrink: 0, textDecoration: 'none', fontSize: 13,
+          flexShrink: 0, textDecoration: 'none', fontSize: 15,
           padding: '8px 14px', borderRadius: 8,
           background: aviso.cor, color: '#111',
         }}

@@ -173,7 +173,7 @@ export default function Professionals() {
                 <Link to="/admin/profissionais/equipa"
                   style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 7, padding: '9px 11px',
                     borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none',
-                    color: 'inherit', fontSize: 12.5 }}>
+                    color: 'inherit', fontSize: 14.5 }}>
                   {souEu ? <Crown size={14} style={{ color: cor, flexShrink: 0 }} />
                     : acesso ? <ShieldCheck size={14} style={{ color: cor, flexShrink: 0 }} />
                     : <ShieldOff size={14} style={{ color: cor, flexShrink: 0 }} />}

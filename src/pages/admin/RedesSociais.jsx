@@ -158,9 +158,8 @@ export default function RedesSociais() {
 
       <Card className="card-pad" style={{ marginBottom: 16 }}>
         <h3 style={{ margin: 0, fontSize: 17 }}>{MODELO.nome}</h3>
-        <p className="text-sec text-sm" style={{ margin: '6px 0 0', maxWidth: '64ch', lineHeight: 1.6 }}>
-          {MODELO.resumo} O logótipo sai de <strong>O Meu Site → Marca</strong>; o nome, o
-          endereço e a cor saem do resto de «O Meu Site». Se mudares lá, muda aqui.
+        <p className="text-sec" style={{ margin: '6px 0 0', fontSize: 15 }}>
+          Publica no dia em que abres as marcações.
         </p>
 
         {barbearia?.semLogo && (
@@ -192,7 +191,7 @@ export default function RedesSociais() {
             <div className="rs-pe">
               <span className="text-sec text-xs">{i + 1} de {MODELO.ecras.length}</span>
               <button className="btn btn-ghost" onClick={() => guardarUma(i)}
-                disabled={!barbearia || aDesenhar} style={{ fontSize: 13 }}>
+                disabled={!barbearia || aDesenhar} style={{ fontSize: 15 }}>
                 <Download size={15} /> Guardar
               </button>
             </div>

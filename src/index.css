@@ -5,7 +5,7 @@
 .page-info-popover { position: absolute; z-index: 300; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
 .page-info-section { margin-top: 14px; }
 .page-info-section-title { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold-tinta); margin-bottom: 6px; }
-.page-info-text { font-size: 13px; color: var(--text-sec); line-height: 1.6; }
+.page-info-text { font-size: 15px; color: var(--text-sec); line-height: 1.6; }
 .page-info-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .page-info-link { font-size: 11px; padding: 3px 9px; border-radius: 20px; background: rgba(var(--veu), 0.06); border: 1px solid var(--border); color: var(--text-sec); }
 @media (max-width: 767px) { .page-info-popover { position: fixed; left: 16px; right: 16px; width: auto; bottom: 16px; } }
@@ -829,15 +829,50 @@ a:focus:not(:focus-visible) { outline: none; }
 .text-center { text-align: center; }
 /* 28/09/2026: 13 e 12 px sao o tamanho a que se deixa de ler um ecra com o
    telemovel na mao — e era com isso que estavam escritas as explicacoes
-   todas do painel. Sobem os dois um degrau. */
-.text-sm { font-size: 14px; } .text-xs { font-size: 13px; }
+   todas do painel. Sobem os dois um degrau.
+   02/10/2026: sobem outro. Com o painel na mao, ao balcao ou na rua, 14 px
+   ainda e letra de rodape. Sao 418 sitios no codigo e uma linha aqui. */
+.text-sm { font-size: 16px; } .text-xs { font-size: 14.5px; }
 .fw-600 { font-weight: 600; }
 .w-full { width: 100%; }
 .divider { height: 1px; background: var(--border); margin: 24px 0; border: none; }
-.chip { padding: 8px 16px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border); color: var(--text-sec); font-size: 13px; cursor: pointer; transition: all 200ms ease; }
+.chip { padding: 9px 17px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border); color: var(--text-sec); font-size: 14.5px; cursor: pointer; transition: all 200ms ease; }
 .chip:hover { color: var(--text); }
 .chip.active { background: var(--gold); color: var(--on-gold); border-color: var(--gold); }
 .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+
+/*
+ * UMA FILA DE FILTROS, NAO UM TECLADO DE BOTOES.
+ *
+ * Eram duas filas com rotulos («Período:», «Estado:») que, ao telemovel,
+ * partiam em quatro linhas e empurravam a lista para fora do ecra — meio
+ * ecra gasto antes de se ver uma unica marcacao.
+ *
+ * Agora e uma fila so que se arrasta com o dedo. Os rotulos sairam porque as
+ * palavras ja se explicam, e o risco no meio separa o quando do que.
+ */
+.filtros-tira {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  /* Sangra para as margens da pagina: a fila chega as duas bordas, para se
+     perceber que ha mais para o lado. */
+  margin-left: -4px;
+  padding: 2px 4px 6px;
+}
+.filtros-tira::-webkit-scrollbar { display: none; }
+.filtros-tira > .chip { flex: 0 0 auto; font-size: 14.5px; padding: 9px 17px; }
+.filtros-risco {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 22px;
+  margin: 0 4px;
+  background: var(--border);
+}
 
 .success-anim { width: 80px; height: 80px; border-radius: 50%; background: rgba(34,197,94,0.12); border: 2px solid var(--success); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; animation: pop 400ms ease; }
 .success-anim svg { width: 40px; height: 40px; color: var(--success); }

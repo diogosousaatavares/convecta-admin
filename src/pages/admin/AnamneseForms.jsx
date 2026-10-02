@@ -52,7 +52,7 @@ function FormBuilder({ form, onChange }) {
         {(form.questions || []).map((q, idx) => (
           <div key={q.id} style={{ padding: '12px 14px', background: 'var(--elevated)', borderRadius: 10, border: '1px solid var(--border)' }}>
             <div className="flex items-center gap-8 mb-10">
-              <span className="text-sec" style={{ fontSize: 11, minWidth: 20 }}>{idx + 1}.</span>
+              <span className="text-sec" style={{ fontSize: 13.5, minWidth: 20 }}>{idx + 1}.</span>
               <input className="input" style={{ flex: 1 }} placeholder="Texto da pergunta..." value={q.label} onChange={e => updateQ(q.id, { label: e.target.value })} />
               <select className="select" style={{ width: 160 }} value={q.type} onChange={e => updateQ(q.id, { type: e.target.value })}>
                 {QTYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
@@ -68,7 +68,7 @@ function FormBuilder({ form, onChange }) {
                     <button onClick={() => removeOption(q.id, i)} aria-label={`Remover opção ${i + 1}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-sec)', display: 'flex' }}><X size={12} /></button>
                   </div>
                 ))}
-                <button className="btn btn-ghost btn-sm" onClick={() => addOption(q.id)} style={{ fontSize: 12, marginTop: 2 }}><Plus size={12} /> Adicionar opção</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => addOption(q.id)} style={{ fontSize: 14, marginTop: 2 }}><Plus size={12} /> Adicionar opção</button>
               </div>
             )}
           </div>

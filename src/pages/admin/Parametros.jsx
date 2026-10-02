@@ -18,7 +18,7 @@ function Toggle({ checked, onChange }) {
 
 function Row({ label, desc, children }) {
   return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--border)', gap: 16 }}>
-    <div style={{ flex: 1 }}><div className="fw-600 text-sm">{label}</div>{desc && <div className="text-sec" style={{ fontSize: 12, marginTop: 2 }}>{desc}</div>}</div>
+    <div style={{ flex: 1 }}><div className="fw-600 text-sm">{label}</div>{desc && <div className="text-sec" style={{ fontSize: 14, marginTop: 2 }}>{desc}</div>}</div>
     <div style={{ flexShrink: 0 }}>{children}</div>
   </div>;
 }

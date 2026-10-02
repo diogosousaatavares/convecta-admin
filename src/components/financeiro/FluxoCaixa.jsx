@@ -44,8 +44,8 @@ export default function FluxoCaixa() {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--linha-grafico)" />
               <XAxis dataKey="day" stroke="var(--text-ter)" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis stroke="var(--text-ter)" fontSize={12} tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13 }} labelStyle={{ color: 'var(--text)' }} formatter={(v) => formatPrice(v)} />
-              <Legend wrapperStyle={{ fontSize: 13 }} />
+              <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 15 }} labelStyle={{ color: 'var(--text)' }} formatter={(v) => formatPrice(v)} />
+              <Legend wrapperStyle={{ fontSize: 15 }} />
               <Bar dataKey="entradas" fill={CHART_GOLD} radius={[4, 4, 0, 0]} />
               <Bar dataKey="saidas" fill="#5a5a5a" radius={[4, 4, 0, 0]} />
             </BarChart>

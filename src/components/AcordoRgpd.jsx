@@ -41,7 +41,7 @@ export default function AcordoRgpd() {
       border: '1px solid rgba(201,162,39,.45)', background: 'rgba(201,162,39,.08)',
     }}>
       <ShieldCheck size={22} style={{ color: 'var(--gold-tinta)', flexShrink: 0, marginTop: 2 }} />
-      <div style={{ flex: '1 1 260px', minWidth: 0, fontSize: 13.5, lineHeight: 1.55 }}>
+      <div style={{ flex: '1 1 260px', minWidth: 0, fontSize: 15, lineHeight: 1.55 }}>
         <b>Falta aceitar o acordo de proteção de dados.</b><br />
         <span className="text-sec">
           Como guardamos os dados dos teus clientes por ti, a lei (RGPD, art. 28.º) pede que isso fique por escrito.
