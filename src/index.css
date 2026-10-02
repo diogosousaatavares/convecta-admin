@@ -1910,8 +1910,12 @@ html.theme-light .page-info-popover { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12)
   }
 
   .admin-content {
-    padding-left: max(14px, env(safe-area-inset-left, 0px));
-    padding-right: max(14px, env(safe-area-inset-right, 0px));
+    /* O quinto sitio onde esta margem era escrita. Tem de mexer no
+       --pad-lado como os outros quatro, senao a faixa do link volta a sair
+       por um numero e o conteudo por outro. */
+    --pad-lado: max(14px, env(safe-area-inset-left, 0px));
+    padding-left: var(--pad-lado);
+    padding-right: var(--pad-lado);
     padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
   }
 
@@ -2419,4 +2423,64 @@ html:not(.theme-light) .marca-escuro { display: block !important; }
 /* Quem pediu menos movimento ao sistema nao leva movimento nenhum. */
 @media (prefers-reduced-motion: reduce) {
   .pagina-entra, .pagina-entra-curta { animation: none; }
+}
+
+
+/* ============================================================
+   QUANDO ESTA INSTALADA, COMPORTA-SE COMO UMA APP
+   ------------------------------------------------------------
+   `display-mode: standalone` so e verdade quando o painel foi guardado no
+   ecra inicial e abre sem a barra do browser. No browser nada disto muda —
+   ali a barra de deslocação e o puxar para recarregar sao o que a pessoa
+   espera, e tira-los seria estranho.
+
+   O que denuncia um site a fazer-se passar por app, por ordem do que se
+   nota mais:
+     1. a barra de deslocação a aparecer de lado ao deslizar
+     2. a pagina a esticar e a ressaltar nas pontas, com branco por tras
+     3. o texto a ficar seleccionado e o menu «copiar» a saltar num toque
+        longo num botao
+     4. o rectangulo cinzento do Android em cada toque
+   ============================================================ */
+@media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+
+  /* 1. A barra de deslocação desaparece. Continua a deslizar na mesma —
+     so deixa de se ver, como numa app de telefone. */
+  html, body, .admin-content, .admin-nav { scrollbar-width: none; -ms-overflow-style: none; }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  .admin-content::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+  /* 2. Sem esticar nas pontas e sem puxar para recarregar. Um barbeiro que
+     desliza para cima no fim da agenda nao recarrega o painel sem querer. */
+  html, body { overscroll-behavior: none; }
+
+  /* 3. Nada de texto seleccionado ao tocar na interface. O que ele precisa
+     mesmo de copiar — o endereco, os campos, o conteudo das tabelas — fica
+     de fora desta regra, logo a seguir. */
+  body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  input, textarea, select,
+  [contenteditable],
+  .link-faixa-endereco,
+  .table td, .table th,
+  .ag-detail .v,
+  p, .text-sec {
+    -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
+  }
+
+  /* 4. Sem o rectangulo do toque — mas com resposta: o botao afunda um
+     bocadinho. Tirar o brilho e nao por nada no lugar faz a app parecer
+     avariada. */
+  * { -webkit-tap-highlight-color: transparent; }
+  button:active, .btn:active, .chip:active, a.btn:active, .bottomnav-item:active {
+    transform: scale(.97);
+  }
+  button, .btn, .chip, .bottomnav-item { transition: transform 90ms ease; }
+  @media (prefers-reduced-motion: reduce) {
+    button:active, .btn:active, .chip:active, a.btn:active, .bottomnav-item:active { transform: none; }
+  }
+
+  /* O fundo por baixo da barra de gestos acompanha a pagina, em vez de
+     aparecer uma faixa branca quando se estica. */
+  body { background: var(--bg); }
 }
