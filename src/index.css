@@ -484,6 +484,14 @@ input, textarea, select { font-family: inherit; }
   background: rgba(var(--gold-rgb), 0.08);
   border-bottom: 1px solid var(--border);
 }
+/* ESTA LINHA E O QUE FALTAVA.
+   `.admin-content > *` tem `max-width: 100%` (duas vezes, mais abaixo no
+   ficheiro). A faixa e filha directa do conteudo, por isso era travada na
+   largura do conteudo e acabava exactamente 2 × --pad-lado antes da borda
+   direita — era essa a falha branca na direita, e nao um erro de contas.
+   A barra de cima ja tinha a mesma excepcao; faltava esta. */
+.admin-content > .link-faixa { max-width: none; }
+
 .link-faixa-rotulo {
   font-size: 13.5px; font-weight: 700; color: var(--text-sec);
   text-transform: uppercase; letter-spacing: .07em; flex-shrink: 0;
@@ -918,6 +926,14 @@ a:focus:not(:focus-visible) { outline: none; }
   margin-left: -4px;
 }
 .chip-row::-webkit-scrollbar { display: none; }
+/* Uma fila que desliza e que acaba a direito na borda parece partida. O
+   esbatimento na ponta diz, sem uma palavra, que ha mais para o lado — e
+   desaparece quando se chega ao fim. */
+.chip-row {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+}
+.chip-row:not(:hover) { scroll-snap-type: x proximity; }
 .chip-row > .chip { flex: 0 0 auto; }
 
 /* O risco que separa dois grupos dentro da mesma fila — o «quando» do «quê». */
