@@ -382,8 +382,9 @@ export default function AdminLayout({ children }) {
         <div className="admin-sidebar-marca-linha">
           <img src="/admin-logo.png?v=2" alt="" className="admin-sidebar-marca marca-claro" />
           <img src="/admin-logo-escuro.png?v=2" alt="" className="admin-sidebar-marca marca-escuro" />
+          {/* O nome escrito saiu a 05/10/2026: o logotipo ao lado ja o diz,
+              e dize-lo duas vezes na mesma linha nao e marca, e repeticao. */}
           <div className="admin-sidebar-marca-texto">
-            <div className="logo">Convecta<span style={{ color: '#C9A227' }}>.</span></div>
             <div className="sub">Painel de gestão</div>
           </div>
         </div>
