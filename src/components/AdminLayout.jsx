@@ -431,12 +431,14 @@ export default function AdminLayout({ children }) {
           );
         })}
       </nav>
-      <button className="admin-support-link" onClick={() => setSupportOpen(true)} aria-label="Abrir apoio ao cliente">
+      <button className="admin-support-link" onClick={() => setSupportOpen(true)}
+        title="Apoio ao cliente" aria-label="Abrir apoio ao cliente">
         <HelpCircle size={16} /> Apoio ao cliente
       </button>
       <div style={{ padding: '16px 24px', borderTop: '1px solid var(--border)' }}>
         
-        <button className="btn btn-ghost btn-sm btn-block" onClick={handleLogout} aria-label="Terminar sessão">
+        <button className="btn btn-ghost btn-sm btn-block" onClick={handleLogout}
+          title="Terminar sessão" aria-label="Terminar sessão">
           <LogOut size={16} /> Terminar sessão
         </button>
       </div>
