@@ -15,6 +15,7 @@ import { useStore, useAuth } from '@/hooks/useStore';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 import { applyTheme as applySavedTheme } from '@/lib/temaPainel';
+import { usePortao, abertaSemCartao } from '@/hooks/usePortao';
 
 // Lazy-load all admin pages
 const Dashboard        = lazy(() => import('@/pages/admin/Dashboard'));
@@ -90,8 +91,16 @@ function AdminRoute({ children }) {
   const businessId = store?.business?.id;
   useRealtimeNotifications(businessId);
   const { isAuthLoading, isAdmin } = useAuth();
+  const portao = usePortao();
   if (isAuthLoading) return <Spinner />;
   if (!isAdmin) return <Navigate to="/entrar" replace />;
+  /* Sem cartao nao se navega: so a Subscricao, a Conta e o Arranque. Ver
+     hooks/usePortao.js — enquanto nao sabe nao fecha, e se nao conseguir
+     saber deixa passar. */
+  if (portao === 'a-ver') return <Spinner />;
+  if (portao === 'fechado' && !abertaSemCartao(location.pathname)) {
+    return <Navigate to="/admin/subscricao" replace />;
+  }
   // Tirar do menu nao chega: um atalho guardado ou um endereco escrito a mao
   // continuava a abrir o modulo. A lista esta em lib/modulos.js.
   if (moduloIndisponivel(location.pathname)) return <Navigate to="/admin" replace />;
