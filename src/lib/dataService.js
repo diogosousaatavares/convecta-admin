@@ -475,14 +475,32 @@ function svcFromRow(row) {
     durationMinutes: row.duration_minutes || 30,
     isActive: row.is_active !== false,
     category: m.category || '', priceType: m.priceType || 'fixed', isPopular: m.isPopular || false,
+    // Sob orcamento: sem preco nem duracao fixos, marca-se por pedido.
+    orcamento: m.orcamento === true,
+    /*
+     * O METADATA COMO ESTA NA BASE DE DADOS.
+     *
+     * A lista acima e uma whitelist: o que nao estiver nela nao e lido. E o
+     * svcToRow guarda em metadata TUDO o que sobra do objecto — que vem
+     * daqui. Juntando as duas coisas, um campo escrito no metadata e que
+     * nao esteja na whitelist desaparece na gravacao seguinte.
+     *
+     * Foi o que aconteceu ao «orcamento»: gravava bem, voltava sem ele, e a
+     * segunda gravacao apagava-o da base de dados. Guardar o metadata
+     * inteiro aqui e junta-lo na gravacao fecha essa armadilha para sempre —
+     * nao so para este campo, para todos os que vierem.
+     */
+    _meta: m,
   };
 }
 function svcToRow(s) {
-  const { id, businessId, name, description, price, durationMinutes, isActive, ...meta } = s;
+  const { id, businessId, name, description, price, durationMinutes, isActive, _meta, ...meta } = s;
   return {
     business_id: BUSINESS_ID, name, description: description || null,
     price: price || 0, duration_minutes: durationMinutes || 30,
-    is_active: isActive !== false, metadata: meta,
+    is_active: isActive !== false,
+    // O que ja la estava primeiro, o que vem do ecra por cima.
+    metadata: { ..._meta, ...meta },
   };
 }
 
