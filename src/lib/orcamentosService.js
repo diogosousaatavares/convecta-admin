@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { enviarPush } from '@/lib/push';
 
 /*
  * OS PEDIDOS DE ORÇAMENTO.
@@ -51,24 +52,70 @@ export async function pedidosPendentes(businessId) {
   return (await listarPedidos(businessId)).filter((p) => p.estado === 'pendente');
 }
 
-/* Marcado: guarda-se o que o barbeiro decidiu e a marcação que criou. O
-   pedido não desaparece — fica como histórico do que foi combinado. */
-export async function marcarPedido(id, { minutos, preco, appointmentId }) {
+/*
+ * Marcado: guarda-se o que o barbeiro decidiu e a marcação que criou. O
+ * pedido não desaparece — fica como histórico do que foi combinado.
+ *
+ * E o cliente é avisado. Ele pediu uma coisa e ficou à espera: deixá-lo
+ * descobrir sozinho que já está combinado era fazê-lo abrir a app todos os
+ * dias para ver. O push não trava a gravação — se o telemóvel dele não
+ * tocar, o que ficou combinado fica combinado na mesma.
+ */
+export async function marcarPedido(id, { minutos, preco, appointmentId, businessId, customerId, servico, barbearia }) {
+  const m = Math.round(Number(minutos) || 0) || null;
+  const p = preco === '' || preco == null ? null : Number(preco);
   const { error } = await supabase.from('pedidos_orcamento').update({
     estado: 'marcado',
-    minutos: Math.round(Number(minutos) || 0) || null,
-    preco: preco === '' || preco == null ? null : Number(preco),
+    minutos: m,
+    preco: p,
     appointment_id: appointmentId || null,
     resolvido_em: new Date().toISOString(),
   }).eq('id', id);
   if (error) throw erro(error);
+
+  if (businessId && customerId) {
+    /* O corpo diz o que foi combinado, com números. «O teu pedido foi
+       aceite» não diz nada a ninguém; «2h30 · 45 €» diz tudo. */
+    const partes = [];
+    if (m) partes.push(m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, '0') : ''}` : `${m} min`);
+    if (p != null) partes.push(`${String(p.toFixed(2)).replace('.', ',')} €`);
+    await enviarPush({
+      businessId,
+      para: 'customer',
+      userId: customerId,
+      titulo: '\u{2705} Ficou combinado',
+      mensagem: `${barbearia || 'A barbearia'}\n${servico || 'O teu pedido'}${partes.length ? ' · ' + partes.join(' · ') : ''}`,
+      url: '/marcacoes',
+      tag: 'orcamento-' + id,
+    }).catch((e) => console.warn('o cliente não foi avisado:', e.message));
+  }
 }
 
-export async function recusarPedido(id, motivo) {
+/*
+ * Recusado: e o cliente TEM de saber.
+ *
+ * Alguém que pediu e nunca mais ouve nada fica à espera — e passado uma
+ * semana não acha que o pedido falhou, acha que a barbearia não liga. Um
+ * não dito a tempo custa menos do que um silêncio.
+ */
+export async function recusarPedido(id, motivo, { businessId, customerId, servico, barbearia } = {}) {
   const { error } = await supabase.from('pedidos_orcamento').update({
     estado: 'recusado',
     motivo: String(motivo || '').trim() || null,
     resolvido_em: new Date().toISOString(),
   }).eq('id', id);
   if (error) throw erro(error);
+
+  if (businessId && customerId) {
+    await enviarPush({
+      businessId,
+      para: 'customer',
+      userId: customerId,
+      titulo: 'Sobre o teu pedido',
+      mensagem: `${barbearia || 'A barbearia'}\n${String(motivo || '').trim()
+        || `Não é possível fazer ${servico || 'esse trabalho'} de momento. Fala connosco.`}`,
+      url: '/marcacoes',
+      tag: 'orcamento-' + id,
+    }).catch((e) => console.warn('o cliente não foi avisado:', e.message));
+  }
 }

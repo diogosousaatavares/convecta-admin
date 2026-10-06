@@ -14,7 +14,7 @@ import { listarPedidos, marcarPedido, recusarPedido } from '@/lib/orcamentosServ
  * falar com ele não há duração nenhuma para escrever. Um formulário que
  * pedisse os minutos antes da chamada estava a pedir um palpite.
  */
-export default function PedidosOrcamento({ businessId, onMarcar }) {
+export default function PedidosOrcamento({ businessId, barbearia, onMarcar }) {
   const toast = useToast();
   const [pedidos, setPedidos] = useState(null);
   const [aberto, setAberto] = useState(null);
@@ -89,9 +89,13 @@ export default function PedidosOrcamento({ businessId, onMarcar }) {
                     onClick={async () => {
                       setAGravar(true);
                       try {
-                        await marcarPedido(p.id, { minutos, preco });
-                        toast.success('Combinado',
-                          'Agora marca na agenda com esse tempo — as vagas ficam ocupadas.');
+                        await marcarPedido(p.id, {
+                          minutos, preco,
+                          businessId, customerId: p.customerId,
+                          servico: p.servico, barbearia,
+                        });
+                        toast.success('Combinado — o cliente foi avisado',
+                          'Agora marca na agenda com esse tempo. As vagas ficam ocupadas.');
                         setAberto(null); setMinutos(''); setPreco('');
                         await carregar();
                         /* A marcação faz-se na agenda, que é onde se vê o
@@ -112,7 +116,13 @@ export default function PedidosOrcamento({ businessId, onMarcar }) {
                 </Button>
                 <Button variant="ghost" onClick={async () => {
                   if (!confirm(`Recusar o pedido de ${p.cliente}?`)) return;
-                  try { await recusarPedido(p.id, ''); await carregar(); }
+                  try {
+                    await recusarPedido(p.id, '', {
+                      businessId, customerId: p.customerId,
+                      servico: p.servico, barbearia,
+                    });
+                    await carregar();
+                  }
                   catch (e) { toast.error('Não foi possível', e.message); }
                 }}>Não dá</Button>
               </div>

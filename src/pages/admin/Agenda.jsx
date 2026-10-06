@@ -359,7 +359,7 @@ export default function Agenda() {
 
       {/* Antes da agenda, de propósito: um pedido de orçamento é uma pessoa
           à espera de uma chamada, e isso vem antes de arrumar o dia. */}
-      <PedidosOrcamento businessId={data.business?.id} onMarcar={(p) => {
+      <PedidosOrcamento businessId={data.business?.id} barbearia={data.business?.name} onMarcar={(p) => {
         toast.success(`${p.cliente} · ${p.minutos} min`,
           'Cria a marcação na hora que quiseres — esse tempo fica ocupado.');
       }} />
