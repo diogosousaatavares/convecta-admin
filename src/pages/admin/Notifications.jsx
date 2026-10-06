@@ -36,8 +36,20 @@ export default function Notifications() {
   const save = async () => {
     if (!form.title.trim() || !form.message.trim()) { toast.error('Campos obrigatórios', 'Preenche o título e a mensagem.'); return; }
     setSaving(true);
-    await dataService.createNotification({ title: form.title.trim(), message: form.message.trim(), type: form.type });
+    const n = await dataService.createNotification({ title: form.title.trim(), message: form.message.trim(), type: form.type });
     setSaving(false);
+    /* O push sai a seguir ao aviso. Dizer quantos telemoveis tocaram importa:
+       «enviadas: 0» quer dizer que ninguem tem as notificacoes ligadas, e isso
+       e uma coisa a resolver, nao um sucesso. */
+    setTimeout(() => {
+      if (n?.pushErro) toast.error('O aviso ficou criado, mas não tocou nenhum telemóvel', n.pushErro);
+      else if (n?.push && n.push.enviadas === 0) {
+        toast.error('O aviso ficou criado, mas não tocou nenhum telemóvel',
+          'Nenhum cliente tem as notificações ligadas na app.');
+      } else if (n?.push?.enviadas > 0) {
+        toast.success(`Avisados ${n.push.enviadas} ${n.push.enviadas === 1 ? 'cliente' : 'clientes'}`);
+      }
+    }, 1500);
     setModalOpen(false);
     toast.success('Notificação criada', 'Está visível para os clientes.');
   };

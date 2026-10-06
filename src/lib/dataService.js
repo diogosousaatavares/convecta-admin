@@ -2163,16 +2163,29 @@ const dataService = {
     if (!state.notifications) state.notifications = [];
     state.notifications.unshift(n);
 
-    // Tocar o telemovel de quem ligou as notificacoes. Se falhar, o aviso
-    // fica na mesma na aba Avisos — so nao foi tocada a campainha.
+    /*
+     * «clientes» e nao «customer».
+     *
+     * Sao dois destinos diferentes na funcao enviar-push: «customer» e UM
+     * cliente e exige o userId; «clientes» sao TODOS os clientes da
+     * barbearia com as notificacoes ligadas. Isto mandava «customer» sem
+     * userId — a funcao recusava com «Falta o cliente (userId)», o catch
+     * aqui em baixo engolia o erro num console.warn, e o aviso aparecia na
+     * aba Avisos como se tivesse corrido tudo bem. Nunca tocou um telemovel.
+     *
+     * Por isso o erro passa a aparecer no ecra em vez de so na consola: um
+     * aviso que o barbeiro julga ter mandado e nao mandou e pior do que um
+     * aviso que falhou e disse que falhou.
+     */
     enviarPush({
       businessId: BUSINESS_ID,
-      para: 'customer',
+      para: 'clientes',
       titulo: `${EMOJI_AVISO[n.type] || EMOJI_AVISO.info} ${n.title}`,
       mensagem: n.message,
       url: '/avisos',
       tag: 'aviso-' + n.id,
-    }).catch(e => console.warn('aviso não enviado por push:', e.message));
+    }).then(r => { n.push = r; notify(); })
+      .catch(e => { n.pushErro = e.message; notify(); console.warn('aviso não enviado por push:', e.message); });
 
     notify(); return n;
   },
