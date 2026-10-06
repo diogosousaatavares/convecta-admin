@@ -9,7 +9,7 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice } from '@/lib/format';
 
-const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: '', isActive: true, isPopular: false };
+const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: '', isActive: true, isPopular: false, orcamento: false };
 const SEM_CATEGORIA = 'Outros';
 
 export default function Services() {
@@ -93,12 +93,13 @@ export default function Services() {
                   {s.isPopular && <Badge variant="gold">Popular</Badge>}
                   {!s.isActive && <Badge variant="default">Inativo</Badge>}
                 </div>
-                <span style={{ fontFamily: 'var(--font-head)', fontSize: 22, color: 'var(--gold-tinta)' }}>{formatPrice(s.price)}</span>
+                <span style={{ fontFamily: 'var(--font-head)', fontSize: s.orcamento ? 15 : 22, color: 'var(--gold-tinta)' }}>
+                  {s.orcamento ? 'Sob orçamento' : formatPrice(s.price)}</span>
               </div>
               <p className="text-sec text-sm mt-8">{s.description}</p>
               <div className="flex items-center justify-between mt-16">
                 <div className="flex gap-12 text-sec text-xs">
-                  <span>{s.durationMinutes} min</span>{s.category ? <><span>·</span><span>{s.category}</span></> : null}
+                  <span>{s.orcamento ? 'tempo a combinar' : `${s.durationMinutes} min`}</span>{s.category ? <><span>·</span><span>{s.category}</span></> : null}
                 </div>
                 <div className="flex gap-8">
                   <Button size="sm" variant="secondary" aria-label="Editar serviço" title="Editar serviço" onClick={() => openEdit(s)}><Pencil size={14} /></Button>
@@ -117,8 +118,35 @@ export default function Services() {
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
         <div className="field"><label className="label">Descrição</label><textarea className="textarea" rows={2} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
         <div className="grid-2">
-          <div className="field"><label className="label">Duração (min)</label><input className="input" type="number" value={form.durationMinutes} onChange={e => setForm({ ...form, durationMinutes: parseInt(e.target.value) || 0 })} /></div>
-          <div className="field"><label className="label">Preço (€)</label><input className="input" type="number" value={form.price} onChange={e => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} /></div>
+          {/*
+            * SOB ORCAMENTO.
+            *
+            * Pedido pela Rasta Village: umas rastas nao tem preco nem duracao
+            * antes de se falar com o cliente — nem ele sabe quantas sao. Sem
+            * duracao nao ha vaga, e o servico nao cabe no «escolhe a hora,
+            * paga X».
+            *
+            * Marcado assim, o cliente deixa de ver horas e passa a pedir. O
+            * barbeiro fala com ele, decide o tempo e o preco, e encaixa a
+            * marcacao onde quiser — e ai as vagas ficam ocupadas sozinhas,
+            * porque e uma marcacao normal.
+            */}
+          <label className="text-sm" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '4px 0 14px', cursor: 'pointer' }}>
+            <input type="checkbox" checked={!!form.orcamento} style={{ marginTop: 3 }}
+              onChange={e => setForm({ ...form, orcamento: e.target.checked })} />
+            <span>
+              <b>Sob orçamento</b> — o preço e a duração são combinados contigo
+              <div className="text-sec text-xs mt-4">
+                O cliente não escolhe hora: faz um pedido e tu ligas-lhe. Para cortes
+                especiais, como rastas, em que o tempo depende do trabalho.
+              </div>
+            </span>
+          </label>
+
+          {!form.orcamento && (<>
+            <div className="field"><label className="label">Duração (min)</label><input className="input" type="number" value={form.durationMinutes} onChange={e => setForm({ ...form, durationMinutes: parseInt(e.target.value) || 0 })} /></div>
+            <div className="field"><label className="label">Preço (€)</label><input className="input" type="number" value={form.price} onChange={e => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} /></div>
+          </>)}
         </div>
         <div className="field">
           <label className="label">Categoria</label>

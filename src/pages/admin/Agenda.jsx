@@ -19,6 +19,7 @@ import VendaAvulsoModal from '@/components/admin/VendaAvulsoModal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { packsActivosDoCliente, saldoParaServico } from '@/lib/packsService';
 import { nomeSemRepetir } from '@/lib/nomes';
+import PedidosOrcamento from '@/components/admin/PedidosOrcamento';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
@@ -355,6 +356,14 @@ export default function Agenda() {
         <p>Gere marcações, disponibilidade e encaixes.</p>
       </div>
       <PageInfo page="agenda" />
+
+      {/* Antes da agenda, de propósito: um pedido de orçamento é uma pessoa
+          à espera de uma chamada, e isso vem antes de arrumar o dia. */}
+      <PedidosOrcamento businessId={data.business?.id} onMarcar={(p) => {
+        toast.success(`${p.cliente} · ${p.minutos} min`,
+          'Cria a marcação na hora que quiseres — esse tempo fica ocupado.');
+      }} />
+
       <div className="agenda-toolbar">
         <div className="ag-tb-left">
           <div className="ag-tb-nav">
