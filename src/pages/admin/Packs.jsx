@@ -9,6 +9,7 @@ import dataService from '@/lib/dataService';
 import { formatPrice, formatDateShortNum } from '@/lib/format';
 import {
   listarPacks, guardarPack, apagarPack, listarVendas, venderPack, anularVenda,
+  contarPacksACorrer, aplicarIntervaloAosACorrer,
   listarPedidos, confirmarPedido, recusarPedido,
 } from '@/lib/packsService';
 import { useConfirmar } from '@/components/ui/Confirmar';
@@ -189,18 +190,45 @@ export default function Packs() {
     setVendaModal(true);
   };
 
+  const [pedir, Confirmacao] = useConfirmar();
+
   const gravarPack = async () => {
     setAGravar(true);
+    const antes = packs.find(x => x.id === pack.id);
+    const mudouIntervalo = !!pack.id && antes && Number(antes.intervaloDias || 0) !== Number(pack.intervaloDias || 0);
     try {
       await guardarPack(businessId, pack);
       toast.success(pack.id ? 'Pack actualizado' : 'Pack criado');
       setPackModal(false);
       carregar();
+
+      /* O intervalo foi copiado para cada pack no dia da venda. Mudá-lo aqui
+         não mexe em quem já comprou — e era isso que fazia parecer que a
+         definição não funcionava. Agora pergunta-se, com o número à frente. */
+      if (mudouIntervalo) {
+        const quantos = await contarPacksACorrer(pack.id);
+        if (quantos > 0) {
+          pedir({
+            titulo: 'E os packs que já vendeste?',
+            texto: `Há ${quantos} ${quantos === 1 ? 'pack a correr' : 'packs a correr'} com o espaço antigo entre cortes. `
+              + `Queres pôr ${pack.intervaloDias > 0 ? `${pack.intervaloDias} dias` : 'sem limite'} também nesses? `
+              + 'Os packs já gastos ou fora de validade ficam como estão.',
+            botao: 'Mudar também nesses',
+            perigoso: false,
+            aoConfirmar: async () => {
+              try {
+                const n = await aplicarIntervaloAosACorrer(pack.id, pack.intervaloDias);
+                toast.success(`${n} ${n === 1 ? 'pack actualizado' : 'packs actualizados'}`);
+                carregar();
+              } catch (e) { toast.error('Não foi possível actualizar', e.message); }
+            },
+          });
+        }
+      }
     } catch (e) { toast.error('Não foi possível guardar', e.message); }
     finally { setAGravar(false); }
   };
 
-  const [pedir, Confirmacao] = useConfirmar();
   const removerPack = (p) => pedir({
     titulo: `Apagar o «${p.nome}»?`,
     texto: 'Deixa de estar à venda. Quem já o comprou fica com os cortes que tem.',
@@ -564,16 +592,23 @@ export default function Packs() {
         )}
         <div className="field">
           <label className="label">Espaço entre cortes</label>
-          <select className="select" value={pack.intervaloDias}
-            onChange={e => setPack(f => ({ ...f, intervaloDias: Number(e.target.value) }))}>
-            <option value={0}>Sem limite — pode marcar os cortes quando quiser</option>
-            <option value={5}>Um corte a cada 5 dias</option>
-            <option value={7}>Um corte por semana (7 dias)</option>
-            <option value={10}>Um corte a cada 10 dias</option>
-            <option value={14}>Um corte a cada 15 dias (14)</option>
-          </select>
+          {/* Era uma lista de cinco opções: 0, 5, 7, 10, 14. Quem corta num
+              sábado e no outro à sexta tem seis dias de intervalo — e seis
+              não estava lá. A vida não vem em números redondos. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <input type="number" className="input" min={0} max={60} style={{ width: 92 }}
+              value={pack.intervaloDias}
+              onChange={e => setPack(f => ({ ...f, intervaloDias: Number(e.target.value) }))} />
+            <span className="text-sec text-sm">
+              {pack.intervaloDias > 0
+                ? `dias, no mínimo, entre dois cortes`
+                : 'dias — sem limite, pode marcar quando quiser'}
+            </span>
+          </div>
           <div className="text-sec text-xs mt-8">
-            Evita que o cliente gaste o pack todo na mesma semana. A app apaga os dias perto de outro corte dele.
+            Evita que o cliente gaste o pack todo na mesma semana. A app apaga os dias perto de
+            outro corte dele. Se tens clientes que cortam numa semana ao sábado e na outra à
+            sexta, põe <b>6</b> — com 7 a sexta fica apagada.
           </div>
         </div>
         <div className="field">

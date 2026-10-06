@@ -109,6 +109,49 @@ export async function guardarPack(businessId, pack) {
   return packDeLinha(data);
 }
 
+/*
+ * MUDAR O ESPAÇO ENTRE CORTES NOS PACKS JÁ VENDIDOS.
+ *
+ * O intervalo copia-se para o pack do cliente no dia da venda, como o nome e
+ * o número de cortes — mudar o pack amanhã não muda o que já foi vendido. É
+ * a regra certa para o preço (ninguém quer ver o que comprou a mudar de
+ * preço), mas é a regra errada para o intervalo: foi isto que fez a Rasta
+ * Village mudar a definição e não ver diferença nenhuma nos clientes dela.
+ * As regras de marcação são do barbeiro, não do recibo.
+ *
+ * Por isso isto existe e é um gesto separado e explícito: o dono vê quantos
+ * packs vai mexer antes de o fazer.
+ *
+ * Só toca nos que ainda estão a correr. Um pack gasto ou fora de validade
+ * fica como estava: é histórico, e histórico não se reescreve.
+ */
+export async function contarPacksACorrer(packId) {
+  const hoje = new Date().toISOString().slice(0, 10);
+  const { count, error } = await supabase
+    .from('packs_clientes')
+    .select('id', { count: 'exact', head: true })
+    .eq('pack_id', packId)
+    .is('anulado_em', null)
+    .gte('valido_ate', hoje);
+  if (error) throw erro(error);
+  return count || 0;
+}
+
+export async function aplicarIntervaloAosACorrer(packId, dias) {
+  const n = Math.round(Number(dias) || 0);
+  if (!(n >= 0 && n <= 60)) throw new Error('O intervalo tem de estar entre 0 e 60 dias.');
+  const hoje = new Date().toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from('packs_clientes')
+    .update({ intervalo_dias: n })
+    .eq('pack_id', packId)
+    .is('anulado_em', null)
+    .gte('valido_ate', hoje)
+    .select('id');
+  if (error) throw erro(error);
+  return (data || []).length;
+}
+
 export async function apagarPack(id) {
   // Quem já comprou fica com o que comprou: a venda guarda uma cópia do
   // pack, e a ligação passa a vazia.
