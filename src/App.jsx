@@ -20,6 +20,7 @@ import { usePortao, abertaSemCartao } from '@/hooks/usePortao';
 // Lazy-load all admin pages
 const Dashboard        = lazy(() => import('@/pages/admin/Dashboard'));
 const Agenda           = lazy(() => import('@/pages/admin/Agenda'));
+const Orcamentos       = lazy(() => import('@/pages/admin/Orcamentos'));
 const AdminAppointments= lazy(() => import('@/pages/admin/AdminAppointments'));
 const Customers        = lazy(() => import('@/pages/admin/Customers'));
 const Services         = lazy(() => import('@/pages/admin/Services'));
@@ -149,6 +150,7 @@ function AppRoutes() {
         <Route path="/admin/arranque" element={<AdminRoute><Arranque /></AdminRoute>} />
         <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
         <Route path="/admin/agenda" element={<AdminRoute><Agenda /></AdminRoute>} />
+        <Route path="/admin/orcamentos" element={<AdminRoute><Orcamentos /></AdminRoute>} />
         <Route path="/admin/agenda/marcacoes" element={<AdminRoute><AdminAppointments /></AdminRoute>} />
         <Route path="/admin/agenda/lista-espera" element={<AdminRoute><AgendaWaitlist /></AdminRoute>} />
         <Route path="/admin/agenda/encaixes" element={<AdminRoute><AgendaFitIns /></AdminRoute>} />

@@ -60,6 +60,9 @@ export function moduloIndisponivel(caminho) {
  */
 export const ABERTO_AO_PROFISSIONAL = [
   '/admin/agenda',
+  // Os pedidos de orcamento sao trabalho da casa: quem corta tem de os
+  // poder ver e responder, como ve a agenda.
+  '/admin/orcamentos',
   '/admin/clientes',
   '/admin/profissionais/ferias',
   '/admin/financeiro/conta-profissional',

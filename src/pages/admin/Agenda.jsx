@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -19,7 +19,7 @@ import VendaAvulsoModal from '@/components/admin/VendaAvulsoModal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { packsActivosDoCliente, saldoParaServico } from '@/lib/packsService';
 import { nomeSemRepetir } from '@/lib/nomes';
-import PedidosOrcamento from '@/components/admin/PedidosOrcamento';
+import { pedidosPendentes } from '@/lib/orcamentosService';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
@@ -48,6 +48,19 @@ export default function Agenda() {
   // Um barbeiro com acesso proprio ve a agenda toda mas so mexe na coluna
   // dele. `so` e o id da ficha dele; para o dono e null (mexe em tudo).
   const so = data.isProfissional ? data.meuProfissionalId : null;
+
+  // Quantos pedidos de orçamento estão à espera. Só o número: o que se faz
+  // com eles é nos Orçamentos.
+  const [orcAEspera, setOrcAEspera] = useState(0);
+  useEffect(() => {
+    let vivo = true;
+    const bid = data.business?.id;
+    if (!bid) return;
+    pedidosPendentes(bid)
+      .then(r => { if (vivo) setOrcAEspera((r || []).length); })
+      .catch(() => {});
+    return () => { vivo = false; };
+  }, [data.business?.id]);
   // Se o dono desligou «vê a agenda toda», só aparece a coluna dele.
   const prosVisiveis = (so && data.permissoes && data.permissoes.agenda_toda === false) ? data.professionals.filter(p => p.id === so) : data.professionals;
   const podeMexer = (a) => !so || !a || a.professionalId === so;
@@ -359,17 +372,22 @@ export default function Agenda() {
 
       {/* Antes da agenda, de propósito: um pedido de orçamento é uma pessoa
           à espera de uma chamada, e isso vem antes de arrumar o dia. */}
-      <PedidosOrcamento businessId={data.business?.id} barbearia={data.business?.name} onMarcar={(p) => {
-        /* Levar a agenda para o dia que ele pediu. Combinámos a hora com
-           ele; deixá-lo a procurar o dia no calendário era o passo onde
-           isto se perdia. */
-        const dia = p.quandoPedido ? String(p.quandoPedido).slice(0, 10) : '';
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dia)) setDate(dia);
-        toast.success(`${p.cliente} · ${p.minutos} min`,
-          dia
-            ? 'Estás no dia que ele pediu. Cria a marcação — esse tempo fica ocupado.'
-            : 'Cria a marcação na hora que quiseres — esse tempo fica ocupado.');
-      }} />
+      {/*
+          O gesto todo — ligar, combinar, marcar — mudou-se para os
+          Orçamentos, que tem porta no menu e guarda o que ficou combinado.
+          Aqui fica só o aviso de que há gente à espera: a agenda é para ver
+          o dia, e um formulário de outra coisa no topo roubava-lhe o lugar.
+      */}
+      {orcAEspera > 0 && (
+        <Link to="/admin/orcamentos" style={{ textDecoration: 'none' }}>
+          <Card className="card-pad" style={{ marginBottom: 16, borderLeft: '4px solid var(--gold)' }}>
+            <b>{orcAEspera === 1 ? 'Há 1 pedido de orçamento à espera' : `Há ${orcAEspera} pedidos de orçamento à espera`}</b>
+            <div className="text-sec text-sm" style={{ marginTop: 3 }}>
+              Toca para ver quem é e combinar o tempo e o preço.
+            </div>
+          </Card>
+        </Link>
+      )}
 
       <div className="agenda-toolbar">
         <div className="ag-tb-left">

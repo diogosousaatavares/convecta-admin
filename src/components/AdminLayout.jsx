@@ -66,6 +66,10 @@ const GROUPS_TODOS = [
   { type: 'group', label: 'Hoje', icon: CalendarDays, items: [
     { to: '/admin/agenda', label: 'Agenda', exact: true },
     { to: '/admin/agenda/marcacoes', label: 'Marcações' },
+    // Os servicos sem preco fixo nao passam pela agenda: chegam como pedido.
+    // E trabalho do dia como qualquer outro, por isso vive aqui e nao na
+    // gaveta — e e para aqui que abre o aviso que lhe toca no telemovel.
+    { to: '/admin/orcamentos', label: 'Orçamentos' },
     { to: '/admin/agenda/lista-espera', label: 'Lista de espera' },
     { to: '/admin/agenda/encaixes', label: 'Encaixes' },
     { to: '/admin/agenda/bloqueios', label: 'Bloqueios' }
