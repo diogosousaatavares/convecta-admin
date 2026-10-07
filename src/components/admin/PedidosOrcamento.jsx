@@ -32,6 +32,21 @@ export default function PedidosOrcamento({ businessId, barbearia, onMarcar }) {
   const pendentes = pedidos.filter(p => p.estado === 'pendente');
   if (pendentes.length === 0) return null;
 
+  /*
+   * A hora que o cliente pediu. Escreve-se com «pediu» à frente e não como
+   * um cabeçalho de marcação, porque não é uma: a vaga continua livre até o
+   * barbeiro marcar. Se isto parecesse marcado, ele contava com uma hora que
+   * ninguém lhe garantiu.
+   */
+  const quando = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    const dia = d.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long' });
+    const hora = d.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+    return `${dia} às ${hora}`;
+  };
+
   const tel = (t) => String(t || '').replace(/\D/g, '');
   const wa = (t) => { const n = tel(t); return n.length === 9 ? '351' + n : n; };
 
@@ -52,8 +67,17 @@ export default function PedidosOrcamento({ businessId, barbearia, onMarcar }) {
               <b style={{ fontSize: 16 }}>{p.cliente}</b>
               <span className="text-sec text-sm">{p.servico}</span>
             </div>
+            {p.quandoPedido && (
+              <p style={{ marginTop: 7, fontSize: 15 }}>
+                <b>Pediu {quando(p.quandoPedido)}</b>
+                {p.profissional ? `, com ${p.profissional}` : ''}
+                <span className="text-sec text-sm" style={{ display: 'block', marginTop: 2 }}>
+                  A hora está livre — ninguém a ocupou. É o que lhe dá jeito.
+                </span>
+              </p>
+            )}
             {p.descricao && <p style={{ marginTop: 7, fontSize: 15 }}>«{p.descricao}»</p>}
-            {p.preferencia && (
+            {p.preferencia && !p.quandoPedido && (
               <p className="text-sec text-sm" style={{ marginTop: 4 }}>Dá-lhe jeito: {p.preferencia}</p>
             )}
 

@@ -360,8 +360,15 @@ export default function Agenda() {
       {/* Antes da agenda, de propósito: um pedido de orçamento é uma pessoa
           à espera de uma chamada, e isso vem antes de arrumar o dia. */}
       <PedidosOrcamento businessId={data.business?.id} barbearia={data.business?.name} onMarcar={(p) => {
+        /* Levar a agenda para o dia que ele pediu. Combinámos a hora com
+           ele; deixá-lo a procurar o dia no calendário era o passo onde
+           isto se perdia. */
+        const dia = p.quandoPedido ? String(p.quandoPedido).slice(0, 10) : '';
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dia)) setDate(dia);
         toast.success(`${p.cliente} · ${p.minutos} min`,
-          'Cria a marcação na hora que quiseres — esse tempo fica ocupado.');
+          dia
+            ? 'Estás no dia que ele pediu. Cria a marcação — esse tempo fica ocupado.'
+            : 'Cria a marcação na hora que quiseres — esse tempo fica ocupado.');
       }} />
 
       <div className="agenda-toolbar">

@@ -24,7 +24,7 @@ const faltaSql = (e) => {
 export async function listarPedidos(businessId) {
   const { data, error } = await supabase
     .from('pedidos_orcamento')
-    .select('*, customers(name, phone)')
+    .select('*, customers(name, phone), professionals(name)')
     .eq('business_id', businessId)
     .order('criado_em', { ascending: false });
   if (error) {
@@ -40,6 +40,11 @@ export async function listarPedidos(businessId) {
     servico: r.nome_servico,
     descricao: r.descricao || '',
     preferencia: r.preferencia || '',
+    /* A hora que o cliente escolheu no calendário. NÃO é uma vaga tomada —
+       é o que lhe dá jeito. Quem marca é o barbeiro. */
+    quandoPedido: r.quando_pedido || null,
+    professionalId: r.professional_id || null,
+    profissional: r.professionals?.name || '',
     estado: r.estado,
     minutos: r.minutos,
     preco: r.preco,
