@@ -420,6 +420,10 @@ function bizFromRow(row) {
     // nao conhece. Guardamos o settings original para as devolver intactas
     // ao gravar - sem isto, gravar o telefone apagava o tema da barbearia.
     _settings: s,
+    /* O arranque já foi feito (ou saltado)? É o que decide se quem ainda não
+       tem cartão vai para o guia ou para a página da subscrição. Escrevia-se
+       e nunca se lia — e um campo que só se escreve não decide nada. */
+    arranque: s.arranque || null,
     demo: s.demo?.ativo === true,
   };
 }

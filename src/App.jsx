@@ -99,8 +99,24 @@ function AdminRoute({ children }) {
      hooks/usePortao.js — enquanto nao sabe nao fecha, e se nao conseguir
      saber deixa passar. */
   if (portao === 'a-ver') return <Spinner />;
+  /*
+   * Sem cartão, para onde se manda?
+   *
+   * Para a página da venda, não. Quem entra pela primeira vez cai num ecrã a
+   * pedir um cartão antes de ter visto o que compra — e um barbeiro que abre
+   * a app pela primeira vez e leva com a factura à frente fecha-a.
+   *
+   * Vai para o Arranque: vê o que já tem montado, corrige os preços dele e o
+   * horário dele, e é NO FIM desse ecrã que lhe perguntamos se quer activar.
+   * O cartão passa a ser a resposta a uma pergunta e não a porta de entrada.
+   *
+   * Depois do arranque feito (ou saltado), aí sim: quem não tem cartão vai
+   * para a subscrição, que é onde isso se resolve. Mandá-lo outra vez para o
+   * guia era pô-lo a andar à roda.
+   */
   if (portao === 'fechado' && !abertaSemCartao(location.pathname)) {
-    return <Navigate to="/admin/subscricao" replace />;
+    const jaFezOArranque = store?.business?.arranque?.feito === true;
+    return <Navigate to={jaFezOArranque ? '/admin/subscricao' : '/admin/arranque'} replace />;
   }
   // Tirar do menu nao chega: um atalho guardado ou um endereco escrito a mao
   // continuava a abrir o modulo. A lista esta em lib/modulos.js.
