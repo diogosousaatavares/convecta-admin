@@ -243,7 +243,13 @@ export default function AdminAppointments() {
             <div className="ag-detail-row"><span className="l">Data</span><span className="v">{formatDateShortNum(cancelTarget.date)} · {cancelTarget.startTime}</span></div>
           </>
         )}
-        message="Esta ação irá alterar o estado da marcação para Cancelada."
+        message="O cliente fica sem marcação nenhuma. Se o problema for só a hora, re-agenda na agenda em vez de cancelar."
+        extra={cancelTarget && (
+          <Button size="sm" variant="secondary"
+            onClick={() => { const d = cancelTarget.date; setCancelTarget(null); navigate(`/admin/agenda?dia=${d}`); }}>
+            Ir à agenda re-agendar
+          </Button>
+        )}
       />
 
       <CheckoutModal

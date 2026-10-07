@@ -20,6 +20,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import { packsActivosDoCliente, saldoParaServico } from '@/lib/packsService';
 import { nomeSemRepetir } from '@/lib/nomes';
 import { pedidosPendentes } from '@/lib/orcamentosService';
+import { proporNovaHora } from '@/lib/propostasService';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
@@ -34,6 +35,15 @@ function rotuloEstado(a) {
     if (a.cancelledBy === 'cliente') return 'Cancelada pelo cliente';
     if (a.cancelledBy === 'barbearia') return 'Cancelada pela barbearia';
     return 'Cancelada';
+  }
+  /*
+   * «Pendente» não distingue duas coisas muito diferentes: uma marcação que
+   * o cliente fez e espera que o barbeiro confirme, e uma hora que o
+   * barbeiro propôs e espera que o cliente aceite. Quem lê a agenda precisa
+   * de saber de quem é a vez.
+   */
+  if (a.proposta && a.proposta.resposta?.aceite !== true) {
+    return a.proposta.resposta?.aceite === false ? 'Ele não pode' : 'À espera dele';
   }
   return 'Pendente';
 }
@@ -188,6 +198,41 @@ export default function Agenda() {
     } catch (e) { falhou(e); }
   };
   const askCancel = (a) => { setCancelTarget(a); setSelected(null); };
+
+  /*
+   * RE-AGENDAR em vez de cancelar.
+   *
+   * Cancelar deixa o cliente sem nada e sem resposta — e é assim que se
+   * perde alguém por uma coisa que era só uma troca de horas. Aqui propõe-se
+   * outra hora: ele é avisado, e aceita ou diz que não dá.
+   *
+   * Volta a «por confirmar» mesmo com a confirmação automática ligada. A
+   * automática vale para a hora que o cliente escolheu; esta escolheu-a a
+   * barbearia, e uma hora que ele não escolheu nem aceitou não está
+   * confirmada coisa nenhuma.
+   */
+  const [reagendar, setReagendar] = useState(null);
+  const [novaHora, setNovaHora] = useState({ dia: '', hora: '', motivo: '' });
+  const [aReagendar, setAReagendar] = useState(false);
+  const pedirReagendar = (a) => {
+    setReagendar(a);
+    setNovaHora({ dia: a.date, hora: a.startTime, motivo: '' });
+    setSelected(null);
+    setCancelTarget(null);
+  };
+  const confirmarReagendar = async () => {
+    setAReagendar(true);
+    try {
+      await proporNovaHora(reagendar, {
+        date: novaHora.dia, startTime: novaHora.hora, motivo: novaHora.motivo,
+        businessId: data.business?.id, barbearia: data.business?.name,
+      });
+      toast.success('Hora mudada — o cliente foi avisado',
+        'Fica por confirmar até ele aceitar. Se não puder, diz-te que hora quer.');
+      setReagendar(null);
+    } catch (e) { falhou(e); }
+    finally { setAReagendar(false); }
+  };
 
   const handleBlock = async (proId, startTime, motivo, duracao) => { try {
     if (so && proId !== so) { soATua(); return; }
@@ -546,6 +591,7 @@ export default function Agenda() {
                 {podeMexer(selAppt) && <div className="ag-detail-actions">
                   {selAppt.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(selAppt.id)}>Confirmar</Button>}
                   {selAppt.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(selAppt.id)}>Confirmar presença</Button>}
+                  {selAppt.status !== 'cancelled' && selAppt.status !== 'completed' && !selAppt.blocked && <Button size="sm" variant="secondary" onClick={() => pedirReagendar(selAppt)}>Re-agendar</Button>}
                   {selAppt.status !== 'cancelled' && selAppt.status !== 'completed' && <Button size="sm" variant="danger" onClick={() => askCancel(selAppt)}>Cancelar</Button>}
                 </div>}
               </>
@@ -645,6 +691,42 @@ export default function Agenda() {
         }}
       />
 
+      <Modal open={!!reagendar} onClose={() => setReagendar(null)} title="Re-agendar">
+        {reagendar && (
+          <div>
+            <p className="text-sec text-sm" style={{ margin: '0 0 14px', lineHeight: 1.65 }}>
+              {data.customers.find(c => c.id === reagendar.customerId)?.name || 'O cliente'} fica
+              avisado com a hora nova e aceita na app. Se não puder, diz-te que hora quer.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div className="field" style={{ margin: 0 }}>
+                <label className="label">Dia</label>
+                <input className="input" type="date" value={novaHora.dia}
+                  onChange={e => setNovaHora(v => ({ ...v, dia: e.target.value }))} />
+              </div>
+              <div className="field" style={{ margin: 0 }}>
+                <label className="label">Hora</label>
+                <input className="input" type="time" value={novaHora.hora}
+                  onChange={e => setNovaHora(v => ({ ...v, hora: e.target.value }))} />
+              </div>
+            </div>
+            <div className="field" style={{ marginTop: 10 }}>
+              <label className="label">Porquê (vai na mensagem)</label>
+              <input className="input" maxLength={140} value={novaHora.motivo}
+                onChange={e => setNovaHora(v => ({ ...v, motivo: e.target.value }))}
+                placeholder="Ex.: tenho um imprevisto a essa hora" />
+            </div>
+            <div style={{ display: 'flex', gap: 9, marginTop: 14, flexWrap: 'wrap' }}>
+              <Button variant="primary" disabled={aReagendar || !novaHora.dia || !novaHora.hora}
+                onClick={confirmarReagendar}>
+                {aReagendar ? 'A mudar…' : 'Mudar e avisar'}
+              </Button>
+              <Button variant="secondary" onClick={() => setReagendar(null)}>Deixa estar</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
       <ConfirmDialog
         open={!!cancelTarget}
         onClose={() => setCancelTarget(null)}
@@ -659,7 +741,12 @@ export default function Agenda() {
             <div className="ag-detail-row"><span className="l">Data</span><span className="v">{cancelTarget.startTime} · {formatDate(cancelTarget.date)}</span></div>
           </>
         )}
-        message={cancelTarget && (cancelTarget.blocked || cancelTarget.status === 'blocked') ? 'O bloqueio será removido da agenda.' : 'Esta ação irá alterar o estado da marcação para Cancelada.'}
+        message={cancelTarget && (cancelTarget.blocked || cancelTarget.status === 'blocked') ? 'O bloqueio será removido da agenda.' : 'O cliente fica sem marcação nenhuma. Se o problema for só a hora, re-agenda em vez de cancelar.'}
+        extra={cancelTarget && !cancelTarget.blocked && cancelTarget.status !== 'blocked' && (
+          <Button size="sm" variant="secondary" onClick={() => pedirReagendar(cancelTarget)}>
+            Re-agendar em vez de cancelar
+          </Button>
+        )}
       />
     </AdminLayout>
   );

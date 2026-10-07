@@ -26,7 +26,7 @@ import { MessageSquare } from 'lucide-react';
  */
 
 const ESTADOS = {
-  marcado:   { etiqueta: 'Combinado', cor: 'success' },
+  marcado:   { etiqueta: 'Aceitou', cor: 'success' },
   recusado:  { etiqueta: 'Recusado',  cor: 'danger' },
   cancelado: { etiqueta: 'Desistiu',  cor: 'default' },
 };

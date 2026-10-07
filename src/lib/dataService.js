@@ -581,6 +581,13 @@ function apptFromRow(row) {
     // 'cliente' ou 'barbearia'. Sem isto o barbeiro nao sabia quem desmarcou.
     cancelledBy: m.cancelledBy || null,
     encaixe: m.encaixe === true,
+    /*
+     * A hora que a barbearia propos e que o cliente ainda nao aceitou.
+     * Ver supabase/PROPOSTAS_2026-10-07.sql. Enquanto houver proposta sem
+     * resposta aceite, a marcacao esta em `pending` — a vaga fica tomada,
+     * de proposito, para nao se perder no meio da conversa.
+     */
+    proposta: m.proposta || null,
     rescheduleHistory: m.rescheduleHistory,
   };
 }
@@ -622,6 +629,7 @@ function apptToRow(a) {
       cancelledAt: a.cancelledAt, attendedAt: a.attendedAt,
       cancelledBy: a.cancelledBy || null,
       rescheduleHistory: a.rescheduleHistory,
+      proposta: a.proposta || undefined,
       // Um encaixe e, por definicao, uma marcacao fora da grelha normal. A
       // barreira de sobreposicao da base de dados deixa-o passar por isto.
       encaixe: a.encaixe === true ? true : undefined,
