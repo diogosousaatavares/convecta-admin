@@ -525,6 +525,15 @@ export default function Packs() {
                         <td className="text-sm">{formatPrice(v.precoPago)}{v.metodo ? ` · ${v.metodo}` : ''}</td>
                         <td><Badge variant={est.variante}>{est.texto}</Badge></td>
                         <td>
+                          {/* Quem tem pack liga a marcar — e quem está a olhar
+                              para o saldo dele tem de poder marcar dali. Sem
+                              isto, a única acção nesta lista era anular. */}
+                          {!v.anulado && v.restantes > 0 && (
+                            <Button size="sm" variant="primary" style={{ marginRight: 6 }}
+                              onClick={() => navigate(`/admin/agenda?nova=1&cliente=${v.customerId}`)}>
+                              Marcar corte
+                            </Button>
+                          )}
                           {!v.anulado && (
                             <Button size="sm" variant="secondary" onClick={() => anular(v)}>Anular</Button>
                           )}

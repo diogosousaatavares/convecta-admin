@@ -114,7 +114,17 @@ export default function Agenda() {
     // pessoa na agenda sem saber onde carregar.
     try { return new URLSearchParams(window.location.search).get('nova') === '1'; } catch { return false; }
   });
-  const [quick, setQuick] = useState({ customerId: '', serviceId: '', professionalId: '', data: '', startTime: '', usaPack: false });
+  /*
+   * O cliente pode vir já escolhido no endereço (?cliente=<id>). É assim que
+   * se chega aqui a partir de «Packs → Clientes»: quem tem pack liga a
+   * marcar, e quem está a olhar para o saldo dele tem de poder marcar dali
+   * sem voltar atrás para o procurar outra vez na lista.
+   */
+  const [quick, setQuick] = useState(() => {
+    let c = '';
+    try { c = new URLSearchParams(window.location.search).get('cliente') || ''; } catch { /* sem endereço */ }
+    return { customerId: c, serviceId: '', professionalId: '', data: '', startTime: '', usaPack: false };
+  });
   // Os packs do cliente escolhido no encaixe. Quem tem pack e liga para
   // marcar tem de o poder usar — senao o barbeiro cobrava-lhe duas vezes.
   const [packsDoCliente, setPacksDoCliente] = useState([]);
@@ -270,7 +280,7 @@ export default function Agenda() {
   const [bloqDur, setBloqDur] = useState('30');
   const abrirMarcacao = (professionalId, startTime) => {
     setQuickError('');
-    setQuick({ customerId: '', serviceId: '', professionalId: so || professionalId, data: date, startTime, usaPack: false });
+    setQuick(f => ({ customerId: f.customerId || '', serviceId: '', professionalId: so || professionalId, data: date, startTime, usaPack: false }));
     setAvisoPassado(false);
     setQuickOpen(true);
   };
