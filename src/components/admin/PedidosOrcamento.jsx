@@ -108,10 +108,6 @@ export default function PedidosOrcamento({ businessId, barbearia, onMarcar }) {
         <h3 style={{ fontSize: 18 }}>Pedidos abertos</h3>
         <span className="text-sec text-sm">{abertos.length}</span>
       </div>
-      <p className="text-sec text-sm" style={{ marginBottom: 14 }}>
-        Liga-lhe, combina o trabalho, e marca à hora que te der jeito. Ele aceita na app dele.
-      </p>
-
       <div style={{ display: 'grid', gap: 10 }}>
         {abertos.map(p => {
           const a = marcacaoDe(p);
@@ -123,11 +119,8 @@ export default function PedidosOrcamento({ businessId, barbearia, onMarcar }) {
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
                 <b style={{ fontSize: 16 }}>{p.cliente}</b>
                 <span className="text-sec text-sm">{p.servico}</span>
-                <span style={{ marginLeft: 'auto' }}>
-                  {sugestao ? <Badge variant="warning">Não pôde</Badge>
-                    : aEsperar ? <Badge variant="default">À espera dele</Badge>
-                    : <Badge variant="gold">Por responder</Badge>}
-                </span>
+                {sugestao ? <Badge variant="warning">Não pôde</Badge>
+                  : aEsperar ? <Badge variant="default">À espera dele</Badge> : null}
               </div>
 
               {p.descricao && <p style={{ marginTop: 7, fontSize: 15 }}>«{p.descricao}»</p>}
@@ -139,11 +132,8 @@ export default function PedidosOrcamento({ businessId, barbearia, onMarcar }) {
                   ecrã não sabe se já propôs alguma coisa a esta pessoa. */}
               {a && (
                 <p style={{ marginTop: 7, fontSize: 15 }}>
-                  <b>Marcado para {diaHora(a.date, a.startTime)}</b>
-                  <span className="text-sec text-sm" style={{ display: 'block', marginTop: 2 }}>
-                    {sugestao ? 'Ele disse que não pode. A hora continua guardada até combinarem outra.'
-                      : 'Por confirmar — está à espera que ele aceite na app.'}
-                  </span>
+                  <b>{diaHora(a.date, a.startTime)}</b>
+                  <span className="text-sec text-sm">{sugestao ? ' — ele não pode' : ' — por confirmar'}</span>
                 </p>
               )}
 
@@ -208,10 +198,6 @@ export default function PedidosOrcamento({ businessId, barbearia, onMarcar }) {
                       </div>
                     </div>
                   )}
-                  <p className="text-sec text-xs" style={{ margin: 0 }}>
-                    Fica logo na tua agenda e a vaga passa a estar ocupada. Ele recebe um aviso
-                    com a hora e o preço, e aceita ou diz que não dá.
-                  </p>
                   <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap' }}>
                     <Button variant="primary" disabled={aGravar || !f.dia || !f.hora || (!a && (!f.minutos || !f.profissional))}
                       onClick={() => marcar(p)}>

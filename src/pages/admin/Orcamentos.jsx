@@ -77,16 +77,13 @@ export default function Orcamentos() {
         <EmptyState
           icon={MessageSquare}
           title="Ainda não há pedidos"
-          description={'Os serviços marcados como «sob orçamento» aparecem na app do cliente com um botão «Pedir orçamento». Quando alguém pedir, o pedido chega aqui e tocamos-te no telemóvel.'}
+          description="Quando alguém pedir orçamento na app, chega aqui." 
         />
       )}
 
       {respondidos.length > 0 && (
         <Card className="card-pad" style={{ marginTop: 16 }}>
           <h3 style={{ fontSize: 17, marginBottom: 4 }}>Já respondidos</h3>
-          <p className="text-sec text-sm" style={{ marginBottom: 14 }}>
-            O que ficou combinado com cada um. Serve para saber quanto se cobrou da última vez.
-          </p>
           <div style={{ display: 'grid', gap: 10 }}>
             {respondidos.map(p => {
               const e = ESTADOS[p.estado] || { etiqueta: p.estado, cor: 'default' };

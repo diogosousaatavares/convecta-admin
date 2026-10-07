@@ -426,10 +426,7 @@ export default function Agenda() {
       {orcAEspera > 0 && (
         <Link to="/admin/orcamentos" style={{ textDecoration: 'none' }}>
           <Card className="card-pad" style={{ marginBottom: 16, borderLeft: '4px solid var(--gold)' }}>
-            <b>{orcAEspera === 1 ? 'Há 1 pedido de orçamento à espera' : `Há ${orcAEspera} pedidos de orçamento à espera`}</b>
-            <div className="text-sec text-sm" style={{ marginTop: 3 }}>
-              Toca para ver quem é e combinar o tempo e o preço.
-            </div>
+            <b>{orcAEspera === 1 ? '1 pedido de orçamento à espera' : `${orcAEspera} pedidos de orçamento à espera`}</b>
           </Card>
         </Link>
       )}
@@ -694,10 +691,6 @@ export default function Agenda() {
       <Modal open={!!reagendar} onClose={() => setReagendar(null)} title="Re-agendar">
         {reagendar && (
           <div>
-            <p className="text-sec text-sm" style={{ margin: '0 0 14px', lineHeight: 1.65 }}>
-              {data.customers.find(c => c.id === reagendar.customerId)?.name || 'O cliente'} fica
-              avisado com a hora nova e aceita na app. Se não puder, diz-te que hora quer.
-            </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div className="field" style={{ margin: 0 }}>
                 <label className="label">Dia</label>
