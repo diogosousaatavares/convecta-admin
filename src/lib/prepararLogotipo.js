@@ -151,7 +151,7 @@ export async function prepararLogotipo(original) {
     c.width = Math.round(largura); c.height = Math.round(altura);
     const g = c.getContext('2d');
     g.imageSmoothingQuality = 'high';
-    if (cor && comFundo) { g.fillStyle = cor; g.fillRect(0, 0, c.width, c.height); }
+    if (comFundo) { g.fillStyle = cor || '#ffffff'; g.fillRect(0, 0, c.width, c.height); }
     // cobrir: numa fotografia enche-se o quadrado (corta as pontas) em vez de
     // deixar faixas de cor à volta.
     const s = (cobrir ? Math.max : Math.min)((c.width - 2 * margemX) / cw, (c.height - 2 * margemY) / ch);
@@ -169,10 +169,15 @@ export async function prepararLogotipo(original) {
   const logo = desenhar(cw * k + 2 * folga, ch * k + 2 * folga, folga, folga, false, !liso && !transparente);
 
   // O ícone do telemóvel: esse tem de ser quadrado (é a regra do Android/iPhone).
-  const m = LADO * (liso ? 0.12 : 0.04);
+  // Nunca se corta o logótipo para encher o quadrado. Um logótipo largo — e
+  // quase todos os que trazem o nome escrito são largos — perdia as pontas, e
+  // no ecrã do telemóvel ficava meia palavra. Cabe inteiro; o resto do
+  // quadrado leva a cor do fundo. A margem é folgada de propósito: o iPhone
+  // arredonda os cantos por cima do que lá estiver.
+  const m = LADO * 0.14;
   // O ícone leva a cor do fundo original: o iPhone não aceita ícones
   // transparentes (pinta-os de preto). O logótipo em si fica sem fundo.
-  const icone = desenhar(LADO, LADO, m, m, !liso, true);
+  const icone = desenhar(LADO, LADO, m, m, false, true);
 
   if (cortou || Math.abs(cw - ch) / Math.max(cw, ch) > 0.03) {
     ajustes.push('O ícone do telemóvel ficou quadrado com o logótipo ao centro.');
