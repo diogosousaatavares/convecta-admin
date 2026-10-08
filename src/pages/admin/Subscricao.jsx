@@ -95,7 +95,13 @@ const CSS = `
      metade da etiqueta — era o que se via no canto direito. */
   position: relative; z-index: 2; }
 .sub-ico { width: 52px; height: 52px; border-radius: 14px; background: rgba(201,162,39,.16); color: var(--gold); display: grid; place-items: center; }
-.sub-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,.03); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.sub-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px;
+  border: 1px solid var(--border); font-size: 12px; font-weight: 600; white-space: nowrap;
+  /* OPACA. Era rgba(255,255,255,.03) — tres por cento de branco, ou seja,
+     vidro. Em modo escuro ninguem notava; em modo claro, com o cartao
+     dourado desenhado por tras, a etiqueta parecia partida. Nao era um
+     problema de camadas: a borda e as letras sempre estiveram por cima. */
+  background: var(--elevated); }
 .sub-hero-h1 { font-family: var(--font-body); font-weight: 700; font-size: clamp(26px, 6vw, 34px); line-height: 1.1; margin: 18px 0 0; letter-spacing: -.01em; }
 .sub-hero-sub { font-size: 16px; color: var(--text-sec); line-height: 1.4; margin: 8px 0 0; max-width: 30ch; }
 .sub-linhas { display: grid; gap: 14px; margin-top: 22px; max-width: 360px; position: relative; z-index: 1; }
@@ -116,8 +122,8 @@ const CSS = `
   margin-top: 10px; position: relative; z-index: 1;
   font-size: 13px; color: var(--text-sec); text-decoration: none;
 }
-.sub-stripe b { color: var(--text); font-weight: 700; }
-.sub-stripe:hover b { text-decoration: underline; }
+.sub-stripe-logo { height: 17px; width: auto; display: block; }
+.sub-stripe:hover { opacity: .8; }
 .sub-plano-linha button { background: none; border: 0; color: var(--gold); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; }
 
 /* Os cartões desenhados, à direita, ATRÁS de tudo o que é texto. */
@@ -586,7 +592,8 @@ export default function Subscricao() {
                 nome da Stripe diz mais do que qualquer promessa nossa de
                 segurança — e o link deixa-o ir confirmar. */}
             <a className="sub-stripe" href="https://stripe.com" target="_blank" rel="noopener noreferrer">
-              <Lock size={13} /> Pagamentos seguros, processados pela <b>Stripe</b>
+              <Lock size={13} /> Pagamentos seguros, processados pela
+              <img src="/stripe.webp" alt="Stripe" className="sub-stripe-logo" />
             </a>
           </section>
 
