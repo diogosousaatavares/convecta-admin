@@ -608,10 +608,13 @@ function PreviaFundo({cor,fundo,intensidade,velocidade}){
       ctx.globalCompositeOperation='source-over'
       ctx.fillStyle=fundo||'#0A0807'; ctx.fillRect(0,0,W,H)
       ctx.globalCompositeOperation='lighter'; ctx.lineCap='round'
+      // A MESMA conta do FundoOndas.jsx da app de cliente. Se mexeres numa,
+      // mexe na outra — senao a pre-visualizacao mente.
+      const espaco=H/10
+      const onda=Math.min(W*0.075,espaco*0.5)
       for(let i=0;i<9;i++){
-        const k=i/8
-        const base=H*(0.06+k*0.9)
-        const a1=H*(0.05+0.05*Math.sin(i*2.1)),a2=H*0.025
+        const base=espaco*(i+1)
+        const a1=onda*(0.65+0.35*Math.sin(i*2.1)),a2=onda*0.3
         const f1=(1.1+0.35*Math.sin(i*1.7))/W*Math.PI*2, f2=2.7/W*Math.PI*2
         ctx.beginPath()
         for(let x=-14;x<=W+14;x+=8){
@@ -639,8 +642,14 @@ function PreviaFundo({cor,fundo,intensidade,velocidade}){
   return(
     <div style={{marginTop:16}}>
       <Lbl>Pré-visualização</Lbl>
-      <canvas ref={ref} style={{width:'100%',height:170,borderRadius:10,
-        border:`1px solid ${BD}`,display:'block'}}/>
+      {/* Em forma de telemovel, nao em faixa larga: e num telemovel que
+          quase toda a gente ve este fundo, e numa faixa baixa as ondas
+          apareciam esmagadas — o barbeiro aprovava uma coisa e recebia
+          outra. */}
+      <div style={{display:'flex',justifyContent:'center'}}>
+        <canvas ref={ref} style={{width:184,height:380,borderRadius:16,
+          border:`1px solid ${BD}`,display:'block'}}/>
+      </div>
     </div>
   )
 }
