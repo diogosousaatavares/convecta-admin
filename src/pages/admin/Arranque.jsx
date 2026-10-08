@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Scissors, Clock, Plus, X, ArrowRight, CreditCard, Check } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
-import { Card, Button } from '@/components/ui';
+// O Card e o Button do painel usam `--gold`, que aqui e a cor da barbearia
+// e nao a da Convecta. Este ecra desenha-se por si, com as cores do site.
 import { useToast } from '@/components/ui/ToastContext';
 import dataService from '@/lib/dataService';
 import { DOMINIO_BASE } from '@/lib/designService';
@@ -156,134 +157,236 @@ export default function Arranque() {
 
   if (!negocio) return null;
 
-  const rotulo = { fontSize: 14, color: 'var(--text-sec)', marginBottom: 6, display: 'block' };
-
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '28px 16px 40px' }}>
-      <div style={{ maxWidth: 620, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="arr">
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <div className="arr-folha">
 
-        <div>
-          <div style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 1.4, fontWeight: 700, color: 'var(--gold-tinta)' }}>
-            Um minuto, e está teu
-          </div>
-          <h1 style={{ margin: '8px 0 6px', fontSize: 26, lineHeight: 1.2 }}>
-            Confirma os teus preços e o teu horário
-          </h1>
-          <p style={{ margin: 0, color: 'var(--text-sec)', fontSize: 15.5, lineHeight: 1.6 }}>
-            A {negocio.name} já está no ar{endereco ? ` em ${endereco}` : ''}, mas com preços e horário
-            de exemplo. Corrige-os aqui — é o que os teus clientes vão ver.
-          </p>
-        </div>
+        <header className="arr-topo">
+          <img src="/admin-logo.png?v=2" alt="Convecta" className="arr-marca marca-claro" />
+          <img src="/admin-logo-escuro.png?v=2" alt="Convecta" className="arr-marca marca-escuro" />
+          <div className="arr-olho">Um minuto, e está teu</div>
+          <h1 className="arr-h1">Confirma os teus preços<br />e o teu horário</h1>
+          {endereco && <div className="arr-endereco">{endereco}</div>}
+        </header>
 
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
-            <Scissors size={16} style={{ color: 'var(--gold-tinta)' }} />
-            <span className="fw-600" style={{ fontSize: 15 }}>O que fazes, e a quanto</span>
-          </div>
-          <p style={{ margin: '0 0 14px', fontSize: 14.5, color: 'var(--text-sec)' }}>
-            Apaga o que não fazes e mete os teus preços. A duração é o que decide as horas que o cliente vê.
-          </p>
+        <section className="arr-caixa">
+          <h2 className="arr-h2"><Scissors size={16} /> O que fazes, e a quanto</h2>
 
-          {servicos.map((s, i) => (
-            <div key={s.id || `novo-${i}`} style={{ display: 'flex', gap: 8, alignItems: 'flex-end', marginBottom: 10 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                {i === 0 && <label style={rotulo}>Serviço</label>}
-                <input className="input" value={s.name} placeholder="Corte"
-                  onChange={e => mudar(i, 'name', e.target.value)} />
+          <div className="arr-servicos">
+            {servicos.map((s, i) => (
+              <div className="arr-servico" key={s.id || `novo-${i}`}>
+                <input className="arr-campo arr-nome" value={s.name} placeholder="Corte"
+                  aria-label="Nome do serviço" onChange={e => mudar(i, 'name', e.target.value)} />
+                <div className="arr-linha2">
+                  <div className="arr-preco">
+                    <input className="arr-campo" type="number" min="0" step="0.5" inputMode="decimal"
+                      aria-label="Preço" value={s.price} onChange={e => mudar(i, 'price', e.target.value)} />
+                    <span className="arr-euro">€</span>
+                  </div>
+                  <select className="arr-campo arr-demora" value={s.durationMinutes} aria-label="Duração"
+                    onChange={e => mudar(i, 'durationMinutes', Number(e.target.value))}>
+                    {DURACOES.map(d => <option key={d} value={d}>{d} min</option>)}
+                  </select>
+                  <button type="button" className="arr-x" onClick={() => remover(i)}
+                    aria-label={`Apagar ${s.name || 'serviço'}`}><X size={16} /></button>
+                </div>
               </div>
-              <div style={{ width: 86, flexShrink: 0 }}>
-                {i === 0 && <label style={rotulo}>Preço</label>}
-                <input className="input" type="number" min="0" step="0.5" inputMode="decimal" value={s.price}
-                  onChange={e => mudar(i, 'price', e.target.value)} />
-              </div>
-              <div style={{ width: 92, flexShrink: 0 }}>
-                {i === 0 && <label style={rotulo}>Demora</label>}
-                <select className="select" value={s.durationMinutes}
-                  onChange={e => mudar(i, 'durationMinutes', Number(e.target.value))}>
-                  {DURACOES.map(d => <option key={d} value={d}>{d} min</option>)}
-                </select>
-              </div>
-              <button type="button" onClick={() => remover(i)} aria-label={`Apagar ${s.name || 'serviço'}`}
-                style={{ flexShrink: 0, width: 38, height: 38, borderRadius: 9, cursor: 'pointer',
-                  background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-ter)',
-                  display: 'grid', placeItems: 'center' }}>
-                <X size={15} />
-              </button>
-            </div>
-          ))}
-
-          <Button variant="ghost" onClick={juntar} style={{ marginTop: 4 }}>
-            <Plus size={15} /> Juntar outro serviço
-          </Button>
-        </Card>
-
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
-            <Clock size={16} style={{ color: 'var(--gold-tinta)' }} />
-            <span className="fw-600" style={{ fontSize: 15 }}>A que horas abres</span>
+            ))}
           </div>
-          <p style={{ margin: '0 0 14px', fontSize: 14.5, color: 'var(--text-sec)' }}>
-            Fora destas horas ninguém consegue marcar. Se um dia for diferente dos outros, acertas depois em Horários.
-          </p>
 
-          <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-            <div style={{ flex: 1 }}>
-              <label style={rotulo}>Abre</label>
-              <input className="input" type="time" value={abre}
+          <button type="button" className="arr-juntar" onClick={juntar}>
+            <Plus size={16} /> Juntar outro serviço
+          </button>
+        </section>
+
+        <section className="arr-caixa">
+          <h2 className="arr-h2"><Clock size={16} /> A que horas abres</h2>
+
+          <div className="arr-horas">
+            <label className="arr-hora">
+              <span>Abre</span>
+              <input className="arr-campo" type="time" value={abre}
                 onChange={e => { setMexido(true); setAbre(e.target.value); }} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={rotulo}>Fecha</label>
-              <input className="input" type="time" value={fecha}
+            </label>
+            <label className="arr-hora">
+              <span>Fecha</span>
+              <input className="arr-campo" type="time" value={fecha}
                 onChange={e => { setMexido(true); setFecha(e.target.value); }} />
-            </div>
+            </label>
           </div>
 
-          <label style={rotulo}>Dias em que abres</label>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {DIAS.map(([dia, curto]) => {
-              const on = diasAbertos.has(dia);
-              return (
-                <button key={dia} type="button" onClick={() => virarDia(dia)} aria-pressed={on}
-                  style={{ padding: '9px 13px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
-                    fontSize: 15, fontWeight: on ? 700 : 500,
-                    border: `1px solid ${on ? 'var(--gold)' : 'var(--border)'}`,
-                    background: on ? 'rgba(201,162,39,0.14)' : 'transparent',
-                    color: on ? 'var(--gold)' : 'var(--text-ter)' }}>
-                  {curto}
-                </button>
-              );
-            })}
+          {/* Sete dias numa grelha de sete partes iguais: ao telemóvel
+              ficavam quatro em cima e três em baixo, de larguras diferentes,
+              e uma semana lê-se de uma assentada ou não se lê. */}
+          <div className="arr-dias">
+            {DIAS.map(([dia, curto]) => (
+              <button key={dia} type="button" aria-pressed={diasAbertos.has(dia)}
+                className={`arr-dia${diasAbertos.has(dia) ? ' on' : ''}`}
+                onClick={() => virarDia(dia)}>{curto}</button>
+            ))}
           </div>
-        </Card>
+        </section>
 
-        <Button block onClick={() => guardar('/admin/agenda')} disabled={aGravar}>
-          {aGravar ? 'A guardar…' : <><Check size={16} /> Guardar e ver a minha agenda</>}
-        </Button>
+        <button type="button" className="arr-btn arr-btn-forte" disabled={aGravar}
+          onClick={() => guardar('/admin/agenda')}>
+          {aGravar ? 'A guardar…' : <><Check size={17} /> Guardar e ver a minha agenda</>}
+        </button>
 
         {/* O cartão só aqui, depois de ele ter posto os preços dele. Antes
             disto era pedir uma decisão a quem ainda não tinha nada seu. */}
-        <Card style={{ borderColor: 'rgba(201,162,39,0.4)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
-            <CreditCard size={16} style={{ color: 'var(--gold-tinta)' }} />
-            <span className="fw-600" style={{ fontSize: 15 }}>Quando quiseres receber marcações</span>
-          </div>
-          <p style={{ margin: '0 0 12px', fontSize: 14.5, color: 'var(--text-sec)', lineHeight: 1.6 }}>
-            Para os clientes poderem marcar, é preciso registar um cartão. Os primeiros
-            14 dias não são cobrados e cancelas sozinho aqui no painel — não tens de
-            decidir isso agora.
-          </p>
-          <Button variant="secondary" onClick={() => guardar('/admin/subscricao')} disabled={aGravar}>
-            Guardar e activar com 14 dias grátis <ArrowRight size={14} />
-          </Button>
-        </Card>
+        <section className="arr-caixa arr-cartao">
+          <h2 className="arr-h2"><CreditCard size={16} /> Quando quiseres receber marcações</h2>
+          <button type="button" className="arr-btn" disabled={aGravar}
+            onClick={() => guardar('/admin/subscricao')}>
+            Guardar e activar com 14 dias grátis <ArrowRight size={15} />
+          </button>
+        </section>
 
-        <button type="button" onClick={agoraNao} disabled={aGravar}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit',
-            fontSize: 14.5, color: 'var(--text-ter)', textDecoration: 'underline', padding: '4px 0' }}>
+        <button type="button" className="arr-depois" onClick={agoraNao} disabled={aGravar}>
           Faço isto depois
         </button>
       </div>
     </div>
   );
 }
+
+/*
+ * A MARCA AQUI É A DA CONVECTA, E NÃO A DA BARBEARIA.
+ *
+ * Em todo o resto do painel, `--gold` é a cor que o barbeiro escolheu para a
+ * marca dele. Neste ecrã não pode ser: ele ainda não escolheu cor nenhuma, e
+ * o que `--gold` devolve é a cor que a barbearia trouxe por omissão — foi
+ * assim que esta página apareceu castanha azeitona, com um botão cor de
+ * tabaco, no dia em que ele a viu pela primeira vez.
+ *
+ * Aqui mandam as cores do site da Convecta: ele acabou de vir de lá, e o
+ * painel tem de parecer a mesma casa. A partir da agenda, manda a dele.
+ */
+const CSS = `
+.arr {
+  --cvA: #FEE96D;            /* o amarelo do site */
+  --cvA-t: #8A6D0A;          /* o amarelo não se lê em texto pequeno */
+  --cvI: #24201C;            /* quase preto, mas quente */
+  --cvI2: #5F5852;
+  --cvL: rgba(36, 32, 28, 0.10);
+  --cvF: #FBFAF8;            /* branco de folha é duro */
+  min-height: 100vh; background: var(--cvF); color: var(--cvI);
+  padding: 32px 16px calc(40px + env(safe-area-inset-bottom, 0px));
+}
+.arr-folha { max-width: 580px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+
+.arr-topo { text-align: center; margin-bottom: 6px; }
+/* Este ecra e sempre claro, mesmo com o painel em modo escuro — por isso o
+   logotipo e sempre o de fundo claro. Sem isto, um barbeiro com o painel
+   escuro via um logotipo branco em cima de papel branco, ou seja, nada. */
+.arr .marca-claro { display: block !important; }
+.arr .marca-escuro { display: none !important; }
+.arr-marca { width: 46px; height: 46px; object-fit: contain; margin: 0 auto 16px; display: block; }
+.arr-olho {
+  font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--cvA-t);
+}
+.arr-h1 {
+  margin: 10px 0 0; font-size: 30px; line-height: 1.15; letter-spacing: -.02em;
+  font-weight: 700; color: var(--cvI); text-wrap: balance;
+}
+.arr-endereco {
+  display: inline-block; margin-top: 12px; padding: 6px 13px; border-radius: 999px;
+  background: rgba(254, 233, 109, .35); border: 1px solid rgba(254, 233, 109, .9);
+  font-size: 13.5px; font-weight: 700; color: var(--cvI); word-break: break-all;
+}
+
+.arr-caixa {
+  background: #FFF; border: 1px solid var(--cvL); border-radius: 16px; padding: 18px 16px;
+}
+.arr-h2 {
+  display: flex; align-items: center; gap: 9px; margin: 0 0 14px;
+  font-size: 16px; font-weight: 700; color: var(--cvI);
+}
+.arr-h2 svg { color: var(--cvA-t); flex-shrink: 0; }
+
+/* ── Serviços ─────────────────────────────────────────────────────────────
+   Cada serviço é um bloco, não uma linha. Nome em cima, a toda a largura —
+   «Corte + Barba» numa caixa de 120px é uma caixa onde não se lê o que se
+   escreveu. Preço, duração e apagar na linha de baixo, que é onde cabem. */
+.arr-servicos { display: flex; flex-direction: column; gap: 12px; }
+.arr-servico {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px; border-radius: 12px; background: var(--cvF); border: 1px solid var(--cvL);
+}
+.arr-linha2 { display: flex; gap: 8px; align-items: stretch; }
+.arr-campo {
+  width: 100%; min-height: 46px; padding: 0 13px; border-radius: 10px;
+  border: 1px solid var(--cvL); background: #FFF; color: var(--cvI);
+  font: inherit; font-size: 16px;   /* 16px: abaixo disto o iPhone faz zoom */
+}
+.arr-campo:focus { outline: 2px solid var(--cvA); outline-offset: 1px; border-color: transparent; }
+.arr-nome { font-weight: 700; }
+.arr-preco { position: relative; flex: 1 1 0; min-width: 0; }
+.arr-preco .arr-campo { padding-right: 30px; }
+.arr-euro {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--cvI2); font-size: 15px; pointer-events: none;
+}
+.arr-demora { flex: 1 1 0; min-width: 0; }
+.arr-x {
+  flex: 0 0 46px; width: 46px; min-height: 46px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--cvL); background: #FFF; color: #B4231F;
+  display: grid; place-items: center;
+}
+.arr-juntar {
+  margin-top: 12px; width: 100%; min-height: 46px; border-radius: 10px; cursor: pointer;
+  border: 1px dashed rgba(36, 32, 28, .22); background: transparent; color: var(--cvI2);
+  font: inherit; font-size: 15px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.arr-juntar:hover { border-color: var(--cvA-t); color: var(--cvI); }
+
+/* ── Horário ───────────────────────────────────────────────────────────── */
+.arr-horas { display: flex; gap: 10px; margin-bottom: 16px; }
+.arr-hora { flex: 1; min-width: 0; display: block; }
+.arr-hora span {
+  display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--cvI2);
+}
+.arr-dias { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.arr-dia {
+  min-height: 46px; padding: 0 2px; border-radius: 10px; cursor: pointer; font: inherit;
+  font-size: 14px; font-weight: 600; border: 1px solid var(--cvL);
+  background: #FFF; color: #9A938B;
+}
+.arr-dia.on {
+  background: var(--cvA); border-color: var(--cvA); color: var(--cvI); font-weight: 800;
+}
+
+/* ── Botões ────────────────────────────────────────────────────────────── */
+.arr-btn {
+  width: 100%; min-height: 52px; border-radius: 999px; cursor: pointer; font: inherit;
+  font-size: 16px; font-weight: 700; display: flex; align-items: center;
+  justify-content: center; gap: 9px;
+  border: 1px solid var(--cvL); background: #FFF; color: var(--cvI);
+}
+.arr-btn:disabled { opacity: .55; cursor: default; }
+.arr-btn-forte {
+  background: var(--cvA); border-color: var(--cvA); color: var(--cvI);
+  box-shadow: 0 6px 20px rgba(254, 233, 109, .55);
+}
+.arr-cartao { border-color: rgba(254, 233, 109, .9); background: rgba(254, 233, 109, .16); }
+.arr-cartao .arr-btn { background: #FFF; }
+.arr-depois {
+  background: none; border: 0; cursor: pointer; font: inherit; font-size: 15px;
+  color: #8A837B; text-decoration: underline; padding: 8px 0; margin-top: 2px;
+}
+
+@media (min-width: 560px) {
+  .arr { padding-top: 48px; }
+  .arr-caixa { padding: 22px 20px; }
+  .arr-h1 { font-size: 34px; }
+  /* Com espaço, o serviço volta a ser uma linha só. */
+  .arr-servico { flex-direction: row; align-items: center; gap: 10px; }
+  .arr-nome { flex: 1 1 auto; }
+  .arr-linha2 { flex: 0 0 auto; }
+  .arr-preco { flex: 0 0 104px; }
+  .arr-demora { flex: 0 0 116px; }
+}
+`;
