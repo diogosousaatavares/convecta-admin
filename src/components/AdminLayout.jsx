@@ -43,6 +43,7 @@ function BotaoModo() {
 import AcordoRgpd from '@/components/AcordoRgpd';
 import LinkDaBarbearia from '@/components/LinkDaBarbearia';
 import DiasDeTeste from '@/components/admin/DiasDeTeste';
+import LancarAApp from '@/components/admin/LancarAApp';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 import PrimeirosPassos from '@/components/PrimeirosPassos';
 
@@ -396,6 +397,7 @@ export default function AdminLayout({ children }) {
       {/* Os dias que faltam da experiencia, no topo do menu: e o sitio por
           onde ele passa varias vezes por dia. */}
       <DiasDeTeste />
+      <LancarAApp onIr={() => setOpen(false)} />
       <nav className="admin-nav">
         {grupos.map((g, i) => {
           if (g.type === 'item') {

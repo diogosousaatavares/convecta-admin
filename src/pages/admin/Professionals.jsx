@@ -176,7 +176,15 @@ export default function Professionals() {
       {data.professionals.length === 0 ? (
         <Card className="card-pad"><EmptyState icon={() => <UserCog />} title="Sem profissionais" description="Adiciona o primeiro profissional." /></Card>
       ) : isMobile ? (
-        <div style={{ display: 'grid', gap: 10 }}>
+        /*
+         * `minmax(0, 1fr)` e nao `1fr`: uma coluna de grelha nunca encolhe
+         * abaixo do conteudo mais teimoso que tem dentro, por isso bastava
+         * um botao com uma palavra inteira para a coluna ficar mais larga
+         * do que o ecra. E o `.admin-content` ao telemovel tem
+         * `overflow-x: clip` — nao desliza, CORTA. Era por isso que o
+         * «Reativar» desaparecia pela direita em vez de se ver a mais.
+         */
+        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'minmax(0, 1fr)' }}>
           {data.professionals.map(p => {
             const acesso = acessos.de(p.id);
             const souEu = p.id === data.meuProfissionalId;
@@ -184,7 +192,7 @@ export default function Professionals() {
             const cor = souEu ? 'var(--gold)' : acesso ? 'var(--success)' : 'var(--text-sec)';
             return (
               <Card key={p.id} className="card-pad">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                   {p.photoUrl
                     ? <img className="professional-photo" src={p.photoUrl} alt={`Fotografia de ${p.name}`} />
                     : <Avatar name={p.name} />}
@@ -194,11 +202,24 @@ export default function Professionals() {
                       {p.isActive === false ? 'Inativo · ' : ''}{p.role}{av.total > 0 ? ` · ${av.media.toFixed(1)} ★ (${av.total})` : ''}
                     </div>
                   </div>
-                  <Button size="sm" variant="ghost" aria-label={`Editar ${p.name}`} title="Editar ficha" onClick={() => openEdit(p)}><Pencil size={15} /></Button>
-                  {p.isActive === false
-                    ? <Button size="sm" variant="ghost" onClick={() => mudarEstado(p, true)}>Reativar</Button>
-                    : <Button size="sm" variant="ghost" aria-label={`Eliminar ${p.name}`} title="Eliminar" onClick={() => setDeleteTarget(p)}><Trash2 size={15} /></Button>}
+                  {/* So icones nesta linha, e nenhum encolhe. Uma palavra
+                      inteira aqui ao lado do nome era o que fazia a linha
+                      crescer para la do ecra. */}
+                  <Button size="sm" variant="ghost" style={{ flexShrink: 0 }}
+                    aria-label={`Editar ${p.name}`} title="Editar ficha" onClick={() => openEdit(p)}><Pencil size={15} /></Button>
+                  {p.isActive !== false && (
+                    <Button size="sm" variant="ghost" style={{ flexShrink: 0 }}
+                      aria-label={`Eliminar ${p.name}`} title="Eliminar" onClick={() => setDeleteTarget(p)}><Trash2 size={15} /></Button>
+                  )}
                 </div>
+
+                {/* Reativar leva a linha toda: e a unica coisa a fazer a um
+                    profissional desativado, e assim diz-se por extenso sem
+                    disputar espaco com o nome. */}
+                {p.isActive === false && (
+                  <Button size="sm" variant="secondary" block style={{ marginTop: 10 }}
+                    onClick={() => mudarEstado(p, true)}>Reativar</Button>
+                )}
 
                 {/* O acesso nao se gere aqui: mostra-se como esta e leva-se a
                     quem o gere. Ter o formulario de convite dentro de cada

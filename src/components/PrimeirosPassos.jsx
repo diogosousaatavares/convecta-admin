@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ChevronRight, X, Scissors, Clock, Palette, Bell, Share2 } from 'lucide-react';
+import { Check, ChevronRight, X, Scissors, Clock, Palette, Bell, Share2, Copy, ExternalLink, Rocket } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import { DOMINIO_BASE } from '@/lib/designService';
 import { supabase } from '@/lib/supabase';
@@ -47,9 +47,16 @@ function gravarFeitos(id, feitos) {
   try { localStorage.setItem(chave(id), JSON.stringify(feitos)); } catch { /* sem memória, sem drama */ }
 }
 
-export default function PrimeirosPassos() {
+/*
+ * O MESMO CEREBRO EM DOIS SITIOS.
+ *
+ * A lista aparece no painel e a contagem aparece no menu do lado. Se cada um
+ * contasse por si, um dia diziam numeros diferentes — e a conta que o menu
+ * mostra e a unica coisa que ele ve de todas as paginas. Por isso ha um
+ * hook so, e os dois leem-no.
+ */
+export function usePassos() {
   const data = useStore();
-  const navigate = useNavigate();
   const negocio = data?.business;
   const id = negocio?.id;
 
@@ -67,10 +74,7 @@ export default function PrimeirosPassos() {
       .then(({ data }) => setDaBase(Object.fromEntries((data || []).map(p => [p.passo, true]))), () => {});
   }, [id]);
 
-  if (!id) return null;
-  if (feitos.escondido) return null;
-
-  const endereco = negocio.domain || (negocio.slug ? `${negocio.slug}.${DOMINIO_BASE}` : '');
+  const endereco = negocio?.domain || (negocio?.slug ? `${negocio?.slug}.${DOMINIO_BASE}` : '');
 
   // Notificações: a permissão é DESTE browser. Num telemóvel novo volta a
   // aparecer por fazer, e ainda bem — é lá que ela faz falta.
@@ -102,7 +106,7 @@ export default function PrimeirosPassos() {
       titulo: 'Põe o teu logótipo e as tuas cores',
       ajuda: 'O site dos teus clientes fica com a tua cara.',
       to: '/admin/o-meu-site',
-      feito: !!negocio.logoUrl || !!feitos.aparencia || !!daBase.aparencia,
+      feito: !!negocio?.logoUrl || !!feitos.aparencia || !!daBase.aparencia,
     },
     {
       k: 'notificacoes',
@@ -125,7 +129,6 @@ export default function PrimeirosPassos() {
   ];
 
   const prontos = PASSOS.filter(p => p.feito).length;
-  if (prontos === PASSOS.length) return null;
 
   const ticar = (k) => {
     const novos = { ...feitos, [k]: !feitos[k] };
@@ -149,18 +152,131 @@ export default function PrimeirosPassos() {
     ticar('partilhar');
   };
 
+  return {
+    pronto: !!id, id, negocio, endereco,
+    PASSOS, prontos, total: PASSOS.length,
+    falta: PASSOS.length - prontos,
+    escondido: !!feitos.escondido,
+    copiado, ticar, esconder, copiarLink,
+  };
+}
+
+export default function PrimeirosPassos() {
+  const navigate = useNavigate();
+  const {
+    pronto, id, endereco, PASSOS, prontos, total, falta, escondido,
+    copiado, ticar, esconder, copiarLink,
+  } = usePassos();
+
+  /*
+   * A FESTA.
+   *
+   * Nao e enfeite: ticar um passo numa lista de cinco nao da sinal nenhum de
+   * que se avancou, e quem nao sente que avancou nao faz o seguinte. Quando a
+   * conta sobe, aparece por dois segundos quanto falta — e no ultimo passo
+   * nao aparece nada disto, porque ai o que aparece e a app pronta.
+   */
+  const antes = useRef(null);
+  const [festa, setFesta] = useState(null);
+  useEffect(() => {
+    if (!pronto) return;
+    const anterior = antes.current;
+    antes.current = prontos;
+    if (anterior === null || prontos <= anterior) return;
+    if (prontos === total) return;
+    setFesta({ falta: total - prontos, n: Date.now() });
+    const t = setTimeout(() => setFesta(null), 2200);
+    return () => clearTimeout(t);
+  }, [prontos, total, pronto]);
+
+  /* Veio do menu do lado: traz-se a lista ao ecra e pisca uma vez. */
+  const caixa = useRef(null);
+  const [aPiscar, setAPiscar] = useState(false);
+  useEffect(() => {
+    if (!pronto) return;
+    let pedido = false;
+    try { pedido = sessionStorage.getItem('convecta_ir_passos') === '1'; } catch { /* sem sessionStorage */ }
+    if (!pedido) return;
+    try { sessionStorage.removeItem('convecta_ir_passos'); } catch { /* idem */ }
+    caixa.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    setAPiscar(true);
+    const t = setTimeout(() => setAPiscar(false), 1600);
+    return () => clearTimeout(t);
+  }, [pronto]);
+
+  const partilhar = async () => {
+    const url = `https://${endereco}`;
+    try {
+      if (navigator.share) { await navigator.share({ title: 'Marca aqui', url }); return; }
+    } catch { /* cancelou a partilha: nao e erro */ }
+    copiarLink();
+  };
+
+  if (!pronto || escondido) return null;
+
+  /*
+   * TUDO FEITO: a app esta pronta e o que falta e dar o link a alguem.
+   *
+   * Antes a lista desaparecia em silencio no quinto tique. O trabalho ficava
+   * feito e ninguem lhe dizia — e o passo que falta a seguir, que e o unico
+   * que enche a agenda, ficava por dizer.
+   */
+  if (prontos === total) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        <section className="pp pp-fim" aria-label="A tua app está pronta" ref={caixa}>
+          <button type="button" className="pp-fechar" onClick={esconder} aria-label="Esconder">
+            <X size={16} />
+          </button>
+          <div className="pp-foguete"><Rocket size={22} /></div>
+          <h2 className="pp-h" style={{ fontSize: 19 }}>Está tudo pronto.</h2>
+          <p className="pp-sub" style={{ fontSize: 14 }}>
+            A tua app está no ar. Falta uma coisa só: dar este endereço aos teus clientes.
+          </p>
+          <div className="pp-link">{endereco}</div>
+          <div className="pp-botoes">
+            <button type="button" className="pp-btn pp-btn-forte" onClick={partilhar}>
+              <Share2 size={15} /> Partilhar
+            </button>
+            <button type="button" className="pp-btn" onClick={copiarLink}>
+              <Copy size={15} /> {copiado ? 'Copiado' : 'Copiar'}
+            </button>
+            <a className="pp-btn" href={`https://${endereco}`} target="_blank" rel="noopener noreferrer">
+              <ExternalLink size={15} /> Abrir
+            </a>
+          </div>
+          <p className="pp-sub" style={{ marginTop: 12 }}>
+            No Instagram, no WhatsApp, colado ao espelho. É o endereço que enche a agenda.
+          </p>
+        </section>
+      </>
+    );
+  }
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <section className="pp" aria-label="Primeiros passos">
+      {festa && (
+        <div className="pp-festa" key={festa.n} role="status">
+          <div className="pp-festa-caixa">
+            <Check size={18} strokeWidth={3} />
+            {festa.falta === 1 ? 'Falta só um passo.' : `Faltam ${festa.falta} passos.`}
+          </div>
+        </div>
+      )}
+      <section className={`pp${aPiscar ? ' pp-pisca' : ''}`} aria-label="Primeiros passos" ref={caixa}>
         <header className="pp-topo">
           <div>
             <h2 className="pp-h">Primeiros passos</h2>
-            <p className="pp-sub">Cinco minutos e a tua barbearia fica com a tua cara.</p>
+            <p className="pp-sub">
+              {falta === 1 ? 'Falta um passo para lançares a app.'
+                : `Faltam ${falta} passos para lançares a app.`}
+            </p>
           </div>
           <div className="pp-conta">
-            <span>{prontos} de {PASSOS.length}</span>
-            <div className="pp-barra"><i style={{ width: `${(prontos / PASSOS.length) * 100}%` }} /></div>
+            <span>{prontos} de {total}</span>
+            <div className="pp-barra"><i style={{ width: `${(prontos / total) * 100}%` }} /></div>
           </div>
           <button type="button" className="pp-fechar" onClick={esconder} aria-label="Esconder os primeiros passos">
             <X size={16} />
@@ -246,8 +362,68 @@ const CSS = `
 .pp-seta { color: var(--text-ter); display: grid; place-items: center; }
 .pp-lista li.feito .pp-seta { opacity: 0; }
 
+/* ── Quando se tica um passo ──────────────────────────────────────────────
+   Por cima de tudo, no meio do ecra, dois segundos. Nao prende nada: nao
+   recebe cliques, e quem estiver a fazer outra coisa nem para. */
+.pp-festa {
+  position: fixed; inset: 0; z-index: 90; display: grid; place-items: center;
+  pointer-events: none;
+}
+.pp-festa-caixa {
+  display: flex; align-items: center; gap: 10px;
+  padding: 15px 22px; border-radius: 999px;
+  background: var(--gold); color: #111; font-weight: 700; font-size: 16px;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, .3);
+  animation: pp-sobe 2.2s cubic-bezier(.22, 1, .36, 1) forwards;
+}
+@keyframes pp-sobe {
+  0%   { opacity: 0; transform: translateY(14px) scale(.88); }
+  12%  { opacity: 1; transform: translateY(0) scale(1.04); }
+  20%  { transform: translateY(0) scale(1); }
+  80%  { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-12px) scale(.96); }
+}
+
+/* Veio do menu do lado: a caixa pisca uma vez para ele a encontrar. */
+.pp-pisca { animation: pp-pisca 1.6s ease; }
+@keyframes pp-pisca {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--gold-rgb), 0); }
+  30%      { box-shadow: 0 0 0 5px rgba(var(--gold-rgb), .35); }
+}
+
+/* ── Tudo feito ─────────────────────────────────────────────────────────── */
+.pp-fim { text-align: center; padding: 26px 18px 22px; }
+.pp-foguete {
+  width: 46px; height: 46px; margin: 0 auto 12px; border-radius: 999px;
+  display: grid; place-items: center; background: var(--gold); color: #111;
+  animation: pp-sobe-foguete .7s cubic-bezier(.22, 1, .36, 1);
+}
+@keyframes pp-sobe-foguete {
+  from { opacity: 0; transform: translateY(16px) scale(.8); }
+  to   { opacity: 1; transform: none; }
+}
+.pp-link {
+  margin: 16px auto 0; max-width: 100%; padding: 12px 14px; border-radius: 12px;
+  background: var(--elevated); border: 1px solid var(--border);
+  font-size: 15.5px; font-weight: 700; word-break: break-all;
+}
+.pp-botoes { display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+.pp-btn {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 44px;
+  padding: 0 16px; border-radius: 999px; cursor: pointer; text-decoration: none;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  font: inherit; font-size: 14.5px; font-weight: 600;
+}
+.pp-btn-forte { background: var(--gold); border-color: var(--gold); color: #111; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-festa-caixa, .pp-foguete, .pp-pisca { animation: none; }
+}
+
 @media (max-width: 560px) {
   .pp { padding: 16px 14px 6px; }
+  .pp-fim { padding: 22px 14px 18px; }
+  .pp-botoes .pp-btn { flex: 1; justify-content: center; }
   .pp-conta { margin-left: 0; text-align: left; width: 100%; }
   .pp-barra { width: 100%; }
 }
