@@ -301,13 +301,17 @@ export default function PrimeirosPassos() {
                   {p.feito ? <Check size={14} strokeWidth={3} /> : <Icone size={15} />}
                 </button>
 
+                {/* So o titulo. A frase de ajuda por baixo de cada passo
+                    dizia por outras palavras o que o titulo ja dizia, e
+                    cinco delas seguidas faziam da lista um texto. */}
                 <button
                   type="button"
                   className="pp-linha"
                   onClick={() => (p.accao === 'copiar' ? copiarLink() : navigate(p.to))}
                 >
-                  <span className="pp-t">{p.titulo}</span>
-                  <span className="pp-a">{p.accao === 'copiar' && copiado ? 'Link copiado.' : p.ajuda}</span>
+                  <span className="pp-t">
+                    {p.accao === 'copiar' && copiado ? 'Link copiado.' : p.titulo}
+                  </span>
                 </button>
 
                 <span className="pp-seta" aria-hidden="true"><ChevronRight size={16} /></span>
@@ -341,8 +345,8 @@ const CSS = `
 
 .pp-lista { list-style: none; margin: 14px 0 0; padding: 0; }
 .pp-lista li {
-  display: grid; grid-template-columns: 30px 1fr 16px; gap: 12px; align-items: center;
-  padding: 10px 0; border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: 30px 1fr 16px; gap: 14px; align-items: center;
+  padding: 15px 0; border-top: 1px solid var(--border);
 }
 .pp-tique {
   width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center;
@@ -355,7 +359,7 @@ const CSS = `
   background: none; border: 0; padding: 0; text-align: left; cursor: pointer;
   font: inherit; color: inherit; min-width: 0;
 }
-.pp-t { display: block; font-size: 14px; font-weight: 600; }
+.pp-t { display: block; font-size: 15px; font-weight: 600; }
 .pp-a { display: block; font-size: 12.5px; color: var(--text-sec); margin-top: 2px; line-height: 1.4; }
 .pp-lista li.feito .pp-t { color: var(--text-sec); text-decoration: line-through; text-decoration-thickness: 1px; }
 .pp-lista li.feito .pp-a { display: none; }

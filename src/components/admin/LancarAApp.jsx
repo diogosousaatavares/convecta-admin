@@ -1,16 +1,19 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Rocket } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { usePassos } from '@/components/PrimeirosPassos';
 
 /*
- * «Lançar a app», no topo do menu.
+ * «Lança a tua app», no topo do menu.
  *
  * A lista dos primeiros passos vive no painel e na agenda. O problema é que
  * quem está a mexer nos serviços, nos horários ou no logótipo não está em
  * nenhuma dessas duas páginas — faz o trabalho e nunca mais vê quanto falta.
- * Uma linha no menu, que ele tem à frente em todas as páginas, resolve isso:
- * diz a conta, e leva lá.
+ * Uma linha no menu, que ele tem à frente em todas as páginas, resolve isso.
+ *
+ * E diz duas coisas, não três: o nome, e quanto já fez. A frase «Faltam 3
+ * passos» que aqui esteve dizia por palavras o que a barra diz por desenho,
+ * e duas maneiras de dizer o mesmo na mesma caixa é ruído.
  *
  * Desaparece quando estiver tudo feito e ele tiver fechado a caixa do fim —
  * a mesma regra da lista, e pela mesma razão: isto é para arrancar, não para
@@ -35,15 +38,19 @@ export default function LancarAApp({ onIr }) {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
-      <button type="button" className={`laa${feito ? ' laa-feito' : ''}`} onClick={ir}>
-        <span className="laa-conta" aria-hidden="true">
-          {feito ? <Rocket size={15} /> : `${prontos}/${total}`}
+      <button type="button" className={`laa${feito ? ' laa-feito' : ''}`} onClick={ir}
+        title={feito ? 'Partilha o link' : falta === 1 ? 'Falta um passo' : `Faltam ${falta} passos`}>
+        <span className="laa-foguete" aria-hidden="true">🚀</span>
+        <span className="laa-meio">
+          <span className="laa-nome">{feito ? 'A tua app está pronta' : 'Lança a tua app'}</span>
+          <span className="laa-barra-linha">
+            <span className="laa-barra">
+              <i style={{ width: `${Math.round((prontos / total) * 100)}%` }} />
+            </span>
+            <span className="laa-conta">{prontos}/{total}</span>
+          </span>
         </span>
-        <span className="laa-texto">
-          {feito ? 'A tua app está pronta' : 'Lança a tua app'}
-          <small>{feito ? 'Partilha o link' : falta === 1 ? 'Falta um passo' : `Faltam ${falta} passos`}</small>
-        </span>
-        <ChevronRight size={16} className="laa-seta" />
+        <ChevronRight size={18} className="laa-seta" />
       </button>
     </>
   );
@@ -51,23 +58,34 @@ export default function LancarAApp({ onIr }) {
 
 const CSS = `
 .laa {
-  display: flex; align-items: center; gap: 11px; width: calc(100% - 24px);
-  margin: 0 12px 10px; padding: 11px 12px; border-radius: 12px; cursor: pointer;
-  border: 1px solid rgba(var(--gold-rgb), .45);
-  background: rgba(var(--gold-rgb), .10);
-  color: var(--text); font: inherit; text-align: left;
+  display: grid; grid-template-columns: 46px 1fr 18px; align-items: center; gap: 13px;
+  width: calc(100% - 24px); margin: 4px 12px 18px; padding: 13px 14px;
+  border-radius: 16px; cursor: pointer; text-align: left; font: inherit;
+  border: 1px solid var(--border); background: var(--elevated); color: var(--text);
 }
-.laa:hover { background: rgba(var(--gold-rgb), .17); }
+.laa:hover { border-color: rgba(var(--gold-rgb), .55); }
+.laa-foguete {
+  width: 46px; height: 46px; border-radius: 999px; background: var(--gold);
+  display: grid; place-items: center; font-size: 22px; line-height: 1;
+}
+.laa-meio { min-width: 0; display: block; }
+.laa-nome {
+  display: block; font-size: 16px; font-weight: 700; line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.laa-barra-linha { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.laa-barra {
+  flex: 1; min-width: 0; height: 7px; border-radius: 999px;
+  background: var(--border); overflow: hidden;
+}
+.laa-barra i {
+  display: block; height: 100%; border-radius: 999px; background: var(--gold);
+  transition: width .35s ease;
+}
 .laa-conta {
-  flex-shrink: 0; min-width: 34px; height: 34px; padding: 0 7px; border-radius: 999px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--gold); color: #111; font-size: 12.5px; font-weight: 800;
+  flex-shrink: 0; font-size: 13.5px; font-weight: 600; color: var(--text-sec);
   font-variant-numeric: tabular-nums;
 }
-.laa-texto { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 700; line-height: 1.25; }
-.laa-texto small {
-  display: block; font-size: 12.5px; font-weight: 500; color: var(--text-sec); margin-top: 2px;
-}
 .laa-seta { flex-shrink: 0; color: var(--text-ter); }
-.laa-feito { border-color: var(--gold); background: rgba(var(--gold-rgb), .18); }
+.laa-feito { border-color: var(--gold); }
 `;
