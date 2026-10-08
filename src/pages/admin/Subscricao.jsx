@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
   CreditCard, Check, ExternalLink, AlertTriangle, Clock,
-  ChevronDown, ChevronRight, MessageCircle, Lock, Zap, ShieldCheck, CalendarDays, Headphones, ArrowRight, Receipt, FileDown, PartyPopper,
+  ChevronDown, ChevronRight, MessageCircle, Lock, Zap, ShieldCheck, CalendarDays, Headphones, ArrowRight, Receipt, FileDown, PartyPopper, Gift,
 } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import AdminLayout from '@/components/AdminLayout';
@@ -89,7 +89,11 @@ const CSS = `
 /* 1. O cabeçalho da venda */
 .sub-hero { position: relative; overflow: hidden; background:
   radial-gradient(520px 260px at 85% 30%, rgba(201,162,39,.18), transparent 65%), var(--surface); }
-.sub-hero-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sub-hero-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  /* Acima dos cartoes desenhados. Sem isto a ilustracao, que esta em
+     position absoluta e vem depois no HTML, passava-lhe por cima e comia
+     metade da etiqueta — era o que se via no canto direito. */
+  position: relative; z-index: 2; }
 .sub-ico { width: 52px; height: 52px; border-radius: 14px; background: rgba(201,162,39,.16); color: var(--gold); display: grid; place-items: center; }
 .sub-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(255,255,255,.03); font-size: 12px; font-weight: 600; white-space: nowrap; }
 .sub-hero-h1 { font-family: var(--font-body); font-weight: 700; font-size: clamp(26px, 6vw, 34px); line-height: 1.1; margin: 18px 0 0; letter-spacing: -.01em; }
@@ -107,10 +111,17 @@ const CSS = `
 }
 .sub-btn:disabled { opacity: .7; cursor: default; }
 .sub-plano-linha { margin-top: 12px; text-align: center; font-size: 13px; color: var(--text-sec); position: relative; z-index: 1; }
+.sub-stripe {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  margin-top: 10px; position: relative; z-index: 1;
+  font-size: 13px; color: var(--text-sec); text-decoration: none;
+}
+.sub-stripe b { color: var(--text); font-weight: 700; }
+.sub-stripe:hover b { text-decoration: underline; }
 .sub-plano-linha button { background: none; border: 0; color: var(--gold); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; }
 
-/* Os cartões desenhados, à direita, atrás das linhas */
-.sub-cartoes { position: absolute; right: -6px; top: 118px; width: 190px; height: 118px; pointer-events: none; }
+/* Os cartões desenhados, à direita, ATRÁS de tudo o que é texto. */
+.sub-cartoes { z-index: 0; position: absolute; right: -6px; top: 118px; width: 190px; height: 118px; pointer-events: none; }
 .sub-cartao { position: absolute; inset: 0; border-radius: 14px; }
 .sub-cartao.ouro { background: linear-gradient(135deg, #E8C547, #B8901E); transform: rotate(-14deg) translate(26px, -12px); }
 .sub-cartao.preto { background: linear-gradient(135deg, #2A2621, #0F0D0B); border: 1px solid rgba(255,255,255,.1); box-shadow: 0 18px 40px -14px rgba(0,0,0,.9); transform: rotate(-14deg); }
@@ -547,7 +558,9 @@ export default function Subscricao() {
           <section className="sub-card sub-hero">
             <div className="sub-hero-topo">
               <div className="sub-ico"><CreditCard size={24} /></div>
-              <div className="sub-pill"><Lock size={13} style={{ color: 'var(--gold-tinta)' }} /> Pagamento seguro</div>
+              {/* «Pagamento seguro» é o que toda a gente escreve e ninguém
+                  lê. O que faz carregar no botão é não se pagar nada hoje. */}
+              <div className="sub-pill"><Gift size={13} style={{ color: 'var(--gold-tinta)' }} /> 14 dias grátis</div>
             </div>
             <h2 className="sub-hero-h1">{sub?.estado === 'cancelada' ? 'Reactiva a tua conta' : 'Activa a tua conta'}</h2>
             <p className="sub-hero-sub">Adiciona o teu cartão para começares a receber marcações.</p>
@@ -569,6 +582,12 @@ export default function Subscricao() {
                 Plano {nomeDoPlano} · {euros(precoDaCasa.centimos)}{periodo === 'anual' ? '/ano' : '/mês'} · <button type="button" onClick={() => setVerPlanos(v => !v)}>{verPlanos ? 'fechar' : 'mudar'}</button>
               </div>
             )}
+            {/* Quem entrega o cartão quer saber a quem o está a entregar. O
+                nome da Stripe diz mais do que qualquer promessa nossa de
+                segurança — e o link deixa-o ir confirmar. */}
+            <a className="sub-stripe" href="https://stripe.com" target="_blank" rel="noopener noreferrer">
+              <Lock size={13} /> Pagamentos seguros, processados pela <b>Stripe</b>
+            </a>
           </section>
 
           {/* 6. Os planos, só quando ele pede. */}

@@ -59,17 +59,29 @@ export default function BemVindo() {
     if (destino) navigate(destino);
   };
 
+  /*
+   * Na pagina da subscricao esta janela nao aparece — ele ja la esta.
+   *
+   * Mas o `return null` que trata disso esta LA EM BAIXO, e um efeito corre
+   * sempre antes de qualquer `return`. Ou seja: na subscricao o efeito
+   * trancava o scroll do corpo da pagina e logo a seguir nao se desenhava
+   * janela nenhuma. Ficava a pagina presa, sem nada por cima a explicar
+   * porque — era impossivel descer para ver os planos.
+   *
+   * A condicao tem de ser a MESMA nos dois sitios, e por isso tem nome.
+   */
+  const aMostrar = aberto && location.pathname !== '/admin/subscricao';
+
   useEffect(() => {
-    if (!aberto) return;
+    if (!aMostrar) return;
     const onKey = (e) => { if (e.key === 'Escape') fechar(); };
     window.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
     return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [aberto]);
+  }, [aMostrar]);
 
-  // Na própria página da subscrição não há nada a anunciar: ele já lá está.
-  if (!aberto || location.pathname === '/admin/subscricao') return null;
+  if (!aMostrar) return null;
 
   const endereco = negocio?.slug ? `${negocio.slug}.${APPS}` : null;
 
