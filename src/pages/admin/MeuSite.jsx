@@ -351,8 +351,12 @@ function Amostras({cores,valor,onEscolher}){
  * «Editar». Aparece por cima do telemóvel, com uma lista de cores para tocar.
  * Guarda-se em tema.pecas pela chave que a app de cliente mandou.
  */
-function EditorDePeca({peca,tema,onMudar,onRepor,onFechar}){
+function EditorDePeca({peca,tema,onMudar,onRepor,onFechar,onNome,nomeDeSistema}){
   const atual=tema.pecas?.[peca.chave]||{}
+  // O nome da barbearia nao e cor nenhuma: escreve-se. A pagina do cliente
+  // marca-o com data-peca="nome" e a pre-visualizacao manda o recado em
+  // `papel`, para tocar no titulo abrir a caixa de escrever.
+  const eONome=peca.papel==='nome'
   const oculto=atual.oculto===true
   const forma=peca.forma||'caixa'
   const campos=[
@@ -391,6 +395,17 @@ function EditorDePeca({peca,tema,onMudar,onRepor,onFechar}){
               {c.l}
             </button>
           ))}
+        </div>
+      )}
+      {eONome&&(
+        <div style={{margin:'12px 0 4px'}}>
+          <div style={{fontSize:12.5,color:T2,marginBottom:6,fontWeight:600}}>Nome da barbearia</div>
+          <Inp value={tema.appName||''} onChange={e=>onNome?.(e.target.value)}
+            placeholder={nomeDeSistema||'Nome da barbearia'}/>
+          <div style={{fontSize:11.5,color:T3,marginTop:6,lineHeight:1.5}}>
+            E o nome que o cliente ve no site e no telemovel. Em branco, fica
+            «{nomeDeSistema||'o nome do registo'}».
+          </div>
         </div>
       )}
       {campos.length===1&&<div style={{fontSize:12.5,color:T2,margin:'10px 0 6px',fontWeight:600}}>{campos[0].l}</div>}
@@ -864,6 +879,7 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
               width:telemovel?'min(100%, 380px)':340,maxHeight:'70%',display:'flex',zIndex:5}}>
               <div style={{width:'100%'}}>
                 <EditorDePeca peca={alvoEdicao} tema={tema} onMudar={mudarPeca}
+                  onNome={v=>raiz('appName',v)} nomeDeSistema={biz.name}
                   onRepor={reporPeca} onFechar={()=>setAlvoEdicao(null)}/>
               </div>
             </div>
@@ -1109,7 +1125,7 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
             <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:16}}>Marca</div>
             <div style={{display:'flex',flexDirection:'column',gap:15}}>
               <div>
-                <Lbl>Nome no separador do browser</Lbl>
+                <Lbl>Nome da barbearia</Lbl>
                 <Inp value={tema.appName} onChange={e=>raiz('appName',e.target.value)}
                   placeholder={biz.name||'Nome da barbearia'}/>
               </div>
