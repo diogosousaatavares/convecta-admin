@@ -261,6 +261,28 @@ export default function App() {
     applySavedTheme(dataService.getState().business?.config?.theme || null);
   }, []);
 
+  /*
+   * ARRASTAR UMA FOTO PARA FORA DA ZONA NÃO PODE ABRIR O FICHEIRO.
+   *
+   * Por omissão, o browser trata uma imagem largada em qualquer sítio da
+   * página como «abre-me isto»: sai do painel e mostra o ficheiro sozinho
+   * no separador. Quem falha a zona por dois dedos perde a página, e com
+   * ela o que ainda não tinha gravado — e fica com a ideia, justíssima, de
+   * que arrastar não funciona aqui.
+   *
+   * As zonas que recebem fotos continuam a receber: elas chamam
+   * preventDefault primeiro e isto nunca chega a ver o evento.
+   */
+  useEffect(() => {
+    const engolir = (e) => { e.preventDefault(); };
+    window.addEventListener('dragover', engolir);
+    window.addEventListener('drop', engolir);
+    return () => {
+      window.removeEventListener('dragover', engolir);
+      window.removeEventListener('drop', engolir);
+    };
+  }, []);
+
   const { loading } = useStore();
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)' }}><p style={{ color: 'var(--gold-tinta)' }}>A carregar...</p></div>;
 

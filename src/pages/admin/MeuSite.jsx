@@ -1116,14 +1116,24 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
               <div>
                 <Lbl>Logótipo</Lbl>
                 <div style={{display:'flex',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>
-                  <Largar onFicheiros={f=>enviarIcone(f)} aEnviar={iconeAEnviar} titulo="Larga" dataTour="site-logotipo"
-                    style={{minWidth:64,height:64,maxWidth:170,flexShrink:0,overflow:'hidden',background:BG,
-                      display:'flex',alignItems:'center',justifyContent:'center',padding:4}}>
-                    {iconeAEnviar
-                      ?<Spin size={16}/>
-                      :(logoUrl||tema.favicon)
-                        ?<img src={logoUrl||tema.favicon} alt="" style={{height:'100%',width:'auto',maxWidth:160,objectFit:'contain',borderRadius:6}}/>
-                        :<span style={{fontSize:14,color:T3}}>sem logótipo</span>}
+                  {/* Era um quadrado de 64 e, com logótipo lá dentro, não
+                      havia nada a dizer que aquilo recebia ficheiros: quem
+                      arrastava falhava o alvo por dois dedos e o browser
+                      abria a imagem noutro separador. Passa a ter o tamanho
+                      e a frase da capa. */}
+                  <Largar onFicheiros={f=>enviarIcone(f)} aEnviar={iconeAEnviar} titulo="Larga aqui" dataTour="site-logotipo"
+                    style={{flex:1,minWidth:240,display:'flex',alignItems:'center',gap:12,padding:8}}>
+                    <div style={{width:82,height:64,borderRadius:9,flexShrink:0,border:`1px solid ${BD}`,
+                      background:BG,display:'grid',placeItems:'center',overflow:'hidden'}}>
+                      {iconeAEnviar
+                        ?<Spin size={16}/>
+                        :(logoUrl||tema.favicon)
+                          ?<img src={logoUrl||tema.favicon} alt="" style={{maxHeight:'100%',maxWidth:'100%',objectFit:'contain'}}/>
+                          :<span style={{fontSize:14,color:T3}}>sem logótipo</span>}
+                    </div>
+                    <div style={{fontSize:14,color:T2,lineHeight:1.5}}>
+                      {iconeAEnviar?'A enviar…':<>Larga o logótipo aqui<br/><span style={{color:T3,fontSize:14}}>ou carrega para escolher</span></>}
+                    </div>
                   </Largar>
                   {tema.favicon&&!iconeAEnviar&&(
                     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
