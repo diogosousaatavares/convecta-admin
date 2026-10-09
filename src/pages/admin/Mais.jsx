@@ -125,7 +125,12 @@ const CSS = `
 .mais-nome { font-size: 20px; font-weight: 700; }
 .mais-email { font-size: 14px; color: var(--text-sec); margin-top: 3px; word-break: break-all; }
 .mais-link { margin-top: 16px; text-align: left; }
-.mais-link .link-faixa { margin: 0 !important; border-radius: 14px; border: 1px solid var(--border); padding: 8px 8px 8px 14px; }
+.mais-link .link-faixa { width: 100% !important; max-width: 100% !important; margin: 0 !important; box-sizing: border-box;
+  border-radius: 14px; border: 1px solid var(--border); background: var(--surface); padding: 6px 6px 6px 16px !important; gap: 6px !important; }
+.mais-link .link-faixa-endereco { font-size: 15px; }
+.mais-link .link-faixa-btn, .mais-link .link-faixa-ico { width: 40px; height: 40px; min-height: 40px; padding: 0 !important; justify-content: center; border-radius: 12px; }
+.mais-link .link-faixa-btn { background: var(--text); color: var(--surface); }
+.mais-link .link-faixa-ico { border-color: var(--border); color: var(--text); }
 
 .mais-bloco { margin-bottom: 22px; }
 /* O cabeçalho fica FORA da caixa, como nas listas do telemóvel: lá dentro
