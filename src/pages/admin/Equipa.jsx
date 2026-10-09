@@ -40,19 +40,11 @@ const AREAS = [
  * unica palavra.
  */
 const NIVEIS = {
-  tudo:    { l: 'Vê e mexe', Ic: Eye,    cor: 'var(--success)', rgb: '34,197,94' },
+  tudo:    { l: 'Vê e mexe', Ic: Eye,    cor: '#16A34A', rgb: '34,197,94' },
   parcial: { l: 'Só o dele', Ic: Pencil, cor: 'var(--gold-tinta)', rgb: 'var(--gold-rgb)' },
-  nada:    { l: 'Não vê',    Ic: EyeOff, cor: 'var(--error)',   rgb: '239,68,68' },
+  nada:    { l: 'Não vê',    Ic: EyeOff, cor: '#DC2626',   rgb: '239,68,68' },
 };
 
-function Ponto({ nivel }) {
-  const n = NIVEIS[nivel] || NIVEIS.nada;
-  return (
-    <span className="qvq-pastilha" style={{ color: n.cor, background: `rgba(${n.rgb}, .12)` }}>
-      <n.Ic size={14} /> {n.l}
-    </span>
-  );
-}
 
 /* A arvore em SVG — o dono em cima, os profissionais em baixo, ligados por
    linhas — foi-se embora a 02/10/2026. Quando o dono tambem corta, e o caso
@@ -169,26 +161,32 @@ export default function Equipa() {
 
       {/* No telemovel esta tabela de referencia era o terco de baixo do ecra
           em letra miuda, e nao se faz nada com ela. Fica no computador. */}
-      <Card style={{ display: estreito ? 'none' : undefined }}>
+      <Card style={{ display: estreito ? 'none' : undefined, padding: '22px 24px' }}>
         <style dangerouslySetInnerHTML={{ __html: CSS_QVQ }} />
-        {/* A frase que aqui estava dizia tres coisas que o proprio quadro
-            mostra, e mandava-o tocar num profissional «em cima» — que e
-            onde ele ja tinha estado para chegar aqui. */}
-        <div className="qvq-h">Quem vê o quê</div>
-
-        <div className="qvq">
-          <div className="qvq-cab">
-            <span>Área</span>
-            <span><Crown size={14} /> Dono</span>
-            <span><ShieldCheck size={14} /> Com acesso</span>
-          </div>
-          {AREAS.map(a => (
-            <div className="qvq-linha" key={a.nome}>
-              <span className="qvq-area">{a.nome}</span>
-              <span><Ponto nivel={a.dono} /></span>
-              <span><Ponto nivel={a.pro} /></span>
-            </div>
-          ))}
+        {/* Era uma tabela de treze linhas em que a coluna do dono dizia
+            «Ve e mexe» treze vezes. O dono ve tudo — diz-se uma vez, no
+            canto — e o que interessa e o que ve um profissional com
+            acesso, arrumado pelos tres niveis (09/10/2026). */}
+        <div className="qvq-topo">
+          <div className="qvq-h">Quem vê o quê</div>
+          <span className="qvq-dono"><Crown size={14} /> O dono vê e mexe em tudo</span>
+        </div>
+        <div className="qvq-sub"><ShieldCheck size={15} /> Um profissional com acesso</div>
+        <div className="qvq-grupos">
+          {['tudo', 'parcial', 'nada'].map(nv => {
+            const n = NIVEIS[nv];
+            const lista = AREAS.filter(a => a.pro === nv);
+            return (
+              <div key={nv} className="qvq-grupo" style={{ '--qvq-cor': n.cor, '--qvq-rgb': n.rgb }}>
+                <div className="qvq-grupo-cab">
+                  <span className="qvq-ico"><n.Ic size={15} /></span>
+                  <b>{n.l}</b>
+                  <span className="qvq-n">{lista.length}</span>
+                </div>
+                <ul>{lista.map(a => <li key={a.nome}>{a.nome}</li>)}</ul>
+              </div>
+            );
+          })}
         </div>
       </Card>
     </AdminLayout>
@@ -196,40 +194,22 @@ export default function Equipa() {
 }
 
 const CSS_QVQ = `
-.qvq-h { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
-
-/* Tres colunas fixas, e nao uma tabela que se arrasta de lado: as pastilhas
-   tem de ficar uma debaixo da outra, porque e a coluna que se le, nao a
-   linha. */
-/* Travada em 760px. Sem isto, num ecra largo a coluna dos nomes esticava e
-   as pastilhas iam parar ao canto direito, a dois palmos do nome a que
-   pertencem — e uma tabela que se le por linha nao pode ter a linha
-   partida ao meio por espaco vazio. */
-.qvq { display: grid; grid-template-columns: minmax(0, 1fr) 150px 150px; max-width: 760px; }
-.qvq-cab, .qvq-linha { display: contents; }
-.qvq-cab > span {
-  /* Com ar por cima: colado ao titulo, o «AREA» lia-se como se fizesse
-     parte dele. */
-  padding: 4px 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .07em;
-  text-transform: uppercase; color: var(--text-ter);
-  display: flex; align-items: center; gap: 6px;
-  border-bottom: 1px solid var(--border);
-}
-.qvq-linha > span {
-  display: flex; align-items: center; min-height: 50px;
-  border-bottom: 1px solid var(--border);
-}
-.qvq-linha:last-child > span { border-bottom: 0; }
-.qvq-area { font-size: 15.5px; font-weight: 600; padding-right: 14px; }
-.qvq-pastilha {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 11px; border-radius: 999px;
-  font-size: 13.5px; font-weight: 700; white-space: nowrap;
-}
-
-@media (max-width: 860px) {
-  .qvq { grid-template-columns: 1fr 128px 128px; }
-  .qvq-area { font-size: 14.5px; }
-  .qvq-pastilha { padding: 6px 9px; font-size: 13px; }
-}
+.qvq-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.qvq-h { font-size: 18px; font-weight: 700; }
+.qvq-dono { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
+  background: rgba(var(--gold-rgb), .14); color: var(--gold-tinta); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.qvq-sub { display: flex; align-items: center; gap: 7px; margin: 18px 0 12px; font-size: 12px; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--text-ter); }
+.qvq-grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.qvq-grupo { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--surface); }
+.qvq-grupo-cab { display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  background: rgba(var(--qvq-rgb), .10); border-bottom: 1px solid var(--border); }
+.qvq-grupo-cab b { flex: 1; font-size: 15px; color: var(--qvq-cor); }
+.qvq-ico { width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center;
+  background: rgba(var(--qvq-rgb), .16); color: var(--qvq-cor); flex-shrink: 0; }
+.qvq-n { min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; display: grid; place-items: center;
+  background: var(--surface); color: var(--text-sec); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.qvq-grupo ul { list-style: none; margin: 0; padding: 4px 0; }
+.qvq-grupo li { padding: 10px 14px; font-size: 14.5px; font-weight: 500; }
+.qvq-grupo li + li { border-top: 1px solid var(--border); }
 `;
