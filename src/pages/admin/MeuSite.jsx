@@ -1223,7 +1223,7 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
       {id:'cabecalho',l:'Tema',I:LayoutTemplate},{id:'marca',l:'Logótipo',I:ImagemIco},{id:'sugestao',l:'Estilos',I:Sparkles},{id:'cores',l:'Cores',I:Palette},
       {id:'fundo',l:'Fundo',I:Waves},{id:'tipo',l:'Letra',I:Type},{id:'info',l:'Conteúdo',I:LayoutList},{id:'galeria',l:'Fotos',I:Images},
     ]
-    const abrir=id=>{setPainel(id);setGaveta(true)}
+    const abrir=id=>{setPainel(id);setGaveta(true);try{window.scrollTo({top:0,behavior:'smooth'})}catch{}}
     const rotulo=ABAS.find(a=>a.id===painel)?.l||''
     return(
       <div className="ms">
@@ -1590,9 +1590,9 @@ const CSS_MS=`
 .ms-barra::-webkit-scrollbar { display: none; }
 .ms-barra button { flex: 1 0 68px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--text-sec); font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; }
 .ms-barra button.on { color: var(--text); background: var(--elevated); }
-.ms-veu { position: fixed; inset: 0; z-index: 94; background: rgba(0,0,0,.35); }
+.ms-veu { position: fixed; inset: 0; z-index: 94; background: transparent; }
 .ms-gaveta {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 95; max-height: 72vh; display: flex; flex-direction: column;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 95; max-height: 46vh; display: flex; flex-direction: column;
   background: var(--bg); border-radius: 18px 18px 0 0; box-shadow: 0 -12px 40px rgba(0,0,0,.25);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -1600,4 +1600,8 @@ const CSS_MS=`
 .ms-gaveta-topo b { font-size: 17px; }
 .ms-gaveta-topo button { width: 36px; height: 36px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text-sec); font-size: 15px; cursor: pointer; }
 .ms-gaveta-corpo { overflow-y: auto; padding: 0 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+/* Os temas, como na concorrencia: uma fila que se arrasta, o telemovel por cima a mudar. */
+.ms-gaveta .mt-grelha { display: flex; overflow-x: auto; gap: 10px; padding: 4px 2px 6px; scroll-snap-type: x proximity; scrollbar-width: none; }
+.ms-gaveta .mt-grelha::-webkit-scrollbar { display: none; }
+.ms-gaveta .mt-opcao { flex: 0 0 92px; scroll-snap-align: start; }
 `
