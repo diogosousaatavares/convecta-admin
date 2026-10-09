@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
-  CreditCard, Check, ExternalLink, AlertTriangle, Clock,
+  CreditCard, Check, ExternalLink, AlertTriangle,
   ChevronDown, ChevronRight, MessageCircle, Lock, Zap, ShieldCheck, CalendarDays, Headphones, ArrowRight, Receipt, FileDown, PartyPopper, Gift,
 } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
@@ -105,9 +105,9 @@ const CSS = `
 .sub-hero-h1 { font-family: var(--font-body); font-weight: 700; font-size: clamp(26px, 6vw, 34px); line-height: 1.1; margin: 18px 0 0; letter-spacing: -.01em; }
 .sub-hero-sub { font-size: 16px; color: var(--text-sec); line-height: 1.4; margin: 8px 0 0; max-width: 30ch; }
 .sub-linhas { display: grid; gap: 14px; margin-top: 22px; max-width: 360px; position: relative; z-index: 1; }
-.sub-linha { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center; }
-.sub-linha i { width: 44px; height: 44px; border-radius: 999px; border: 1px solid rgba(201,162,39,.45); color: var(--gold); display: grid; place-items: center; }
-.sub-linha b { display: block; font-size: 15px; }
+.sub-linha { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; }
+.sub-linha i { width: 40px; height: 40px; border-radius: 999px; border: 1px solid rgba(201,162,39,.45); color: var(--gold); display: grid; place-items: center; }
+.sub-linha b { display: block; font-size: 16px; font-weight: 600; }
 .sub-linha span { display: block; font-size: 13px; color: var(--text-sec); margin-top: 2px; }
 .sub-btn {
   display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
@@ -116,15 +116,15 @@ const CSS = `
   box-shadow: var(--shadow-gold); position: relative; z-index: 1;
 }
 .sub-btn:disabled { opacity: .7; cursor: default; }
-.sub-plano-linha { margin-top: 12px; text-align: center; font-size: 13px; color: var(--text-sec); position: relative; z-index: 1; }
+.sub-plano-linha { margin-top: 14px; text-align: center; font-size: 15px; color: var(--text-sec); position: relative; z-index: 1; }
 .sub-stripe {
   display: flex; align-items: center; justify-content: center; gap: 7px;
   margin-top: 10px; position: relative; z-index: 1;
-  font-size: 13px; color: var(--text-sec); text-decoration: none;
+  font-size: 14px; color: var(--text-sec); text-decoration: none;
 }
-.sub-stripe-logo { height: 17px; width: auto; display: block; }
+.sub-stripe-logo { height: 18px; width: auto; display: block; }
 .sub-stripe:hover { opacity: .8; }
-.sub-plano-linha button { background: none; border: 0; color: var(--gold); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; }
+.sub-plano-linha button { background: none; border: 0; color: var(--gold-tinta); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; }
 
 /* Os cartões desenhados, à direita, ATRÁS de tudo o que é texto. */
 .sub-cartoes { z-index: 0; position: absolute; right: -6px; top: 118px; width: 190px; height: 118px; pointer-events: none; }
@@ -135,16 +135,6 @@ const CSS = `
 .sub-cartao .circ { position: absolute; right: 16px; bottom: 14px; width: 22px; height: 22px; border-radius: 999px; background: #EB001B; opacity: .9; }
 .sub-cartao .circ + .circ { right: 4px; background: #F79E1B; }
 
-/* 2. Os quatro passos */
-.sub-passos { display: grid; grid-template-columns: repeat(4, 1fr); padding: 6px 4px 0; }
-.sub-passo { position: relative; text-align: center; }
-.sub-passo i { width: 36px; height: 36px; border-radius: 999px; display: inline-grid; place-items: center; font-style: normal; font-weight: 700; font-size: 14px; background: var(--elevated); color: var(--text-sec); border: 1px solid var(--border); position: relative; z-index: 1; }
-.sub-passo.agora i { background: var(--gold); color: #111; border-color: var(--gold); }
-.sub-passo::after { content: ''; position: absolute; top: 18px; left: 50%; width: 100%; height: 2px; background: var(--border); }
-.sub-passo.agora::after { background: linear-gradient(90deg, var(--gold), var(--border)); }
-.sub-passo:last-child::after { display: none; }
-.sub-passo span { display: block; margin-top: 10px; font-size: 12px; line-height: 1.3; color: var(--text-sec); padding: 0 4px; }
-.sub-passo.agora span { color: var(--text); font-weight: 600; }
 
 /* 3. O que vai acontecer */
 .sub-titulo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; }
@@ -157,22 +147,32 @@ const CSS = `
 .sub-agora li:last-child::before { display: none; }
 .sub-agora i { width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; font-style: normal; font-size: 14px; font-weight: 700; background: var(--elevated); color: var(--text-sec); border: 1px solid var(--border); }
 .sub-agora li:first-child i { background: var(--gold); color: #111; border-color: var(--gold); }
-.sub-agora b { display: block; font-size: 15px; margin-top: 6px; }
+.sub-agora b { display: block; font-size: 16px; margin-top: 7px; }
 .sub-agora span { display: block; font-size: 13px; color: var(--text-sec); margin-top: 2px; line-height: 1.45; }
 
 /* 4. Dúvidas */
 .sub-faq { margin-top: 14px; display: grid; gap: 8px; }
 .sub-faq details { border: 1px solid var(--border); border-radius: 12px; background: var(--elevated); }
-.sub-faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 13px 14px; font-size: 14px; font-weight: 600; }
+.sub-faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px; font-size: 15px; font-weight: 600; }
 .sub-faq summary::-webkit-details-marker { display: none; }
 .sub-faq summary svg { transition: transform .2s; flex-shrink: 0; color: var(--text-sec); }
 .sub-faq details[open] summary svg { transform: rotate(180deg); }
-.sub-faq p { margin: 0; padding: 0 14px 14px; font-size: 13px; color: var(--text-sec); line-height: 1.5; }
+.sub-faq p { margin: 0; padding: 0 14px 14px; font-size: 15px; line-height: 1.5; }
 
 /* 5. Ajuda */
 .sub-ajuda { display: flex; align-items: center; gap: 14px; }
 .sub-ajuda .sub-ico { width: 44px; height: 44px; border-radius: 999px; }
-.sub-ajuda b { display: block; font-size: 15px; }
+.sub-ajuda b { display: block; font-size: 16px; }
+.sub-estado-topo { display: flex; align-items: center; gap: 10px; }
+.sub-estado-topo i { width: 12px; height: 12px; border-radius: 999px; flex-shrink: 0; }
+.sub-estado-topo b { font-size: 22px; font-weight: 700; }
+.sub-dados { margin: 16px 0; border-radius: 14px; background: var(--elevated); border: 1px solid var(--border); overflow: hidden; }
+.sub-dados > div { display: flex; justify-content: space-between; gap: 12px; align-items: center; min-height: 48px; padding: 0 14px; border-bottom: 1px solid var(--border); font-size: 15px; }
+.sub-dados > div:last-child { border-bottom: 0; }
+.sub-dados span { color: var(--text-sec); flex-shrink: 0; }
+.sub-dados b { font-weight: 600; text-align: right; }
+.sub-frase { display: flex; gap: 8px; align-items: flex-start; font-size: 15px; line-height: 1.5; margin: 0 0 14px; }
+.sub-frase svg { flex-shrink: 0; margin-top: 3px; }
 .sub-ajuda span { display: block; font-size: 13px; color: var(--text-sec); }
 .sub-ajuda a { margin-left: auto; flex-shrink: 0; padding: 11px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--elevated); color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; }
 
@@ -180,8 +180,8 @@ const CSS = `
 .sub-pag { list-style: none; margin: 14px 0 0; padding: 0; display: grid; }
 .sub-pag li { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--border); }
 .sub-pag li:first-child { border-top: 0; padding-top: 0; }
-.sub-pag b { display: block; font-size: 14px; font-variant-numeric: tabular-nums; }
-.sub-pag span { display: block; font-size: 12px; color: var(--text-sec); margin-top: 2px; }
+.sub-pag b { display: block; font-size: 15px; font-variant-numeric: tabular-nums; }
+.sub-pag span { display: block; font-size: 13.5px; color: var(--text-sec); margin-top: 2px; }
 .sub-pag .valor { text-align: right; font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums; }
 .sub-pag .etq { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
 .sub-pag .etq.pago, .sub-pag .etq.gratis { background: rgba(34,197,94,.14); color: var(--success, #22C55E); }
@@ -189,7 +189,7 @@ const CSS = `
 .sub-pag .etq.falhou { background: rgba(239,68,68,.14); color: var(--error, #EF4444); }
 .sub-pag .etq.anulado { background: var(--elevated); color: var(--text-sec); }
 .sub-pag .links { grid-column: 1 / -1; display: flex; gap: 14px; }
-.sub-pag .links a { font-size: 12px; color: var(--gold); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.sub-pag .links a { font-size: 14px; color: var(--gold); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
 
 /* 6. Planos, escondidos até ele pedir */
 .sub-planos { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 14px; }
@@ -368,10 +368,7 @@ export default function Subscricao() {
           <div className="fw-600" style={{ fontSize: 20, color: ESTADOS.gratis.cor, marginTop: 4 }}>
             {ESTADOS.gratis.texto}
           </div>
-          <p className="text-sec" style={{ fontSize: 15.5, lineHeight: 1.6, margin: '12px 0 0' }}>
-            A tua barbearia não paga mensalidade. Não precisas de registar cartão —
-            as marcações estão abertas e tens o painel completo.
-          </p>
+          <p style={{ fontSize: 16, margin: '12px 0 0' }}>Sem mensalidade. Não precisas de cartão.</p>
         </Card>
       </AdminPage>
     );
@@ -437,86 +434,34 @@ export default function Subscricao() {
 
       {/* ── O estado, quando já há subscrição ───────────────────────────── */}
       {!precisaDeCartao && (
-        <Card className="card-pad" style={{ maxWidth: 720, marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <div>
-              <div className="text-sec" style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: .8 }}>Estado</div>
-              <div className="fw-600" style={{ fontSize: 20, color: sub.cancelaNoFim ? 'var(--text-sec)' : estado.cor, marginTop: 4 }}>
-                {sub.cancelaNoFim ? 'A terminar' : estado.texto}
-              </div>
-              <div className="text-sec" style={{ fontSize: 15, marginTop: 6 }}>
-                Plano <strong style={{ color: 'var(--text)' }}>{NOMES_DOS_PLANOS[sub.plano] || sub.plano || '—'}</strong>
-                {sub.periodo ? ` · ${sub.periodo}` : ''}
-                {sub.limiteProfissionais ? ` · até ${sub.limiteProfissionais} profissionais` : ''}
-              </div>
-            </div>
-            {/* Uma barbearia criada antes dos pagamentos automáticos está
-                marcada como activa mas nunca passou pelo Stripe: não tem lá
-                cliente, e não há portal nenhum para abrir. Mostrar-lhe o botão
-                era prometer uma porta que não existe. */}
-            {sub.temCliente ? (
-              <Button onClick={abrirPortal} disabled={aAbrir === 'portal'} icon={<ExternalLink size={16} />}>
-                {aAbrir === 'portal' ? 'A abrir…' : 'Gerir subscrição'}
-              </Button>
-            ) : (
-              <div className="text-sec" style={{ fontSize: 14, maxWidth: 260, textAlign: 'right' }}>
-                Esta barbearia foi criada antes dos pagamentos automáticos.
-                A subscrição é tratada connosco directamente.
-              </div>
-            )}
+        <Card className="card-pad sub-estado" style={{ maxWidth: 720, marginBottom: 16 }}>
+          <div className="sub-estado-topo">
+            <i style={{ background: sub.cancelaNoFim ? 'var(--text-ter)' : estado.cor }} />
+            <b>{sub.cancelaNoFim ? 'A terminar' : estado.texto}</b>
           </div>
 
-          {/* Cancelou: nada de «o cartão é cobrado nesse dia». Ele já se
-              despediu; o que lhe falta saber é até quando fica, e como
-              volta atrás se mudar de ideias. */}
-          {sub.cancelaNoFim && (
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-              <CalendarDays size={18} style={{ color: 'var(--text-sec)', flexShrink: 0, marginTop: 2 }} />
-              <div className="text-sm">
-                Cancelaste — <strong>não vais ser cobrado</strong>.
-                {(sub.fimDoTeste || sub.fimDoPeriodo)
-                  ? <> A barbearia continua a receber marcações até <strong>{dataCurta(sub.fimDoTeste || sub.fimDoPeriodo)}</strong>, e nesse dia fecha.</>
-                  : <> A barbearia continua a funcionar até ao fim do período pago.</>}
-                <div className="text-sec" style={{ fontSize: 14, marginTop: 4 }}>
-                  Mudaste de ideias? Em «Gerir subscrição» retomas, e fica tudo como estava.
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="sub-dados">
+            <div><span>Plano</span><b>{NOMES_DOS_PLANOS[sub.plano] || sub.plano || '—'}{sub.periodo ? ` · ${sub.periodo}` : ''}</b></div>
+            {sub.limiteProfissionais ? <div><span>Profissionais</span><b>até {sub.limiteProfissionais}</b></div> : null}
+            {sub.cancelaNoFim && (sub.fimDoTeste || sub.fimDoPeriodo) && <div><span>Aberta até</span><b>{dataCurta(sub.fimDoTeste || sub.fimDoPeriodo)}</b></div>}
+            {!sub.cancelaNoFim && sub.estado === 'em_teste' && sub.fimDoTeste && (
+              <div><span>Experiência até</span><b>{dataCurta(sub.fimDoTeste)}{diasAte(sub.fimDoTeste) >= 0 ? ` · faltam ${diasAte(sub.fimDoTeste)} dias` : ''}</b></div>
+            )}
+            {!sub.cancelaNoFim && sub.estado === 'activa' && sub.fimDoPeriodo && <div><span>Próxima cobrança</span><b>{dataCurta(sub.fimDoPeriodo)}</b></div>}
+          </div>
 
-          {!sub.cancelaNoFim && sub.estado === 'em_teste' && sub.fimDoTeste && (
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-              <Clock size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0, marginTop: 2 }} />
-              <div className="text-sm">
-                {/* Dizer a data E os dias: a data é o que conta, os dias é o
-                    que a pessoa sente. */}
-                A experiência acaba a <strong>{dataCurta(sub.fimDoTeste)}</strong>
-                {diasAte(sub.fimDoTeste) >= 0 ? ` (faltam ${diasAte(sub.fimDoTeste)} dias)` : ''}.
-                Se não cancelares até lá, o cartão é cobrado nesse dia.
-                <div className="text-sec" style={{ fontSize: 14, marginTop: 4 }}>
-                  Cancelar durante a experiência não custa nada — não é cobrado nenhum valor.
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!sub.cancelaNoFim && sub.estado === 'activa' && sub.fimDoPeriodo && (
-            <div className="text-sec" style={{ fontSize: 15, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-              Próxima cobrança a <strong style={{ color: 'var(--text)' }}>{dataCurta(sub.fimDoPeriodo)}</strong>.
-            </div>
-          )}
-
+          {sub.cancelaNoFim && <p className="sub-frase">Cancelaste. Não vais ser cobrado. Para retomar, «Gerir subscrição».</p>}
+          {!sub.cancelaNoFim && sub.estado === 'em_teste' && <p className="sub-frase">Cancelar durante a experiência não custa nada.</p>}
           {sub.estado === 'em_atraso' && (
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-              <AlertTriangle size={18} style={{ color: '#F59E0B', flexShrink: 0, marginTop: 2 }} />
-              <div className="text-sm">
-                O último pagamento não passou. <strong>A barbearia continua a funcionar normalmente</strong> —
-                vamos tentar cobrar outra vez nos próximos dias.
-                <div className="text-sec" style={{ fontSize: 14, marginTop: 4 }}>
-                  Se o cartão expirou ou mudou, actualiza-o em «Gerir subscrição» e fica resolvido.
-                </div>
-              </div>
-            </div>
+            <p className="sub-frase" style={{ color: '#F59E0B' }}><AlertTriangle size={16} /> O último pagamento não passou. A barbearia continua a funcionar. Actualiza o cartão em «Gerir subscrição».</p>
+          )}
+
+          {sub.temCliente ? (
+            <Button block onClick={abrirPortal} disabled={aAbrir === 'portal'} icon={<ExternalLink size={16} />}>
+              {aAbrir === 'portal' ? 'A abrir…' : 'Gerir subscrição'}
+            </Button>
+          ) : (
+            <p className="sub-frase">A subscrição é tratada connosco directamente.</p>
           )}
         </Card>
       )}
@@ -525,12 +470,9 @@ export default function Subscricao() {
       {!precisaDeCartao && sub?.temCliente && (
         <Card className="card-pad" style={{ maxWidth: 720, marginBottom: 16 }}>
           <div className="sub-titulo"><Receipt size={18} /> Pagamentos</div>
-          <div className="text-sec" style={{ fontSize: 14, marginTop: 4 }}>
-            Os recibos do Stripe, do mais recente para o mais antigo.
-          </div>
           {!pagamentos && <div style={{ marginTop: 12 }}><Spinner label="A ler os pagamentos…" /></div>}
           {pagamentos && pagamentos.length === 0 && (
-            <div className="text-sec text-sm" style={{ marginTop: 12 }}>Ainda não há pagamentos. O primeiro aparece aqui no dia em que for cobrado.</div>
+            <div style={{ marginTop: 12, fontSize: 15 }}>Ainda não há pagamentos.</div>
           )}
           {pagamentos && pagamentos.length > 0 && (
             <ul className="sub-pag">
@@ -572,9 +514,9 @@ export default function Subscricao() {
             <p className="sub-hero-sub">Adiciona o teu cartão para começares a receber marcações.</p>
             <Cartoes />
             <div className="sub-linhas">
-              <div className="sub-linha"><i><Zap size={18} /></i><div><b>Rápido e simples</b><span>Em menos de 2 minutos.</span></div></div>
-              <div className="sub-linha"><i><ShieldCheck size={18} /></i><div><b>Seguro</b><span>Processado pela Stripe.</span></div></div>
-              <div className="sub-linha"><i><CalendarDays size={18} /></i><div><b>Só depois da experiência</b><span>Primeiro pagamento a {diaDaCobranca}. Hoje, 0 €.</span></div></div>
+              <div className="sub-linha"><i><Zap size={18} /></i><b>Em menos de 2 minutos</b></div>
+              <div className="sub-linha"><i><ShieldCheck size={18} /></i><b>Seguro, pela Stripe</b></div>
+              <div className="sub-linha"><i><CalendarDays size={18} /></i><b>Hoje 0 €. Primeiro pagamento a {diaDaCobranca}</b></div>
             </div>
             {precoDaCasa ? (
               <button className="sub-btn" onClick={() => assinar(precoDaCasa, true)} disabled={!!aAbrir}>
@@ -592,7 +534,7 @@ export default function Subscricao() {
                 nome da Stripe diz mais do que qualquer promessa nossa de
                 segurança — e o link deixa-o ir confirmar. */}
             <a className="sub-stripe" href="https://stripe.com" target="_blank" rel="noopener noreferrer">
-              <Lock size={13} /> Pagamentos seguros, processados pela
+              <Lock size={13} /> Processado pela
               <img src="/stripe.webp" alt="Stripe" className="sub-stripe-logo" />
             </a>
           </section>
@@ -628,7 +570,7 @@ export default function Subscricao() {
                       <div key={plano.id} className={`sub-card sub-plano${teu ? ' teu' : ''}`}>
                         {teu && <div className="sub-plano-etq">O teu plano</div>}
                         <div className="fw-600" style={{ fontSize: 17 }}>{plano.nome}</div>
-                        {plano.descricao && <div className="text-sec" style={{ fontSize: 14, marginTop: 6, lineHeight: 1.5 }}>{plano.descricao}</div>}
+                        {plano.descricao && <div style={{ fontSize: 15, marginTop: 6, lineHeight: 1.5 }}>{plano.descricao}</div>}
                         <div style={{ margin: '14px 0 12px' }}>
                           <span className="fw-600" style={{ fontSize: 28 }}>{euros(preco.centimos)}</span>
                           <span className="text-sec" style={{ fontSize: 15 }}>{ehAnual ? ' /ano' : ' /mês'}</span>
@@ -638,7 +580,7 @@ export default function Subscricao() {
                             {plano.caracteristicas.map((c, i) => (
                               <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                                 <Check size={15} style={{ color: 'var(--gold-tinta)', flexShrink: 0, marginTop: 2 }} />
-                                <span className="text-sm">{c}</span>
+                                <span style={{ fontSize: 15 }}>{c}</span>
                               </div>
                             ))}
                           </div>
@@ -659,23 +601,13 @@ export default function Subscricao() {
             </section>
           )}
 
-          {/* 2. Os quatro passos. */}
-          <section className="sub-card" style={{ padding: '18px 8px 16px' }}>
-            <div className="sub-passos">
-              <div className="sub-passo agora"><i>1</i><span>Activar</span></div>
-              <div className="sub-passo"><i>2</i><span>Confirmar</span></div>
-              <div className="sub-passo"><i>3</i><span>Começar a receber</span></div>
-              <div className="sub-passo"><i>4</i><span>Primeiro pagamento</span></div>
-            </div>
-          </section>
-
           {/* 3. O que vai acontecer. */}
           <section className="sub-card">
             <div className="sub-titulo"><CalendarDays size={18} /> O que vai acontecer agora?</div>
             <ul className="sub-agora">
-              <li><i>1</i><div><b>Activas os 14 dias grátis</b><span>Com o cartão, numa página segura. Menos de 2 minutos.</span></div></li>
-              <li><i>2</i><div><b>A tua conta fica activa</b><span>Começas a receber marcações imediatamente.</span></div></li>
-              <li><i>3</i><div><b>Primeiro pagamento só a {diaDaCobranca}</b><span>Até lá usas tudo, sem pagar nada.</span></div></li>
+              <li><i>1</i><div><b>Activas os 14 dias grátis</b></div></li>
+              <li><i>2</i><div><b>Começas a receber marcações já</b></div></li>
+              <li><i>3</i><div><b>Primeiro pagamento só a {diaDaCobranca}</b></div></li>
             </ul>
           </section>
 
@@ -692,7 +624,7 @@ export default function Subscricao() {
           {/* 5. Ajuda. */}
           <section className="sub-card sub-ajuda">
             <div className="sub-ico"><Headphones size={20} /></div>
-            <div><b>Precisas de ajuda?</b><span>Fala connosco, estamos aqui para ajudar.</span></div>
+            <div><b>Precisas de ajuda?</b></div>
             <a href={WHATSAPP} target="_blank" rel="noreferrer">Contactar</a>
           </section>
         </>
