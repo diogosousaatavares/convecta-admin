@@ -4,6 +4,7 @@ import { ChevronRight, HelpCircle, LogOut } from 'lucide-react';
 import AdminLayout, { gruposPara } from '@/components/AdminLayout';
 import { useStore, useAuth } from '@/hooks/useStore';
 import { Avatar } from '@/components/ui';
+import LinkDaBarbearia from '@/components/LinkDaBarbearia';
 
 /*
  * «MAIS» — o ecrã onde está tudo.
@@ -71,6 +72,10 @@ export default function Mais() {
             : <Avatar name={nome} size="lg" />}
           <div className="mais-nome">{nome}</div>
           {user?.email && <div className="mais-email">{user.email}</div>}
+          {/* O link do site vive aqui, por baixo do email: e o sitio onde se
+              vai buscar a conta e a casa. No «O meu site» ocupava a primeira
+              linha do ecra a uma coisa que se copia uma vez. */}
+          <div className="mais-link"><LinkDaBarbearia /></div>
         </header>
 
         {seccoes.map((s, i) => (
@@ -119,6 +124,8 @@ const CSS = `
 .mais-topo .avatar { margin: 0 auto 12px; }
 .mais-nome { font-size: 20px; font-weight: 700; }
 .mais-email { font-size: 14px; color: var(--text-sec); margin-top: 3px; word-break: break-all; }
+.mais-link { margin-top: 16px; text-align: left; }
+.mais-link .link-faixa { margin: 0 !important; border-radius: 14px; border: 1px solid var(--border); padding: 8px 8px 8px 14px; }
 
 .mais-bloco { margin-bottom: 22px; }
 /* O cabeçalho fica FORA da caixa, como nas listas do telemóvel: lá dentro

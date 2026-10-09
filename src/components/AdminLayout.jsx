@@ -43,7 +43,6 @@ function BotaoModo() {
   );
 }
 import AcordoRgpd from '@/components/AcordoRgpd';
-import LinkDaBarbearia from '@/components/LinkDaBarbearia';
 import DiasDeTeste from '@/components/admin/DiasDeTeste';
 import LancarAApp from '@/components/admin/LancarAApp';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
@@ -212,7 +211,7 @@ const PASSOS_BARBEIRO = [
     texto: 'Criámos alguns serviços para arrancares. Apaga os que não fazes, muda os preços e a duração — a duração é o que decide as horas que o cliente vê.' },
   { rota: '/admin/horarios', alvo: 'horarios-lista', titulo: 'A que horas abres',
     texto: 'Põe o horário real da barbearia e os dias de folga. Fora disto ninguém consegue marcar.' },
-  { rota: '/admin/o-meu-site', alvo: 'link-barbearia', titulo: 'Este é o teu endereço',
+  { rota: '/admin/mais', alvo: 'link-barbearia', titulo: 'Este é o teu endereço',
     texto: 'O site da tua barbearia já está no ar. É este link que vais pôr no Instagram e mandar aos clientes — copia-se com um toque.' },
   { rota: '/admin/o-meu-site', alvo: 'meu-site', titulo: 'Põe a tua cara',
     texto: 'Logótipo, cores, capa e fotos. Mudas aqui e vês o resultado antes de publicar.' },
@@ -639,7 +638,7 @@ export default function AdminLayout({ children }) {
             fixa em todos os ecras e uma linha que ele ve cem vezes por dia e
             usa uma — e ao telemovel rouba uma linha inteira a agenda. Fica
             onde o assunto e o site dele. */}
-        {location.pathname === '/admin/o-meu-site' && <LinkDaBarbearia />}
+        {/* A faixa do link passou para a pagina Mais (por baixo do email). */}
 
         {/* As notificacoes pedem-se em todas as paginas, nao so na de
             Marcacoes: quem entra na Agenda e fica por la nunca era sequer
