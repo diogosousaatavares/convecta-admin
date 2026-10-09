@@ -1156,9 +1156,9 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
           <span style={{fontSize:14,color:T3}}>Demonstração: nada é gravado.</span>
         </div>
         ):(
-        <div data-tour="site-guardar" style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+        <div data-tour="site-guardar" style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap',justifyContent:'center'}}>
           <Btn onClick={guardar} disabled={guardando||!alterado}
-            style={{display:'flex',alignItems:'center',gap:8,padding:'11px 20px'}}>
+            style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,padding:'11px 20px',flex:telemovel?'1 1 100%':'0 0 auto'}}>
             {guardando?<><Spin/>A guardar…</>:'Guardar design'}
           </Btn>
           <Btn v="secondary" onClick={()=>{setTema(structuredClone(TEMA_OMISSAO));setSucesso(false)}}>Repor cores</Btn>
