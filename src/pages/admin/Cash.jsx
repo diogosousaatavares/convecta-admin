@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Wallet, Plus, Trash2, Lock, Unlock, Banknote, CreditCard, Smartphone, Receipt, TrendingDown, Gift, Coins, ShoppingBag, Repeat } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
+import LinhaDinheiro from '@/components/admin/LinhaDinheiro';
 import { Card, Badge, Button, EmptyState, Modal } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
@@ -181,7 +182,22 @@ export default function Cash() {
               {sales.length === 0 && vendasProdutos.length === 0 && vendasPacks.length === 0 ? (
                 <EmptyState icon={() => <Receipt />} title="Sem vendas" />
               ) : sales.length === 0 ? null : (
-                <table className="table">
+                <>
+                <div className="so-telemovel">
+                  {sales.map(a => {
+                    const svc = data.services.find(s => s.id === a.serviceId);
+                    const cust = data.customers.find(c => c.id === a.customerId);
+                    const pro = data.professionals.find(x => x.id === a.professionalId);
+                    const p = a.payment;
+                    return (
+                      <LinhaDinheiro key={a.id}
+                        hora={p.at ? new Date(p.at).toLocaleTimeString('pt-PT').slice(0, 5) : a.startTime}
+                        titulo={cust?.name || svc?.name || '—'} valor={formatPrice(p.total)}
+                        detalhes={[['Serviço', svc?.name], ['Barbeiro', pro?.name], ['Método', p.method], ['Desconto', p.discountAmount ? `-${formatPrice(p.discountAmount)}` : null], ['Gorjeta', p.tip ? formatPrice(p.tip) : null], ['Dia', a.date !== today ? formatDate(a.date) : null]]} />
+                    );
+                  })}
+                </div>
+                <table className="table so-pc">
                   <thead><tr><th>Hora</th><th>Cliente</th><th>Serviço</th><th>Total</th><th>Método</th><th>Desc.</th><th>Gorjeta</th></tr></thead>
                   <tbody>
                     {sales.map(a => {
@@ -202,12 +218,23 @@ export default function Cash() {
                     })}
                   </tbody>
                 </table>
+                </>
               )}
 
               {vendasProdutos.length > 0 && (
                 <>
                   <h4 className="mt-24 mb-16" style={{ fontSize: 15 }}>Vendas de produtos</h4>
-                  <table className="table">
+                  <div className="so-telemovel">
+                    {vendasProdutos.map(v => {
+                      const cust = v.customerId ? data.customers.find(c => c.id === v.customerId) : null;
+                      return (
+                        <LinhaDinheiro key={v.id} hora={new Date(v.soldAt).toLocaleTimeString('pt-PT').slice(0, 5)}
+                          titulo={(v.items || []).map(i => `${i.name} ×${i.qty}`).join(', ') || 'Produtos'} valor={formatPrice(v.total)}
+                          detalhes={[['Cliente', cust?.name], ['Método', v.method]]} />
+                      );
+                    })}
+                  </div>
+                  <table className="table so-pc">
                     <thead><tr><th>Hora</th><th>Cliente</th><th>Produtos</th><th>Total</th><th>Método</th></tr></thead>
                     <tbody>
                       {vendasProdutos.map(v => {
@@ -230,7 +257,17 @@ export default function Cash() {
               {vendasPacks.length > 0 && (
                 <>
                   <h4 className="mt-24 mb-16" style={{ fontSize: 15 }}>Packs vendidos</h4>
-                  <table className="table">
+                  <div className="so-telemovel">
+                    {vendasPacks.map(v => {
+                      const cust = v.customerId ? data.customers.find(c => c.id === v.customerId) : null;
+                      return (
+                        <LinhaDinheiro key={v.id} hora={new Date(v.soldAt).toLocaleTimeString('pt-PT').slice(0, 5)}
+                          titulo={`${v.nome} · ${v.cortes} cortes`} valor={formatPrice(v.total)}
+                          detalhes={[['Cliente', cust?.name], ['Método', v.method]]} />
+                      );
+                    })}
+                  </div>
+                  <table className="table so-pc">
                     <thead><tr><th>Hora</th><th>Cliente</th><th>Pack</th><th>Total</th><th>Método</th></tr></thead>
                     <tbody>
                       {vendasPacks.map(v => {
@@ -253,14 +290,12 @@ export default function Cash() {
               {expenses.length > 0 && (
                 <>
                   <h4 className="mt-24 mb-16" style={{ fontSize: 15 }}>Despesas</h4>
-                  <div className="flex-col gap-8">
+                  <div>
                     {expenses.map(e => (
-                      <div key={e.id} className="flex items-center gap-12" style={{ padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-                        <Badge variant="default">{e.category}</Badge>
-                        <div className="flex-1"><div className="fw-600 text-sm">{e.description}</div><div className="text-sec text-xs">{new Date(e.createdAt).toLocaleTimeString('pt-PT').slice(0, 5)} · {e.method || 'Dinheiro'}{(!e.method || e.method === 'Dinheiro') ? '' : ' (não sai da caixa)'}</div></div>
-                        <span className="fw-600 text-sm">-{formatPrice(e.amount)}</span>
-                        <button className="btn btn-ghost btn-icon" aria-label="Eliminar despesa" title="Eliminar despesa" onClick={() => dataService.deleteExpense(e.id)}><Trash2 size={15} /></button>
-                      </div>
+                      <LinhaDinheiro key={e.id} hora={new Date(e.createdAt).toLocaleTimeString('pt-PT').slice(0, 5)}
+                        titulo={e.description || e.category || 'Despesa'} valor={`-${formatPrice(e.amount)}`} cor="var(--error)"
+                        detalhes={[['Categoria', e.category], ['Método', e.method || 'Dinheiro'], ['Sai da caixa', (!e.method || e.method === 'Dinheiro') ? 'Sim' : 'Não']]}
+                        onApagar={() => dataService.deleteExpense(e.id)} apagarRotulo="Eliminar despesa" />
                     ))}
                   </div>
                 </>
@@ -269,13 +304,12 @@ export default function Cash() {
               {movimentos.length > 0 && (
                 <>
                   <h4 className="mt-24 mb-16" style={{ fontSize: 15 }}>Entradas e saídas avulsas</h4>
-                  <div className="flex-col gap-8">
+                  <div>
                     {movimentos.map(m => (
-                      <div key={m.id} className="flex items-center gap-12" style={{ padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-                        <Badge variant="default">{m.category || (m.type === 'in' ? 'Entrada' : 'Saída')}</Badge>
-                        <div className="flex-1"><div className="fw-600 text-sm">{m.description || m.notes || '—'}</div><div className="text-sec text-xs">{new Date(m.createdAt).toLocaleTimeString('pt-PT').slice(0, 5)}</div></div>
-                        <span className="fw-600 text-sm" style={{ color: m.type === 'in' ? 'var(--success)' : 'var(--error)' }}>{m.type === 'in' ? '+' : '-'}{formatPrice(m.amount)}</span>
-                      </div>
+                      <LinhaDinheiro key={m.id} hora={new Date(m.createdAt).toLocaleTimeString('pt-PT').slice(0, 5)}
+                        titulo={m.description || m.notes || (m.type === 'in' ? 'Entrada' : 'Saída')}
+                        valor={`${m.type === 'in' ? '+' : '-'}${formatPrice(m.amount)}`} cor={m.type === 'in' ? 'var(--success)' : 'var(--error)'}
+                        detalhes={[['Categoria', m.category], ['Notas', m.description && m.notes ? m.notes : null]]} />
                     ))}
                   </div>
                 </>

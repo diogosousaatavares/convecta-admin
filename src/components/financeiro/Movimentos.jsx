@@ -1,5 +1,6 @@
+import LinhaDinheiro from '@/components/admin/LinhaDinheiro';
 import React, { useState } from 'react';
-import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { Plus, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import { Card, Button, EmptyState, Modal } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
@@ -45,23 +46,16 @@ export default function Movimentos({ mode = 'all' }) {
           <Button variant="primary" size="sm" onClick={() => setModal(true)}><Plus size={15} /> Novo movimento</Button>
         </div>
         {moves.length === 0 ? (
-          <EmptyState title="Sem movimentos" description="Regista entradas ou saídas avulsas (fora das marcações)." />
+          <EmptyState title="Sem movimentos" />
         ) : (
-          <div className="flex-col gap-8">
+          <div>
             {moves.map(m => (
-              <div key={m.id} className="flex items-center gap-12" style={{ padding: '11px 14px', background: 'var(--elevated)', borderRadius: 8, border: '1px solid var(--border)' }}>
-                <span style={{ width: 34, height: 34, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: m.tipo === 'in' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', color: m.tipo === 'in' ? 'var(--success)' : 'var(--error)', flexShrink: 0 }}>
-                  {m.tipo === 'in' ? <ArrowDownCircle size={16} /> : <ArrowUpCircle size={16} />}
-                </span>
-                <div className="flex-1">
-                  <div className="fw-600 text-sm">{m.descricao || '—'}</div>
-                  <div className="text-sec text-xs">{m.origem === 'despesa' ? `Despesa · ${m.categoria || 'sem categoria'}${m.metodo ? ` · ${m.metodo}` : ''}` : 'Caixa'} · {m.quando ? formatDataHora(m.quando) : m.data}</div>
-                </div>
-                <span className="fw-600" style={{ color: m.tipo === 'in' ? 'var(--success)' : 'var(--error)' }}>{m.tipo === 'in' ? '+' : '-'}{formatPrice(m.valor)}</span>
-                {m.movimentoId
-                  ? <button className="btn btn-ghost btn-icon" aria-label="Apagar movimento" onClick={() => dataService.deleteCashMovement(m.movimentoId).catch(e => toast.error('Não foi possível apagar', e.message))}><Trash2 size={15} /></button>
-                  : <span style={{ width: 36 }} title="Apaga-se em Despesas" />}
-              </div>
+              <LinhaDinheiro key={m.id}
+                hora={m.quando ? formatDataHora(m.quando).slice(-5) : ''}
+                titulo={m.descricao || (m.tipo === 'in' ? 'Entrada' : 'Saída')}
+                valor={`${m.tipo === 'in' ? '+' : '-'}${formatPrice(m.valor)}`} cor={m.tipo === 'in' ? 'var(--success)' : 'var(--error)'}
+                detalhes={[['Tipo', m.origem === 'despesa' ? 'Despesa' : 'Caixa'], ['Categoria', m.categoria], ['Método', m.metodo], ['Quando', m.quando ? formatDataHora(m.quando) : m.data]]}
+                onApagar={m.movimentoId ? () => dataService.deleteCashMovement(m.movimentoId).catch(e => toast.error('Não foi possível apagar', e.message)) : undefined} />
             ))}
           </div>
         )}

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import MbIcon from '@/components/MbIcon';
 /* Os icones dos oito grupos antigos sairam com eles: com cinco entradas, os
    icones usados sao cinco. */
@@ -314,6 +314,9 @@ export default function AdminLayout({ children }) {
   const data = useStore();
   const location = useLocation();
   const navigate = useNavigate();
+  const tipoDeNavegacao = useNavigationType();
+  const ehAbaDeBaixo = (p) => BAIXO.some(b => p === b.to) || p === '/admin/mais';
+  const entradaDaPagina = tipoDeNavegacao === 'POP' ? 'volta' : ehAbaDeBaixo(location.pathname) ? 'aba' : 'dentro';
   const { user, logout } = useAuth();
   const emDemo = data.business?._settings?.demo?.ativo === true;
 
@@ -669,7 +672,14 @@ export default function AdminLayout({ children }) {
             ver — e era precisamente a quem acabou de chegar que ela servia.
             Fica nos dois sitios, escrita num lado so. */}
         {(location.pathname === '/admin/agenda' || location.pathname === '/admin/dashboard') && <PrimeirosPassos />}
-        {children}
+        {/* A ENTRADA DA PAGINA, no telemovel. Mudar de aba e um fade curto a
+            subir; entrar numa pagina de dentro e deslizar da direita; voltar
+            e deslizar da esquerda. 240 ms, a curva de sair depressa e
+            assentar devagar. Quem pediu menos movimento no telemovel nao ve
+            nada disto. */}
+        <div key={location.pathname} className={`pagina-entra ${entradaDaPagina}`}>
+          {children}
+        </div>
       </main>
     </div>
   );

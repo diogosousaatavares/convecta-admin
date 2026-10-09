@@ -138,7 +138,7 @@ export default function Equipa() {
       {!minhaFicha && pros.some(p => !acessos.de(p.id)) && (
         <div className="linha-opcao" style={{ cursor: 'default', flexWrap: 'wrap' }}>
           <Crown size={17} style={{ flexShrink: 0, color: 'var(--gold-tinta)' }} />
-          <span className="rotulo">Também cortas?</span>
+          <span className="rotulo" style={{ flex: '1 1 160px' }}>Também cortas?</span>
           <select className="select" value={escolhaDono} onChange={e => setEscolhaDono(e.target.value)} style={{ width: 'auto' }}>
             <option value="">Qual é a tua ficha</option>
             {pros.filter(p => !acessos.de(p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
