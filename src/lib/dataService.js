@@ -108,6 +108,7 @@ import { getCustomerStats, valorDoCortePack, resumoCliente } from '@/lib/domain/
 import { round2 } from '@/lib/domain/money';
 import { localDateStr } from '@/lib/domain/dates';
 import { diaLocal } from '@/lib/format';
+import { n as nicho, definirNicho } from '@/lib/nicho';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
@@ -311,11 +312,11 @@ async function addLoyaltyStamp(appt, at = new Date().toISOString()) {
       para: 'customer',
       userId: appt.customerId,
       titulo: reward
-        ? '\u{1F381} Ganhou um corte grátis!'
+        ? `\u{1F381} Ganhou: ${nicho().premio.toLowerCase()}!`
         : `\u{2702}\u{FE0F} Mais um carimbo · ${displayCount}/${total}`,
       mensagem: reward
-        ? `${state.business?.name || 'A barbearia'}\nO cartão está completo. Abra a app para levantar.`
-        : `${state.business?.name || 'A barbearia'}\nFaltam ${Math.max(0, total - displayCount)} para o corte grátis.`,
+        ? `${state.business?.name || nicho().A}\nO cartão está completo. Abra a app para levantar.`
+        : `${state.business?.name || nicho().A}\nFaltam ${Math.max(0, total - displayCount)} para ${nicho().un === 'sessão' ? 'a' : 'o'} ${nicho().premio.toLowerCase()}.`,
       url: '/marcacoes',
       tag: 'carimbo-' + appt.id,
       // Um corte gratis merece ficar no ecra ate ser visto. Um carimbo normal
@@ -389,8 +390,11 @@ export async function uploadProfessionalPhoto(professionalId, file) {
 function bizFromRow(row) {
   if (!row) return null;
   const s = row.settings || {};
+  // As palavras do painel (barbearia, salão, estúdio) seguem o tipo da conta.
+  definirNicho(s.tipoNegocio);
   return {
     id: row.id, name: row.name, slug: row.slug,
+    tipoNegocio: s.tipoNegocio || 'barbearia',
     // O plano e o limite sao colunas da tabela, escritas pelo Super Admin.
     // Vem para aqui so para serem lidos: este painel nunca lhes toca.
     plan: row.plan || null,
@@ -481,6 +485,8 @@ function svcFromRow(row) {
     category: m.category || '', priceType: m.priceType || 'fixed', isPopular: m.isPopular || false,
     // Sob orcamento: sem preco nem duracao fixos, marca-se por pedido.
     orcamento: m.orcamento === true,
+    // A foto do servico (09/10/2026): vive no metadata, como o resto.
+    fotoUrl: m.fotoUrl || '',
     /*
      * O METADATA COMO ESTA NA BASE DE DADOS.
      *
@@ -1441,7 +1447,7 @@ const dataService = {
       enviarPush({
         businessId: BUSINESS_ID, para: 'customer', userId: p.customerId,
         titulo: '\u{2705} Pagamento recebido',
-        mensagem: `${state.business?.name || 'A barbearia'}\nO teu MB WAY de ${String((p.valor || 0).toFixed(2)).replace('.', ',')} € chegou. A marcação está paga.`,
+        mensagem: `${state.business?.name || nicho().A}\nO teu MB WAY de ${String((p.valor || 0).toFixed(2)).replace('.', ',')} € chegou. A marcação está paga.`,
         url: '/marcacoes', tag: 'mbway-' + pagamentoId,
       }).catch(e => console.warn('aviso ao cliente não enviado:', e.message));
     }
@@ -1458,7 +1464,7 @@ const dataService = {
       enviarPush({
         businessId: BUSINESS_ID, para: 'customer', userId: p.customerId,
         titulo: 'MB WAY não recebido',
-        mensagem: `${state.business?.name || 'A barbearia'}\n${motivo || 'O pagamento não chegou. Paga na barbearia ou envia de novo.'}`,
+        mensagem: `${state.business?.name || nicho().A}\n${motivo || `O pagamento não chegou. Paga ${nicho().na} ou envia de novo.`}`,
         url: '/marcacoes', tag: 'mbway-' + pagamentoId,
       }).catch(e => console.warn('aviso ao cliente não enviado:', e.message));
     }

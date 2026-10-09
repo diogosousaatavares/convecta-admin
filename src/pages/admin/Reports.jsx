@@ -13,6 +13,7 @@ import { paidAppointments, netOfPayment, getTotalRevenue, ticketMedio as ticketM
 import { round2 } from '@/lib/domain/money';
 import { Card, Button, EmptyState } from '@/components/ui';
 import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
+import { n as nicho } from '@/lib/nicho';
 
 const GOLD = 'var(--gold)';
 const GOLD_SOFT = '#E6C65A';
@@ -95,7 +96,7 @@ export default function Reports() {
   }, [apptsInRange]);
 
   const exportCSV = () => {
-    const rows = [['Data', 'Cliente', 'Servico', 'Barbeiro', 'Estado', 'Valor']];
+    const rows = [['Data', 'Cliente', 'Servico', nicho().Pro, 'Estado', 'Valor']];
     apptsInRange.slice().sort((a,b) => (a.date+a.startTime).localeCompare(b.date+b.startTime)).forEach(a => {
       const cust = data.customers.find(c => c.id === a.customerId)?.name || '';
       const svc = data.services.find(s => s.id === a.serviceId)?.name || '';
@@ -190,7 +191,7 @@ export default function Reports() {
       <div className="grid-2" style={{ marginBottom: 20 }}>
         {/* Revenue by barber */}
         <Card className="card-pad">
-          <h3 style={{ fontSize: 17, marginBottom: 16 }}>Receita por barbeiro</h3>
+          <h3 style={{ fontSize: 17, marginBottom: 16 }}>Receita por {nicho().pro}</h3>
           {byBarber.length === 0 ? (
             <EmptyState title="Sem dados" />
           ) : (

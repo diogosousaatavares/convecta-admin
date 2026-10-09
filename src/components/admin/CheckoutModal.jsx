@@ -6,6 +6,7 @@ import { formatPrice } from '@/lib/format';
 import { precoDaMarcacao } from '@/lib/domain/appointments';
 import dataService from '@/lib/dataService';
 import { packsActivosDoCliente, saldoParaServico } from '@/lib/packsService';
+import { n as nicho } from '@/lib/nicho';
 
 const METHODS = [
   { key: 'Dinheiro', icon: Banknote },
@@ -149,7 +150,7 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
           </div>
           <div style={{ textAlign: 'right' }}>
             <div className="text-gold fw-600" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>{formatPrice(base)}</div>
-            {cortesGratis && <div className="text-xs fw-600" style={{ color: 'var(--gold-tinta)' }}>🎁 Corte grátis do cartão</div>}
+            {cortesGratis && <div className="text-xs fw-600" style={{ color: 'var(--gold-tinta)' }}>🎁 {nicho().premio} do cartão</div>}
             {appointment?.usaPack && <div className="text-xs fw-600" style={{ color: 'var(--gold-tinta)' }}>Pago com o pack</div>}
             {mbway?.estado === 'pago' && <div className="text-xs fw-600" style={{ color: 'var(--success)' }}>Já pago por MB WAY</div>}
           </div>
@@ -247,7 +248,7 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
             {voucherCode && (voucher ? <div className="text-xs" style={{ color: 'var(--success)', marginTop: 4 }}><Tag size={11} /> Voucher aplicado: -{formatPrice(voucherDiscount)}</div> : <div className="text-xs" style={{ color: 'var(--error)', marginTop: 4 }}>Código inválido</div>)}
           </div>
           <div className="field" style={{ marginBottom: 0 }}>
-            <label className="label">Gorjeta para o barbeiro (€)</label>
+            <label className="label">Gorjeta para {nicho().id === 'barbearia' ? 'o barbeiro' : 'o profissional'} (€)</label>
             <input type="number" className="input" placeholder="0" value={tip} onChange={e => setTip(e.target.value)} min="0" step="0.01" />
           </div>
         </div>

@@ -5,6 +5,7 @@ import { todayStr } from '@/lib/format';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import IndicadoresCliente from '@/components/admin/IndicadoresCliente';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * A grelha segue o que a barbearia escolheu em Definicoes -> Agenda. Quem
@@ -41,12 +42,12 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
       <div className="ag-grid">
         <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-sec)' }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
-            {semHorarioNenhum ? 'Ainda não definiste o horário da barbearia.' : 'Fechado neste dia.'}
+            {semHorarioNenhum ? `Ainda não definiste o horário ${nicho().da}.` : 'Fechado neste dia.'}
           </div>
           <div style={{ fontSize: 15, marginBottom: 18 }}>
             {semHorarioNenhum
               ? 'Sem horário, os teus clientes não conseguem marcar.'
-              : 'Podes abrir este dia no horário da barbearia.'}
+              : `Podes abrir este dia no horário ${nicho().da}.`}
           </div>
           <Link to="/admin/horarios" className="btn btn-primary btn-sm" style={{ textDecoration: 'none' }}>
             Definir horário agora <ArrowRight size={15} />

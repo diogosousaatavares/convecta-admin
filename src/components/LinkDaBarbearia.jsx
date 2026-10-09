@@ -47,7 +47,7 @@ export default function LinkDaBarbearia() {
   };
 
   const partilhar = async () => {
-    try { await navigator.share({ title: 'Marca o teu corte', url }); } catch { /* cancelou */ }
+    try { await navigator.share({ title: 'Marca a tua hora', url }); } catch { /* cancelou */ }
   };
 
   return (

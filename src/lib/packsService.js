@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * Packs — o barbeiro vende um conjunto de cortes pagos à cabeça, e o
@@ -94,7 +95,7 @@ export async function guardarPack(businessId, pack) {
     pedido_na_app: pack.pedidoNaApp !== false,
   };
   if (!linha.nome) throw new Error('Dá um nome ao pack.');
-  if (!(linha.cortes >= 1 && linha.cortes <= 60)) throw new Error('O número de cortes tem de estar entre 1 e 60.');
+  if (!(linha.cortes >= 1 && linha.cortes <= 60)) throw new Error(`O número de ${nicho().uns} tem de estar entre 1 e 60.`);
   if (!(definicoes.validade_dias >= 1 && definicoes.validade_dias <= 366)) throw new Error('A validade tem de estar entre 1 e 366 dias.');
   if (!(definicoes.intervalo_dias >= 0 && definicoes.intervalo_dias <= 60)) throw new Error('O intervalo tem de estar entre 0 e 60 dias.');
 
@@ -266,7 +267,7 @@ export async function confirmarPedido(pedido, metodo, preco, { businessId, nomeB
   const [a, m, d] = String(venda.validoAte).split('-');
   avisarCliente(businessId, pedido.customerId,
     '\u{2705} O teu pack está ativo',
-    `${nomeBarbearia || 'A barbearia'}\n${venda.nome}: ${venda.total} cortes até ${d}/${m}/${a}. Já podes marcar com ele.`,
+    `${nomeBarbearia || nicho().A}\n${venda.nome}: ${venda.total} ${nicho().uns} até ${d}/${m}/${a}. Já podes marcar com ele.`,
     'pack-' + pedido.id);
   return venda;
 }
@@ -279,6 +280,6 @@ export async function recusarPedido(pedido, motivo, { businessId, nomeBarbearia 
   if (error) throw erro(error);
   avisarCliente(businessId, pedido.customerId,
     'Pedido de pack não aceite',
-    `${nomeBarbearia || 'A barbearia'}\n${motivo ? motivo : 'Fala com a barbearia para saberes mais.'}`,
+    `${nomeBarbearia || nicho().A}\n${motivo ? motivo : `Fala com ${nicho().a} para saberes mais.`}`,
     'pack-' + pedido.id);
 }

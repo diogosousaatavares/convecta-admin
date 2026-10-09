@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/ToastContext';
 import { formatDateShortNum, formatPrice, localDateStr } from '@/lib/format';
 import CheckoutModal from '@/components/admin/CheckoutModal';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { n as nicho } from '@/lib/nicho';
 
 // A confirmacao automatica vivia enterrada em Parametros -> Agendamentos, onde
 // ninguem ia. E uma decisao que se toma a olhar para as marcacoes — "estou
@@ -267,7 +268,7 @@ export default function AdminAppointments() {
               </div>
               <div className="mrc-ficha-dados">
                 {!blocked && <div><span>Serviço</span><b>{svc?.name || '—'}</b></div>}
-                <div><span>Barbeiro</span><b>{pro?.name || '—'}</b></div>
+                <div><span>{nicho().Pro}</span><b>{pro?.name || '—'}</b></div>
                 {a.bookingRef && <div><span>Ref.</span><b>{a.bookingRef}</b></div>}
                 {av && <div><span>Avaliação</span><b style={{ color: 'var(--gold-tinta)' }}><Star size={13} fill="currentColor" /> {av.rating}{av.comment ? ` · «${av.comment}»` : ''}</b></div>}
               </div>

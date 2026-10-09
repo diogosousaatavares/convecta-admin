@@ -8,6 +8,7 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { todayStr, formatDate } from '@/lib/format';
 import EscolherCliente from '@/components/admin/EscolherCliente';
+import { n as nicho } from '@/lib/nicho';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
@@ -80,7 +81,7 @@ export default function AgendaFitIns() {
             <select className="select" value={form.professionalId} onChange={e => setForm(f => ({ ...f, professionalId: e.target.value }))}><option value="any">Qualquer (auto)</option>{data.professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
           <div className="field"><label className="label">Hora de início</label><input type="time" className="input" value={form.startTime} onChange={e => { setForm(f => ({ ...f, startTime: e.target.value })); setAvisoPassado(false); }} /></div>
         </div>
-        {avisoPassado && <div className="text-sm" style={{ color: 'var(--error)', margin: '0 0 12px' }}>Essa hora já passou. Se for um corte que já foi feito, toca outra vez.</div>}
+        {avisoPassado && <div className="text-sm" style={{ color: 'var(--error)', margin: '0 0 12px' }}>Essa hora já passou. Se for {nicho().umUn} que já foi feit{nicho().un === 'sessão' ? 'a' : 'o'}, toca outra vez.</div>}
         <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}><Button variant="secondary" onClick={() => setModal(null)}>Cancelar</Button><Button variant={avisoPassado ? 'danger' : 'primary'} onClick={submit}>{avisoPassado ? 'Criar mesmo assim' : 'Criar encaixe'}</Button></div>
       </Modal>
     </AdminPage>

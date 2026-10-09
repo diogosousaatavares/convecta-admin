@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, CalendarPlus, CalendarX, Repeat, Star, Megaphone, Clock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * O sino do painel: o que aconteceu na barbearia, o mesmo que chega por push
@@ -86,7 +87,7 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
           boxShadow: '0 22px 50px rgba(0,0,0,.20)', overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 15.5 }}>Avisos</div>
           <div style={{ maxHeight: 'min(420px, 70dvh)', overflowY: 'auto' }}>
-            {porConfirmar > 0 && <div style={TITULO_GRUPO}>A barbearia</div>}
+            {porConfirmar > 0 && <div style={TITULO_GRUPO}>{nicho().A}</div>}
             {porConfirmar > 0 && (
               <button onClick={() => ir('/admin/marcacoes')} style={linha(true)}>
                 <span style={bola('#F59E0B')}><Clock size={15} /></span>
@@ -107,7 +108,7 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
               .filter(([, l]) => l.length > 0)
               .flatMap(([grupo, lista]) => [
                 (grupo === 'convecta' || porConfirmar === 0)
-                  ? <div key={'t-' + grupo} style={TITULO_GRUPO}>{grupo === 'barbearia' ? 'A barbearia' : 'Convecta'}</div>
+                  ? <div key={'t-' + grupo} style={TITULO_GRUPO}>{grupo === 'barbearia' ? nicho().A : 'Convecta'}</div>
                   : null,
                 ...lista.map(a => {
               const Icone = ICONE[a.tipo] || Bell;

@@ -13,6 +13,7 @@ import {
   listarPedidos, confirmarPedido, recusarPedido,
 } from '@/lib/packsService';
 import { useConfirmar } from '@/components/ui/Confirmar';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * Packs — o cliente paga uns quantos cortes à cabeça e vai-os marcando.
@@ -133,7 +134,7 @@ export default function Packs() {
     setAMudar(true);
     try {
       await dataService.updateBusiness({ packs: { ...(data.business?.packs || {}), carimbos: !carimbos } });
-      toast.success(!carimbos ? 'Os cortes do pack passam a dar carimbo' : 'Os cortes do pack deixam de dar carimbo');
+      toast.success(!carimbos ? `${nicho().Uns} do pack passam a dar carimbo` : `${nicho().Uns} do pack deixam de dar carimbo`);
     } catch (e) { toast.error('Não foi possível mudar', e.message); }
     finally { setAMudar(false); }
   };
@@ -210,7 +211,7 @@ export default function Packs() {
         if (quantos > 0) {
           pedir({
             titulo: 'E os packs que já vendeste?',
-            texto: `Há ${quantos} ${quantos === 1 ? 'pack a correr' : 'packs a correr'} com o espaço antigo entre cortes. `
+            texto: `Há ${quantos} ${quantos === 1 ? 'pack a correr' : 'packs a correr'} com o espaço antigo entre ${nicho().uns}. `
               + `Queres pôr ${pack.intervaloDias > 0 ? `${pack.intervaloDias} dias` : 'sem limite'} também nesses? `
               + 'Os packs já gastos ou fora de validade ficam como estão.',
             botao: 'Mudar também nesses',
@@ -231,7 +232,7 @@ export default function Packs() {
 
   const removerPack = (p) => pedir({
     titulo: `Apagar o «${p.nome}»?`,
-    texto: 'Deixa de estar à venda. Quem já o comprou fica com os cortes que tem.',
+    texto: `Deixa de estar à venda. Quem já o comprou fica com ${nicho().un === 'sessão' ? 'as' : 'os'} ${nicho().uns} que tem.`,
     botao: 'Apagar pack',
     aoConfirmar: async () => {
       try { await apagarPack(p.id); carregar(); }
@@ -253,7 +254,7 @@ export default function Packs() {
       const v = pedidoDele
         ? await confirmarPedido(pedidoDele, venda.metodo, venda.preco, { businessId, nomeBarbearia: data.business?.name })
         : await venderPack(venda.packId, venda.customerId, venda.metodo, venda.preco);
-      toast.success('Pack vendido', `${nomeCliente(v.customerId)} tem ${v.total} cortes até ${formatDateShortNum(v.validoAte)}.`);
+      toast.success('Pack vendido', `${nomeCliente(v.customerId)} tem ${v.total} ${nicho().uns} até ${formatDateShortNum(v.validoAte)}.`);
       setVendaModal(false);
       carregar();
       if (tab !== 'clientes') navigate('/admin/packs/clientes');
@@ -277,7 +278,7 @@ export default function Packs() {
     try {
       const v = await confirmarPedido(pedido, metodo, preco, { businessId, nomeBarbearia: data.business?.name });
       toast.success('Pagamento confirmado',
-        `${nomeCliente(pedido.customerId)} já pode marcar: ${v.total} cortes até ${formatDateShortNum(v.validoAte)}.`);
+        `${nomeCliente(pedido.customerId)} já pode marcar: ${v.total} ${nicho().uns} até ${formatDateShortNum(v.validoAte)}.`);
       setConfirmacao(null);
       carregar();
     } catch (e) { toast.error('Não foi possível confirmar', e.message); carregar(); }
@@ -298,7 +299,7 @@ export default function Packs() {
 
   const anular = (v) => pedir({
     titulo: `Anular o pack de ${nomeCliente(v.customerId)}?`,
-    texto: `Os ${v.restantes} cortes que restam deixam de valer. As marcações já feitas ficam.`,
+    texto: `${nicho().un === 'sessão' ? 'As' : 'Os'} ${v.restantes} ${nicho().uns} que restam deixam de valer. As marcações já feitas ficam.`,
     botao: 'Anular pack',
     aoConfirmar: async () => {
       try { await anularVenda(v.id); carregar(); }
@@ -319,10 +320,10 @@ export default function Packs() {
     <AdminPage
       title={tab === 'packs' ? 'Packs' : tab === 'pedidos' ? 'Pedidos de pack' : 'Clientes com pack'}
       subtitle={tab === 'packs'
-        ? 'Cortes pagos à cabeça. O cliente vai marcando pela app, e cada marcação gasta um.'
+        ? `${nicho().Uns} pag${nicho().un === 'sessão' ? 'as' : 'os'} à cabeça. O cliente vai marcando pela app, e cada marcação gasta ${nicho().umUn.split(' ')[0]}.`
         : tab === 'pedidos'
           ? 'Clientes que pediram o pack na app. Confirma quando receberes o dinheiro — só aí o pack fica ativo.'
-          : 'Quem comprou, quantos cortes lhe restam, e até quando valem.'}
+          : `Quem comprou, quant${nicho().un === 'sessão' ? 'as' : 'os'} ${nicho().uns} lhe restam, e até quando valem.`}
       actions={accoes}
     >
       {erro && <Card className="card-pad" style={{ borderColor: 'var(--error)', marginBottom: 16 }}>{erro}</Card>}
@@ -337,7 +338,7 @@ export default function Packs() {
         {ligado && (
           <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
             <div>
-              <div className="fw-600" style={{ fontSize: 16 }}>Carimbo de fidelidade nos cortes do pack</div>
+              <div className="fw-600" style={{ fontSize: 16 }}>Carimbo de fidelidade n{nicho().un === 'sessão' ? 'as' : 'os'} {nicho().uns} do pack</div>
               {data.business?.loyalty?.ativo !== true && (
                 <div className="text-sec" style={{ marginTop: 3, fontSize: 14.5 }}>
                   O cartão de fidelidade está desligado.
@@ -391,7 +392,7 @@ export default function Packs() {
                     <h3 style={{ fontSize: 16 }}>{q.nome}</h3>
                     <div className="text-gold fw-600 mt-8" style={{ fontFamily: 'var(--font-head)', fontSize: 20 }}>
                       {formatPrice(q.preco)}
-                      <span className="text-sec text-sm" style={{ fontFamily: 'var(--font-body)' }}> · {q.cortes} cortes</span>
+                      <span className="text-sec text-sm" style={{ fontFamily: 'var(--font-body)' }}> · {q.cortes} {nicho().uns}</span>
                     </div>
                     {q.mbwayEnviadoEm && (
                       <div className="flex items-center gap-8 mt-8" style={{ flexWrap: 'wrap' }}>
@@ -466,13 +467,13 @@ export default function Packs() {
                 <h3 style={{ fontSize: 17 }}>{p.nome}</h3>
                 <div className="text-gold fw-600 mt-8" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>
                   {formatPrice(p.preco)}
-                  <span className="text-sec text-sm" style={{ fontFamily: 'var(--font-body)' }}> · {p.cortes} cortes</span>
+                  <span className="text-sec text-sm" style={{ fontFamily: 'var(--font-body)' }}> · {p.cortes} {nicho().uns}</span>
                 </div>
                 <p className="text-sec text-sm mt-8" style={{ lineHeight: 1.55 }}>
                   {formatPrice(p.cortes ? p.preco / p.cortes : 0)} por corte.{' '}
                   {p.servicos.length ? `Vale para: ${p.servicos.map(nomeServico).join(', ')}.` : 'Vale para qualquer serviço.'}{' '}
                   {transitaTexto(p)}.
-                  {p.intervaloDias > 0 ? ` Um corte a cada ${p.intervaloDias} dias.` : ''}
+                  {p.intervaloDias > 0 ? ` ${nicho().umUn.charAt(0).toUpperCase() + nicho().umUn.slice(1)} a cada ${p.intervaloDias} dias.` : ''}
                   {p.pedidoNaApp ? ' Pede-se na app.' : ' Só ao balcão.'}
                 </p>
                 <div className="flex gap-8 mt-16">
@@ -506,7 +507,7 @@ export default function Packs() {
           ) : (
             <Card className="card-pad" style={{ overflowX: 'auto' }}>
               <table className="table">
-                <thead><tr><th>Cliente</th><th>Pack</th><th>Cortes</th><th>Válido até</th><th>Pago</th><th>Estado</th><th></th></tr></thead>
+                <thead><tr><th>Cliente</th><th>Pack</th><th>{nicho().Uns}</th><th>Válido até</th><th>Pago</th><th>Estado</th><th></th></tr></thead>
                 <tbody>
                   {vendasVisiveis.map(v => {
                     const est = estadoDaVenda(v);
@@ -553,7 +554,7 @@ export default function Packs() {
         </div>
         <div className="grid-2">
           <div className="field">
-            <label className="label">Cortes</label>
+            <label className="label">{nicho().Uns}</label>
             <input type="number" min={1} max={60} className="input" value={pack.cortes}
               onChange={e => setPack(f => ({ ...f, cortes: e.target.value }))} />
           </div>
@@ -582,7 +583,7 @@ export default function Packs() {
           </div>
         ) : (
           <div className="field">
-            <label className="label">Os cortes que sobram</label>
+            <label className="label">{nicho().un === 'sessão' ? 'As' : 'Os'} {nicho().uns} que sobram</label>
             <select className="select" value={pack.transitaMeses}
               onChange={e => setPack(f => ({ ...f, transitaMeses: Number(e.target.value) }))}>
               <option value={0}>Perdem-se no fim do mês</option>
@@ -596,7 +597,7 @@ export default function Packs() {
           </div>
         )}
         <div className="field">
-          <label className="label">Espaço entre cortes</label>
+          <label className="label">Espaço entre {nicho().uns}</label>
           {/* Era uma lista de cinco opções: 0, 5, 7, 10, 14. Quem corta num
               sábado e no outro à sexta tem seis dias de intervalo — e seis
               não estava lá. A vida não vem em números redondos. */}
@@ -606,7 +607,7 @@ export default function Packs() {
               onChange={e => setPack(f => ({ ...f, intervaloDias: Number(e.target.value) }))} />
             <span className="text-sec text-sm">
               {pack.intervaloDias > 0
-                ? `dias, no mínimo, entre dois cortes`
+                ? `dias, no mínimo, entre ${nicho().un === 'sessão' ? 'duas' : 'dois'} ${nicho().uns}`
                 : 'dias — sem limite, pode marcar quando quiser'}
             </span>
           </div>
@@ -620,7 +621,7 @@ export default function Packs() {
           <label className="label">Texto para o cliente (opcional)</label>
           <textarea className="textarea" rows={2} maxLength={240} value={pack.descricao}
             onChange={e => setPack(f => ({ ...f, descricao: e.target.value }))}
-            placeholder="Ex.: 4 cortes por mês, um por semana. Marca todos de uma vez e não pagas mais nada." />
+            placeholder={`Ex.: 4 ${nicho().uns} por mês, ${nicho().umUn.split(' ')[0]} por semana. Marca tod${nicho().un === 'sessão' ? 'as' : 'os'} de uma vez e não pagas mais nada.`} />
         </div>
         <label className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 12px' }}>
           <input type="checkbox" checked={pack.pedidoNaApp} onChange={e => setPack(f => ({ ...f, pedidoNaApp: e.target.checked }))} />
@@ -659,7 +660,7 @@ export default function Packs() {
           <label className="label">Pack</label>
           <select className="select" value={venda.packId}
             onChange={e => { const p = packs.find(x => x.id === e.target.value); setVenda(f => ({ ...f, packId: e.target.value, preco: p ? String(p.preco) : f.preco })); }}>
-            {packs.filter(p => p.ativo).map(p => <option key={p.id} value={p.id}>{p.nome} · {p.cortes} cortes</option>)}
+            {packs.filter(p => p.ativo).map(p => <option key={p.id} value={p.id}>{p.nome} · {p.cortes} {nicho().uns}</option>)}
           </select>
         </div>
         <div className="grid-2">
@@ -685,7 +686,7 @@ export default function Packs() {
         {packEscolhido && (
           <p className="text-sec text-sm" style={{ lineHeight: 1.55 }}>
             O cliente fica com {packEscolhido.cortes} cortes até {formatDateShortNum(validadeSeVendidoHoje(packEscolhido))}
-            {' '}e vê o saldo na app. Cada marcação com o pack fica a 0 € na agenda — o corte já foi pago agora.
+            {' '}e vê o saldo na app. Cada marcação com o pack fica a 0 € na agenda — {nicho().oUn} já foi pag{nicho().un === 'sessão' ? 'a' : 'o'} agora.
           </p>
         )}
         <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}>
@@ -700,7 +701,7 @@ export default function Packs() {
           return (
             <>
               <p className="text-sm" style={{ lineHeight: 1.6, marginBottom: 14 }}>
-                <b>{nomeCliente(q.customerId)}</b> pediu o <b>{q.nome}</b> ({q.cortes} cortes, {formatPrice(q.preco)}).
+                <b>{nomeCliente(q.customerId)}</b> pediu o <b>{q.nome}</b> ({q.cortes} {nicho().uns}, {formatPrice(q.preco)}).
                 Confirma só depois de receberes o dinheiro.
               </p>
               <div className="grid-2">
@@ -718,7 +719,7 @@ export default function Packs() {
               </div>
               <p className="text-sec text-sm" style={{ lineHeight: 1.55 }}>
                 Ao confirmar, o pack fica ativo na app do cliente
-                {pack ? ` com ${q.cortes} cortes até ${formatDateShortNum(validadeSeVendidoHoje(pack))}` : ''},
+                {pack ? ` com ${q.cortes} ${nicho().uns} até ${formatDateShortNum(validadeSeVendidoHoje(pack))}` : ''},
                 ele recebe uma notificação e passa a poder marcar com o pack.
               </p>
               <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}>

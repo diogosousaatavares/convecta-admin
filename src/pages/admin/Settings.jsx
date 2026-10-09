@@ -7,6 +7,7 @@ import { Card, Button } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
+import { TIPOS, LISTA_TIPOS } from '@/lib/nicho';
 
 export default function Settings() {
   const data = useStore();
@@ -29,6 +30,7 @@ export default function Settings() {
       <Card className="card-pad mb-24">
         <h3 style={{ fontSize: 18, marginBottom: 20 }}>Identidade</h3>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+        <div className="field"><label className="label">Tipo de negócio</label><select className="select" value={form.tipoNegocio || 'barbearia'} onChange={e => setForm({ ...form, tipoNegocio: e.target.value })}>{LISTA_TIPOS.map(t => <option key={t} value={t}>{TIPOS[t].nome}</option>)}</select></div>
         <div className="field"><label className="label">Tagline</label><input className="input" value={form.tagline} onChange={e => setForm({ ...form, tagline: e.target.value })} /></div>
         <div className="field"><label className="label">Descrição</label><textarea className="textarea" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
       </Card>

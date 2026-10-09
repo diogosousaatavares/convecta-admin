@@ -8,6 +8,7 @@ import {
   MODELO, desenhar, carregarImagem, garantirFonte,
   paraBlob, nomeDoFicheiro, legenda,
 } from '@/lib/carrossel';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * Redes sociais — o post que anuncia as marcações online.
@@ -96,7 +97,7 @@ export default function RedesSociais() {
       const sitio = String(def.address || '').split(',').map(x => x.trim()).filter(Boolean);
       const local = sitio.length ? sitio[sitio.length - 1].replace(/^\d{4}-\d{3}\s*/, '') : '';
       // O nome que o cliente vê é o do tema (appName); o `name` é o de sistema.
-      const nome = String(t.appName || '').trim() || b?.name || 'A tua barbearia';
+      const nome = String(t.appName || '').trim() || b?.name || nicho().Tua;
       const slug = b?.slug || 'a-tua-barbearia';
       setBarbearia({
         nome,
@@ -113,7 +114,7 @@ export default function RedesSociais() {
         semLogo: !logo && !!logoUrl,
       });
     } catch (e) {
-      setErro(e.message || 'Não foi possível ler os dados da barbearia.');
+      setErro(e.message || `Não foi possível ler os dados ${nicho().da}.`);
     }
   }, []);
 

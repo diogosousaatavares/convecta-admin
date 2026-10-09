@@ -7,6 +7,8 @@ import { useStore } from '@/hooks/useStore';
 import { useToast } from '@/components/ui/ToastContext';
 import dataService from '@/lib/dataService';
 import { DOMINIO_BASE } from '@/lib/designService';
+import { n as nicho, definirNicho, TIPOS, LISTA_TIPOS } from '@/lib/nicho';
+import { servicosDe, saoServicosDeOrigem, temaParaTipo } from '@/lib/sugestoesNicho';
 
 /*
  * O arranque: um ecrã, sessenta segundos.
@@ -59,6 +61,23 @@ export default function Arranque() {
   const [fecha, setFecha] = useState('19:00');
   const [diasAbertos, setDiasAbertos] = useState(() => new Set(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']));
   const [aGravar, setAGravar] = useState(false);
+  // O tipo de negócio: barbearia, salão, estúdio de unhas, estética. Muda as
+  // palavras de todo o painel e do site, os serviços de exemplo e as cores.
+  const [tipo, setTipo] = useState(negocio?.tipoNegocio || 'barbearia');
+  useEffect(() => { if (negocio?.tipoNegocio) setTipo(negocio.tipoNegocio); }, [negocio?.tipoNegocio]);
+  const escolherTipo = (t) => {
+    setTipo(t);
+    definirNicho(t);
+    /* Se os serviços ainda são os de exemplo, trocam-se pelos deste tipo.
+       Se ele já escreveu os dele, ficam — nunca se apaga trabalho. */
+    if (saoServicosDeOrigem(servicos)) {
+      setMexido(true);
+      setServicos(prev => {
+        const ids = prev.filter(s => s.id);
+        return servicosDe(t).map((s, i) => ({ ...s, id: ids[i]?.id }));
+      });
+    }
+  };
 
   // Enquanto ele não tocar em nada, o ecrã segue o que vier da base de dados.
   // Depois de tocar, manda ele — senão uma actualização em segundo plano
@@ -104,7 +123,7 @@ export default function Arranque() {
       .map(s => ({ ...s, name: (s.name || '').trim(), price: Number(s.price) || 0 }))
       .filter(s => s.name);
 
-    if (!limpos.length) { toast.error('Falta pelo menos um serviço', 'Escreve o que fazes e a quanto — um corte chega para começar.'); return; }
+    if (!limpos.length) { toast.error('Falta pelo menos um serviço', `Escreve o que fazes e a quanto — ${nicho().id === 'barbearia' ? 'um corte' : 'um serviço'} chega para começar.`); return; }
     if (fecha <= abre) { toast.error('Horário ao contrário', 'A hora de fechar tem de ser depois da de abrir.'); return; }
     if (!diasAbertos.size) { toast.error('Fechado a semana toda', 'Escolhe pelo menos um dia em que abres.'); return; }
 
@@ -138,12 +157,17 @@ export default function Arranque() {
           : { ...velho, day: dia, isOpen: false };
       });
 
+      // O tipo grava-se com o resto; as cores só mudam num site que ainda
+      // tem as de origem (temaParaTipo devolve null se alguém já o desenhou).
+      const temaNovo = temaParaTipo(tipo, negocio?._settings?.theme);
       await dataService.updateBusiness({
         openingHours: horas,
+        tipoNegocio: tipo,
+        ...(temaNovo ? { theme: temaNovo } : {}),
         arranque: { feito: true, em: new Date().toISOString() },
       });
 
-      toast.success('Está feito', 'Os teus preços e o teu horário já estão no site da barbearia.');
+      toast.success('Está feito', `Os teus preços e o teu horário já estão no site ${nicho().da}.`);
       navigate(destino);
     } catch (e) {
       toast.error('Não ficou gravado', (e && e.message) || 'Vê a internet e tenta outra vez.');
@@ -171,12 +195,23 @@ export default function Arranque() {
         </header>
 
         <section className="arr-caixa">
+          <h2 className="arr-h2">O que é o teu negócio</h2>
+          <div className="arr-tipos">
+            {LISTA_TIPOS.map(t => (
+              <button key={t} type="button" aria-pressed={tipo === t}
+                className={`arr-tipo${tipo === t ? ' on' : ''}`}
+                onClick={() => escolherTipo(t)}>{TIPOS[t].nome}</button>
+            ))}
+          </div>
+        </section>
+
+        <section className="arr-caixa">
           <h2 className="arr-h2"><Scissors size={16} /> O que fazes, e a quanto</h2>
 
           <div className="arr-servicos">
             {servicos.map((s, i) => (
               <div className="arr-servico" key={s.id || `novo-${i}`}>
-                <input className="arr-campo arr-nome" value={s.name} placeholder="Corte"
+                <input className="arr-campo arr-nome" value={s.name} placeholder={nicho().id === 'barbearia' ? 'Corte' : 'Serviço'}
                   aria-label="Nome do serviço" onChange={e => mudar(i, 'name', e.target.value)} />
                 <div className="arr-linha2">
                   <div className="arr-preco">
@@ -349,6 +384,10 @@ const CSS = `
 .arr-hora span {
   display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--cvI2);
 }
+.arr-tipos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.arr-tipo { min-height: 48px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--cvL);
+  background: #FFF; color: var(--cvI); font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; text-align: center; line-height: 1.25; }
+.arr-tipo.on { background: var(--cvA); border-color: var(--cvA); color: var(--cvI); font-weight: 800; }
 .arr-dias { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
 .arr-dia {
   min-height: 46px; padding: 0 2px; border-radius: 10px; cursor: pointer; font: inherit;

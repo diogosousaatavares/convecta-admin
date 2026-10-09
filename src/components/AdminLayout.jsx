@@ -47,6 +47,7 @@ import DiasDeTeste from '@/components/admin/DiasDeTeste';
 import LancarAApp from '@/components/admin/LancarAApp';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 import PrimeirosPassos from '@/components/PrimeirosPassos';
+import { n as nicho } from '@/lib/nicho';
 
 const GROUPS_TODOS = [
   /*
@@ -100,7 +101,7 @@ const GROUPS_TODOS = [
   { type: 'group', label: 'Mais', icon: MoreHorizontal, items: [
     /* «A barbearia» vem primeiro: e a casa dele, e o site e o que ele anda a
        mostrar e a partilhar. A equipa e o stock vem depois. */
-    { titulo: 'A barbearia' },
+    { get titulo() { return nicho().A; } },
     { to: '/admin/o-meu-site', label: 'O meu site' },
     { to: '/admin/redes-sociais', label: 'Redes sociais' },
     { to: '/admin/relatorios', label: 'Relatórios' },
@@ -210,9 +211,9 @@ const PASSOS_BARBEIRO = [
   { rota: '/admin/servicos', alvo: 'servicos-lista', titulo: 'Confirma os teus preços',
     texto: 'Criámos alguns serviços para arrancares. Apaga os que não fazes, muda os preços e a duração — a duração é o que decide as horas que o cliente vê.' },
   { rota: '/admin/horarios', alvo: 'horarios-lista', titulo: 'A que horas abres',
-    texto: 'Põe o horário real da barbearia e os dias de folga. Fora disto ninguém consegue marcar.' },
+    get texto() { return `Põe o horário real ${nicho().da} e os dias de folga. Fora disto ninguém consegue marcar.`; } },
   { rota: '/admin/mais', alvo: 'link-barbearia', titulo: 'Este é o teu endereço',
-    texto: 'O site da tua barbearia já está no ar. É este link que vais pôr no Instagram e mandar aos clientes — copia-se com um toque.' },
+    get texto() { return `O site ${nicho().da} já está no ar. É este link que vais pôr no Instagram e mandar aos clientes — copia-se com um toque.`; } },
   { rota: '/admin/o-meu-site', alvo: 'meu-site', titulo: 'Põe a tua cara',
     texto: 'Logótipo, cores, capa e fotos. Mudas aqui e vês o resultado antes de publicar.' },
   { rota: '/admin/definicoes/notificacoes', alvo: 'notificacoes-aviso', titulo: 'Para o telemóvel tocar',

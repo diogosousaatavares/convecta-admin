@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useStore';
 import { Crown } from 'lucide-react';
 import { useToast } from '@/components/ui/ToastContext';
 import { useConfirmar } from '@/components/ui/Confirmar';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * Dar acesso ao painel a um barbeiro que nao e o dono.
@@ -129,7 +130,7 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
   return (
     <div style={{ ...(destaque ? caixa : { marginTop: 16 }), display: 'grid', gap: 8 }}>
       <div className="text-sec text-xs">Vai ver a agenda (mexe só na coluna dele), os clientes e a conta dele. Sem dinheiro nem definições.</div>
-      <input className="input" type="email" placeholder="email do barbeiro" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') dar(); }} />
+      <input className="input" type="email" placeholder={`email ${nicho().doPro}`} value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') dar(); }} />
       <div className="flex gap-8">
         <Button size="sm" variant="primary" onClick={dar} disabled={aEnviar || !email.trim()}>{aEnviar ? 'A enviar…' : 'Enviar convite'}</Button>
         <Button size="sm" variant="ghost" onClick={() => { setAberto(false); setEmail(''); }}>Cancelar</Button>

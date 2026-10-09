@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { enviarPush } from '@/lib/push';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * OS PEDIDOS DE ORÇAMENTO.
@@ -89,7 +90,7 @@ export async function marcarPedido(id, { minutos, preco, appointmentId, business
       para: 'customer',
       userId: customerId,
       titulo: '\u{2705} Ficou combinado',
-      mensagem: `${barbearia || 'A barbearia'}\n${servico || 'O teu pedido'}${partes.length ? ' · ' + partes.join(' · ') : ''}`,
+      mensagem: `${barbearia || nicho().A}\n${servico || 'O teu pedido'}${partes.length ? ' · ' + partes.join(' · ') : ''}`,
       url: '/marcacoes',
       tag: 'orcamento-' + id,
     }).catch((e) => console.warn('o cliente não foi avisado:', e.message));
@@ -117,7 +118,7 @@ export async function recusarPedido(id, motivo, { businessId, customerId, servic
       para: 'customer',
       userId: customerId,
       titulo: 'Sobre o teu pedido',
-      mensagem: `${barbearia || 'A barbearia'}\n${String(motivo || '').trim()
+      mensagem: `${barbearia || nicho().A}\n${String(motivo || '').trim()
         || `Não é possível fazer ${servico || 'esse trabalho'} de momento. Fala connosco.`}`,
       url: '/marcacoes',
       tag: 'orcamento-' + id,

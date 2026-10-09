@@ -5,6 +5,7 @@ import AdminLayout, { gruposPara } from '@/components/AdminLayout';
 import { useStore, useAuth } from '@/hooks/useStore';
 import { Avatar } from '@/components/ui';
 import LinkDaBarbearia from '@/components/LinkDaBarbearia';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * «MAIS» — o ecrã onde está tudo.
@@ -59,7 +60,7 @@ export default function Mais() {
     if (actual.linhas.length) seccoes.push(actual);
   }
 
-  const nome = data.business?.name || 'A minha barbearia';
+  const nome = data.business?.name || nicho().Casa;
 
   return (
     <AdminLayout>

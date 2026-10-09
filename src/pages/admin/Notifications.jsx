@@ -8,6 +8,7 @@ import { Modal, EmptyState, Button, Card } from '@/components/ui';
 import AvisoPush from '@/components/AvisoPush';
 import authService from '@/lib/authService';
 import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
+import { n as nicho } from '@/lib/nicho';
 
 const TYPE_META = {
   info: { label: 'Informação', icon: Info, cls: '' },
@@ -93,7 +94,7 @@ export default function Notifications() {
       });
       toast.success(lembreteAtivo ? 'Lembretes ligados' : 'Lembretes desligados', lembreteAtivo
         ? `Cada cliente é avisado ${horasAntes}h antes — por notificação, ou por email se não tiver notificações.`
-        : 'Os clientes deixam de ser avisados antes do corte.');
+        : 'Os clientes deixam de ser avisados antes da marcação.');
     } catch (e) {
       toast.error('Não foi possível guardar', e.message);
     } finally { setAGuardar(false); }
@@ -121,7 +122,7 @@ export default function Notifications() {
           <input type="checkbox" checked={lembreteAtivo} onChange={e => setLembreteAtivo(e.target.checked)}
             style={{ width: 18, height: 18, marginTop: 2, accentColor: 'var(--gold)', flexShrink: 0 }} />
           <span>
-            <span className="fw-600" style={{ display: 'block' }}>Lembrar o cliente antes do corte</span>
+            <span className="fw-600" style={{ display: 'block' }}>Lembrar o cliente antes da marcação</span>
           </span>
         </label>
 

@@ -22,6 +22,7 @@ import { nomeSemRepetir } from '@/lib/nomes';
 import EscolherCliente from '@/components/admin/EscolherCliente';
 import { pedidosPendentes } from '@/lib/orcamentosService';
 import { proporNovaHora } from '@/lib/propostasService';
+import { n as nicho } from '@/lib/nicho';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
@@ -34,7 +35,7 @@ function rotuloEstado(a) {
   if (a.status === 'completed') return 'Concluída';
   if (a.status === 'cancelled') {
     if (a.cancelledBy === 'cliente') return 'Cancelada pelo cliente';
-    if (a.cancelledBy === 'barbearia') return 'Cancelada pela barbearia';
+    if (a.cancelledBy === 'barbearia') return `Cancelada ${nicho().pela}`;
     return 'Cancelada';
   }
   /*
@@ -298,7 +299,7 @@ export default function Agenda() {
       return;
     }
     if (!quick.customerId || !quick.serviceId || !quick.professionalId || !quick.startTime) {
-      toast.error('Preenche tudo', 'Cliente, serviço, barbeiro e hora são obrigatórios.');
+      toast.error('Preenche tudo', `Cliente, serviço, ${nicho().pro} e hora são obrigatórios.`);
       return;
     }
     const svc = data.services.find(s => s.id === quick.serviceId);
@@ -349,7 +350,7 @@ export default function Agenda() {
                   <EmptyState icon={() => <Clock />} title="Sem marcações" />
                 ) : (
                   <table className="table">
-                    <thead><tr><th>Hora</th><th>Cliente</th><th>Serviço</th><th>Barbeiro</th><th>Estado</th><th></th></tr></thead>
+                    <thead><tr><th>Hora</th><th>Cliente</th><th>Serviço</th><th>{nicho().Pro}</th><th>Estado</th><th></th></tr></thead>
                     <tbody>
                       {sortedList.map(a => {
                         const svc = data.services.find(s => s.id === a.serviceId);
@@ -548,7 +549,7 @@ export default function Agenda() {
           <div className="ag-detail">
             {selAppt.blocked ? (
               <>
-                <div className="ag-detail-row"><span className="l">Barbeiro</span><span className="v">{selPro?.name}</span></div>
+                <div className="ag-detail-row"><span className="l">{nicho().Pro}</span><span className="v">{selPro?.name}</span></div>
                 <div className="ag-detail-row"><span className="l">Horário</span><span className="v">{selAppt.startTime} – {selAppt.endTime}</span></div>
                 <div className="ag-detail-row"><span className="l">Motivo</span><span className="v">{selAppt.label}</span></div>
                 {podeMexer(selAppt) && <div className="ag-detail-actions">
@@ -559,14 +560,14 @@ export default function Agenda() {
               <>
                 <div className="ag-detail-row"><span className="l">Cliente</span><span className="v">{selCust?.name || '—'}</span></div>
                 <div className="ag-detail-row"><span className="l">Serviço</span><span className="v">{selSvc?.name}</span></div>
-                <div className="ag-detail-row"><span className="l">Barbeiro</span><span className="v">{selPro?.name}</span></div>
+                <div className="ag-detail-row"><span className="l">{nicho().Pro}</span><span className="v">{selPro?.name}</span></div>
                 <div className="ag-detail-row"><span className="l">Horário</span><span className="v">{selAppt.startTime} – {selAppt.endTime}</span></div>
                 <div className="ag-detail-row"><span className="l">Referência</span><span className="v">{selAppt.bookingRef}</span></div>
                 <div className="ag-detail-row"><span className="l">Estado</span><span className="v"><Badge variant={selAppt.status === 'pending' ? 'warning' : selAppt.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(selAppt)}</Badge></span></div>
                 {selAppt.usaRecompensa && (
                   <div className="ag-detail-row">
                     <span className="l">Pagamento</span>
-                    <span className="v"><Badge variant="gold">🎁 Corte grátis do cartão</Badge></span>
+                    <span className="v"><Badge variant="gold">🎁 {nicho().premio} do cartão</Badge></span>
                   </div>
                 )}
                 {(() => {
@@ -595,7 +596,7 @@ export default function Agenda() {
                     <span className="v"><Badge variant="gold">Pack mensal — já pago, não cobrar</Badge></span>
                   </div>
                 )}
-                {!podeMexer(selAppt) && <div className="text-sec text-sm mt-8">Marcação de outro barbeiro — só o próprio ou o dono a podem mudar.</div>}
+                {!podeMexer(selAppt) && <div className="text-sec text-sm mt-8">Marcação de {nicho().id === 'barbearia' ? 'outro barbeiro' : 'outro profissional'} — só o próprio ou o dono a podem mudar.</div>}
                 {podeMexer(selAppt) && <div className="ag-detail-actions">
                   {selAppt.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(selAppt.id)}>Confirmar</Button>}
                   {selAppt.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(selAppt.id)}>Confirmar presença</Button>}
@@ -644,7 +645,7 @@ export default function Agenda() {
             {quickError && <div className="text-sm mt-8" style={{ color: 'var(--error)' }}>{quickError}</div>}
           </div>
           <div className="field">
-            <label className="label">Barbeiro</label>
+            <label className="label">{nicho().Pro}</label>
             <select className="select" value={quick.professionalId} disabled={!!so} onChange={e => setQuick(f => ({ ...f, professionalId: e.target.value }))}>
               <option value="">Selecionar…</option>
               {data.professionals.filter(p => !so || p.id === so).map(p => <option key={p.id} value={p.id}>{nomeSemRepetir(data.professionals, p, p.role || p.email)}</option>)}

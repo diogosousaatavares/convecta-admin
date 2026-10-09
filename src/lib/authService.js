@@ -1,6 +1,7 @@
 // authService.js — Fase 4: autenticação via Supabase Auth
 import { supabase } from '@/lib/supabase';
 import dataService from './dataService';
+import { n as nicho } from '@/lib/nicho';
 
 const listeners = new Set();
 function notify() { listeners.forEach(fn => fn()); }
@@ -39,7 +40,7 @@ async function _nascerSePreciso(user) {
     let motivo = '';
     try { motivo = (await error.context?.json())?.erro || ''; } catch { motivo = ''; }
     console.error('[auth] registar-barbearia:', motivo || error.message);
-    return motivo || 'Não foi possível criar a tua barbearia. Tenta outra vez daqui a um minuto.';
+    return motivo || `Não foi possível criar ${nicho().tua}. Tenta outra vez daqui a um minuto.`;
   }
   if (data?.business_id) console.info('[auth] barbearia criada à primeira entrada:', data.slug);
   return '';
@@ -58,7 +59,7 @@ async function _enrichSession(user) {
     userRow = await _linhaDoUtilizador(user.id);
     if (!userRow || !userRow.business_id) {
       _session = null;
-      _motivoSemSessao = motivo || 'Esta conta não tem nenhuma barbearia associada.';
+      _motivoSemSessao = motivo || 'Esta conta não tem nenhum negócio associado.';
       return;
     }
   }
@@ -110,7 +111,7 @@ const authService = {
       // motivo em vez de devolver null e deixar o ecra rebentar em `.role`.
       if (!_session) {
         await supabase.auth.signOut();
-        throw new Error(_motivoSemSessao || 'Esta conta não tem nenhuma barbearia associada.');
+        throw new Error(_motivoSemSessao || 'Esta conta não tem nenhum negócio associado.');
       }
       return _session;
     }

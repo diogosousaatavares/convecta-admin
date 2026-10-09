@@ -6,6 +6,7 @@ import { Card, EmptyState, Badge } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
 import { paidAppointments, vendasDeProdutos, vendasDePacks, netOfPayment, entradasAvulsas } from '@/lib/domain/finance';
+import { n as nicho } from '@/lib/nicho';
 
 export default function FinRevenue() {
   const data = useStore();
@@ -54,7 +55,7 @@ export default function FinRevenue() {
       <div className="kpi-grid">
         <Card className="kpi"><TrendingUp className="icon" size={22} /><div className="label">Receita (serviços + produtos + packs)</div><div className="value gold">{formatPrice(total)}</div></Card>
         <Card className="kpi"><ShoppingBag className="icon" size={22} /><div className="label">Serviços</div><div className="value">{formatPrice(servicesRev)}</div></Card>
-        <Card className="kpi"><Wallet className="icon" size={22} /><div className="label">Gorjetas (dos barbeiros, à parte)</div><div className="value">{formatPrice(tipsRev)}</div></Card>
+        <Card className="kpi"><Wallet className="icon" size={22} /><div className="label">Gorjetas ({nicho().id === 'barbearia' ? 'dos barbeiros' : 'da equipa'}, à parte)</div><div className="value">{formatPrice(tipsRev)}</div></Card>
         <Card className="kpi"><Package className="icon" size={22} /><div className="label">Produtos</div><div className="value">{formatPrice(produtosRev)}</div></Card>
         <Card className="kpi"><Scissors className="icon" size={22} /><div className="label">Packs</div><div className="value">{formatPrice(packsRev)}</div></Card>
         <Card className="kpi"><Repeat className="icon" size={22} /><div className="label">Entradas avulsas de caixa (à parte)</div><div className="value">{formatPrice(otherRev)}</div></Card>
@@ -110,7 +111,7 @@ export default function FinRevenue() {
                 <tr key={v.id}>
                   <td className="text-xs">{String(v.soldAt || '').slice(0, 10)}</td>
                   <td>{data.customers.find(c => c.id === v.customerId)?.name || '—'}</td>
-                  <td className="text-sm">{v.nome} · {v.cortes} cortes</td>
+                  <td className="text-sm">{v.nome} · {v.cortes} {nicho().uns}</td>
                   <td className="fw-600">{formatPrice(v.total)}</td>
                   <td><Badge variant="default">{v.method || '—'}</Badge></td>
                 </tr>

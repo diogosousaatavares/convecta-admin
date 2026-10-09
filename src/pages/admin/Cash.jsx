@@ -11,6 +11,7 @@ import { formatPrice, formatDate, todayStr } from '@/lib/format';
 import { getExpectedCash, pagamentosDaSessao, vendasDaSessao, packsDaSessao, textoDiferenca } from '@/lib/domain/finance';
 import { TabelaFechos } from '@/components/financeiro/HistoricoCaixa';
 import CheckoutModal from '@/components/admin/CheckoutModal';
+import { n as nicho } from '@/lib/nicho';
 
 const METHODS = ['Dinheiro', 'Cartão', 'MB WAY', 'Transferência', 'Voucher'];
 const METHOD_ICO = { 'Dinheiro': Banknote, 'Cartão': CreditCard, 'MB WAY': Smartphone, 'Transferência': Receipt, 'Voucher': Gift };
@@ -193,7 +194,7 @@ export default function Cash() {
                       <LinhaDinheiro key={a.id}
                         hora={p.at ? new Date(p.at).toLocaleTimeString('pt-PT').slice(0, 5) : a.startTime}
                         titulo={cust?.name || svc?.name || '—'} valor={formatPrice(p.total)}
-                        detalhes={[['Serviço', svc?.name], ['Barbeiro', pro?.name], ['Método', p.method], ['Desconto', p.discountAmount ? `-${formatPrice(p.discountAmount)}` : null], ['Gorjeta', p.tip ? formatPrice(p.tip) : null], ['Dia', a.date !== today ? formatDate(a.date) : null]]} />
+                        detalhes={[['Serviço', svc?.name], [nicho().Pro, pro?.name], ['Método', p.method], ['Desconto', p.discountAmount ? `-${formatPrice(p.discountAmount)}` : null], ['Gorjeta', p.tip ? formatPrice(p.tip) : null], ['Dia', a.date !== today ? formatDate(a.date) : null]]} />
                     );
                   })}
                 </div>
@@ -262,7 +263,7 @@ export default function Cash() {
                       const cust = v.customerId ? data.customers.find(c => c.id === v.customerId) : null;
                       return (
                         <LinhaDinheiro key={v.id} hora={new Date(v.soldAt).toLocaleTimeString('pt-PT').slice(0, 5)}
-                          titulo={`${v.nome} · ${v.cortes} cortes`} valor={formatPrice(v.total)}
+                          titulo={`${v.nome} · ${v.cortes} ${nicho().uns}`} valor={formatPrice(v.total)}
                           detalhes={[['Cliente', cust?.name], ['Método', v.method]]} />
                       );
                     })}
@@ -276,7 +277,7 @@ export default function Cash() {
                           <tr key={v.id}>
                             <td className="fw-600 text-gold">{new Date(v.soldAt).toLocaleTimeString('pt-PT').slice(0, 5)}</td>
                             <td>{cust?.name || '—'}</td>
-                            <td className="text-sm">{v.nome} · {v.cortes} cortes</td>
+                            <td className="text-sm">{v.nome} · {v.cortes} {nicho().uns}</td>
                             <td className="fw-600">{formatPrice(v.total)}</td>
                             <td><Badge variant="default">{v.method || '—'}</Badge></td>
                           </tr>

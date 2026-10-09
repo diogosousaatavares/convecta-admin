@@ -6,6 +6,7 @@ import { Card, Badge, Avatar, EmptyState, Button } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { formatDateShortNum, localDateStr } from '@/lib/format';
 import { listarVendas } from '@/lib/packsService';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * Agenda › Pack mensal — as marcações pagas com o pack, à parte das outras.
@@ -90,12 +91,12 @@ export default function PackMarcacoes() {
       {lista.length === 0 ? (
         <Card className="card-pad mb-24">
           <EmptyState icon={() => <CalendarDays />}
-            title={verPassadas ? 'Ainda não houve cortes de pack' : 'Nenhum corte de pack marcado'} />
+            title={verPassadas ? `Ainda não houve ${nicho().uns} de pack` : `Nenhum${nicho().un === 'sessão' ? 'a' : ''} ${nicho().un} de pack marcad${nicho().un === 'sessão' ? 'a' : 'o'}`} />
         </Card>
       ) : (
         <Card className="card-pad mb-24" style={{ overflowX: 'auto' }}>
           <table className="table">
-            <thead><tr><th>Dia</th><th>Hora</th><th>Cliente</th><th>Serviço</th><th>Barbeiro</th><th>Corte</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Dia</th><th>Hora</th><th>Cliente</th><th>Serviço</th><th>{nicho().Pro}</th><th>{nicho().Un}</th><th>Estado</th></tr></thead>
             <tbody>
               {lista.map(a => {
                 const est = ESTADO[a.status] || { texto: a.status, variante: 'default' };

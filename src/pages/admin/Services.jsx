@@ -8,8 +8,45 @@ import { Card, Badge, Button, EmptyState, Modal } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice } from '@/lib/format';
+import { uploadBusinessAsset } from '@/lib/designService';
+import { ImagePlus, X } from 'lucide-react';
 
-const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: '', isActive: true, isPopular: false, orcamento: false };
+const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: '', isActive: true, isPopular: false, orcamento: false, fotoUrl: '' };
+
+/*
+ * A FOTO DO SERVICO (09/10/2026).
+ *
+ * Num salao a cliente escolhe pelo que ve — umas unhas, uma coloracao, um
+ * penteado. A foto fica no metadata do servico (fotoUrl), por isso nao foi
+ * preciso mudar a base de dados, e aparece no site, na lista de servicos e
+ * no passo de escolher o servico da marcacao.
+ */
+function FotoDoServico({ valor, onMudar }) {
+  const [aEnviar, setAEnviar] = useState(false);
+  const [erro, setErro] = useState('');
+  const escolher = async (e) => {
+    const f = e.target.files?.[0]; e.target.value = '';
+    if (!f) return;
+    setAEnviar(true); setErro('');
+    try { onMudar(await uploadBusinessAsset(null, f, `servico-${Date.now()}`)); }
+    catch (err) { setErro(err.message || 'Não foi possível enviar a foto.'); }
+    finally { setAEnviar(false); }
+  };
+  return (
+    <div className="field">
+      <label className="label">Foto</label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <label style={{ width: 84, height: 84, borderRadius: 14, border: '1px dashed var(--border)', background: valor ? `center/cover no-repeat url('${valor}')` : 'var(--elevated)', display: 'grid', placeItems: 'center', cursor: 'pointer', flexShrink: 0, color: 'var(--text-sec)' }}>
+          {!valor && (aEnviar ? '…' : <ImagePlus size={22} />)}
+          <input type="file" accept="image/*" onChange={escolher} style={{ display: 'none' }} />
+        </label>
+        {valor && <Button variant="ghost" size="sm" onClick={() => onMudar('')}><X size={14} /> Tirar</Button>}
+        {aEnviar && valor && <span className="text-sec text-sm">A enviar…</span>}
+      </div>
+      {erro && <div className="text-sm" style={{ color: 'var(--error)', marginTop: 6 }}>{erro}</div>}
+    </div>
+  );
+}
 const SEM_CATEGORIA = 'Outros';
 
 export default function Services() {
@@ -88,7 +125,8 @@ export default function Services() {
           {g.servicos.map(s => (
             <Card key={s.id} className="card-pad card-hover" onClick={() => openEdit(s)} style={{ cursor: 'pointer' }}>
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-8">
+                <div className="flex items-center gap-8" style={{ minWidth: 0 }}>
+                  {s.fotoUrl && <span style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: `center/cover no-repeat url('${s.fotoUrl}')` }} />}
                   <h3 style={{ fontSize: 18 }}>{s.name}</h3>
                   {s.isPopular && <Badge variant="gold">Popular</Badge>}
                   {!s.isActive && <Badge variant="default">Inativo</Badge>}
@@ -117,6 +155,7 @@ export default function Services() {
         footer={<>{editing && editing !== 'new' && <Button variant="ghost" className="so-telemovel" onClick={() => { const alvo = data.services.find(x => x.id === editing); close(); if (alvo) setDeleteTarget(alvo); }}><Trash2 size={14} /></Button>}<Button variant="ghost" onClick={close}>Cancelar</Button><Button variant="primary" onClick={save}>Guardar</Button></>}>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
         <div className="field"><label className="label">Descrição</label><textarea className="textarea" rows={2} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
+        <FotoDoServico valor={form.fotoUrl || ''} onMudar={url => setForm(f => ({ ...f, fotoUrl: url }))} />
         <div className="grid-2">
           {/*
             * SOB ORCAMENTO.

@@ -10,8 +10,9 @@ import dataService, { uploadProfessionalPhoto } from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import FotoPerfil from '@/components/admin/FotoPerfil';
 import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
+import { n as nicho } from '@/lib/nicho';
 
-const empty = { name: '', role: 'Barbeiro', email: '', phone: '', bio: '', specialties: [], commission: 30 };
+const empty = { name: '', get role() { return nicho().Pro; }, email: '', phone: '', bio: '', specialties: [], commission: 30 };
 
 // 'profissional' -> 'Profissional'. O nome do plano vem da base de dados em
 // minusculas; aqui e um rotulo que o barbeiro le.
@@ -78,7 +79,7 @@ export default function Professionals() {
   const [convidar, setConvidar] = useState(null);
   const save = async () => {
     if (!form.name.trim()) { toast.error('Nome obrigatório'); return; }
-    if (!form.role || !form.role.trim()) { toast.error('Função obrigatória', 'Barbeiro, gerente, rececionista…'); return; }
+    if (!form.role || !form.role.trim()) { toast.error('Função obrigatória', `${nicho().Pro}, gerente, rececionista…`); return; }
     if (!form.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) { toast.error('Email obrigatório', 'É por aqui que ele recebe o acesso ao painel.'); return; }
     if (data.professionals.some(p => p.id !== editing && (p.email || '').toLowerCase() === form.email.trim().toLowerCase())) { toast.error('Email repetido', 'Já há um profissional com esse email.'); return; }
     if (aEnviarFoto) { toast.error('A fotografia ainda está a subir', 'Espera um instante e grava outra vez.'); return; }
@@ -136,7 +137,7 @@ export default function Professionals() {
             <h1>Profissionais</h1>
             <PageInfo
               description="Gestão completa da equipa: dados pessoais, especialidades, comissões, fotografia e avaliações atribuídas pelos clientes. O perfil de cada profissional determina o que aparece na app do cliente para marcação."
-              impact="A equipa é o principal ativo de uma barbearia. A qualidade, disponibilidade e motivação dos profissionais determina diretamente a capacidade de receita, a retenção de clientes e a reputação do negócio."
+              impact="A equipa é o principal ativo de um negócio. A qualidade, disponibilidade e motivação dos profissionais determina diretamente a capacidade de receita, a retenção de clientes e a reputação do negócio."
               links={['Agenda', 'Horários', 'Comissões', 'Desempenho', 'Serviços']}
             />
           </div>
@@ -288,7 +289,7 @@ export default function Professionals() {
         </div>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
         <div className="grid-2" style={{ gap: 12 }}>
-          <div className="field"><label className="label">Função *</label><input className="input" list="funcoes-pro" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} placeholder="Barbeiro" /><datalist id="funcoes-pro"><option value="Barbeiro" /><option value="Barbeiro sénior" /><option value="Gerente" /><option value="Rececionista" /><option value="Aprendiz" /></datalist></div>
+          <div className="field"><label className="label">Função *</label><input className="input" list="funcoes-pro" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} placeholder={nicho().Pro} /><datalist id="funcoes-pro"><option value={nicho().Pro} /><option value={`${nicho().Pro} sénior`} /><option value="Gerente" /><option value="Rececionista" /><option value="Aprendiz" /></datalist></div>
           <div className="field"><label className="label">Email *</label><input className="input" type="email" value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="o email dele" /></div>
         </div>
         <div className="field"><label className="label">Telemóvel</label><input className="input" type="tel" value={form.phone || ''} onChange={e => setForm({ ...form, phone: e.target.value })} /></div>

@@ -5,6 +5,7 @@ import { Card, EmptyState, Badge } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { todayStr, addDays, formatDateShortNum } from '@/lib/format';
 import { paidAppointments } from '@/lib/domain/finance';
+import { n as nicho } from '@/lib/nicho';
 
 // Os movimentos vêm das marcações pagas — é aí que o carimbo é dado (ou o
 // corte grátis é gasto). A lista antiga lia uma tabela que nunca era
@@ -26,29 +27,29 @@ export default function RepLoyalty() {
   const rewardsEarned = data.customers.reduce((s, c) => s + ((c.loyalty?.rewardsEarned) || 0), 0);
 
   return (
-    <AdminPage title="Relatório de Fidelização" subtitle="Carimbos dados e cortes grátis usados.">
+    <AdminPage title="Relatório de Fidelização" subtitle={`Carimbos dados e ${nicho().uns} grátis usad${nicho().un === 'sessão' ? 'as' : 'os'}.`}>
       <div className="flex gap-8 mb-24" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
         <input type="date" className="input" style={{ width: 'auto' }} value={from} onChange={e => setFrom(e.target.value)} />
         <input type="date" className="input" style={{ width: 'auto' }} value={to} onChange={e => setTo(e.target.value)} />
       </div>
-      {!ligado && <p className="text-sec text-sm mb-16">O cartão de fidelidade está desligado para esta barbearia.</p>}
+      {!ligado && <p className="text-sec text-sm mb-16">O cartão de fidelidade está desligado para {nicho().esta}.</p>}
       <div className="kpi-grid">
         <Card className="kpi"><Gift className="icon" size={22} /><div className="label">Carimbos no período</div><div className="value">{carimbos}</div></Card>
-        <Card className="kpi"><Award className="icon" size={22} /><div className="label">Cortes grátis usados</div><div className="value gold">{resgates}</div></Card>
+        <Card className="kpi"><Award className="icon" size={22} /><div className="label">{nicho().Uns} grátis usad{nicho().un === 'sessão' ? 'as' : 'os'}</div><div className="value gold">{resgates}</div></Card>
         <Card className="kpi"><div className="label">Carimbos (desde sempre)</div><div className="value">{totalStamps}</div></Card>
         <Card className="kpi"><div className="label">Prémios ganhos (desde sempre)</div><div className="value">{rewardsEarned}</div></Card>
       </div>
       <Card className="card-pad mt-16">
         <h3 style={{ fontSize: 18, marginBottom: 16 }}>Movimentos no período</h3>
-        {movimentos.length === 0 ? <EmptyState title="Sem movimentos" description="Cada corte pago dá um carimbo; os cortes grátis aparecem como resgate." /> : (
+        {movimentos.length === 0 ? <EmptyState title="Sem movimentos" description={`Cada ${nicho().un} pag${nicho().un === 'sessão' ? 'a' : 'o'} dá um carimbo; ${nicho().un === 'sessão' ? 'as' : 'os'} grátis aparecem como resgate.`} /> : (
           <div className="flex-col gap-8">{movimentos.map(m => (
             <div key={m.id} className="flex justify-between items-center text-sm" style={{ padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
               <span>{m.cliente}</span>
-              <span className="flex items-center gap-8"><Badge variant={m.tipo === 'resgate' ? 'gold' : 'default'}>{m.tipo === 'resgate' ? 'Corte grátis' : 'Carimbo'}</Badge><span className="text-sec">{formatDateShortNum(m.data)}</span></span>
+              <span className="flex items-center gap-8"><Badge variant={m.tipo === 'resgate' ? 'gold' : 'default'}>{m.tipo === 'resgate' ? nicho().premio : 'Carimbo'}</Badge><span className="text-sec">{formatDateShortNum(m.data)}</span></span>
             </div>
           ))}</div>
         )}
-        <p className="text-sec text-xs mt-16">{data.business?.packs?.carimbos === true ? 'Os cortes do pack também dão carimbo.' : 'Cortes pagos com pack não dão carimbo.'}</p>
+        <p className="text-sec text-xs mt-16">{data.business?.packs?.carimbos === true ? `${nicho().Uns} do pack também dão carimbo.` : 'Cortes pagos com pack não dão carimbo.'}</p>
       </Card>
     </AdminPage>
   );

@@ -10,6 +10,7 @@ import ContaProfissional from '@/components/financeiro/ContaProfissional';
 import ModulePlaceholder from '@/components/admin/ModulePlaceholder';
 import { TrendingUp, TrendingDown, ShoppingBag, Package as PackageIcon, Repeat, Wallet } from 'lucide-react';
 import PageInfo from '@/components/admin/PageInfo';
+import { n as nicho } from '@/lib/nicho';
 
 const TABS = [
   { key: 'historico', label: 'Histórico de Caixa' },
@@ -38,7 +39,7 @@ export default function Financeiro() {
             links={['Caixa', 'Comandas', 'Subscrições', 'Relatório Financeiro']}
           />
         </div>
-        <p>Gestão financeira completa da barbearia.</p>
+        <p>Gestão financeira completa {nicho().da}.</p>
       </div>
       <div className="bp-tabs" style={{ marginBottom: 20 }}>
         {TABS.map(t => (

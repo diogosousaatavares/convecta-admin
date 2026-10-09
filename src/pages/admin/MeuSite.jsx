@@ -16,6 +16,7 @@ import {
 import SugestaoDesign from '@/components/design/SugestaoDesign';
 import { prepararLogotipo } from '@/lib/prepararLogotipo';
 import { useConfirmar } from '@/components/ui/Confirmar';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * O MEU SITE — a mesma pagina que o super admin usa para desenhar a app de
@@ -393,9 +394,9 @@ function EditorDePeca({peca,tema,onMudar,onRepor,onFechar,onNome,nomeDeSistema})
       )}
       {eONome&&(
         <div style={{margin:'12px 0 4px'}}>
-          <div style={{fontSize:12.5,color:T2,marginBottom:6,fontWeight:600}}>Nome da barbearia</div>
+          <div style={{fontSize:12.5,color:T2,marginBottom:6,fontWeight:600}}>Nome {nicho().da}</div>
           <Inp value={tema.appName||''} onChange={e=>onNome?.(e.target.value)}
-            placeholder={nomeDeSistema||'Nome da barbearia'}/>
+            placeholder={nomeDeSistema||`Nome ${nicho().da}`}/>
           <div style={{fontSize:11.5,color:T3,marginTop:6,lineHeight:1.5}}>
             E o nome que o cliente ve no site e no telemovel. Em branco, fica
             «{nomeDeSistema||'o nome do registo'}».
@@ -474,7 +475,7 @@ function EditorDeElemento({alvo,tema,onElemento,onCor,onRepor,onFechar}){
 // ── Pré-visualização (desenho antigo, já não usado) ────────────────────────
 function Previsualizacao({tema,info,biz,endereco}){
   const c=tema.colors,r=tema.radius
-  const nome=tema.appName||biz.name||'Barbearia'
+  const nome=tema.appName||biz.name||nicho().Casa
   return(
     <div style={{minHeight:'100%',background:c.bg,
       fontFamily:`'${tema.fonts.body}', system-ui, sans-serif`}}>
@@ -504,7 +505,7 @@ function Previsualizacao({tema,info,biz,endereco}){
         )}
 
         <div style={{fontSize:10.5,color:c.textSec,fontWeight:700,letterSpacing:'.6px',marginBottom:9}}>SERVIÇOS</div>
-        {[{n:'Corte de Cabelo',d:'30 min',p:'15,00 €'},{n:'Corte + Barba',d:'45 min',p:'22,00 €'}].map(s=>(
+        {(nicho().id==='barbearia'?[{n:'Corte de Cabelo',d:'30 min',p:'15,00 €'},{n:'Corte + Barba',d:'45 min',p:'22,00 €'}]:[{n:'Serviço',d:'45 min',p:'25,00 €'},{n:'Tratamento completo',d:'60 min',p:'40,00 €'}]).map(s=>(
           <div key={s.n} style={{background:c.surface,borderRadius:r,padding:'12px 14px',marginBottom:9,
             border:`1px solid ${c.border}`,display:'flex',alignItems:'center',gap:10}}>
             <div style={{flex:1}}>
@@ -570,7 +571,7 @@ const CHAVE_TUTORIAL='convecta:meusite:guia'
 
 const PASSOS_GUIA=[
   {alvo:'site-previa',titulo:'Este é o site dos teus clientes',
-   texto:'É aqui que eles escolhem o corte e marcam a hora. Já está a funcionar — isto é o site a sério, em pequeno.'},
+   texto:'É aqui que eles escolhem o serviço e marcam a hora. Já está a funcionar — isto é o site a sério, em pequeno.'},
   {alvo:'site-previa',titulo:'Para mudar, toca na própria imagem',
    texto:'Toca num título, num preço ou num botão aqui dentro. Abre a cor dessa peça e mudas ali mesmo, a ver o resultado.'},
   {alvo:'site-logotipo',titulo:'O caminho curto: o teu logótipo',
@@ -1177,7 +1178,7 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
               <div>
                 <Lbl>Descrição</Lbl>
                 <textarea value={info.description} onChange={e=>inf('description',e.target.value)}
-                  placeholder="Uma barbearia com atenção ao detalhe, no coração da cidade."
+                  placeholder={`${nicho().f === 'a' ? 'Uma' : 'Um'} ${nicho().casa} com atenção ao detalhe, no coração da cidade.`}
                   style={{width:'100%',padding:10,borderRadius:8,border:`1px solid ${BD}`,
                     background:'rgba(255,255,255,.04)',color:T,fontSize:14,fontFamily:'inherit',
                     resize:'vertical',minHeight:70,outline:'none'}}/>
@@ -1222,9 +1223,9 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
             <div style={{fontWeight:700,fontSize:15,color:T,marginBottom:16}}>Marca</div>
             <div style={{display:'flex',flexDirection:'column',gap:15}}>
               <div>
-                <Lbl>Nome da barbearia</Lbl>
+                <Lbl>Nome {nicho().da}</Lbl>
                 <Inp value={tema.appName} onChange={e=>raiz('appName',e.target.value)}
-                  placeholder={biz.name||'Nome da barbearia'}/>
+                  placeholder={biz.name||`Nome ${nicho().da}`}/>
               </div>
               <div>
                 <Lbl>Logótipo</Lbl>

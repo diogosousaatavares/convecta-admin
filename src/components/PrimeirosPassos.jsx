@@ -4,6 +4,7 @@ import { Check, X, Scissors, Clock, Palette, Bell, Share2, Copy, ExternalLink, R
 import { useStore } from '@/hooks/useStore';
 import { DOMINIO_BASE } from '@/lib/designService';
 import { supabase } from '@/lib/supabase';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * Os primeiros passos, no Dashboard.
@@ -95,7 +96,7 @@ export function usePassos() {
     {
       k: 'horarios',
       icone: Clock,
-      titulo: 'Ajusta o horário da barbearia',
+      titulo: `Ajusta o horário ${nicho().da}`,
       ajuda: 'A que horas abres e fechas, e os dias de folga.',
       to: '/admin/horarios',
       feito: !!feitos.horarios || !!daBase.horarios,

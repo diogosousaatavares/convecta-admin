@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, ExternalLink, Scissors, X, Check } from 'lucide-react';
 import dataService from '@/lib/dataService';
 import { DOMINIO_BASE as APPS } from '@/lib/designService';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * A primeira entrada. Três ecrãs, o ecrã inteiro, uma ideia por ecrã.
@@ -88,7 +89,7 @@ export default function BemVindo() {
   const ECRAS = [
     {
       olho: 'Bem-vindo',
-      titulo: <>A tua barbearia<br />está no ar.</>,
+      titulo: <>{nicho().Tua}<br />está no ar.</>,
       corpo: (
         <>
           <p className="bv-p">Já existe, com o teu nome, num endereço só teu.</p>

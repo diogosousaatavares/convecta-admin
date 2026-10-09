@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Bell, BellOff, Smartphone, Check } from 'lucide-react';
 import { estadoPush, ativarPush, garantirPush, enviarPush } from '@/lib/push';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * As notificacoes, do lado de quem as recebe.
@@ -68,7 +69,7 @@ export default function AvisoPush({ businessId, userId, papel, texto, comTeste =
         // nao e falta de gente. O motivo vem do servidor.
         setTeste({ ok: false, msg: `${r.inscricoes} aparelho(s) inscrito(s) mas o envio falhou. ${r.motivos?.[0] || ''} (chave ${r.chavePublica || '?'})` });
       } else {
-        setTeste({ ok: false, msg: 'Nenhum aparelho ligado nesta barbearia. Liga as notificações no telemóvel onde as queres receber.' });
+        setTeste({ ok: false, msg: `Nenhum aparelho ligado ${nicho().f === 'a' ? 'nesta' : 'neste'} ${nicho().casa}. Liga as notificações no telemóvel onde as queres receber.` });
       }
     } catch (e) {
       setTeste({ ok: false, msg: e.message });

@@ -1,3 +1,4 @@
+import { n as nicho } from '@/lib/nicho';
 /*
  * Os temas do PAINEL do barbeiro (Definições › Tema).
  *
@@ -31,7 +32,7 @@ const BASE_CLARO = {
 
 export const MODOS = [
   { v: 'claro',  l: 'Claro',  nota: 'o normal' },
-  { v: 'escuro', l: 'Escuro', nota: 'para a barbearia à noite' },
+  { v: 'escuro', l: 'Escuro', get nota() { return `para ${nicho().a} à noite`; } },
 ];
 /*
  * O PAINEL ABRE CLARO.

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CreditCard, AlertTriangle, CalendarDays } from 'lucide-react';
 import dataService from '@/lib/dataService';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * A faixa da subscricao.
@@ -45,7 +46,7 @@ const AVISOS = {
     fundo: 'rgba(245, 158, 11, 0.10)',
     icone: AlertTriangle,
     titulo: 'O último pagamento não passou',
-    texto: 'A barbearia continua a funcionar normalmente. Vamos tentar cobrar outra vez nos próximos dias — se o cartão mudou, actualiza-o.',
+    get texto() { return `${nicho().A} continua a funcionar normalmente. Vamos tentar cobrar outra vez nos próximos dias — se o cartão mudou, atualiza-o.`; },
     botao: 'Resolver',
   },
   a_terminar: {

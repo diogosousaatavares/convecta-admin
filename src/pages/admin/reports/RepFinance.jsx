@@ -6,6 +6,7 @@ import { useStore } from '@/hooks/useStore';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
 import { paidAppointments, vendasDeProdutos, vendasDePacks, getTotalRevenue, getTips, getExpensesTotal, netOfPayment, entradasAvulsas, saidasDoPeriodo } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
+import { n as nicho } from '@/lib/nicho';
 
 // Receita = serviços (sem gorjeta) + produtos + packs, pela data do
 // pagamento — o mesmo número do painel e das Receitas. A tabela lista as três
@@ -29,7 +30,7 @@ export default function RepFinance() {
     }));
     const packs = vendasDePacks(data, range).map(v => ({
       id: 'p' + v.id, quando: v.soldAt, data: (v.soldAt || '').slice(0, 10), tipo: 'Pack',
-      cliente: cli(v.customerId), o: `${v.nome} · ${v.cortes} cortes`, valor: Number(v.total) || 0, metodo: v.method,
+      cliente: cli(v.customerId), o: `${v.nome} · ${v.cortes} ${nicho().uns}`, valor: Number(v.total) || 0, metodo: v.method,
     }));
     return [...serv, ...prod, ...packs].sort((a, b) => String(b.quando || '').localeCompare(String(a.quando || '')));
   }, [data, from, to]);
@@ -53,7 +54,7 @@ export default function RepFinance() {
         <Card className="kpi"><TrendingDown className="icon" size={22} /><div className="label">Despesas + saídas</div><div className="value">{formatPrice(expenses + movesOut)}</div></Card>
         <Card className="kpi"><Receipt className="icon" size={22} /><div className="label">Resultado</div><div className="value gold">{formatPrice(result)}</div></Card>
       </div>
-      <p className="text-sec text-xs mt-8">Gorjetas no período: {formatPrice(tips)} — são dos barbeiros e não entram na receita nem no resultado.</p>
+      <p className="text-sec text-xs mt-8">Gorjetas no período: {formatPrice(tips)} — são {nicho().id === 'barbearia' ? 'dos barbeiros' : 'da equipa'} e não entram na receita nem no resultado.</p>
       <Card className="card-pad mt-16">
         {linhas.length === 0 ? <EmptyState title="Sem vendas no período" /> : (
           <div style={{ overflowX: 'auto' }}>

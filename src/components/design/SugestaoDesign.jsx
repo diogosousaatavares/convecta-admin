@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Y, YD, YT, W2, BD, T, T2, T3, G, R, Spin, Btn, Card } from '@/components/design/ui';
 import { coresDoLogotipo, propostasDeTema } from '@/lib/sugestaoTema';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * O MEU SITE › Sugestão
@@ -33,11 +34,11 @@ function Miniatura({ p, nome }) {
       display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ fontFamily: `'${p.fonts.heading}', serif`, color: c.text, fontSize: 19, lineHeight: 1.1,
         fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nome}</div>
-      <div style={{ fontFamily: `'${p.fonts.body}', sans-serif`, color: c.textSec, fontSize: 13.5 }}>Corte · 30 min</div>
+      <div style={{ fontFamily: `'${p.fonts.body}', sans-serif`, color: c.textSec, fontSize: 13.5 }}>{nicho().id === 'barbearia' ? 'Corte' : 'Serviço'} · 30 min</div>
       <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: Math.min(p.radius, 12),
         padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         fontFamily: `'${p.fonts.body}', sans-serif` }}>
-        <span style={{ color: c.text, fontSize: 14 }}>Corte + barba</span>
+        <span style={{ color: c.text, fontSize: 14 }}>{nicho().id === 'barbearia' ? 'Corte + barba' : 'Tratamento completo'}</span>
         <span style={{ color: c.gold, fontSize: 14, fontWeight: 700 }}>18€</span>
       </div>
       <div style={{ marginTop: 'auto', background: c.gold, color: c.bg, borderRadius: p.radius, textAlign: 'center',
@@ -73,7 +74,7 @@ export default function SugestaoDesign({ biz, logo, endereco, onExperimentar, ir
 
   function pedirAjuda() {
     const linhas = [
-      `Olá! Sou da ${biz.name || 'barbearia'} e queria ajuda com o design da minha app.`,
+      `Olá! Sou da ${biz.name || nicho().casa} e queria ajuda com o design da minha app.`,
       `Link: https://${endereco}`,
       escolhida ? `Proposta de que gostei: «${escolhida.nome}».` : 'Ainda não escolhi nenhuma proposta.',
       logo ? `Logótipo: ${logo}` : 'Envio o logótipo a seguir nesta conversa.',
@@ -109,7 +110,7 @@ export default function SugestaoDesign({ biz, logo, endereco, onExperimentar, ir
             return (
               <Card key={p.id} style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10,
                 borderColor: ativa ? Y : BD }}>
-                <Miniatura p={p} nome={biz.name || 'A tua barbearia'} />
+                <Miniatura p={p} nome={biz.name || nicho().Tua} />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                   <span style={{ fontWeight: 700, fontSize: 15, color: T }}>{p.nome}</span>
                   {p.recomendada && <span style={{ fontSize: 13, padding: '2px 8px', borderRadius: 20,

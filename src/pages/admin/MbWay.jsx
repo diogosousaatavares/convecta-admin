@@ -10,6 +10,7 @@ import { useToast } from '@/components/ui/ToastContext';
 import dataService from '@/lib/dataService';
 import { formatPrice, formatDateShortNum } from '@/lib/format';
 import { useConfirmar } from '@/components/ui/Confirmar';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * MB WAY — o cliente paga a marcação por MB WAY ao número do barbeiro.
@@ -119,7 +120,7 @@ export default function MbWay() {
   const ativarPack = async (q) => {
     try {
       const v = await confirmarPedido(q, 'MB WAY', q.preco, { businessId: data.business?.id, nomeBarbearia: data.business?.name });
-      toast.success('Pack ativo', `${nome(q.customerId)} tem ${v.total} cortes e já pode marcar.`);
+      toast.success('Pack ativo', `${nome(q.customerId)} tem ${v.total} ${nicho().uns} e já pode marcar.`);
       lerPedidos();
     } catch (e) { toast.error('Não foi possível ativar', e.message); lerPedidos(); }
   };
@@ -130,7 +131,7 @@ export default function MbWay() {
     botao: 'Recusar pedido',
     aoConfirmar: async () => {
       try {
-        await recusarPedido(q, 'O pagamento por MB WAY não chegou. Pede de novo ou paga na barbearia.', { businessId: data.business?.id, nomeBarbearia: data.business?.name });
+        await recusarPedido(q, `O pagamento por MB WAY não chegou. Pede de novo ou paga ${nicho().na}.`, { businessId: data.business?.id, nomeBarbearia: data.business?.name });
         toast.success('Pedido recusado');
         lerPedidos();
       } catch (e) { toast.error('Não foi possível guardar', e.message); }
@@ -244,7 +245,7 @@ export default function MbWay() {
                 <Avatar name={nome(q.customerId)} />
                 <div>
                   <div className="fw-600 text-sm">{nome(q.customerId)}</div>
-                  <div className="text-sec text-xs"><Package size={11} style={{ verticalAlign: '-1px' }} /> {q.nome} · {q.cortes} cortes</div>
+                  <div className="text-sec text-xs"><Package size={11} style={{ verticalAlign: '-1px' }} /> {q.nome} · {q.cortes} {nicho().uns}</div>
                 </div>
               </div>
               <div className="text-gold fw-600" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>{formatPrice(q.preco)}</div>
@@ -356,7 +357,7 @@ export default function MbWay() {
               <label className="label">Mensagem para o cliente (opcional)</label>
               <input className="input" maxLength={200} value={rejeitar.motivo}
                 onChange={e => setRejeitar(r => ({ ...r, motivo: e.target.value }))}
-                placeholder="Ex.: não recebi nada neste número — paga na barbearia" />
+                placeholder={`Ex.: não recebi nada neste número — paga ${nicho().na}`} />
             </div>
             <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}>
               <Button variant="secondary" onClick={() => setRejeitar(null)}>Voltar</Button>

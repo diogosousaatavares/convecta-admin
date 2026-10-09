@@ -20,6 +20,7 @@
 import { descarregarXlsx, dinheiro, data as dataExcel, titulo } from '@/lib/excel';
 import { paidAppointments, netOfPayment, vendasDePacks } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
+import { n as nicho } from '@/lib/nicho';
 
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
                'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -112,7 +113,7 @@ export function dadosDoRelatorio(state, ano, mes) {
 
 export function exportarRelatorioMensal(state, ano, mes) {
   const r = dadosDoRelatorio(state, ano, mes);
-  const nomeBarbearia = state.business?.name || 'Barbearia';
+  const nomeBarbearia = state.business?.name || nicho().Casa;
   const periodo = nomeDoMes(ano, mes);
   const t = r.totais;
 
@@ -133,7 +134,7 @@ export function exportarRelatorioMensal(state, ano, mes) {
     ['Receita de packs', dinheiro(r.totalPacks)],
     [titulo('Total em serviços e packs'), dinheiro(round2(t.total + r.totalPacks))],
     ['Os produtos vendidos ao balcão não entram nesta folha.'],
-    ['Os cortes feitos com pack aparecem a 0 € na folha Serviços: foram pagos na venda do pack.'],
+    [`${nicho().Uns} feit${nicho().un === 'sessão' ? 'as' : 'os'} com pack aparecem a 0 € na folha Serviços: foram pagos na venda do pack.`],
     [],
     [titulo('POR MÉTODO DE PAGAMENTO')],
     ...r.porMetodo.map(([k, v]) => [k, dinheiro(v)]),
@@ -166,7 +167,7 @@ export function exportarRelatorioMensal(state, ano, mes) {
   }
 
   const folhaPacks = [
-    ['Data', 'Cliente', 'Pack', 'Cortes', 'Valor', 'Pagamento'].map(titulo),
+    ['Data', 'Cliente', 'Pack', nicho().Uns, 'Valor', 'Pagamento'].map(titulo),
     ...r.packs.map(p => [dataExcel(p.data), p.cliente, p.pack, p.cortes, dinheiro(p.total), p.metodo]),
   ];
   if (r.packs.length) {

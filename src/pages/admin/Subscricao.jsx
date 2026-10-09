@@ -10,6 +10,7 @@ import { DOMINIO_BASE } from '@/lib/designService';
 import { Card, Button, Spinner } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * A subscrição da barbearia na Convecta.
@@ -453,7 +454,7 @@ export default function Subscricao() {
           {sub.cancelaNoFim && <p className="sub-frase">Cancelaste. Não vais ser cobrado. Para retomar, «Gerir subscrição».</p>}
           {!sub.cancelaNoFim && sub.estado === 'em_teste' && <p className="sub-frase">Cancelar durante a experiência não custa nada.</p>}
           {sub.estado === 'em_atraso' && (
-            <p className="sub-frase" style={{ color: '#F59E0B' }}><AlertTriangle size={16} /> O último pagamento não passou. A barbearia continua a funcionar. Actualiza o cartão em «Gerir subscrição».</p>
+            <p className="sub-frase" style={{ color: '#F59E0B' }}><AlertTriangle size={16} /> O último pagamento não passou. {nicho().A} continua a funcionar. Actualiza o cartão em «Gerir subscrição».</p>
           )}
 
           {sub.temCliente ? (

@@ -6,6 +6,7 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import CartaoFidelidadePreview from '@/components/admin/CartaoFidelidadePreview';
 import { useToast } from '@/components/ui/ToastContext';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * O cartao de fidelidade, numa pagina so.
@@ -21,7 +22,7 @@ import { useToast } from '@/components/ui/ToastContext';
  * os carimbos ja dados ficam guardados para quando voltar a ligar.
  */
 // Desligado por omissao: o cartao so existe se o barbeiro o ligar aqui.
-const OMISSAO = { ativo: false, stampsNeeded: 10, validMonths: 6, rewardName: 'Corte grátis', cartaoClaro: false };
+const OMISSAO = { ativo: false, stampsNeeded: 10, validMonths: 6, get rewardName() { return nicho().premio; }, cartaoClaro: false };
 
 export default function FidelizacaoPrograma() {
   const data = useStore();
@@ -53,7 +54,7 @@ export default function FidelizacaoPrograma() {
     setAGuardar(true);
     try {
       await dataService.updateBusiness({
-        loyalty: { ...(data.business?.loyalty || {}), ativo, stampsNeeded: n, validMonths: meses, rewardName: (premio || '').trim() || 'Corte grátis', cartaoClaro: claro },
+        loyalty: { ...(data.business?.loyalty || {}), ativo, stampsNeeded: n, validMonths: meses, rewardName: (premio || '').trim() || nicho().premio, cartaoClaro: claro },
       });
       toast.success(ativo ? 'Cartão de fidelidade guardado' : 'Cartão desligado', ativo
         ? `${n} carimbos, ${meses ? `válido ${meses} meses` : 'sem prazo'}. Já está no site dos teus clientes.`
@@ -66,7 +67,7 @@ export default function FidelizacaoPrograma() {
   const preenchidos = Math.min(3, n - 1);
 
   return (
-    <AdminPage title="Cartão de fidelidade" subtitle="A cada X cortes, o seguinte é grátis. O que decides aqui é o que o cliente vê no telemóvel.">
+    <AdminPage title="Cartão de fidelidade" subtitle={`A cada X ${nicho().uns}, ${nicho().un === 'sessão' ? 'a seguinte' : 'o seguinte'} é grátis. O que decides aqui é o que o cliente vê no telemóvel.`}>
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start', maxWidth: 900 }}>
         <Card className="card-pad" style={{ flex: '1 1 320px', maxWidth: 460 }}>
           <label className="loyalty-toggle-row" style={{ cursor: 'pointer' }}>
@@ -78,14 +79,14 @@ export default function FidelizacaoPrograma() {
 
           <div style={{ opacity: ativo ? 1 : 0.5, transition: 'opacity .2s' }}>
             <div className="field">
-              <label className="label">Cortes para ganhar o prémio</label>
+              <label className="label">{nicho().Uns} para ganhar o prémio</label>
               <input type="number" className="input" min="3" max="20" value={carimbos} disabled={!ativo}
                 onChange={e => setCarimbos(e.target.value)} style={{ maxWidth: 120 }} />
             </div>
             <div className="field">
               <label className="label">Prémio</label>
               <input className="input" value={premio} disabled={!ativo}
-                onChange={e => setPremio(e.target.value)} placeholder="Ex: Corte grátis" />
+                onChange={e => setPremio(e.target.value)} placeholder={`Ex: ${nicho().premio}`} />
             </div>
             <div className="field">
               <label className="label">Aspeto do cartão</label>
@@ -113,7 +114,7 @@ export default function FidelizacaoPrograma() {
           </div>
           {ativo ? (
             <CartaoFidelidadePreview
-              nome={data.business?.name || 'A tua barbearia'}
+              nome={data.business?.name || nicho().Tua}
               carimbos={n}
               preenchidos={preenchidos}
               premio={premio}

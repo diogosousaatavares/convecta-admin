@@ -6,6 +6,7 @@ import { Card, Button, EmptyState } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
+import { n as nicho } from '@/lib/nicho';
 
 const TABS = [
   { key: 'categorias', label: 'Categorias', desc: 'Categorias de serviços' },
@@ -13,7 +14,7 @@ const TABS = [
   { key: 'despesas', label: 'Despesas', desc: 'Categorias de despesa' },
   { key: 'receitas', label: 'Receitas', desc: 'Categorias de receita' },
   { key: 'contas', label: 'Contas', desc: 'Contas bancárias' },
-  { key: 'equipamentos', label: 'Equipamentos', desc: 'Equipamentos da barbearia' },
+  { key: 'equipamentos', label: 'Equipamentos', get desc() { return `Equipamentos ${nicho().da}`; } },
   { key: 'fornecedores', label: 'Fornecedores', desc: 'Fornecedores' },
   { key: 'bandeiras', label: 'Bandeiras', desc: 'Bandeiras de cartão' },
   { key: 'remuneracoes', label: 'Remunerações', desc: 'Tipos de remuneração' },

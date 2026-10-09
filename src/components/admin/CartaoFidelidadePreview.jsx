@@ -1,5 +1,6 @@
 import React from 'react';
 import { Gift, CalendarClock } from 'lucide-react';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * O cartao de fidelidade como o cliente o ve.
@@ -35,10 +36,10 @@ function textoSobre(hex) {
 }
 
 export default function CartaoFidelidadePreview({
-  nome = 'A tua barbearia',
+  nome = nicho().Tua,
   carimbos = 10,
   preenchidos = 4,
-  premio = 'Corte grátis',
+  premio = nicho().premio,
   meses = 6,
   claro = false,
   cores = {},
@@ -58,7 +59,7 @@ export default function CartaoFidelidadePreview({
 
   const n = Math.max(3, Math.min(20, Number(carimbos) || 10));
   const feitos = Math.max(0, Math.min(n, Number(preenchidos) || 0));
-  const nomeDoPremio = (premio || '').trim() || 'Corte grátis';
+  const nomeDoPremio = (premio || '').trim() || nicho().premio;
 
   return (
     <div style={{
@@ -110,7 +111,7 @@ export default function CartaoFidelidadePreview({
         <CalendarClock size={14} style={{ color: '#4ADE80', flexShrink: 0 }} />
         <span>
           A cada {n} cortes, ganhas {nomeDoPremio.toLowerCase()}.{' '}
-          {meses ? `Válido por ${meses} ${meses === 1 ? 'mês' : 'meses'} a partir do primeiro corte.` : 'Sem prazo de validade.'}
+          {meses ? `Válido por ${meses} ${meses === 1 ? 'mês' : 'meses'} a partir ${nicho().un === 'sessão' ? 'da' : 'do'} ${nicho().primeiroUn}.` : 'Sem prazo de validade.'}
         </span>
       </div>
     </div>

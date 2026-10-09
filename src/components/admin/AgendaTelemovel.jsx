@@ -9,6 +9,7 @@ import { useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 import { todayStr } from '@/lib/format';
 import { Link } from 'react-router-dom';
+import { n as nicho } from '@/lib/nicho';
 
 /*
  * A agenda no telemovel.
@@ -206,7 +207,7 @@ export default function AgendaTelemovel({
             <div className="agm-fechado">
               Ainda não há profissionais.
               <span>Adiciona um para veres a agenda.</span>
-              <Link to="/admin/profissionais" className="btn btn-primary btn-sm" style={{ textDecoration: 'none', marginTop: 12 }}>Adicionar barbeiro</Link>
+              <Link to="/admin/profissionais" className="btn btn-primary btn-sm" style={{ textDecoration: 'none', marginTop: 12 }}>Adicionar {nicho().pro}</Link>
             </div>
           ) : (
             <div className="agm-grelha">
