@@ -2,7 +2,7 @@ import dataService, { agendaDaBarbearia } from '@/lib/dataService';
 import IndicadoresCliente from '@/components/admin/IndicadoresCliente';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ChevronLeft, ChevronRight, ChevronDown, Users, Info, Plus,
+  ChevronLeft, ChevronRight, ChevronDown, Users, Info,
   CheckCircle2, CalendarCheck, Clock3, Lock, Check,
 } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
@@ -299,11 +299,18 @@ export default function AgendaTelemovel({
         </>
       ) : children}
 
-      {/* ---- Botao flutuante ---- */}
-      <button type="button" className="agm-fab" onClick={onNovaMarcacao}>
-        <span className="agm-fab-circulo"><Plus size={28} /></span>
-        <span className="agm-fab-txt">Nova<br />marcação</span>
-      </button>
+      {/*
+       * O BOTAO FLUTUANTE SAIU.
+       *
+       * Era um circulo de 68px fixo no canto, por cima da agenda — e desde
+       * que a barra de baixo e a pastilha dos primeiros passos existem,
+       * ficavam tres coisas a disputar o mesmo canto do ecra.
+       *
+       * A funcao nao se perdeu, e ate ficou melhor: tocar numa hora livre da
+       * grelha abre a marcacao JA NESSA HORA, em vez de abrir vazia para ele
+       * escolher a hora a seguir. E o gesto natural numa agenda, e e o que a
+       * concorrencia tambem faz.
+       */}
 
       {/* ---- Escolher profissional ---- */}
       <Modal open={seletorAberto} onClose={() => setSeletorAberto(false)} title="Ver a agenda de">

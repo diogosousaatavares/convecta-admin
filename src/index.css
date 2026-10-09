@@ -2314,22 +2314,9 @@ html.theme-light .page-info-popover { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12)
 .agm-agora { position: absolute; left: 0; right: 0; height: 2px; background: var(--error, #EF4444); z-index: 4; pointer-events: none; }
 .agm-agora::before { content: ''; position: absolute; left: -4px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--error, #EF4444); }
 
-/* ---- Botão flutuante ---- */
-.agm-fab {
-  position: fixed; right: 16px; z-index: 50;
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  background: none; border: 0; padding: 0;
-}
-.agm-fab-circulo {
-  width: 68px; height: 68px; border-radius: 50%;
-  background: var(--gold); color: var(--on-gold);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5), 0 0 0 6px var(--bg);
-  transition: transform 150ms ease;
-}
-.agm-fab:active .agm-fab-circulo { transform: scale(0.94); }
-.agm-fab-txt { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.15; text-align: center; }
+/* O botao flutuante saiu a 09/10/2026: com a barra de baixo e a pastilha
+   dos primeiros passos, eram tres coisas a disputar o mesmo canto. A
+   marcacao faz-se tocando numa hora livre da grelha — ver AgendaTelemovel. */
 
 /* ---- Escolher profissional ---- */
 .agm-lista-pro { display: flex; flex-direction: column; gap: 8px; }
