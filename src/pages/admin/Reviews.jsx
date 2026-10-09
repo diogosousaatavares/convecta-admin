@@ -45,7 +45,7 @@ export default function Reviews() {
       </div>
 
       <div className="kpi-grid">
-        <Card className="kpi"><Star className="icon" size={22} /><div className="label">Avaliação média</div><div className="value gold">{avg.toFixed(1)}</div></Card>
+        <Card className="kpi"><Star className="icon" size={22} /><div className="label">Avaliação média</div><div className="value gold">{avg.toFixed(1).replace('.', ',')}</div></Card>
         <Card className="kpi"><MessageSquare className="icon" size={22} /><div className="label">Total avaliações</div><div className="value">{data.reviews.length}</div></Card>
         <Card className="kpi"><Eye className="icon" size={22} /><div className="label">Por ler</div><div className="value" style={{ color: porLer.length ? 'var(--warning)' : 'inherit' }}>{porLer.length}</div></Card>
       </div>

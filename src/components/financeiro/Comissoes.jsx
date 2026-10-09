@@ -37,9 +37,9 @@ export default function Comissoes() {
       <div className="flex justify-between items-center mb-16" style={{ flexWrap: 'wrap', gap: 12 }}>
         <h3 style={{ fontSize: 18 }}>Comissões por profissional</h3>
         <div className="flex gap-8" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
-          <input type="date" className="input" style={{ width: 'auto' }} value={from} onChange={e => setFrom(e.target.value)} />
-          <input type="date" className="input" style={{ width: 'auto' }} value={to} onChange={e => setTo(e.target.value)} />
-          <Button size="sm" variant="secondary" onClick={doExport}>Exportar CSV</Button>
+          <label className="flex items-center gap-8" style={{ fontSize: 14 }}>De <input type="date" className="input" style={{ width: 'auto' }} value={from} onChange={e => setFrom(e.target.value)} /></label>
+          <label className="flex items-center gap-8" style={{ fontSize: 14 }}>Até <input type="date" className="input" style={{ width: 'auto' }} value={to} onChange={e => setTo(e.target.value)} /></label>
+          <Button size="sm" variant="secondary" onClick={doExport} className="so-pc">Exportar CSV</Button>
         </div>
       </div>
 

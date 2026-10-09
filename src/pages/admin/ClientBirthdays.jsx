@@ -30,9 +30,9 @@ export default function ClientBirthdays() {
       info={{ description: 'Lista de clientes com aniversário próximo, organizada por mês. Serve para enviar mensagens personalizadas, criar promoções especiais ou simplesmente demonstrar atenção — transformando a data num motivo de visita.', impact: 'Um simples contacto de aniversário tem uma taxa de conversão muito superior a qualquer campanha genérica. Clientes que se sentem lembrados voltam mais vezes e recomendam mais.', links: ['Clientes', 'Promoções', 'Cupões'] }}
     >
       <div className="flex items-center gap-12 mb-24" style={{ flexWrap: 'wrap' }}>
-        <div className="flex items-center gap-8">
-          <Search size={16} style={{ color: 'var(--text-sec)' }} />
-          <input className="input" style={{ maxWidth: 240 }} placeholder="Procurar cliente…" value={q} onChange={e => setQ(e.target.value)} />
+        <div className="ec-caixa" style={{ flex: '1 1 200px', maxWidth: 300 }}>
+          <Search size={16} />
+          <input className="ec-input" placeholder="Procurar cliente…" value={q} onChange={e => setQ(e.target.value)} />
         </div>
         <select className="select" style={{ width: 'auto' }} value={month} onChange={e => setMonth(e.target.value)}>
           <option value="all">Todos os meses</option>

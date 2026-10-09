@@ -37,7 +37,7 @@ export default function Movimentos({ mode = 'all' }) {
       <div className="kpi-grid">
         <Card className="kpi"><ArrowDownCircle className="icon" size={22} /><div className="label">Entradas avulsas</div><div className="value gold">{formatPrice(totalIn)}</div></Card>
         <Card className="kpi"><ArrowUpCircle className="icon" size={22} /><div className="label">Saídas (despesas + caixa)</div><div className="value">{formatPrice(totalOut)}</div></Card>
-        <Card className="kpi"><div className="label">Saldo</div><div className="value gold">{formatPrice(totalIn - totalOut)}</div></Card>
+        <Card className="kpi"><div className="label">Saldo</div><div className={`value ${totalIn - totalOut < 0 ? 'neg' : 'gold'}`}>{formatPrice(totalIn - totalOut)}</div></Card>
       </div>
 
       <Card className="card-pad mt-24">

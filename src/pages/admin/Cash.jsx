@@ -146,7 +146,7 @@ export default function Cash() {
             <Card className="kpi so-pc"><Coins className="icon" size={22} /><div className="label">Gorjetas</div><div className="value gold">{formatPrice(totalTips)}</div></Card>
             <Card className="kpi so-pc"><TrendingDown className="icon" size={22} /><div className="label">Descontos</div><div className="value">{formatPrice(totalDiscounts)}</div></Card>
             <Card className="kpi"><TrendingDown className="icon" size={22} /><div className="label">Despesas</div><div className="value">{formatPrice(totalExpenses)}</div></Card>
-            <Card className="kpi"><Banknote className="icon" size={22} /><div className="label">Receita líquida</div><div className="value gold">{formatPrice(netRevenue)}</div></Card>
+            <Card className="kpi"><Banknote className="icon" size={22} /><div className="label">Receita líquida</div><div className={`value ${netRevenue < 0 ? 'neg' : 'gold'}`}>{formatPrice(netRevenue)}</div></Card>
           </div>
 
           {payable.length > 0 && (

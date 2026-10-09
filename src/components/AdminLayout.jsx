@@ -302,7 +302,7 @@ function BarraDeBaixo({ aberto }) {
           onde ele estava e fecha-se por engano ao tocar fora; um ecra tem
           endereco proprio, o botao «voltar» do telemovel funciona, e cabe
           tudo o que a casa tem sem ficar espremido. */}
-      <Link to="/admin/mais" className={`bnav-item${activo('/admin/mais') ? ' activo' : ''}`}>
+      <Link to="/admin/mais" className={`bnav-item${!BAIXO.some(b => activo(b.to)) ? ' activo' : ''}`}>
         <MoreHorizontal size={21} />
         <span>Mais</span>
       </Link>
@@ -559,7 +559,7 @@ export default function AdminLayout({ children }) {
           </button>
         </form>
       </Modal>
-      <main className="admin-content" ref={zonaConteudo}>
+      <main className={`admin-content${!noComputador && !BAIXO.some(b => location.pathname === b.to) && location.pathname !== '/admin/mais' ? ' dentro' : ''}`} ref={zonaConteudo}>
         {emDemo && <TourDemo passos={PASSOS_DEMO} chave="convecta_tour_painel" />}
         {/* Nunca as duas: numa barbearia de demonstracao manda a da demonstracao. */}
         {!emDemo && <TourDemo passos={PASSOS_BARBEIRO} chave="convecta_visita_barbeiro" ativo={visitaBarbeiro} />}

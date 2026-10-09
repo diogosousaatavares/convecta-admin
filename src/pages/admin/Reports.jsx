@@ -161,7 +161,7 @@ export default function Reports() {
         <Card className="kpi card-pad">
           <Percent className="icon" size={20} />
           <div className="label">No-show rate</div>
-          <div className="value" style={{ color: noShowRate > 15 ? 'var(--error)' : 'inherit' }}>{noShowRate.toFixed(1)}%</div>
+          <div className="value" style={{ color: noShowRate > 15 ? 'var(--error)' : 'inherit' }}>{noShowRate.toFixed(1).replace('.', ',')}%</div>
         </Card>
       </div>
 

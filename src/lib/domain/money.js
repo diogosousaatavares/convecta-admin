@@ -21,5 +21,5 @@ export function fromCents(cents) { return round2((Number(cents) || 0) / 100); }
 // Formatação canónica: símbolo antes, 2 casas, vírgula decimal (PT-PT).
 // Ex: 15 -> "€ 15,00" | 15.5 -> "€ 15,50" | 15.999 -> "€ 16,00"
 export function formatMoney(n) {
-  return '€ ' + EUR_FMT.format(round2(n));
+  return EUR_FMT.format(round2(n)) + '\u00a0€';
 }

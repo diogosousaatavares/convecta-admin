@@ -2701,3 +2701,27 @@ html:not(.theme-light) .marca-escuro { display: block !important; }
 /* Tres numeros em duas colunas deixavam um buraco: o ultimo ocupa a linha. */
 @media (max-width: 767px) { .kpi-grid > .kpi:nth-child(odd):last-child { grid-column: 1 / -1; } }
 
+
+/* ── Auditoria de 09/10/2026 ─────────────────────────────────────────── */
+/* Os zeros do Playfair sao «o»: numeros alinhados em tudo o que e titulo. */
+h1, h2, h3, h4, .kpi .value, .res-num, .value { font-variant-numeric: lining-nums tabular-nums; }
+.kpi .value.neg { color: var(--error); }
+/* O rotulo nao encosta ao icone. */
+.kpi .label { padding-right: 34px; }
+/* Ecra vazio: icone e texto no mesmo eixo. */
+.empty { display: flex; flex-direction: column; align-items: center; }
+.empty svg { margin: 0 0 16px; }
+/* Separadores que continuam para a direita: esbatem na ponta. */
+.chip-row, .fam-tabs { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
+@media (max-width: 767px) {
+  .bnav-item { font-size: 12px; }
+  /* A pagina de dentro ja tem o nome na barra de cima: o titulo grande e so no computador. */
+  .admin-content.dentro .page-head h1 { display: none; }
+  .admin-content.dentro .page-head { margin-bottom: 8px; }
+  /* A pastilha «Estas quase» nao tapa o fim da pagina. */
+  .admin-content:has(.pp-pastilha) { padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px)); }
+}
+/* A caixa de procurar (tambem usada fora do EscolherCliente). */
+.ec-caixa { display: flex; align-items: center; gap: 8px; padding: 0 12px; min-height: 44px; border-radius: 10px; background: var(--elevated); border: 1px solid var(--border); color: var(--text-sec); }
+.ec-caixa:focus-within { border-color: var(--gold); }
+.ec-input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font-size: 15px; outline: none; }

@@ -307,13 +307,13 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, marginTop:-2 }}>
-                <label style={{ display:'flex', alignItems:'center', gap:9, cursor:'pointer', userSelect:'none' }}>
+              <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', justifyContent:'space-between', gap:'10px 12px', marginTop:-2 }}>
+                <label style={{ display:'flex', alignItems:'center', gap:9, cursor:'pointer', userSelect:'none', whiteSpace:'nowrap' }}>
                   <input type="checkbox" checked={lembrar} onChange={e => setLembrar(e.target.checked)}
-                         style={{ width:16, height:16, accentColor:GOLD, cursor:'pointer' }}/>
-                  <span style={{ fontSize:13, color:'#5A5A63' }}>Manter sessão iniciada</span>
+                         style={{ width:16, height:16, accentColor:GOLD, cursor:'pointer', flexShrink:0 }}/>
+                  <span style={{ fontSize:14, color:'#5A5A63' }}>Manter sessão iniciada</span>
                 </label>
-                <button type="button" className="cv-esqueci" onClick={() => setForgotOpen(true)}>
+                <button type="button" className="cv-esqueci" style={{ fontSize:14, whiteSpace:'nowrap' }} onClick={() => setForgotOpen(true)}>
                   Esqueceu-se da password?
                 </button>
               </div>
