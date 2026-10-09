@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ChevronRight, X, Scissors, Clock, Palette, Bell, Share2, Copy, ExternalLink, Rocket } from 'lucide-react';
+import { Check, X, Scissors, Clock, Palette, Bell, Share2, Copy, ExternalLink, Rocket } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import { DOMINIO_BASE } from '@/lib/designService';
 import { supabase } from '@/lib/supabase';
@@ -279,8 +279,8 @@ export default function PrimeirosPassos() {
           </div>
         )}
         <button type="button" className="pp-pastilha" onClick={() => setAberta(true)}>
-          <span>Estás quase! <ChevronRight size={15} /></span>
-          <b>{prontos}/{total}</b>
+          <span>Estás quase! →</span>
+          <b>({prontos}/{total})</b>
           <i><u style={{ width: `${Math.round((prontos / total) * 100)}%` }} /></i>
         </button>
       </>
@@ -298,29 +298,24 @@ export default function PrimeirosPassos() {
           </div>
         </div>
       )}
-      <section className={`pp${aPiscar ? ' pp-pisca' : ''}`} aria-label="Primeiros passos" ref={caixa}>
+      {/* A caixa e igual a da concorrencia, que o Diogo tem no telemovel ao
+          lado da nossa: «Estás quase!», uma lista com quadrados verdes, o
+          proximo passo com uma seta, e «Agora não» em baixo. Nada mais. No
+          telemovel abre no meio do ecra, por cima de tudo. */}
+      {telemovel && <div className="pp-veu" onClick={() => setAberta(false)} />}
+      <section className={`pp${aPiscar ? ' pp-pisca' : ''}${telemovel ? ' pp-modal' : ''}`} aria-label="Primeiros passos" ref={caixa}>
         <header className="pp-topo">
-          <div>
-            <h2 className="pp-h">Primeiros passos</h2>
-            <p className="pp-sub">
-              {falta === 1 ? 'Falta um passo para lançares a app.'
-                : `Faltam ${falta} passos para lançares a app.`}
-            </p>
-          </div>
-          <div className="pp-conta">
-            <span>{prontos} de {total}</span>
-            <div className="pp-barra"><i style={{ width: `${(prontos / total) * 100}%` }} /></div>
-          </div>
-          <button type="button" className="pp-fechar"
-            onClick={() => (telemovel ? setAberta(false) : esconder())}
-            aria-label={telemovel ? 'Fechar' : 'Esconder os primeiros passos'}>
-            <X size={16} />
-          </button>
+          <h2 className="pp-h">🚀 Estás quase! →</h2>
+          {!telemovel && (
+            <button type="button" className="pp-fechar" onClick={esconder} aria-label="Esconder os primeiros passos">
+              <X size={16} />
+            </button>
+          )}
         </header>
 
         <ul className="pp-lista">
-          {PASSOS.map(p => {
-            const Icone = p.icone;
+          {PASSOS.map((p, i) => {
+            const proximo = !p.feito && PASSOS.findIndex(x => !x.feito) === i;
             return (
               <li key={p.k} className={p.feito ? 'feito' : ''}>
                 {/* O tique é um botão à parte do resto da linha: carregar na
@@ -333,7 +328,7 @@ export default function PrimeirosPassos() {
                   aria-pressed={p.feito}
                   aria-label={p.feito ? `Marcar "${p.titulo}" como por fazer` : `Marcar "${p.titulo}" como feito`}
                 >
-                  {p.feito ? <Check size={14} strokeWidth={3} /> : <Icone size={15} />}
+                  {p.feito && <Check size={15} strokeWidth={3.5} />}
                 </button>
 
                 {/* So o titulo. A frase de ajuda por baixo de cada passo
@@ -345,15 +340,14 @@ export default function PrimeirosPassos() {
                   onClick={() => (p.accao === 'copiar' ? copiarLink() : navigate(p.to))}
                 >
                   <span className="pp-t">
-                    {p.accao === 'copiar' && copiado ? 'Link copiado.' : p.titulo}
+                    {proximo ? '→ ' : ''}{p.accao === 'copiar' && copiado ? 'Link copiado.' : p.titulo}
                   </span>
                 </button>
-
-                <span className="pp-seta" aria-hidden="true"><ChevronRight size={16} /></span>
               </li>
             );
           })}
         </ul>
+        <button type="button" className="pp-agora-nao" onClick={() => (telemovel ? setAberta(false) : esconder())}>Agora não</button>
       </section>
     </>
   );
@@ -378,25 +372,35 @@ const CSS = `
 }
 .pp-fechar:hover { color: var(--text); }
 
-.pp-lista { list-style: none; margin: 14px 0 0; padding: 0; }
+.pp-lista { list-style: none; margin: 10px 0 0; padding: 0; }
 .pp-lista li {
-  display: grid; grid-template-columns: 30px 1fr 16px; gap: 14px; align-items: center;
-  padding: 15px 0; border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: 26px 1fr; gap: 14px; align-items: center;
+  padding: 11px 0;
 }
 .pp-tique {
-  width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center;
-  border: 1px solid var(--border); background: var(--elevated); color: var(--text-sec);
+  width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center;
+  border: 1.5px solid var(--border); background: var(--elevated); color: #fff;
   cursor: pointer; padding: 0; transition: background .2s, color .2s, border-color .2s;
 }
-.pp-tique:hover { border-color: var(--gold); color: var(--gold); }
-.pp-lista li.feito .pp-tique { background: var(--gold); border-color: var(--gold); color: #111; }
+.pp-tique:hover { border-color: #22c55e; }
+.pp-lista li.feito .pp-tique { background: #22c55e; border-color: #22c55e; }
+.pp-agora-nao {
+  display: block; width: 100%; margin-top: 14px; min-height: 46px; border-radius: 12px;
+  border: 1px solid var(--border); background: transparent; color: var(--text); font: inherit; font-size: 15px; cursor: pointer;
+}
+.pp-veu { position: fixed; inset: 0; z-index: 85; background: rgba(0, 0, 0, .45); }
+.pp-modal {
+  position: fixed; z-index: 86; left: 16px; right: 16px; top: 50%; transform: translateY(-50%);
+  margin: 0; max-height: 80vh; overflow-y: auto; padding: 18px 18px 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+}
 .pp-linha {
   background: none; border: 0; padding: 0; text-align: left; cursor: pointer;
   font: inherit; color: inherit; min-width: 0;
 }
-.pp-t { display: block; font-size: 15px; font-weight: 600; }
+.pp-t { display: block; font-size: 16px; font-weight: 500; }
 .pp-a { display: block; font-size: 12.5px; color: var(--text-sec); margin-top: 2px; line-height: 1.4; }
-.pp-lista li.feito .pp-t { color: var(--text-sec); text-decoration: line-through; text-decoration-thickness: 1px; }
+.pp-lista li.feito .pp-t { color: var(--text); }
 .pp-lista li.feito .pp-a { display: none; }
 .pp-seta { color: var(--text-ter); display: grid; place-items: center; }
 .pp-lista li.feito .pp-seta { opacity: 0; }
