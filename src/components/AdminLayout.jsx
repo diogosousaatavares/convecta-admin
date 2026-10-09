@@ -110,6 +110,14 @@ const GROUPS_TODOS = [
    * neles de mes a mes; nao tem lugar numa barra que serve para trabalhar.
    */
   { type: 'group', label: 'Mais', icon: MoreHorizontal, items: [
+    /* «A barbearia» vem primeiro: e a casa dele, e o site e o que ele anda a
+       mostrar e a partilhar. A equipa e o stock vem depois. */
+    { titulo: 'A barbearia' },
+    { to: '/admin/o-meu-site', label: 'O meu site' },
+    { to: '/admin/redes-sociais', label: 'Redes sociais' },
+    { to: '/admin/relatorios', label: 'Relatórios' },
+    { to: '/admin/definicoes', label: 'Definições' },
+
     { titulo: 'A equipa' },
     { to: '/admin/profissionais', label: 'Profissionais' },
     { to: '/admin/profissionais/equipa', label: 'Equipa e acessos' },
@@ -132,12 +140,6 @@ const GROUPS_TODOS = [
     { to: '/admin/packs', label: 'Packs' },
     { to: '/admin/agenda/pack', label: 'Pack mensal' },
     { to: '/admin/promocoes', label: 'Promoções e cupões' },
-
-    { titulo: 'A barbearia' },
-    { to: '/admin/o-meu-site', label: 'O meu site' },
-    { to: '/admin/redes-sociais', label: 'Redes sociais' },
-    { to: '/admin/relatorios', label: 'Relatórios' },
-    { to: '/admin/definicoes', label: 'Definições' },
 
     { titulo: 'A Convecta' },
     { to: '/admin/subscricao', label: 'A minha subscrição' }
@@ -318,6 +320,24 @@ export default function AdminLayout({ children }) {
   const grupos = gruposPara(emDemo, data.isProfissional);
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  /*
+   * O hamburguer so existe no computador, onde serve para encolher a barra
+   * lateral. Ja estava escondido por CSS; passa a nao ser DESENHADO, porque
+   * esconder por CSS depende de o CSS novo ter chegado ao browser — e a
+   * pergunta «porque e que ainda la esta?» e sempre essa.
+   *
+   * Ouve o redimensionamento: rodar o telemovel ou abrir as ferramentas do
+   * browser muda a largura, e uma leitura feita so a entrada ficava errada
+   * para o resto da sessao.
+   */
+  const [noComputador, setNoComputador] = useState(
+    () => typeof window === 'undefined' || window.innerWidth >= 768,
+  );
+  useEffect(() => {
+    const ver = () => setNoComputador(window.innerWidth >= 768);
+    window.addEventListener('resize', ver);
+    return () => window.removeEventListener('resize', ver);
+  }, []);
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [supportOpen, setSupportOpen] = useState(false);
@@ -531,14 +551,13 @@ export default function AdminLayout({ children }) {
         )}
         <div className="admin-topbar">
           <div className="admin-topbar-left">
-            {/* So no computador: aqui o botao encolhe e abre a barra lateral.
-                No telemovel esta escondido — a gaveta abre-se pelo «Mais», na
-                barra de baixo, e duas portas para a mesma sala e uma a mais. */}
-            <button className="btn btn-ghost btn-icon admin-topbar-hamburger"
-              onClick={() => setCollapsed(value => !value)}
-              aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'} aria-expanded={!collapsed}>
-              <Menu size={20} />
-            </button>
+            {noComputador && (
+              <button className="btn btn-ghost btn-icon admin-topbar-hamburger"
+                onClick={() => setCollapsed(value => !value)}
+                aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'} aria-expanded={!collapsed}>
+                <Menu size={20} />
+              </button>
+            )}
             {data.business?.logo
               ? <img className="admin-topbar-logo" src={data.business.logo} alt={data.business.name} style={{ height: 30, width: 'auto', maxWidth: 140, objectFit: 'contain' }} />
               : <span className="fw-600">{data.business?.name || 'Convecta'}</span>
@@ -576,11 +595,13 @@ export default function AdminLayout({ children }) {
             </button>
           </div>
         </div>
-        {/* O endereco da barbearia, logo por baixo da barra e em todas as
-            paginas. E a coisa que ele mais vai partilhar — no Instagram, no
-            WhatsApp, ao balcao — e estava so no Dashboard: quem passava o dia
-            na Agenda tinha de o ir procurar, e por isso nao o partilhava. */}
-        <LinkDaBarbearia />
+        {/* A FAIXA DO LINK vive no «O meu site», e so la.
+            Esteve em todas as paginas, e a razao era boa: e a coisa que ele
+            mais partilha e no Dashboard ninguem a encontrava. Mas uma faixa
+            fixa em todos os ecras e uma linha que ele ve cem vezes por dia e
+            usa uma — e ao telemovel rouba uma linha inteira a agenda. Fica
+            onde o assunto e o site dele. */}
+        {location.pathname === '/admin/o-meu-site' && <LinkDaBarbearia />}
 
         {/* As notificacoes pedem-se em todas as paginas, nao so na de
             Marcacoes: quem entra na Agenda e fica por la nunca era sequer

@@ -920,16 +920,12 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
             <div style={{fontSize:14,color:T2,lineHeight:1.55}}>{telemovel?'Toca numa peça do telemóvel acima e depois em «Editar». Ou escolhe as cores aqui em baixo. ':''}É exatamente o editor que tens no teu painel. Muda à vontade: nada do que fizeres aqui é gravado.</div>
           </Card>
         ):(
-        <Card style={{padding:'18px 20px'}}>
-          <div style={{fontSize:14,color:T2,fontWeight:600,marginBottom:10}}>Link para dar ao cliente</div>
-          <div style={{display:'flex',gap:10,alignItems:'center'}}>
-            <div style={{flex:1,padding:'10px 13px',borderRadius:10,background:W2,border:`1px solid ${BD}`,
-              fontFamily:'monospace',fontSize:14,color:T,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-              https://{endereco}
-            </div>
-            <Btn v="secondary" onClick={copiar} style={{flexShrink:0}}>{copiado?'Copiado':'Copiar'}</Btn>
-          </div>
-        </Card>
+        /* O cartao do link saiu daqui: a faixa do painel — a mesma que estava
+           no topo de todas as paginas — passou a aparecer nesta pagina e so
+           nesta, e faz mais do que este cartao fazia (copiar, partilhar e
+           abrir). Duas caixas com o mesmo endereco no mesmo ecra e uma a
+           mais. */
+        null
         )}
 
         {/* Eram sete separadores em duas linhas de quatro ao telemovel, porque
