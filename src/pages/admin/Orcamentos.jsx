@@ -48,6 +48,7 @@ export default function Orcamentos() {
   const bid = data.business?.id;
   const [pedidos, setPedidos] = useState(null);
   const [recarregar, setRecarregar] = useState(0);
+  const [aberto, setAberto] = useState(null);
 
   useEffect(() => {
     let vivo = true;
@@ -88,12 +89,14 @@ export default function Orcamentos() {
             {respondidos.map(p => {
               const e = ESTADOS[p.estado] || { etiqueta: p.estado, cor: 'default' };
               return (
-                <div key={p.id} style={{ border: '1px solid var(--border)', borderRadius: 12, padding: '12px 14px' }}>
+                <div key={p.id} role="button" tabIndex={0} onClick={() => setAberto(x => x === p.id ? null : p.id)} onKeyDown={ev => { if (ev.key === 'Enter') setAberto(x => x === p.id ? null : p.id); }}
+                  style={{ border: '1px solid var(--border)', borderRadius: 12, padding: '12px 14px', cursor: 'pointer' }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
                     <b style={{ fontSize: 15 }}>{p.cliente}</b>
                     <span className="text-sec text-sm">{p.servico}</span>
                     <span style={{ marginLeft: 'auto' }}><Badge variant={e.cor}>{e.etiqueta}</Badge></span>
                   </div>
+                  {aberto === p.id && <>
                   <div className="text-sec text-sm" style={{ marginTop: 5 }}>
                     Pedido a {quando(p.criadoEm)}
                     {p.minutos ? ` · ${tempo(p.minutos)}` : ''}
@@ -102,6 +105,7 @@ export default function Orcamentos() {
                   {p.descricao && (
                     <p className="text-sec text-sm" style={{ marginTop: 5 }}>«{p.descricao}»</p>
                   )}
+                  </>}
                 </div>
               );
             })}

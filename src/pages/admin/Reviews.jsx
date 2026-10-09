@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Star, Trash2, Eye, EyeOff, MessageSquare } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
-import { Card, Badge, Avatar, Button, EmptyState, Stars } from '@/components/ui';
+import { Card, Avatar, Button, EmptyState, Stars, Modal } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
@@ -13,6 +13,7 @@ export default function Reviews() {
   const [proFilter, setProFilter] = useState('all');
   const [ratingFilter, setRatingFilter] = useState('all');
   const [delId, setDelId] = useState(null);
+  const [aberta, setAberta] = useState(null);
 
   const reviews = useMemo(() => {
     return [...data.reviews]
@@ -83,35 +84,44 @@ export default function Reviews() {
         {reviews.length === 0 ? (
           <EmptyState icon={() => <Star />} title="Sem avaliações" />
         ) : (
-          <div className="flex-col gap-12">
+          <div className="av-lista">
             {reviews.map(r => {
               const cust = data.customers.find(c => c.id === r.customerId);
-              const pro = data.professionals.find(p => p.id === r.professionalId);
               return (
-                <div key={r.id} className="flex items-start gap-12" style={{ padding: '14px 0', borderBottom: '1px solid var(--border)' }}>
+                <button type="button" key={r.id} className="av-linha" onClick={() => setAberta(r)}>
                   <Avatar name={cust?.name} />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-8" style={{ flexWrap: 'wrap' }}>
-                      <span className="fw-600 text-sm">{cust?.name || 'Cliente'}</span>
-                      <Stars rating={r.rating} size={14} />
-                      <Badge variant="default">{pro?.name || '—'}</Badge>
-                      {!r.isVisible ? <Badge variant="warning">Por ler</Badge> : <Badge variant="default">Arquivada</Badge>}
-                    </div>
-                    {r.comment ? <p className="text-sec text-sm mt-8">{r.comment}</p> : <p className="text-sec text-sm mt-8" style={{ fontStyle: 'italic' }}>Sem comentário — só estrelas.</p>}
-                    <span className="text-sec text-xs">{formatDate(r.date || (r.createdAt || '').slice(0, 10))}</span>
-                  </div>
-                  <div className="flex gap-8">
-                    <button className="btn btn-ghost btn-icon" aria-label={r.isVisible ? 'Marcar por ler' : 'Arquivar avaliação'} onClick={() => toggleVisible(r)} title={r.isVisible ? 'Marcar por ler' : 'Arquivar (já li)'}>
-                      {r.isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                    <button className="btn btn-ghost btn-icon" aria-label="Eliminar avaliação" onClick={() => setDelId(r.id)} title="Eliminar avaliação"><Trash2 size={16} /></button>
-                  </div>
-                </div>
+                  <span className="av-nome">{cust?.name || 'Cliente'}</span>
+                  <Stars rating={r.rating} size={15} />
+                  {!r.isVisible && <i className="av-ponto" aria-label="Por ler" />}
+                </button>
               );
             })}
           </div>
         )}
       </Card>
+
+      {/* A linha so diz quem e quantas estrelas. O resto — o comentario, o
+          barbeiro, a data, arquivar e apagar — esta aqui, ao tocar. */}
+      {aberta && (() => {
+        const r = data.reviews.find(x => x.id === aberta.id) || aberta;
+        const cust = data.customers.find(c => c.id === r.customerId);
+        const pro = data.professionals.find(p => p.id === r.professionalId);
+        return (
+          <Modal open onClose={() => setAberta(null)} title="">
+            <div className="av-ficha">
+              <Avatar name={cust?.name} size="lg" />
+              <div className="av-ficha-nome">{cust?.name || 'Cliente'}</div>
+              <Stars rating={r.rating} size={22} />
+              <div className="av-ficha-meta">{pro?.name || '—'} · {formatDate(r.date || (r.createdAt || '').slice(0, 10))}</div>
+              {r.comment ? <p className="av-ficha-texto">«{r.comment}»</p> : <p className="av-ficha-texto" style={{ fontStyle: 'italic', color: 'var(--text-ter)' }}>Só estrelas.</p>}
+              <div className="av-ficha-botoes">
+                <Button variant="secondary" onClick={() => toggleVisible(r)}>{r.isVisible ? <><EyeOff size={15} /> Marcar por ler</> : <><Eye size={15} /> Arquivar</>}</Button>
+                <Button variant="ghost" onClick={() => { setAberta(null); setDelId(r.id); }}><Trash2 size={15} /> Eliminar</Button>
+              </div>
+            </div>
+          </Modal>
+        );
+      })()}
 
       {delId && (
         <div className="modal-overlay" onClick={() => setDelId(null)}>
@@ -125,3 +135,23 @@ export default function Reviews() {
     </AdminLayout>
   );
 }
+
+const CSS_AV = `
+.av-lista { display: flex; flex-direction: column; }
+.av-linha {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 8px 4px;
+  border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); text-align: left; cursor: pointer;
+}
+.av-linha:last-child { border-bottom: 0; }
+.av-nome { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.av-ponto { width: 9px; height: 9px; border-radius: 999px; background: var(--warning); flex-shrink: 0; }
+.av-ficha { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 6px 0 2px; }
+.av-ficha-nome { font-size: 20px; font-weight: 700; }
+.av-ficha-meta { font-size: 13.5px; color: var(--text-sec); }
+.av-ficha-texto { font-size: 16px; line-height: 1.5; margin: 10px 0 6px; }
+.av-ficha-botoes { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+`;
+if (typeof document !== 'undefined' && !document.getElementById('css-av')) {
+  const st = document.createElement('style'); st.id = 'css-av'; st.textContent = CSS_AV; document.head.appendChild(st);
+}
+

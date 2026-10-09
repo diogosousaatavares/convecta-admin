@@ -76,6 +76,7 @@ export default function AdminAppointments() {
   const [filter, setFilter] = useState('all');
   const [scope, setScope] = useState('all');
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [detalhe, setDetalhe] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [checkout, setCheckout] = useState(null);
   // A avaliação de um corte, se o cliente já a tiver deixado.
@@ -166,28 +167,15 @@ export default function AdminAppointments() {
             marcacao: hora, nome, servico, estado, e os botoes. */}
         <div className="so-telemovel mrc-lista">
           {appts.map(a => {
-            const svc = data.services.find(s => s.id === a.serviceId);
             const cust = data.customers.find(c => c.id === a.customerId);
             const blocked = a.blocked || a.status === 'blocked';
-            const statusLabel = blocked ? 'Bloqueado' : a.status === 'confirmed' ? 'Confirmada' : a.status === 'completed' ? 'Concluída' : a.status === 'cancelled' ? 'Cancelada' : 'Pendente';
-            const badgeVariant = blocked ? 'default' : a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success';
+            const cor = blocked ? 'var(--text-ter)' : a.status === 'pending' ? 'var(--warning)' : a.status === 'cancelled' ? 'var(--error)' : a.status === 'completed' ? 'var(--text-ter)' : 'var(--success)';
             return (
-              <div key={a.id} className="mrc-linha">
+              <button type="button" key={a.id} className="mrc-linha" onClick={() => setDetalhe(a)}>
                 <div className="mrc-quando"><b>{a.startTime}</b><span>{formatDateShortNum(a.date)}</span></div>
-                <div className="mrc-quem">
-                  <b>{blocked ? (a.label || 'Bloqueado') : (cust?.name || '—')}</b>
-                  <span>{blocked ? '' : (svc?.name || '')}</span>
-                </div>
-                <div className="mrc-fim">
-                  <Badge variant={badgeVariant}>{statusLabel}</Badge>
-                  <div className="flex gap-8">
-                    {!blocked && a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)} title="Confirmar"><CheckCircle2 size={14} /></Button>}
-                    {!blocked && a.status === 'confirmed' && <Button size="sm" variant="primary" onClick={() => setCheckout(a.id)} title="Concluir e cobrar"><CheckCircle2 size={14} /></Button>}
-                    {!blocked && a.status !== 'cancelled' && a.status !== 'completed' && <Button size="sm" variant="secondary" onClick={() => setCancelTarget(a)} title="Cancelar"><XCircle size={14} /></Button>}
-                    <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(a)} title="Eliminar"><Trash2 size={14} /></Button>
-                  </div>
-                </div>
-              </div>
+                <b className="mrc-nome">{blocked ? (a.label || 'Bloqueado') : (cust?.name || '—')}</b>
+                <i className="mrc-estado" style={{ background: cor }} />
+              </button>
             );
           })}
         </div>
@@ -246,6 +234,45 @@ export default function AdminAppointments() {
         </>
       )}
 
+      {/* A linha so diz a hora, o nome e uma cor. O resto esta aqui, ao tocar. */}
+      {detalhe && (() => {
+        const a = data.appointments.find(x => x.id === detalhe.id) || detalhe;
+        const svc = data.services.find(s => s.id === a.serviceId);
+        const cust = data.customers.find(c => c.id === a.customerId);
+        const pro = data.professionals.find(p => p.id === a.professionalId);
+        const blocked = a.blocked || a.status === 'blocked';
+        const statusLabel = blocked ? 'Bloqueado' : a.status === 'confirmed' ? 'Confirmada' : a.status === 'completed' ? 'Concluída' : a.status === 'cancelled' ? 'Cancelada' : 'Pendente';
+        const badgeVariant = blocked ? 'default' : a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success';
+        const mb = dataService.mbwayDe?.(a.id);
+        const av = avaliacaoDe(a.id);
+        return (
+          <Modal open onClose={() => setDetalhe(null)} title="">
+            <div className="mrc-ficha">
+              <div className="mrc-ficha-nome">{blocked ? (a.label || 'Bloqueado') : (cust?.name || '—')}</div>
+              <div className="mrc-ficha-hora">{formatDateShortNum(a.date)} · {a.startTime}</div>
+              <div className="mrc-ficha-etiq">
+                <Badge variant={badgeVariant}>{statusLabel}</Badge>
+                {a.usaRecompensa && <Badge variant="gold">🎁 Grátis</Badge>}
+                {a.usaPack && <Badge variant="gold">Pack mensal</Badge>}
+                {mb && <Badge variant={mb.estado === 'pago' ? 'success' : 'warning'}>{mb.estado === 'pago' ? 'Pago MB WAY' : 'MB WAY por confirmar'}</Badge>}
+              </div>
+              <div className="mrc-ficha-dados">
+                {!blocked && <div><span>Serviço</span><b>{svc?.name || '—'}</b></div>}
+                <div><span>Barbeiro</span><b>{pro?.name || '—'}</b></div>
+                {a.bookingRef && <div><span>Ref.</span><b>{a.bookingRef}</b></div>}
+                {av && <div><span>Avaliação</span><b style={{ color: 'var(--gold-tinta)' }}><Star size={13} fill="currentColor" /> {av.rating}{av.comment ? ` · «${av.comment}»` : ''}</b></div>}
+              </div>
+              <div className="mrc-ficha-botoes">
+                {!blocked && a.status === 'pending' && <Button variant="primary" onClick={() => { confirm(a.id); setDetalhe(null); }}><CheckCircle2 size={15} /> Confirmar</Button>}
+                {!blocked && a.status === 'confirmed' && <Button variant="primary" onClick={() => { setDetalhe(null); setCheckout(a.id); }}><CheckCircle2 size={15} /> Concluir e cobrar</Button>}
+                {!blocked && a.status !== 'cancelled' && a.status !== 'completed' && <Button variant="secondary" onClick={() => { setDetalhe(null); setCancelTarget(a); }}><XCircle size={15} /> Cancelar</Button>}
+                <Button variant="ghost" onClick={() => { setDetalhe(null); setDeleteTarget(a); }}><Trash2 size={15} /> Eliminar</Button>
+              </div>
+            </div>
+          </Modal>
+        );
+      })()}
+
       <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Eliminar marcação"
         footer={<><Button variant="ghost" onClick={() => setDeleteTarget(null)}>Cancelar</Button><Button variant="danger" onClick={remove}>Eliminar</Button></>}>
         <p className="text-sec">Eliminar permanentemente a marcação <span className="text-gold fw-600">{deleteTarget?.bookingRef}</span>?</p>
@@ -289,18 +316,26 @@ export default function AdminAppointments() {
 }
 
 const CSS_MRC = `
-.mrc-lista { display: flex; flex-direction: column; gap: 8px; }
+.mrc-lista { display: flex; flex-direction: column; }
 .mrc-linha {
-  display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; align-items: center;
-  padding: 10px 12px; border-radius: 12px; background: var(--elevated); border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 8px 4px;
+  border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); text-align: left; cursor: pointer;
 }
-.mrc-quando { display: flex; flex-direction: column; line-height: 1.2; }
+.mrc-quando { display: flex; flex-direction: column; line-height: 1.2; width: 52px; flex-shrink: 0; }
 .mrc-quando b { font-size: 15px; }
 .mrc-quando span { font-size: 11.5px; color: var(--text-ter); }
-.mrc-quem { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
-.mrc-quem b { font-size: 14.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mrc-quem span { font-size: 12.5px; color: var(--text-sec); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mrc-fim { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.mrc-nome { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mrc-estado { width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0; }
+.mrc-ficha { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+.mrc-ficha-nome { font-size: 20px; font-weight: 700; }
+.mrc-ficha-hora { font-size: 15px; color: var(--text-sec); }
+.mrc-ficha-etiq { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.mrc-ficha-dados { width: 100%; margin-top: 8px; border-radius: 14px; background: var(--elevated); border: 1px solid var(--border); overflow: hidden; text-align: left; }
+.mrc-ficha-dados > div { display: flex; justify-content: space-between; gap: 12px; min-height: 46px; align-items: center; padding: 0 14px; border-bottom: 1px solid var(--border); font-size: 15px; }
+.mrc-ficha-dados > div:last-child { border-bottom: 0; }
+.mrc-ficha-dados span { color: var(--text-sec); flex-shrink: 0; }
+.mrc-ficha-dados b { font-weight: 600; text-align: right; }
+.mrc-ficha-botoes { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
 `;
 if (typeof document !== 'undefined' && !document.getElementById('css-mrc')) {
   const st = document.createElement('style'); st.id = 'css-mrc'; st.textContent = CSS_MRC; document.head.appendChild(st);

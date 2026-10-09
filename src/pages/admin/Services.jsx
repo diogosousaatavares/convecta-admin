@@ -86,7 +86,7 @@ export default function Services() {
           </div>
         <div className="grid-2">
           {g.servicos.map(s => (
-            <Card key={s.id} className="card-pad card-hover">
+            <Card key={s.id} className="card-pad card-hover" onClick={() => openEdit(s)} style={{ cursor: 'pointer' }}>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-8">
                   <h3 style={{ fontSize: 18 }}>{s.name}</h3>
@@ -96,14 +96,14 @@ export default function Services() {
                 <span style={{ fontFamily: 'var(--font-head)', fontSize: s.orcamento ? 15 : 22, color: 'var(--gold-tinta)' }}>
                   {s.orcamento ? 'Sob orçamento' : formatPrice(s.price)}</span>
               </div>
-              <p className="text-sec text-sm mt-8">{s.description}</p>
-              <div className="flex items-center justify-between mt-16">
+              <p className="text-sec text-sm mt-8 so-pc">{s.description}</p>
+              <div className="flex items-center justify-between mt-16 so-pc">
                 <div className="flex gap-12 text-sec text-xs">
                   <span>{s.orcamento ? 'tempo a combinar' : `${s.durationMinutes} min`}</span>{s.category ? <><span>·</span><span>{s.category}</span></> : null}
                 </div>
                 <div className="flex gap-8">
-                  <Button size="sm" variant="secondary" aria-label="Editar serviço" title="Editar serviço" onClick={() => openEdit(s)}><Pencil size={14} /></Button>
-                  <Button size="sm" variant="ghost" aria-label="Eliminar serviço" title="Eliminar serviço" onClick={() => setDeleteTarget(s)}><Trash2 size={14} /></Button>
+                  <Button size="sm" variant="secondary" aria-label="Editar serviço" title="Editar serviço" onClick={e => { e.stopPropagation(); openEdit(s); }}><Pencil size={14} /></Button>
+                  <Button size="sm" variant="ghost" aria-label="Eliminar serviço" title="Eliminar serviço" onClick={e => { e.stopPropagation(); setDeleteTarget(s); }}><Trash2 size={14} /></Button>
                 </div>
               </div>
             </Card>
@@ -114,7 +114,7 @@ export default function Services() {
       )}
 
       <Modal open={!!editing} onClose={close} title={editing === 'new' ? 'Novo serviço' : 'Editar serviço'}
-        footer={<><Button variant="ghost" onClick={close}>Cancelar</Button><Button variant="primary" onClick={save}>Guardar</Button></>}>
+        footer={<>{editing && editing !== 'new' && <Button variant="ghost" className="so-telemovel" onClick={() => { const alvo = data.services.find(x => x.id === editing); close(); if (alvo) setDeleteTarget(alvo); }}><Trash2 size={14} /></Button>}<Button variant="ghost" onClick={close}>Cancelar</Button><Button variant="primary" onClick={save}>Guardar</Button></>}>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
         <div className="field"><label className="label">Descrição</label><textarea className="textarea" rows={2} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
         <div className="grid-2">
