@@ -274,7 +274,7 @@ const CSS = `
   min-height: 100vh; background: var(--cvF); color: var(--cvI);
   padding: 32px 16px calc(40px + env(safe-area-inset-bottom, 0px));
 }
-.arr-folha { max-width: 580px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+.arr-folha { width: 100%; min-width: 0; box-sizing: border-box; max-width: 580px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
 
 .arr-topo { text-align: center; margin-bottom: 6px; }
 /* Este ecra e sempre claro, mesmo com o painel em modo escuro — por isso o

@@ -2772,3 +2772,9 @@ html.theme-light .admin-content .bp-tab.active { background: var(--text); color:
 body { font-variant-numeric: lining-nums; }
 @media (max-width: 767px) { .bnav-item { font-size: 11.5px; letter-spacing: -.01em; } }
 @media (max-width: 767px) { .kpi-grid > .kpi-largo { grid-column: 1 / -1; } }
+
+/* Nenhum filho do conteudo pode ser mais largo do que o ecra. Num flex em
+   coluna, um filho com «margin: 0 auto» deixa de esticar e mede-se pelo que
+   tem dentro — uma linha que nao parte (um link, um email) alargava a pagina
+   toda e cortava a direita. */
+.admin-content > * { min-width: 0; }

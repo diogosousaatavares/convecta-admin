@@ -113,7 +113,8 @@ export default function Mais() {
 }
 
 const CSS = `
-.mais { max-width: 560px; margin: 0 auto; }
+.mais { width: 100%; max-width: 560px; min-width: 0; margin: 0 auto; box-sizing: border-box; }
+.mais-topo, .mais-bloco, .mais-caixa, .mais-link { min-width: 0; max-width: 100%; }
 
 .mais-topo { text-align: center; padding: 6px 0 26px; }
 .mais-logo {
@@ -127,7 +128,8 @@ const CSS = `
 .mais-link { margin-top: 16px; text-align: left; }
 .mais-link .link-faixa { width: 100% !important; max-width: 100% !important; margin: 0 !important; box-sizing: border-box;
   border-radius: 14px; border: 1px solid var(--border); background: var(--surface); padding: 6px 6px 6px 16px !important; gap: 6px !important; }
-.mais-link .link-faixa-endereco { font-size: 15px; }
+.mais-link .link-faixa-endereco { font-size: 15px; flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mais-link .link-faixa-btn, .mais-link .link-faixa-ico { flex-shrink: 0; }
 .mais-link .link-faixa-btn, .mais-link .link-faixa-ico { width: 40px; height: 40px; min-height: 40px; padding: 0 !important; justify-content: center; border-radius: 12px; }
 .mais-link .link-faixa-btn { background: var(--text); color: var(--surface); }
 .mais-link .link-faixa-ico { border-color: var(--border); color: var(--text); }
