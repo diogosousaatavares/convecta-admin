@@ -2701,15 +2701,3 @@ html:not(.theme-light) .marca-escuro { display: block !important; }
 /* Tres numeros em duas colunas deixavam um buraco: o ultimo ocupa a linha. */
 @media (max-width: 767px) { .kpi-grid > .kpi:nth-child(odd):last-child { grid-column: 1 / -1; } }
 
-/* ── A entrada da pagina, no telemovel ───────────────────────────────────
-   Aba: sobe um nada e aparece. Dentro: vem da direita. Volta: vem da
-   esquerda. Curva de sair depressa e assentar devagar. */
-@media (max-width: 767px) {
-  .pagina-entra { animation: pg-aba 240ms cubic-bezier(.22, 1, .36, 1) both; will-change: transform, opacity; }
-  .pagina-entra.dentro { animation-name: pg-dentro; animation-duration: 280ms; }
-  .pagina-entra.volta { animation-name: pg-volta; animation-duration: 260ms; }
-}
-@keyframes pg-aba { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes pg-dentro { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
-@keyframes pg-volta { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .pagina-entra { animation: none !important; } }
