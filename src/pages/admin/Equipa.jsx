@@ -202,10 +202,16 @@ const CSS_QVQ = `
 /* Tres colunas fixas, e nao uma tabela que se arrasta de lado: as pastilhas
    tem de ficar uma debaixo da outra, porque e a coluna que se le, nao a
    linha. */
-.qvq { display: grid; grid-template-columns: 1fr 150px 150px; }
+/* Travada em 760px. Sem isto, num ecra largo a coluna dos nomes esticava e
+   as pastilhas iam parar ao canto direito, a dois palmos do nome a que
+   pertencem — e uma tabela que se le por linha nao pode ter a linha
+   partida ao meio por espaco vazio. */
+.qvq { display: grid; grid-template-columns: minmax(0, 1fr) 150px 150px; max-width: 760px; }
 .qvq-cab, .qvq-linha { display: contents; }
 .qvq-cab > span {
-  padding: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .07em;
+  /* Com ar por cima: colado ao titulo, o «AREA» lia-se como se fizesse
+     parte dele. */
+  padding: 4px 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .07em;
   text-transform: uppercase; color: var(--text-ter);
   display: flex; align-items: center; gap: 6px;
   border-bottom: 1px solid var(--border);

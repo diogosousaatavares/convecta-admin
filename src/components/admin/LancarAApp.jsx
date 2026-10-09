@@ -40,7 +40,9 @@ export default function LancarAApp({ onIr }) {
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <button type="button" className={`laa${feito ? ' laa-feito' : ''}`} onClick={ir}
         title={feito ? 'Partilha o link' : falta === 1 ? 'Falta um passo' : `Faltam ${falta} passos`}>
-        <span className="laa-foguete" aria-hidden="true">🚀</span>
+        {/* O numero viaja no proprio elemento: encolhida, a barra le-o com
+            attr() e desenha-o por cima do foguete. */}
+        <span className="laa-foguete" aria-hidden="true" data-conta={`${prontos}/${total}`}>🚀</span>
         <span className="laa-meio">
           <span className="laa-nome">{feito ? 'A tua app está pronta' : 'Lança a tua app'}</span>
           <span className="laa-barra-linha">
@@ -88,4 +90,30 @@ const CSS = `
 }
 .laa-seta { flex-shrink: 0; color: var(--text-ter); }
 .laa-feito { border-color: var(--gold); }
+
+/*
+ * COM A BARRA ENCOLHIDA (72px) fica so o foguete.
+ *
+ * O resto da barra ja faz isto — os itens do menu passam a letra de tamanho zero e
+ * centram o icone —, mas este botao nao sabia dessa regra: ficava com a
+ * largura toda, com o nome cortado a meio («Lanca a t...») e a barra do
+ * progresso espremida. O numero vai para cima do foguete, num circulo
+ * pequeno, porque e a unica coisa que ali ainda cabe e diz alguma coisa.
+ */
+.admin-sidebar.collapsed .laa {
+  grid-template-columns: 1fr; justify-items: center;
+  width: 46px; margin-left: 13px; margin-right: 13px; padding: 6px;
+  border-radius: 999px; background: transparent; border-color: transparent;
+}
+.admin-sidebar.collapsed .laa-meio,
+.admin-sidebar.collapsed .laa-seta { display: none; }
+.admin-sidebar.collapsed .laa-foguete { position: relative; }
+.admin-sidebar.collapsed .laa-foguete::after {
+  content: attr(data-conta);
+  position: absolute; right: -4px; bottom: -4px;
+  min-width: 20px; height: 20px; padding: 0 4px; border-radius: 999px;
+  display: grid; place-items: center;
+  background: var(--text); color: var(--bg);
+  font-size: 10.5px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
 `;
