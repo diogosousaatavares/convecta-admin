@@ -55,7 +55,7 @@ export default function Suppliers() {
                 <div className="text-xs text-sec mt-8">{s.email && <div>{s.email}</div>}{s.phone && <div>{s.phone}</div>}</div>
                 <div className="flex gap-8 mt-16">
                   <Button size="sm" variant="secondary" block onClick={() => openEdit(s)}><Edit size={14} /> Editar</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setDelId(s.id)}><Trash2 size={14} /></Button>
+                  <Button size="sm" variant="ghost" onClick={() => setDelId(s.id)}><Trash2 size={14} /> Eliminar</Button>
                 </div>
               </Card>
             );

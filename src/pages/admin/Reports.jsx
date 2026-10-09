@@ -231,20 +231,25 @@ export default function Reports() {
 
       {/* Top services */}
       <Card className="card-pad">
-        <h3 style={{ fontSize: 17, marginBottom: 16 }}>Top 5 serviços (por receita)</h3>
+        <h3 style={{ fontSize: 17, marginBottom: 16 }}>Top 5 serviços</h3>
         {byService.length === 0 ? (
             <EmptyState title="Sem dados" />
         ) : (
-          <div className="chart-box">
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={byService} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--linha-grafico)" />
-                <XAxis dataKey="name" tick={{ fill: 'var(--text-ter)', fontSize: 13.5 }} interval={0} angle={-12} textAnchor="end" height={50} />
-                <YAxis tick={{ fill: 'var(--text-ter)', fontSize: 13.5 }} tickFormatter={(v) => `${v}€`} />
-                <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)' }} formatter={(v) => formatPrice(v)} />
-                {byService.map((_, i) => <Bar key={i} dataKey="receita" fill={PALETTE[i % PALETTE.length]} radius={[6,6,0,0]} barSize={36} />)}
-              </BarChart>
-            </ResponsiveContainer>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {byService.map((s, i) => {
+              const max = Math.max(...byService.map(x => x.receita), 1);
+              return (
+                <div key={s.name}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 15, marginBottom: 4 }}>
+                    <span style={{ fontWeight: 600, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i + 1}. {s.name}</span>
+                    <b style={{ flexShrink: 0 }}>{formatPrice(s.receita)}</b>
+                  </div>
+                  <div style={{ height: 8, borderRadius: 999, background: 'var(--border)', overflow: 'hidden' }}>
+                    <div style={{ width: `${(s.receita / max) * 100}%`, height: '100%', background: 'var(--gold)', borderRadius: 999 }} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </Card>

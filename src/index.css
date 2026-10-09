@@ -244,7 +244,7 @@ input, textarea, select { font-family: inherit; }
 .notif-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 6px rgba(var(--gold-rgb),0.6); flex-shrink: 0; }
 .chart-box { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .chart-box .recharts-default-tooltip { border-radius: 8px; }
-@media (max-width: 767px) { .chart-box .recharts-wrapper { min-width: 300px; } }
+@media (max-width: 767px) { .chart-box { overflow-x: auto; } .chart-box .recharts-wrapper { min-width: 260px; } .chart-box .recharts-responsive-container { min-width: 0; } }
 
 /* ===== AGENDA (split view) ===== */
 .agenda-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: stretch; width: 100%; }
@@ -521,13 +521,13 @@ input, textarea, select { font-family: inherit; }
 }
 .link-faixa-btn {
   flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px;
-  padding: 7px 14px; border-radius: 999px; cursor: pointer;
+  padding: 0 16px; min-height: 44px; border-radius: 999px; cursor: pointer;
   background: var(--gold); color: var(--on-gold); border: none;
   font: inherit; font-size: 14.5px; font-weight: 700;
 }
 .link-faixa-ico {
   flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 999px; cursor: pointer;
+  width: 44px; height: 44px; border-radius: 999px; cursor: pointer;
   background: transparent; border: 1px solid var(--border);
   color: var(--text-sec); text-decoration: none;
 }
@@ -2161,7 +2161,7 @@ html.theme-light .page-info-popover { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12)
 .agm-titulo {
   font-family: var(--font-head);
   font-size: 22px; font-weight: 600; letter-spacing: 0;
-  line-height: 1.05; color: var(--text); margin: 0;
+  line-height: 1.05; color: var(--text); margin: 0; white-space: nowrap;
 }
 .agm-mes { margin: 2px 0 0; font-size: 16px; color: var(--text-sec); }
 .agm-nav { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding-top: 4px; }
@@ -2767,3 +2767,8 @@ html.theme-light .admin-content .bp-tab.active { background: var(--text); color:
 .admin-content .btn-sm { font-size: 14px; }
 /* Cartões com o mesmo raio. */
 .admin-content .card, .admin-content .res-num, .admin-content .cli-lista > div, .admin-content .mais-caixa { border-radius: var(--radius-card); }
+.loyalty-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.loyalty-toggle-row input[type="checkbox"] { width: 22px; height: 22px; flex-shrink: 0; accent-color: var(--gold); }
+body { font-variant-numeric: lining-nums; }
+@media (max-width: 767px) { .bnav-item { font-size: 11.5px; letter-spacing: -.01em; } }
+@media (max-width: 767px) { .kpi-grid > .kpi-largo { grid-column: 1 / -1; } }

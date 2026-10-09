@@ -99,7 +99,7 @@ export default function ServiceCategories() {
         ) : (
           <div className="flex-col gap-8">
             {categorias.map((c, i) => (
-              <div key={c} className="flex items-center gap-12" style={{ padding: '11px 14px', background: 'var(--elevated)', borderRadius: 8, border: '1px solid var(--border)' }}>
+              <div key={c} className="flex items-center gap-12" style={{ padding: '11px 14px', background: 'var(--elevated)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)' }}>
                 {aEditar === i ? (
                   <>
                     <input className="input" style={{ flex: 1 }} value={nome} autoFocus disabled={ocupado}
@@ -111,8 +111,8 @@ export default function ServiceCategories() {
                 ) : (
                   <>
                     <span style={{ width: 8, height: 8, borderRadius: '50%', border: '1.5px solid var(--gold)', flexShrink: 0 }} />
-                    <span className="flex-1 text-sm fw-600">{c}</span>
-                    <span className="text-sec text-xs" style={{ whiteSpace: 'nowrap' }}>{contar(c)} serviço{contar(c) === 1 ? '' : 's'}</span>
+                    <span className="flex-1 text-sm fw-600" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c}</span>
+                    <span className="text-sec text-xs so-pc" style={{ whiteSpace: 'nowrap' }}>{contar(c)} serviço{contar(c) === 1 ? '' : 's'}</span>
                     <button className="btn btn-ghost btn-icon" aria-label="Subir" title="Subir" disabled={i === 0 || ocupado} onClick={() => mover(i, -1)}><ArrowUp size={15} /></button>
                     <button className="btn btn-ghost btn-icon" aria-label="Descer" title="Descer" disabled={i === categorias.length - 1 || ocupado} onClick={() => mover(i, 1)}><ArrowDown size={15} /></button>
                     <button className="btn btn-ghost btn-icon" aria-label={`Renomear ${c}`} title="Renomear" onClick={() => { setAEditar(i); setNome(c); }}><Pencil size={15} /></button>

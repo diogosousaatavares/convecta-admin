@@ -67,10 +67,6 @@ export default function RelatorioContabilista() {
         <FileSpreadsheet size={18} style={{ color: 'var(--gold-tinta)' }} />
         <div className="fw-600">Relatório para o contabilista</div>
       </div>
-      <p className="text-sec text-sm" style={{ marginTop: 0, marginBottom: 16 }}>
-        Um ficheiro Excel com o resumo do mês e a lista de todos os serviços prestados.
-        Pronto a enviar.
-      </p>
 
       <div className="flex gap-12 items-center mb-16" style={{ flexWrap: 'wrap' }}>
         <label className="text-sec text-sm" htmlFor="mes-contabilista">Mês do relatório</label>
@@ -98,11 +94,7 @@ export default function RelatorioContabilista() {
           {r.totais.gorjetas > 0 && linha('Gorjetas', formatPrice(r.totais.gorjetas))}
           {r.packs?.length > 0 && linha(`Packs vendidos (${r.packs.length})`, formatPrice(r.totalPacks))}
           {linha('Total em serviços e packs', formatPrice(r.totais.total + (r.totalPacks || 0)), true)}
-          <div className="text-sec text-sm" style={{ marginTop: 12 }}>
-            Sem IVA — os valores são os cobrados ao cliente. Os produtos
-            vendidos ao balcão não entram nesta folha; estão na Caixa e no
-            Resumo do negócio.
-          </div>
+          <div className="text-sec" style={{ marginTop: 12, fontSize: 15 }}>Sem IVA</div>
         </div>
       )}
     </Card>

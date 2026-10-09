@@ -89,7 +89,10 @@ export default function AdminAppointments() {
   const weekStart = iso(monday);
   const weekEnd = iso(sunday);
 
-  const appts = data.appointments
+  /* 50 de cada vez. A lista inteira de uma vez dava uma pagina com cinco
+     mil pixeis no telemovel. */
+  const [limite, setLimite] = useState(50);
+  const todas = data.appointments
     .filter(a => {
       if (scope === 'today' && a.date !== todayStr) return false;
       if (scope === 'week' && (a.date < weekStart || a.date > weekEnd)) return false;
@@ -97,6 +100,7 @@ export default function AdminAppointments() {
       return true;
     })
     .sort((a, b) => (b.date + b.startTime).localeCompare(a.date + a.startTime));
+  const appts = todas.slice(0, limite);
 
   const confirm = async (id) => {
     const a = await dataService.confirmAppointment(id);
@@ -149,11 +153,11 @@ export default function AdminAppointments() {
 
       <div className="chip-row">
         {SCOPES.map(s => (
-          <button key={s.key} className={`chip ${scope === s.key ? 'active' : ''}`} onClick={() => setScope(s.key)}>{s.label}</button>
+          <button key={s.key} className={`chip ${scope === s.key ? 'active' : ''}`} onClick={() => { setScope(s.key); setLimite(50); }}>{s.label}</button>
         ))}
         <span className="filtros-risco" aria-hidden="true" />
         {FILTERS.map(f => (
-          <button key={f.key} className={`chip ${filter === f.key ? 'active' : ''}`} onClick={() => setFilter(f.key)}>{f.label}</button>
+          <button key={f.key} className={`chip ${filter === f.key ? 'active' : ''}`} onClick={() => { setFilter(f.key); setLimite(50); }}>{f.label}</button>
         ))}
       </div>
 
@@ -231,6 +235,11 @@ export default function AdminAppointments() {
             </tbody>
           </table>
         </Card>
+        {todas.length > appts.length && (
+          <div style={{ textAlign: 'center', marginTop: 14 }}>
+            <Button variant="secondary" onClick={() => setLimite(l => l + 50)}>Mostrar mais ({todas.length - appts.length})</Button>
+          </div>
+        )}
         </>
       )}
 

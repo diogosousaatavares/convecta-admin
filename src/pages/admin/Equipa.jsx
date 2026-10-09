@@ -89,7 +89,7 @@ export default function Equipa() {
   return (
     <AdminLayout>
       <div className="page-head">
-        <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Users size={22} /> Equipa e acessos</h1>
+        <h1 className="so-pc" style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Users size={22} /> Equipa</h1>
       </div>
 
       {/* Uma linha por pessoa, e mais nada.

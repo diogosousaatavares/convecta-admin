@@ -85,10 +85,7 @@ export default function SugestaoDesign({ biz, logo, endereco, onExperimentar, ir
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <Card>
         <div style={{ fontWeight: 700, fontSize: 15, color: T, marginBottom: 4 }}>Sugestão a partir do teu logótipo</div>
-        <div style={{ fontSize: 14.5, color: T2, marginBottom: 14, lineHeight: 1.5 }}>
-          Lemos as cores do teu logótipo e montamos três designs para a tua app, de acordo com ele. Experimenta, vê na
-          pré-visualização e guarda o que gostares — podes afinar depois em Cores e Tipografia.
-        </div>
+        <div style={{ height: 10 }} />
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
           <div style={{ width: 76, height: 76, flexShrink: 0, overflow: 'hidden', background: W2, borderRadius: 12,
             border: `1px solid ${BD}`, display: 'grid', placeItems: 'center' }}>
@@ -97,11 +94,6 @@ export default function SugestaoDesign({ biz, logo, endereco, onExperimentar, ir
                 : <span style={{ fontSize: 13, color: T3, textAlign: 'center', padding: 6 }}>sem logótipo</span>}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
-            <div style={{ fontSize: 14, color: T3, lineHeight: 1.55 }}>
-              {logo
-                ? <>As propostas são feitas com o logótipo que está em Marca. Se o trocares lá, mudam sozinhas.</>
-                : <>Ainda não tens logótipo. Mete-o em Marca e as propostas aparecem aqui.</>}
-            </div>
             <Btn v="secondary" style={{ padding: '7px 12px', fontSize: 14 }} onClick={irParaMarca}>
               {logo ? 'Trocar logótipo em Marca' : 'Pôr o logótipo em Marca'}
             </Btn>
@@ -130,7 +122,7 @@ export default function SugestaoDesign({ biz, logo, endereco, onExperimentar, ir
                   ))}
                   <span style={{ fontSize: 13.5, color: T3, marginLeft: 4, alignSelf: 'center' }}>{p.fonts.heading}</span>
                 </div>
-                <div style={{ fontSize: 14, color: T2, lineHeight: 1.5, flex: 1 }}>{p.porque}</div>
+                <div style={{ flex: 1 }} />
                 <Btn v={ativa ? 'primary' : 'secondary'} onClick={() => experimentar(p)}>
                   {ativa ? 'Aplicada' : 'Experimentar'}
                 </Btn>
@@ -149,10 +141,7 @@ export default function SugestaoDesign({ biz, logo, endereco, onExperimentar, ir
 
       <Card>
         <div style={{ fontWeight: 700, fontSize: 15, color: T, marginBottom: 4 }}>Preferes que seja a Convecta a fazer?</div>
-        <div style={{ fontSize: 14.5, color: T2, marginBottom: 14, lineHeight: 1.5 }}>
-          Manda-nos um pedido pelo WhatsApp. Já vai com o nome da barbearia, o link da app
-          {escolhida ? ' e a proposta de que gostaste' : ''}. Nós tratamos do design por ti.
-        </div>
+        <div style={{ height: 10 }} />
         <Btn onClick={pedirAjuda}>Pedir ajuda à Convecta</Btn>
       </Card>
     </div>

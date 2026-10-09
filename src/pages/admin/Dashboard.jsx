@@ -291,8 +291,7 @@ export default function Dashboard() {
         {[
           { l: 'Receita', v: formatPrice(periodRevenue) },
           { l: 'Marcações', v: periodActive.length },
-          { l: 'Ocupação', v: `${occupancy}%`,
-            cor: occupancy >= 70 ? '#22C55E' : occupancy >= 40 ? 'var(--gold-tinta)' : '#EF4444' },
+          { l: 'Ocupação', v: `${String(occupancy).replace('.', ',')}%`, cor: occupancy >= 70 ? '#22C55E' : undefined },
           { l: 'Ticket médio', v: formatPrice(ticketMedio) },
           { l: 'Despesas', v: formatPrice(periodExpenses) },
           { l: 'Resultado', v: formatPrice(periodResult),

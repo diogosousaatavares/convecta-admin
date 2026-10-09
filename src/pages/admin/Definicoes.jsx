@@ -60,11 +60,12 @@ export default function Definicoes() {
         antes — uma definicao que nao faz nada e pior do que nao existir.
       */}
       {section === 'agenda' && (
-        <Card className="card-pad" style={{ maxWidth: 560 }}>
+        <div className="def-ag">
+          <style dangerouslySetInnerHTML={{ __html: CSS_DEF_AG }} />
           <HorasQueAbrem cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
-          <DiasQueFogemARegra cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
           <AteQuandoSePodeMarcar cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
-        </Card>
+          <DiasQueFogemARegra cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
+        </div>
       )}
 
       {section === 'profissionais' && (
@@ -152,42 +153,21 @@ const PASSOS_HORA = [
 function HorasQueAbrem({ cfg, onGuardar }) {
   const encostado = cfg.slotMode === 'encostado';
   const passo = Number(cfg.slotMinutes) > 0 ? Number(cfg.slotMinutes) : 30;
-  const caixa = (ativo) => ({
-    textAlign: 'left', padding: '12px 14px', borderRadius: 10, cursor: 'pointer',
-    background: ativo ? 'var(--elevated)' : 'transparent',
-    border: `1px solid ${ativo ? 'var(--gold)' : 'var(--border)'}`,
-    fontFamily: 'inherit', color: 'inherit', width: '100%',
-  });
   return (
-    <div>
-      <h3 style={{ fontSize: 18, marginBottom: 14 }}>De quanto em quanto tempo abrem as horas</h3>
-      <div className="flex-col gap-8">
-        <button type="button" style={caixa(!encostado)}
-          onClick={() => onGuardar({ slotMode: 'grelha' })}>
-          <div style={{ fontWeight: 700, fontSize: 15.5 }}>Horas certas</div>
-        </button>
-
-        {!encostado && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '2px 2px 4px 14px' }}>
-            {PASSOS_HORA.map(p => (
-              <button key={p.v} type="button" onClick={() => onGuardar({ slotMinutes: p.v })}
-                style={{ padding: '9px 15px', borderRadius: 999, cursor: 'pointer',
-                  fontFamily: 'inherit', fontSize: 15, fontWeight: passo === p.v ? 700 : 500,
-                  background: passo === p.v ? 'var(--gold)' : 'transparent',
-                  color: passo === p.v ? 'var(--on-gold, #1a1a1a)' : 'var(--text-sec)',
-                  border: `1px solid ${passo === p.v ? 'var(--gold)' : 'var(--border)'}` }}>
-                {p.l}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <button type="button" style={caixa(encostado)}
-          onClick={() => onGuardar({ slotMode: 'encostado' })}>
-          <div style={{ fontWeight: 700, fontSize: 15.5 }}>Encostado, sem buracos</div>
-        </button>
+    <Card className="card-pad def-ag-caixa">
+      <h3>Horas</h3>
+      <div className="def-ag-seg">
+        <button type="button" className={!encostado ? 'on' : ''} onClick={() => onGuardar({ slotMode: 'grelha' })}>Horas certas</button>
+        <button type="button" className={encostado ? 'on' : ''} onClick={() => onGuardar({ slotMode: 'encostado' })}>Encostado</button>
       </div>
-    </div>
+      {!encostado && (
+        <div className="def-ag-chips">
+          {PASSOS_HORA.map(p => (
+            <button key={p.v} type="button" className={`chip${passo === p.v ? ' active' : ''}`} onClick={() => onGuardar({ slotMinutes: p.v })}>{p.l}</button>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }
 
@@ -207,21 +187,14 @@ const HORIZONTES = [
 function AteQuandoSePodeMarcar({ cfg, onGuardar }) {
   const dias = Number(cfg.horizonDays) > 0 ? Number(cfg.horizonDays) : 60;
   return (
-    <div style={{ marginTop: 24, borderTop: '1px solid var(--border)', paddingTop: 18 }}>
-      <h3 style={{ fontSize: 18, marginBottom: 14 }}>Até quando o cliente pode marcar</h3>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+    <Card className="card-pad def-ag-caixa">
+      <h3>Até quando o cliente pode marcar</h3>
+      <div className="def-ag-chips">
         {HORIZONTES.map(h => (
-          <button key={h.v} type="button" onClick={() => onGuardar({ horizonDays: h.v })}
-            style={{ padding: '9px 16px', borderRadius: 999, cursor: 'pointer',
-              fontFamily: 'inherit', fontSize: 15, fontWeight: dias === h.v ? 700 : 500,
-              background: dias === h.v ? 'var(--gold)' : 'transparent',
-              color: dias === h.v ? 'var(--on-gold, #1a1a1a)' : 'var(--text-sec)',
-              border: `1px solid ${dias === h.v ? 'var(--gold)' : 'var(--border)'}` }}>
-            {h.l}
-          </button>
+          <button key={h.v} type="button" className={`chip${dias === h.v ? ' active' : ''}`} onClick={() => onGuardar({ horizonDays: h.v })}>{h.l}</button>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -268,29 +241,50 @@ function DiasQueFogemARegra({ cfg, onGuardar }) {
     return Number(d.slotMinutes) > 0 ? String(d.slotMinutes) : '';
   };
 
+  const comExcecao = Object.keys(porDia).length;
+  const [aberto, setAberto] = useState(comExcecao > 0);
   return (
-    <div style={{ marginTop: 24, borderTop: '1px solid var(--border)', paddingTop: 18 }}>
-      <h3 style={{ fontSize: 18, marginBottom: 14 }}>Dias que fogem à regra</h3>
-      <div className="flex-col gap-8" style={{ maxWidth: 360 }}>
-        {DIAS_DA_SEMANA.map(d => (
-          <div key={d.v} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ width: 92, flexShrink: 0, fontSize: 15,
-              color: valorDe(d.v) ? 'var(--text)' : 'var(--text-sec)',
-              fontWeight: valorDe(d.v) ? 700 : 500 }}>{d.l}</span>
-            <select className="input" style={{ flex: 1 }} value={valorDe(d.v)}
-              onChange={e => mudar(d.v, e.target.value)}>
-              <option value="">Igual ({rotuloBase})</option>
-              <option value="10">10 min</option>
-              <option value="15">15 min</option>
-              <option value="20">20 min</option>
-              <option value="30">30 min</option>
-              <option value="45">45 min</option>
-              <option value="60">1 hora</option>
-              <option value="encostado">Encostado, sem buracos</option>
-            </select>
-          </div>
-        ))}
-      </div>
-    </div>
+    <Card className="card-pad def-ag-caixa">
+      <button type="button" className="def-ag-abrir" onClick={() => setAberto(v => !v)} aria-expanded={aberto}>
+        <h3>Dias diferentes{comExcecao ? ` · ${comExcecao}` : ''}</h3>
+        <span>{aberto ? '−' : '+'}</span>
+      </button>
+      {aberto && (
+        <div className="def-ag-dias">
+          {DIAS_DA_SEMANA.map(d => (
+            <div key={d.v} className={`def-ag-dia${valorDe(d.v) ? ' on' : ''}`}>
+              <span>{d.l}</span>
+              <select className="select" value={valorDe(d.v)} onChange={e => mudar(d.v, e.target.value)}>
+                <option value="">Igual ({rotuloBase})</option>
+                <option value="10">10 min</option>
+                <option value="15">15 min</option>
+                <option value="20">20 min</option>
+                <option value="30">30 min</option>
+                <option value="45">45 min</option>
+                <option value="60">1 hora</option>
+                <option value="encostado">Encostado</option>
+              </select>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }
+
+const CSS_DEF_AG = `
+.def-ag { display: flex; flex-direction: column; gap: 12px; max-width: 560px; }
+.def-ag-caixa h3 { font-size: 18px; margin: 0 0 12px; }
+.def-ag-seg { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; gap: 4px; border-radius: 12px; background: var(--elevated); border: 1px solid var(--border); }
+.def-ag-seg button { min-height: 42px; border: 0; border-radius: 9px; background: transparent; color: var(--text-sec); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.def-ag-seg button.on { background: var(--text); color: var(--surface); }
+.def-ag-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.def-ag-chips .chip { min-height: 40px; }
+.def-ag-abrir { display: flex; align-items: center; justify-content: space-between; width: 100%; border: 0; background: transparent; padding: 0; cursor: pointer; color: inherit; font: inherit; text-align: left; }
+.def-ag-abrir h3 { margin: 0; }
+.def-ag-abrir span { font-size: 22px; color: var(--text-sec); line-height: 1; }
+.def-ag-dias { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.def-ag-dia { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 10px; }
+.def-ag-dia span { font-size: 15px; color: var(--text-sec); }
+.def-ag-dia.on span { color: var(--text); font-weight: 700; }
+`;

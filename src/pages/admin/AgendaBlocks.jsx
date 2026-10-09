@@ -38,7 +38,19 @@ export default function AgendaBlocks() {
       {blocks.length === 0 ? (
         <Card className="card-pad"><EmptyState icon={() => <Ban />} title="Sem bloqueios" /></Card>
       ) : (
-        <Card>
+        <>
+        <div className="so-telemovel" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {blocks.map(b => (
+            <div key={b.id} className="card card-pad" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="fw-600">{data.professionals.find(p => p.id === b.professionalId)?.name || '—'}</div>
+                <div className="text-sec" style={{ fontSize: 14 }}>{formatDateShortNum(b.date)} · {b.startTime} – {b.endTime}{b.label ? ` · ${b.label}` : ''}</div>
+              </div>
+              <Button size="sm" variant="secondary" onClick={() => setAApagar(b)}><Trash2 size={14} /> Tirar</Button>
+            </div>
+          ))}
+        </div>
+        <Card className="so-pc">
           <table className="table">
             <thead><tr><th>Profissional</th><th>Data</th><th>Hora</th><th>Motivo</th><th></th></tr></thead>
             <tbody>
@@ -54,6 +66,7 @@ export default function AgendaBlocks() {
             </tbody>
           </table>
         </Card>
+        </>
       )}
 
       <Modal open={!!aApagar} onClose={() => setAApagar(null)} title="Tirar este bloqueio?"

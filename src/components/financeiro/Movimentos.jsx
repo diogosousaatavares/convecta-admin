@@ -35,14 +35,14 @@ export default function Movimentos({ mode = 'all' }) {
   return (
     <>
       <div className="kpi-grid">
-        <Card className="kpi"><ArrowDownCircle className="icon" size={22} /><div className="label">Entradas avulsas</div><div className="value gold">{formatPrice(totalIn)}</div></Card>
-        <Card className="kpi"><ArrowUpCircle className="icon" size={22} /><div className="label">Saídas (despesas + caixa)</div><div className="value">{formatPrice(totalOut)}</div></Card>
-        <Card className="kpi"><div className="label">Saldo</div><div className={`value ${totalIn - totalOut < 0 ? 'neg' : 'gold'}`}>{formatPrice(totalIn - totalOut)}</div></Card>
+        {mode !== 'out' && <Card className="kpi"><ArrowDownCircle className="icon" size={22} /><div className="label">Entradas avulsas</div><div className="value gold">{formatPrice(totalIn)}</div></Card>}
+        {mode !== 'in' && <Card className="kpi"><ArrowUpCircle className="icon" size={22} /><div className="label">Saídas</div><div className="value">{formatPrice(totalOut)}</div></Card>}
+        {mode === 'all' && <Card className="kpi"><div className="label">Saldo</div><div className={`value ${totalIn - totalOut < 0 ? 'neg' : 'gold'}`}>{formatPrice(totalIn - totalOut)}</div></Card>}
       </div>
 
       <Card className="card-pad mt-24">
         <div className="flex justify-between items-center mb-16">
-          <h3 style={{ fontSize: 18 }}>Entradas / Saídas</h3>
+          <h3 style={{ fontSize: 18 }}>{mode === 'in' ? 'Entradas' : mode === 'out' ? 'Saídas' : 'Entradas / Saídas'}</h3>
           <Button variant="primary" size="sm" onClick={() => setModal(true)}><Plus size={15} /> Novo movimento</Button>
         </div>
         {moves.length === 0 ? (
