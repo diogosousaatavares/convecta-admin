@@ -188,13 +188,13 @@ export default function Dashboard() {
 
   return (
     <AdminLayout>
+      <style dangerouslySetInnerHTML={{ __html: CSS_RESUMO }} />
       <div className="page-head" style={{ paddingBottom: 0 }}>
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
-          <div>
-            <div style={{ fontSize: 15, color: 'var(--text-sec)', marginBottom: 6 }}>👋 Olá, {user?.name || user?.email || 'Administrador'}</div>
-            <h1 style={{ marginBottom: 2 }}>Dashboard</h1>
-            <p style={{ margin: 0 }}>{formatDateNum(range.from)}{range.from !== range.to ? ` → ${formatDateNum(range.to)}` : ''}</p>
-          </div>
+          {/* Saiu a saudacao («Ola, Diogo») e a linha das datas por baixo do
+              titulo: a saudacao nao e informacao, e as datas ja estao nos
+              botoes Hoje/Semana/Mes que estao ao lado. */}
+          <h1 style={{ margin: 0 }}>Resumo</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <BotaoAtualizar />
           <div className="period-tabs">
@@ -274,20 +274,82 @@ export default function Dashboard() {
           })}
         </div>
       )}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 14 }}>
-        <Card className="card-pad" style={{ borderColor: 'var(--border)' }}><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">RECEITA</span><Wallet size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--text)', lineHeight: 1 }}>{formatPrice(periodRevenue)}</div><div className="text-xs mt-10 text-sec">Serviços {formatPrice(receitaServicos)} · Produtos {formatPrice(receitaProdutos)}{receitaPacks > 0 ? ` · Packs ${formatPrice(receitaPacks)}` : ''}</div>{prevRevenue > 0 && <div className="text-xs mt-8" style={{ color: revDelta >= 0 ? '#22C55E' : '#EF4444' }}>{revDelta >= 0 ? '+' : ''}{revDelta.toFixed(0)}% <span className="text-sec">vs período anterior</span></div>}</Card>
-        <Card className="card-pad"><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">MARCAÇÕES</span><CalendarDays size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, lineHeight: 1 }}>{periodActive.length}</div><div className="flex gap-12 mt-10 text-xs"><span style={{ color: '#22C55E' }}>✓ {periodAppts.filter(a => a.status === 'completed').length} concluídas</span><span style={{ color: '#EF4444' }}>✗ {periodCancelled} canceladas</span></div></Card>
-        <Card className="card-pad"><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">OCUPAÇÃO</span><TrendingUp size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, color: occupancy >= 70 ? '#22C55E' : occupancy >= 40 ? '#C9A227' : '#EF4444', lineHeight: 1 }}>{occupancy}%</div><div style={{ marginTop: 10, height: 4, borderRadius: 2, background: 'var(--border)' }}><div style={{ height: '100%', width: `${Math.min(occupancy, 100)}%`, background: occupancy >= 70 ? '#22C55E' : occupancy >= 40 ? '#C9A227' : '#EF4444' }} /></div></Card>
-        <Card className="card-pad"><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">TICKET MÉDIO</span><Star size={18} className="text-sec" /></div><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--text)', lineHeight: 1 }}>{formatPrice(ticketMedio)}</div><div className="text-sec text-xs mt-10">Hoje: <span className="text-sm">{formatPrice(ticketDia)}</span></div></Card>
-        <Card className="card-pad" style={{ cursor: 'pointer' }} onClick={() => navigate('/admin/caixa')}><div className="flex justify-between items-start mb-12"><span className="text-xs fw-600 text-sec">CAIXA</span><Wallet size={18} className="text-sec" /></div>{sessaoCaixa ? (<><div style={{ fontSize: 30, fontWeight: 700, color: 'var(--text)', lineHeight: 1 }}>{formatPrice(numerarioEsperado)}</div><div className="text-sec text-xs mt-10">Numerário esperado · aberta às {new Date(sessaoCaixa.openedAt).toLocaleTimeString('pt-PT').slice(0, 5)}</div></>) : (<><div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.2, color: 'var(--text-sec)' }}>Fechada</div><div className="text-sec text-xs mt-10">Receita de hoje: <span className="text-sm">{formatPrice(receitaHoje)}</span></div></>)}</Card>
+      {/*
+        * OS NUMEROS: UM POR CARTAO, e so o numero.
+        *
+        * Eram cinco cartoes grandes com uma linha de detalhe por baixo
+        * («Servicos 120 € · Produtos 30 €», «+12% vs periodo anterior») e,
+        * logo a seguir, oito cartoes pequenos com mais oito numeros. Treze
+        * numeros e nove frases num ecra que serve para responder a uma
+        * pergunta: como e que vai o negocio.
+        *
+        * Ficam seis, cada um com rotulo e valor. O detalhe de cada um tem
+        * pagina propria — a Caixa, os Relatorios, o Desempenho — e e la que
+        * se vai quando um numero levanta uma pergunta.
+        */}
+      <div className="res-numeros">
+        {[
+          { l: 'Receita', v: formatPrice(periodRevenue) },
+          { l: 'Marcações', v: periodActive.length },
+          { l: 'Ocupação', v: `${occupancy}%`,
+            cor: occupancy >= 70 ? '#22C55E' : occupancy >= 40 ? 'var(--gold-tinta)' : '#EF4444' },
+          { l: 'Ticket médio', v: formatPrice(ticketMedio) },
+          { l: 'Despesas', v: formatPrice(periodExpenses) },
+          { l: 'Resultado', v: formatPrice(periodResult),
+            cor: periodResult < 0 ? '#EF4444' : undefined },
+        ].map(k => (
+          <div className="res-num" key={k.l}>
+            <span>{k.l}</span>
+            <b style={k.cor ? { color: k.cor } : undefined}>{k.v}</b>
+          </div>
+        ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 20 }}>{[{ label: 'Taxa cancelamento', value: `${cancelRate.toFixed(0)}%`, warn: cancelRate > 15 }, { label: 'Taxa de retorno', value: `${returnRate.toFixed(0)}%`, gold: true }, { label: 'Clientes (período)', value: periodCustomers }, { label: 'Recebido + já marcado', value: formatPrice(forecast), gold: true }, { label: 'Cancel. hoje', value: `${cancelRateToday.toFixed(0)}%`, warn: cancelRateToday > 15 }, { label: 'No-shows', value: periodNoShow }, { label: 'Despesas (período)', value: formatPrice(periodExpenses) }, { label: 'Resultado', value: formatPrice(periodResult), gold: periodResult >= 0, warn: periodResult < 0 }].map((k, i) => <Card key={i} style={{ padding: '14px 16px' }}><div className="text-xs text-sec mb-8">{k.label}</div><div style={{ fontSize: 20, fontWeight: 700, color: k.warn ? '#EF4444' : 'var(--text)' }}>{k.value}</div></Card>)}</div>
+      {/* A «Agenda de hoje» saiu daqui: e o separador «Hoje», que esta a um
+          toque na barra de baixo, e era a mesma lista duas vezes. */}
+      <Card className="card-pad dash-chart-panel" style={{ marginBottom: 14 }}>
+        <div className="dash-panel-head"><h3 style={{ fontSize: 17 }}>Receita — últimos 7 dias</h3></div>
+        <ResponsiveContainer width="100%" height={220}>
+          <AreaChart data={revenue7} margin={{ left: -18, right: 8, top: 8, bottom: 0 }}>
+            <defs><linearGradient id="dashboardRevenue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--graf-2)" stopOpacity={0.45} />
+              <stop offset="100%" stopColor="var(--graf-2)" stopOpacity={0} />
+            </linearGradient></defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--linha-grafico)" />
+            <XAxis dataKey="day" stroke="var(--text-ter)" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis stroke="var(--text-ter)" fontSize={12} tickLine={false} axisLine={false} />
+            <Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8 }} />
+            <Area type="monotone" dataKey="rev" stroke="var(--graf-2)" strokeWidth={2.5} fill="url(#dashboardRevenue)" />
+          </AreaChart>
+        </ResponsiveContainer>
+      </Card>
 
-      <div className="dash-two-col" style={{ marginBottom: 14 }}><Card className="card-pad dash-chart-panel"><div className="dash-panel-head"><h3 style={{ fontSize: 18 }}>Receita — últimos 7 dias</h3><Badge variant="default">média {formatPrice(avgDaily)}/dia</Badge></div><ResponsiveContainer width="100%" height={220}><AreaChart data={revenue7} margin={{ left: -18, right: 8, top: 8, bottom: 0 }}><defs><linearGradient id="dashboardRevenue" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--graf-2)" stopOpacity={0.45} /><stop offset="100%" stopColor="var(--graf-2)" stopOpacity={0} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="var(--linha-grafico)" /><XAxis dataKey="day" stroke="var(--text-ter)" fontSize={12} tickLine={false} axisLine={false} /><YAxis stroke="var(--text-ter)" fontSize={12} tickLine={false} axisLine={false} /><Tooltip contentStyle={{ background: 'var(--elevated)', border: '1px solid var(--border)', borderRadius: 8 }} /><Area type="monotone" dataKey="rev" stroke="var(--graf-2)" strokeWidth={2.5} fill="url(#dashboardRevenue)" /></AreaChart></ResponsiveContainer></Card><Card className="card-pad"><div className="dash-panel-head"><h3 style={{ fontSize: 18 }}>Agenda de hoje</h3><button className="link-gold text-sm" onClick={() => navigate('/admin/agenda')}>Ver tudo <ArrowUpRight size={14} /></button></div>{todayAppts.length === 0 ? <EmptyState icon={() => <CalendarDays />} title="Dia livre" description="Sem marcações hoje." /> : <div className="dash-list">{todayAppts.slice(0, 7).map(a => { const cust = data.customers.find(c => c.id === a.customerId); const svc = data.services.find(s => s.id === a.serviceId); return <div key={a.id} className="dash-list-row"><Avatar name={cust?.name} /><div className="dash-list-name">{cust?.name || '—'}<div className="text-sec text-xs">{svc?.name || '—'}</div></div><div className="dash-list-time">{a.startTime}</div></div>; })}</div>}</Card></div>
-
-      <div className="dash-two-col dash-lower"><Card className="card-pad"><h3 style={{ fontSize: 18, marginBottom: 16 }}>Ranking barbeiros</h3>{proRevenue.length === 0 ? <EmptyState icon={() => <Award />} title="Sem dados" description="Sem marcações no período." /> : <div className="flex-col gap-14">{proRevenue.map((p, i) => <div key={p.id} className="flex items-center gap-10"><span style={{ width: 20, color: 'var(--text-sec)' }}>#{i + 1}</span><Avatar name={p.name} /><div style={{ flex: 1 }}><div className="flex justify-between text-sm"><span className="fw-600">{p.name}</span><span className="fw-600">{formatPrice(p.revenue)}</span></div><div style={{ height: 4, background: 'var(--border)', marginTop: 5 }}><div style={{ height: '100%', width: `${(p.revenue / maxProRev) * 100}%`, background: 'var(--text-sec)' }} /></div></div></div>)}</div>}</Card><Card className="card-pad"><h3 style={{ fontSize: 18, marginBottom: 16 }}>Serviços mais vendidos</h3>{svcDist.length === 0 ? <EmptyState icon={() => <Star />} title="Sem dados" /> : <div className="flex-col gap-12">{svcDist.map((s, i) => <div key={i} className="flex items-center gap-8"><span style={{ width: 9, height: 9, borderRadius: 2, background: CHART_COLORS[i % CHART_COLORS.length] }} /><span className="flex-1 text-sm">{s.name}</span><span className="fw-600 text-sm">{serviceTotal ? Math.round(s.count / serviceTotal * 100) : 0}%</span></div>)}</div>}</Card></div>
+      {/* O «Ranking barbeiros» e os «Servicos mais vendidos» sairam: o
+          primeiro e a pagina Desempenho da equipa, o segundo e o relatorio
+          de Servicos. Estavam aqui em versao resumida, a dizer o mesmo com
+          menos detalhe — e a fazer deste ecra o dobro do tamanho. */}
     </AdminLayout>
   );
 
 }
+
+const CSS_RESUMO = `
+.res-numeros {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px; margin-bottom: 16px;
+}
+.res-num {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 16px 18px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.res-num span { font-size: 14px; color: var(--text-sec); }
+.res-num b { font-size: 27px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+/* Ao telemovel um por linha, como os da concorrencia: dois numeros grandes
+   lado a lado num ecra de 390px ficam ambos espremidos. */
+@media (max-width: 560px) {
+  .res-numeros { grid-template-columns: 1fr; gap: 8px; }
+  .res-num { flex-direction: row; align-items: baseline; justify-content: space-between; padding: 14px 16px; }
+  .res-num b { font-size: 23px; }
+}
+`;
