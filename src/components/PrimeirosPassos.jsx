@@ -245,11 +245,10 @@ export default function PrimeirosPassos() {
           <button type="button" className="pp-fechar" onClick={esconder} aria-label="Esconder">
             <X size={16} />
           </button>
-          <div className="pp-foguete"><Rocket size={22} /></div>
-          <h2 className="pp-h" style={{ fontSize: 19 }}>Está tudo pronto.</h2>
-          <p className="pp-sub" style={{ fontSize: 14 }}>
-            A tua app está no ar. Falta uma coisa só: dar este endereço aos teus clientes.
-          </p>
+          <div className="pp-fim-topo">
+            <div className="pp-foguete"><Rocket size={18} /></div>
+            <h2 className="pp-h">A tua app está no ar</h2>
+          </div>
           <div className="pp-link">{endereco}</div>
           <div className="pp-botoes">
             <button type="button" className="pp-btn pp-btn-forte" onClick={partilhar}>
@@ -262,9 +261,6 @@ export default function PrimeirosPassos() {
               <ExternalLink size={15} /> Abrir
             </a>
           </div>
-          <p className="pp-sub" style={{ marginTop: 12 }}>
-            No Instagram, no WhatsApp, colado ao espelho. É o endereço que enche a agenda.
-          </p>
         </section>
       </>
     );
@@ -506,4 +502,11 @@ const CSS = `
   .pp-conta { margin-left: 0; text-align: left; width: 100%; }
   .pp-barra { width: 100%; }
 }
+.pp-fim { padding: 16px 16px 14px !important; text-align: left !important; }
+.pp-fim-topo { display: flex; align-items: center; gap: 10px; padding-right: 30px; }
+.pp-fim-topo .pp-foguete { width: 34px !important; height: 34px !important; margin: 0 !important; flex-shrink: 0; }
+.pp-fim-topo .pp-h { font-size: 16px !important; margin: 0; }
+.pp-fim .pp-link { margin: 12px 0 10px !important; font-size: 15px !important; padding: 10px 12px !important; text-align: center; }
+.pp-fim .pp-botoes { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pp-fim .pp-btn { white-space: nowrap; justify-content: center; min-height: 42px; padding: 0 8px !important; font-size: 14.5px !important; }
 `;

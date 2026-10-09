@@ -530,7 +530,8 @@ export default function AdminLayout({ children }) {
     <div className={`admin-layout ${collapsed ? 'sidebar-collapsed' : ''}`}>
       <aside className={`admin-sidebar ${open ? 'open' : ''} ${collapsed ? 'collapsed' : ''}`}>{sidebar}</aside>
       {open && <div onClick={() => setOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:99 }} />}
-      <BarraDeBaixo aberto={open} />
+      {/* No «O meu site» o menu de baixo e o do editor; volta-se pela seta. */}
+      {location.pathname !== '/admin/o-meu-site' && <BarraDeBaixo aberto={open} />}
       <Modal open={supportOpen} onClose={() => setSupportOpen(false)} title="Apoio ao cliente">
         <div className="support-contact-list">
           <a href="tel:+351914874725" className="support-contact"><Phone size={17} /> <span><strong>Ligar</strong><small>914 874 725</small></span></a>

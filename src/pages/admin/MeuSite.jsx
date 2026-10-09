@@ -1289,6 +1289,10 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
       {id:'cabecalho',l:'Tema',I:LayoutTemplate},{id:'marca',l:'Logótipo',I:ImagemIco},{id:'sugestao',l:'Estilos',I:Sparkles},{id:'cores',l:'Cores',I:Palette},
       {id:'fundo',l:'Fundo',I:Waves},{id:'tipo',l:'Letra',I:Type},{id:'info',l:'Conteúdo',I:LayoutList},{id:'galeria',l:'Fotos',I:Images},
     ]
+    // O telemovel inteiro tem de caber entre a barra de cima (56), a linha do
+    // Publicar (48), o «Tocar para mudar» (36) e a barra do editor (66).
+    // A altura do desenho e ~2,1 vezes a largura.
+    const larguraEditor=Math.max(190,Math.min(larguraPrevia,Math.floor(((typeof window!=='undefined'?window.innerHeight:780)-230)/2.1),300))
     const abrir=id=>{setPainel(id);setGaveta(true);try{window.scrollTo({top:0,behavior:'smooth'})}catch{}}
     const rotulo=ABAS.find(a=>a.id===painel)?.l||''
     return(
@@ -1313,7 +1317,7 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
 
         <div className="ms-palco" data-tour="site-previa" onClick={()=>setGaveta(false)}>
           <div onClick={e=>e.stopPropagation()}>
-            <Telemovel largura={larguraPrevia}>
+            <Telemovel largura={larguraEditor}>
               <PreviaReal endereco={endereco} tema={tema} info={info} logoUrl={logoUrl}
                 editar={tocarParaMudar} onEditar={setAlvoEdicao}/>
             </Telemovel>
@@ -1645,16 +1649,16 @@ const CSS_MS=`
 .ms-publicar { min-height: 40px; padding: 0 18px; border-radius: 999px; border: 0; background: var(--text); color: var(--surface); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
 .ms-publicar:disabled { opacity: .35; cursor: default; }
 .ms-erro { padding: 10px 14px; border-radius: 10px; background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.4); color: var(--error); font-size: 14px; margin-bottom: 10px; }
-.ms-palco { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 6px 0 150px; }
+.ms-palco { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 6px 0 96px; }
 .ms-palco > div:first-child { position: relative; }
 .ms-tocar { display: inline-flex; align-items: center; gap: 10px; font-size: 14.5px; color: var(--text); font-weight: 600; }
 .ms-barra {
-  position: fixed; left: 0; right: 0; bottom: calc(58px + env(safe-area-inset-bottom, 0px)); z-index: 70;
+  position: fixed; left: 0; right: 0; bottom: 0; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important; z-index: 70;
   display: flex; gap: 2px; padding: 6px 8px; overflow-x: auto; scrollbar-width: none;
   background: var(--surface); border-top: 1px solid var(--border);
 }
 .ms-barra::-webkit-scrollbar { display: none; }
-.ms-barra button { flex: 1 0 68px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--text-sec); font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+.ms-barra button { flex: 1 0 64px; min-height: 52px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--text-sec); font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; }
 .ms-barra button.on { color: var(--text); background: var(--elevated); }
 .ms-veu { position: fixed; inset: 0; z-index: 94; background: transparent; }
 .ms-gaveta {
