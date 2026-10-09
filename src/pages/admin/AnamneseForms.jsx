@@ -109,7 +109,7 @@ export default function AnamneseForms() {
 
   return (
     <AdminPage title="Anamnese / Formulários" subtitle="Cria e gere os formulários enviados aos clientes antes ou durante a visita." actions={<Button variant="primary" onClick={openNew}><Plus size={16} /> Novo Formulário</Button>}>
-      {forms.length === 0 ? <EmptyState title="Sem formulários" description="Cria o primeiro formulário de anamnese para recolher informações dos clientes." action={<Button variant="primary" onClick={openNew}><Plus size={15} /> Novo Formulário</Button>} /> : (
+      {forms.length === 0 ? <EmptyState title="Sem formulários" action={<Button variant="primary" onClick={openNew}><Plus size={15} /> Novo Formulário</Button>} /> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {forms.map(form => (
             <Card key={form.id} className="card-pad" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>

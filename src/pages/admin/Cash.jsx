@@ -121,7 +121,7 @@ export default function Cash() {
     <AdminLayout>
       <div className="page-head" data-tour="caixa">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12 }}>
-          <div><h1>Caixa &amp; Pagamentos</h1><p>{formatDate(today)}</p></div>
+          <div><h1>Caixa e pagamentos</h1></div>
           {session && <Badge variant="success">Caixa aberta · {new Date(session.openedAt).toLocaleTimeString('pt-PT').slice(0, 5)}</Badge>}
         </div>
       </div>
@@ -129,21 +129,21 @@ export default function Cash() {
 
       {!session ? (
         <Card className="card-pad">
-          <EmptyState icon={() => <Lock />} title="Caixa fechada" description="Abre a caixa para registar vendas, despesas e pagamentos do dia." action={
+          <EmptyState icon={() => <Lock />} title="Caixa fechada" action={
             <Button variant="primary" onClick={() => setOpenModal(true)}><Unlock size={16} /> Abrir caixa</Button>
           } />
         </Card>
       ) : (
         <>
           <div className="kpi-grid">
-            <Card className="kpi"><Wallet className="icon" size={22} /><div className="label">Fundo de abertura</div><div className="value">{formatPrice(session.openingBalance)}</div></Card>
+            <Card className="kpi so-pc"><Wallet className="icon" size={22} /><div className="label">Fundo de abertura</div><div className="value">{formatPrice(session.openingBalance)}</div></Card>
             <Card className="kpi"><Receipt className="icon" size={22} /><div className="label">Vendas (total)</div><div className="value gold">{formatPrice(totalSales)}</div></Card>
-            <Card className="kpi"><ShoppingBag className="icon" size={22} /><div className="label">Produtos</div><div className="value gold">{formatPrice(totalProdutos)}</div></Card>
+            <Card className="kpi so-pc"><ShoppingBag className="icon" size={22} /><div className="label">Produtos</div><div className="value gold">{formatPrice(totalProdutos)}</div></Card>
             {(totalPacks > 0 || data.business?.packs?.ativo === true) && (
-              <Card className="kpi"><Repeat className="icon" size={22} /><div className="label">Packs</div><div className="value gold">{formatPrice(totalPacks)}</div></Card>
+              <Card className="kpi so-pc"><Repeat className="icon" size={22} /><div className="label">Packs</div><div className="value gold">{formatPrice(totalPacks)}</div></Card>
             )}
-            <Card className="kpi"><Coins className="icon" size={22} /><div className="label">Gorjetas</div><div className="value gold">{formatPrice(totalTips)}</div></Card>
-            <Card className="kpi"><TrendingDown className="icon" size={22} /><div className="label">Descontos</div><div className="value">{formatPrice(totalDiscounts)}</div></Card>
+            <Card className="kpi so-pc"><Coins className="icon" size={22} /><div className="label">Gorjetas</div><div className="value gold">{formatPrice(totalTips)}</div></Card>
+            <Card className="kpi so-pc"><TrendingDown className="icon" size={22} /><div className="label">Descontos</div><div className="value">{formatPrice(totalDiscounts)}</div></Card>
             <Card className="kpi"><TrendingDown className="icon" size={22} /><div className="label">Despesas</div><div className="value">{formatPrice(totalExpenses)}</div></Card>
             <Card className="kpi"><Banknote className="icon" size={22} /><div className="label">Receita líquida</div><div className="value gold">{formatPrice(netRevenue)}</div></Card>
           </div>
@@ -179,7 +179,7 @@ export default function Cash() {
                 </div>
               </div>
               {sales.length === 0 && vendasProdutos.length === 0 && vendasPacks.length === 0 ? (
-                <EmptyState icon={() => <Receipt />} title="Sem vendas" description="Cobra as marcações por cobrar acima para registar vendas." />
+                <EmptyState icon={() => <Receipt />} title="Sem vendas" />
               ) : sales.length === 0 ? null : (
                 <table className="table">
                   <thead><tr><th>Hora</th><th>Cliente</th><th>Serviço</th><th>Total</th><th>Método</th><th>Desc.</th><th>Gorjeta</th></tr></thead>
@@ -324,7 +324,6 @@ export default function Cash() {
           <select className="select" value={exp.method} onChange={e => setExp(f => ({ ...f, method: e.target.value }))}>
             {METHODS.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
-          <p className="text-sec text-xs" style={{ marginTop: 6 }}>Só o que é pago em dinheiro sai do numerário da caixa.</p>
         </div>
         <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}><Button variant="secondary" onClick={() => setExpModal(false)}>Cancelar</Button><Button variant="primary" onClick={addExpense}>Registar</Button></div>
       </Modal>

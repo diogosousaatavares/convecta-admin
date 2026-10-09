@@ -44,7 +44,6 @@ export default function Definicoes() {
 
   return (
     <AdminPage title={SECTIONS[section].title} subtitle="Definições do sistema." page={section === 'agenda' ? 'definicoesAgenda' : section === 'utilizadores' ? 'definicoesUtilizadores' : undefined}>
-      <div className="flex items-center gap-12 mb-24"><span className="notif-ico"><SIcon size={20} /></span><span className="text-sec text-sm">Secção: {SECTIONS[section].title}</span></div>
       {/* Aqui pode-se sempre testar as notificacoes deste aparelho. */}
       <div style={{ marginBottom: 20 }}>
         <AvisoPush businessId={data.business?.id} userId={session?.id} papel="admin" comTeste sempre />
@@ -71,7 +70,6 @@ export default function Definicoes() {
       {section === 'profissionais' && (
         <Card className="card-pad" style={{ maxWidth: 520 }}>
           <div className="field"><label className="label">Comissão padrão (%)</label><input type="number" className="input" defaultValue={cfg.profissionais?.defaultCommission ?? 30} onBlur={e => savePro({ defaultCommission: Number(e.target.value) })} /></div>
-          <p className="text-sec text-sm">Os horários individuais de cada profissional são configurados em Profissionais → Horários.</p>
         </Card>
       )}
 
@@ -100,7 +98,7 @@ export default function Definicoes() {
       {section === 'documentos' && (
         <Card className="card-pad" style={{ maxWidth: 520 }}>
           <div className="flex gap-8 mb-24"><input className="input" placeholder="Novo tipo de documento…" value={docType} onChange={e => setDocType(e.target.value)} onKeyDown={e => e.key === 'Enter' && addDocType()} /><Button variant="primary" onClick={addDocType}>Adicionar</Button></div>
-          {(cfg.documentos?.types || []).length === 0 ? <EmptyState title="Sem tipos de documento" description="Adiciona tipos como Fatura, Recibo, Termo de consentimento…" /> : (
+          {(cfg.documentos?.types || []).length === 0 ? <EmptyState title="Sem tipos de documento" /> : (
             <div className="flex-col gap-8">{(cfg.documentos?.types || []).map(t => <div key={t} className="flex items-center gap-12" style={{ padding: '8px 0', borderBottom: '1px solid var(--border)' }}><span className="flex-1 text-sm">{t}</span><button className="btn btn-ghost btn-icon" aria-label={`Remover tipo ${t}`} title={`Remover tipo ${t}`} onClick={() => removeDocType(t)}><Lock size={14} /></button></div>)}</div>
           )}
         </Card>

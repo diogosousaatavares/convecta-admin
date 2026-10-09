@@ -23,7 +23,6 @@ export default function Settings() {
       <SeparadoresDaFamilia />
       <div className="page-head">
         <h1>Definições gerais</h1>
-        <p>Informação do negócio e dados da barbearia.</p>
       </div>
       <PageInfo page="definicoesNegocio" />
 
@@ -60,4 +59,4 @@ export default function Settings() {
       */}
     </AdminLayout>
   );
-}
+}

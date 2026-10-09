@@ -95,8 +95,7 @@ export default function ProTimeOff() {
     >
       {ausencias.length === 0 ? (
         <Card className="card-pad">
-          <EmptyState icon={() => <Plane />} title="Sem ausências marcadas"
-            description="Marca aqui as férias, a baixa ou a formação de um profissional. Para uma tarde ou umas horas, usa os Bloqueios da agenda." />
+          <EmptyState icon={() => <Plane />} title="Sem ausências marcadas" />
         </Card>
       ) : (
         <Card>
@@ -178,9 +177,6 @@ export default function ProTimeOff() {
                 );
               })}
             </div>
-            <p className="text-sec text-xs" style={{ marginTop: 8, lineHeight: 1.5 }}>
-              Cada cliente recebe aviso de que o profissional vai estar ausente. Não são remarcadas — isso é contigo.
-            </p>
           </div>
         )}
 

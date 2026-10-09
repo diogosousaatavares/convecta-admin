@@ -90,7 +90,6 @@ export default function Equipa() {
     <AdminLayout>
       <div className="page-head">
         <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Users size={22} /> Equipa e acessos</h1>
-        <p>{pros.length} {pros.length === 1 ? 'profissional' : 'profissionais'}, {comAcesso} com acesso ao painel.</p>
       </div>
 
       {/* Uma linha por pessoa, e mais nada.

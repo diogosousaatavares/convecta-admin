@@ -43,7 +43,6 @@ export default function Tipos() {
     <AdminLayout>
       <div className="page-head">
         <h1>Tipos — Definições</h1>
-        <p>Gestão de tipologias utilizadas em todo o painel.</p>
       </div>
 
       <div className="bp-tabs" style={{ marginBottom: 20 }}>
@@ -55,14 +54,13 @@ export default function Tipos() {
       <Card className="card-pad">
         <div className="mb-16">
           <h3 style={{ fontSize: 18 }}>{current?.label}</h3>
-          <p className="text-sec text-sm">{current?.desc}</p>
         </div>
         <div className="flex gap-8 mb-24">
           <input className="input" placeholder={`Novo registo em ${current?.label}...`} value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} />
           <Button variant="primary" onClick={add}><Plus size={15} /> Adicionar</Button>
         </div>
         {items.length === 0 ? (
-          <EmptyState icon={() => <Tag />} title="Sem registos" description="Adiciona o primeiro item acima." />
+          <EmptyState icon={() => <Tag />} title="Sem registos" />
         ) : (
           <div className="flex-col gap-8">
             {items.map(it => (

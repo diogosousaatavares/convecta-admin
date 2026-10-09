@@ -68,10 +68,6 @@ export default function TemaPersonalizacao() {
               );
             })}
           </div>
-          <div className="text-sec text-xs" style={{ marginTop: 10, lineHeight: 1.5 }}>
-            A tua cor de destaque é a mesma nos dois modos. No claro só muda o fundo — e a cor escurece
-            o mínimo necessário para se ler quando é texto.
-          </div>
         </Card>
         <Card className="card-pad"><div className="fw-600 mb-12" style={{ fontSize: 15.5, color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: 1 }}>Temas</div><div className="text-sec text-xs" style={{ marginBottom: 12, lineHeight: 1.5 }}>O fundo fica sempre neutro e fácil de ler; muda só a cor de destaque.</div><div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>{PRESETS.map(preset => <button key={preset.label} onClick={() => { setApplied(false); setColors({ ...preset.colors }); }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--elevated)', color: 'var(--text)', fontSize: 15.5, cursor: 'pointer', textAlign: 'left' }}><span style={{ width: 18, height: 18, borderRadius: '50%', background: preset.colors['--gold'], border: '2px solid rgba(255,255,255,.15)' }} /><span style={{ flex: 1 }}>{preset.label}{preset.nota && <span style={{ color: 'var(--text-sec)', fontSize: 14.5 }}> · {preset.nota}</span>}</span>{(colors['--gold'] || '').toLowerCase() === preset.gold.toLowerCase() && <Check size={15} style={{ color: 'var(--gold-tinta)' }} />}</button>)}</div></Card>
         <Card className="card-pad"><div className="fw-600 mb-16" style={{ fontSize: 15.5, color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: 1 }}>Cores personalizadas</div>{claro && <div className="text-sec text-xs" style={{ marginBottom: 12, lineHeight: 1.5 }}>No modo claro os fundos e os textos são fixos, para se lerem sempre. Escolhes a cor de destaque; o resto volta a estar à tua escolha se mudares para escuro.</div>}<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{(claro ? COLOR_LABELS.slice(0, 1) : COLOR_LABELS).map(([key,label,desc]) => <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}><input type="color" value={colors[key]} onChange={e => setColor(key,e.target.value)} style={{ width: 32, height: 32, padding: 2, border: '1px solid var(--border)', borderRadius: 8, cursor: 'pointer' }} /><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 600 }}>{label}</div><div style={{ fontSize: 13.5, color: 'var(--text-ter)' }}>{desc}</div></div><input className="input" value={colors[key]} onChange={e => setColor(key,e.target.value)} style={{ width: 84, fontFamily: 'monospace', fontSize: 13.5, padding: '4px 8px' }} /></div>)}</div></Card>
@@ -80,7 +76,6 @@ export default function TemaPersonalizacao() {
             {avisosDeContraste(colors, modo).map(a => <div key={a}>⚠ {a}</div>)}
           </div>
         )}
-        <div style={{ display: 'flex', gap: 8 }}><Button variant="primary" style={{ flex: 1 }} onClick={apply}>{applied ? <><Check size={15} /> Aplicado</> : <><Palette size={15} /> Aplicar tema</>}</Button><Button variant="secondary" onClick={reset}><RotateCcw size={15} /></Button></div>
         {!applied && <div className="text-sec text-xs" style={{ textAlign: 'center' }}>Clica em "Aplicar tema" para guardar e ver no painel real.</div>}
       </div>
       <Card className="card-pad"><div className="fw-600 mb-16" style={{ fontSize: 15.5, color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: 1 }}>Pré-visualização em tempo real</div><MiniPreview colors={vista} /></Card>

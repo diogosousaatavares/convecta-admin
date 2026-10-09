@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import MbIcon from '@/components/MbIcon';
 /* Os icones dos oito grupos antigos sairam com eles: com cinco entradas, os
    icones usados sao cinco. */
-import { MoreHorizontal, LayoutDashboard, CalendarDays, Users, Menu, LogOut, Wallet, ChevronDown, Search, HelpCircle, Phone, Mail, Send } from 'lucide-react';
+import { MoreHorizontal, LayoutDashboard, CalendarDays, Users, Star, Menu, LogOut, ChevronDown, Search, HelpCircle, Phone, Mail, Send } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
@@ -85,22 +85,11 @@ const GROUPS_TODOS = [
   // 3. Quem paga as contas.
   { type: 'group', label: 'Clientes', icon: Users, items: [
     { to: '/admin/clientes', label: 'Clientes', exact: true },
-    { to: '/admin/clientes/aniversarios', label: 'Aniversários' },
-    { to: '/admin/avaliacoes', label: 'Avaliações' }
+    { to: '/admin/clientes/aniversarios', label: 'Aniversários' }
   ]},
 
-  /*
-   * 4. O dinheiro do dia-a-dia. As contas, os fluxos e os historicos vivem
-   * na pagina do Financeiro, que ja e um indice com separadores.
-   */
-  { type: 'group', label: 'Dinheiro', icon: Wallet, items: [
-    { to: '/admin/financeiro/caixa', label: 'Caixa', exact: true },
-    { to: '/admin/comandas', label: 'Comandas' },
-    { to: '/admin/financeiro/entradas', label: 'Entradas' },
-    { to: '/admin/financeiro/saidas', label: 'Saídas' },
-    { to: '/admin/financeiro/comissoes', label: 'Comissões a pagar' },
-    { to: '/admin/financeiro', label: 'Todas as contas' }
-  ]},
+  // 4. A nota no Google e o que traz clientes novos: entrada propria.
+  { type: 'item', to: '/admin/avaliacoes', label: 'Avaliações', icon: Star },
 
   /*
    * 5. A GAVETA.
@@ -117,6 +106,16 @@ const GROUPS_TODOS = [
     { to: '/admin/redes-sociais', label: 'Redes sociais' },
     { to: '/admin/relatorios', label: 'Relatórios' },
     { to: '/admin/definicoes', label: 'Definições' },
+
+    /* O dinheiro do dia-a-dia. As contas, os fluxos e os historicos vivem
+       na pagina do Financeiro, que ja e um indice com separadores. */
+    { titulo: 'Dinheiro' },
+    { to: '/admin/financeiro/caixa', label: 'Caixa e pagamentos' },
+    { to: '/admin/comandas', label: 'Comandas' },
+    { to: '/admin/financeiro/entradas', label: 'Entradas' },
+    { to: '/admin/financeiro/saidas', label: 'Saídas' },
+    { to: '/admin/financeiro/comissoes', label: 'Comissões a pagar' },
+    { to: '/admin/financeiro', label: 'Todas as contas' },
 
     { titulo: 'A equipa' },
     { to: '/admin/profissionais', label: 'Profissionais' },
@@ -256,11 +255,18 @@ export function gruposPara(demo, profissional) {
  * se abrem todos os dias. «O meu site» monta-se uma vez e depois so se
  * mostra, por isso foi para a gaveta com os outros.
  */
+/*
+ * O Dinheiro saiu da barra: fechar a caixa e uma vez por dia, ao fim do dia,
+ * e vive bem atras do «Mais». No lugar dele entram as Avaliacoes — e o que a
+ * concorrencia poe la, e por uma razao que vale para nos: a nota no Google
+ * e o que traz clientes novos, e um barbeiro que ve as avaliacoes todos os
+ * dias pede mais e responde mais depressa.
+ */
 const BAIXO = [
   { to: '/admin/agenda', label: 'Hoje', icon: CalendarDays },
   { to: '/admin/dashboard', label: 'Resumo', icon: LayoutDashboard },
   { to: '/admin/clientes', label: 'Clientes', icon: Users },
-  { to: '/admin/financeiro/caixa', label: 'Dinheiro', icon: Wallet },
+  { to: '/admin/avaliacoes', label: 'Avaliações', icon: Star },
 ];
 
 function BarraDeBaixo({ aberto }) {

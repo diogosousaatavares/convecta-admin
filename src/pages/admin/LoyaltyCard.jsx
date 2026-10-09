@@ -59,7 +59,6 @@ export default function LoyaltyCard() {
     <AdminLayout>
       <div className="page-head">
         <h1>Cartão de Visitas</h1>
-        <p>Personaliza o cartão de fidelidade por visitas dos teus clientes.</p>
       </div>
       <div className="grid-2 loyalty-card-editor">
         <Card className="card-pad">

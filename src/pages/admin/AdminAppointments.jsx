@@ -134,15 +134,7 @@ export default function AdminAppointments() {
       <div className="page-head">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <h1>Todas as marcações</h1>
-              <PageInfo
-                description="Lista completa de todas as marcações — passadas, presentes e futuras — com filtros por estado, profissional, serviço e período. Permite confirmar, concluir, cancelar e auditar o histórico completo."
-                impact="Ter visibilidade total sobre as marcações permite identificar padrões de cancelamento, profissionais sobrecarregados e serviços mais procurados, orientando decisões operacionais e comerciais."
-                links={['Agenda', 'Clientes', 'Profissionais', 'Financeiro', 'Relatórios']}
-              />
-            </div>
-            <p>{appts.length} {appts.length === 1 ? 'marcação' : 'marcações'} a apresentar.</p>
+            <h1>Marcações</h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <BotaoAtualizar />
@@ -166,10 +158,40 @@ export default function AdminAppointments() {
 
       {appts.length === 0 ? (
         <Card className="card-pad">
-          <EmptyState icon={() => <CalendarRange />} title="Sem marcações" description="Não há marcações neste filtro." />
+          <EmptyState icon={() => <CalendarRange />} title="Sem marcações" />
         </Card>
       ) : (
-        <Card>
+        <>
+        {/* No telemovel uma tabela de oito colunas nao se le. Uma linha por
+            marcacao: hora, nome, servico, estado, e os botoes. */}
+        <div className="so-telemovel mrc-lista">
+          {appts.map(a => {
+            const svc = data.services.find(s => s.id === a.serviceId);
+            const cust = data.customers.find(c => c.id === a.customerId);
+            const blocked = a.blocked || a.status === 'blocked';
+            const statusLabel = blocked ? 'Bloqueado' : a.status === 'confirmed' ? 'Confirmada' : a.status === 'completed' ? 'Concluída' : a.status === 'cancelled' ? 'Cancelada' : 'Pendente';
+            const badgeVariant = blocked ? 'default' : a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success';
+            return (
+              <div key={a.id} className="mrc-linha">
+                <div className="mrc-quando"><b>{a.startTime}</b><span>{formatDateShortNum(a.date)}</span></div>
+                <div className="mrc-quem">
+                  <b>{blocked ? (a.label || 'Bloqueado') : (cust?.name || '—')}</b>
+                  <span>{blocked ? '' : (svc?.name || '')}</span>
+                </div>
+                <div className="mrc-fim">
+                  <Badge variant={badgeVariant}>{statusLabel}</Badge>
+                  <div className="flex gap-8">
+                    {!blocked && a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)} title="Confirmar"><CheckCircle2 size={14} /></Button>}
+                    {!blocked && a.status === 'confirmed' && <Button size="sm" variant="primary" onClick={() => setCheckout(a.id)} title="Concluir e cobrar"><CheckCircle2 size={14} /></Button>}
+                    {!blocked && a.status !== 'cancelled' && a.status !== 'completed' && <Button size="sm" variant="secondary" onClick={() => setCancelTarget(a)} title="Cancelar"><XCircle size={14} /></Button>}
+                    <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(a)} title="Eliminar"><Trash2 size={14} /></Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <Card className="so-pc">
           <table className="table">
             <thead>
               <tr><th className="ref">Ref.</th><th>Cliente</th><th>Serviço</th><th>Profissional</th><th>Data</th><th>Hora</th><th>Estado</th><th></th></tr>
@@ -221,6 +243,7 @@ export default function AdminAppointments() {
             </tbody>
           </table>
         </Card>
+        </>
       )}
 
       <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Eliminar marcação"
@@ -263,4 +286,22 @@ export default function AdminAppointments() {
       />
     </AdminLayout>
   );
+}
+
+const CSS_MRC = `
+.mrc-lista { display: flex; flex-direction: column; gap: 8px; }
+.mrc-linha {
+  display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  padding: 10px 12px; border-radius: 12px; background: var(--elevated); border: 1px solid var(--border);
+}
+.mrc-quando { display: flex; flex-direction: column; line-height: 1.2; }
+.mrc-quando b { font-size: 15px; }
+.mrc-quando span { font-size: 11.5px; color: var(--text-ter); }
+.mrc-quem { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.mrc-quem b { font-size: 14.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mrc-quem span { font-size: 12.5px; color: var(--text-sec); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mrc-fim { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+`;
+if (typeof document !== 'undefined' && !document.getElementById('css-mrc')) {
+  const st = document.createElement('style'); st.id = 'css-mrc'; st.textContent = CSS_MRC; document.head.appendChild(st);
 }

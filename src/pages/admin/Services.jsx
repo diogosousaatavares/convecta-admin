@@ -76,7 +76,7 @@ export default function Services() {
       <PageInfo page="servicos" />
 
       {data.services.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <Scissors />} title="Sem serviços" description="Cria o primeiro serviço." action={<Button variant="primary" onClick={openNew}>Criar serviço</Button>} /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <Scissors />} title="Sem serviços" action={<Button variant="primary" onClick={openNew}>Criar serviço</Button>} /></Card>
       ) : (
         grupos.map(g => (
         <div key={g.nome} style={{ marginBottom: 26 }}>

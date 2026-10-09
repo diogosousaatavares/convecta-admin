@@ -114,7 +114,7 @@ export default function Inventory() {
         </div>
 
         {products.length === 0 ? (
-          <EmptyState icon={() => <Package />} title="Sem produtos" description="Adiciona produtos para controlar stock e consumíveis." />
+          <EmptyState icon={() => <Package />} title="Sem produtos" />
         ) : (
           <table className="table">
             <thead><tr><th>Produto</th><th>Categoria</th><th>Stock</th><th>Mín.</th><th>Custo</th><th>PVP</th><th>Valor stock</th><th>Fornecedor</th><th className="col-acoes"></th></tr></thead>
@@ -184,7 +184,6 @@ export default function Inventory() {
               <option value="">Sem fornecedor</option>
               {fornecedores.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
             </select>
-            {!fornecedores.length && <p className="text-sec text-xs" style={{ marginTop: 6 }}>Cria os fornecedores em Produtos › Fornecedores.</p>}
             {form.supplier && !form.supplierId && <p className="text-sec text-xs" style={{ marginTop: 6 }}>Antes estava escrito «{form.supplier}». Escolhe-o da lista.</p>}
           </div>
         </div>
@@ -220,7 +219,6 @@ export default function Inventory() {
             {Number(adj.delta) < 0 && Math.abs(Number(adj.delta)) > (data.products.find(p => p.id === adj.id)?.stock || 0) && (
               <p className="text-xs" style={{ color: 'var(--error)', marginTop: 6 }}>Não podes tirar mais do que há em stock.</p>
             )}
-            <p className="text-sec text-xs" style={{ marginTop: 6 }}>As vendas não se registam aqui: usa «Venda de produto», que também põe o dinheiro na caixa.</p>
           </div>
           <div className="field">
             <label className="label">Motivo</label>

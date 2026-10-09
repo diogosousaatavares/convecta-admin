@@ -19,6 +19,7 @@ import VendaAvulsoModal from '@/components/admin/VendaAvulsoModal';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { packsActivosDoCliente, saldoParaServico } from '@/lib/packsService';
 import { nomeSemRepetir } from '@/lib/nomes';
+import EscolherCliente from '@/components/admin/EscolherCliente';
 import { pedidosPendentes } from '@/lib/orcamentosService';
 import { proporNovaHora } from '@/lib/propostasService';
 
@@ -345,7 +346,7 @@ export default function Agenda() {
             {mode === 'list' && (
               <Card className="card-pad">
                 {sortedList.length === 0 ? (
-                  <EmptyState icon={() => <Clock />} title="Sem marcações" description="Não há marcações neste dia." />
+                  <EmptyState icon={() => <Clock />} title="Sem marcações" />
                 ) : (
                   <table className="table">
                     <thead><tr><th>Hora</th><th>Cliente</th><th>Serviço</th><th>Barbeiro</th><th>Estado</th><th></th></tr></thead>
@@ -377,7 +378,7 @@ export default function Agenda() {
             )}
             {mode === 'waitlist' && (
               <Card className="card-pad">
-                <EmptyState icon={() => <Clock />} title="Lista de espera vazia" description="Quando houver clientes em espera por vagas, aparecem aqui." />
+                <EmptyState icon={() => <Clock />} title="Lista de espera vazia" />
               </Card>
             )}
     </>
@@ -632,10 +633,7 @@ export default function Agenda() {
         <div className="ag-detail">
           <div className="field">
             <label className="label">Cliente</label>
-            <select className="select" value={quick.customerId} onChange={e => setQuick(f => ({ ...f, customerId: e.target.value }))}>
-              <option value="">Selecionar…</option>
-              {data.customers.map(c => <option key={c.id} value={c.id}>{nomeSemRepetir(data.customers, c, c.phone || c.email)}</option>)}
-            </select>
+            <EscolherCliente clientes={data.customers} value={quick.customerId} onChange={id => setQuick(f => ({ ...f, customerId: id }))} />
           </div>
           <div className="field">
             <label className="label">Serviço</label>

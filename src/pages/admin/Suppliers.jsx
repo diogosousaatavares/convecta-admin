@@ -39,7 +39,7 @@ export default function Suppliers() {
     <AdminPage title="Fornecedores" subtitle="Gestão de fornecedores e produtos associados."
       actions={<Button variant="primary" onClick={openNew}><Plus size={16} /> Novo fornecedor</Button>}>
       {suppliers.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <Truck />} title="Sem fornecedores" description="Adiciona o primeiro fornecedor." /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <Truck />} title="Sem fornecedores" /></Card>
       ) : (
         <div className="grid-3">
           {suppliers.map(s => {

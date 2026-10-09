@@ -48,7 +48,6 @@ export default function Marketing() {
       <SeparadoresDaFamilia />
       <div className="page-head">
         <h1>Marketing &amp; Promoções</h1>
-        <p>Campanhas, descontos e programa de fidelidade</p>
       </div>
       <PageInfo page="promocoes" />
 
@@ -69,7 +68,7 @@ export default function Marketing() {
         </div>
 
         {promos.length === 0 ? (
-          <EmptyState icon={() => <Megaphone />} title="Sem promoções" description="Cria campanhas de desconto ou fidelidade para os teus clientes." />
+          <EmptyState icon={() => <Megaphone />} title="Sem promoções" />
         ) : (
           <div className="meg-grid">
             {promos.map(p => {
@@ -136,4 +135,4 @@ export default function Marketing() {
       </Modal>
     </AdminLayout>
   );
-}
+}

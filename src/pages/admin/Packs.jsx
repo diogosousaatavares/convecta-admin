@@ -357,7 +357,6 @@ export default function Packs() {
               <div className="fw-600 text-sm">
                 {pendentes.length === 1 ? '1 cliente pediu um pack' : `${pendentes.length} clientes pediram um pack`}
               </div>
-              <div className="text-sec text-xs" style={{ marginTop: 2 }}>Confirma o pagamento para o pack ficar ativo na app dele.</div>
             </div>
           </div>
           <Button size="sm" variant="primary" onClick={() => navigate('/admin/packs/pedidos')}>Ver pedidos</Button>
@@ -370,8 +369,7 @@ export default function Packs() {
         <>
           {pendentes.length === 0 ? (
             <Card className="card-pad">
-              <EmptyState icon={() => <Inbox />} title="Nenhum pedido à espera"
-                description="Quando um cliente pedir o pack na app, aparece aqui e recebes uma notificação. Confirmas quando ele te pagar na barbearia." />
+              <EmptyState icon={() => <Inbox />} title="Nenhum pedido à espera" />
             </Card>
           ) : (
             <div className="grid-3">
@@ -455,8 +453,7 @@ export default function Packs() {
       {tab === 'packs' && !aCarregar && (
         packs.length === 0 ? (
           <Card className="card-pad">
-            <EmptyState icon={() => <Package />} title="Ainda não vendes packs"
-              description="Cria o primeiro — por exemplo, 4 cortes por mês. Depois vendes ao balcão e o cliente marca cada corte pela app." />
+            <EmptyState icon={() => <Package />} title="Ainda não vendes packs" />
           </Card>
         ) : (
           <div className="grid-3">
@@ -504,8 +501,7 @@ export default function Packs() {
           {vendasVisiveis.length === 0 ? (
             <Card className="card-pad">
               <EmptyState icon={() => <Users />}
-                title={soActivos ? 'Ninguém tem um pack activo' : 'Ainda não vendeste packs'}
-                description="Quando venderes um pack ao balcão, regista-o aqui. O cliente passa a ver o saldo na app." />
+                title={soActivos ? 'Ninguém tem um pack activo' : 'Ainda não vendeste packs'} />
             </Card>
           ) : (
             <Card className="card-pad" style={{ overflowX: 'auto' }}>
@@ -632,9 +628,6 @@ export default function Packs() {
         </label>
         <div className="field">
           <label className="label">Serviços que o pack cobre</label>
-          <div className="text-sec text-xs" style={{ marginBottom: 8 }}>
-            Sem nenhum marcado, vale para qualquer serviço.
-          </div>
           <div style={{ display: 'grid', gap: 6 }}>
             {servicosActivos.map(s => (
               <label key={s.id} className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

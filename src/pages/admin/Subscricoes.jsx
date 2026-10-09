@@ -8,7 +8,7 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice, formatDateShortNum, todayStr } from '@/lib/format';
-import { nomeSemRepetir } from '@/lib/nomes';
+import EscolherCliente from '@/components/admin/EscolherCliente';
 
 const TAB_PATH = { planos: 'planos', subscritores: 'subscritores', pagamentos: 'pagamentos', utilizacao: 'utilizacao', atraso: 'atraso' };
 const PLAN_BLANK = { name: '', price: 0, period: 'Mensal', servicesIncluded: '', benefits: '', active: true };
@@ -62,7 +62,7 @@ export default function Subscricoes() {
   return (
     <AdminPage title={title} subtitle="Gestão de planos e subscritores." actions={actionsEl}>
       {tab === 'planos' && (
-        plans.length === 0 ? <Card className="card-pad"><EmptyState icon={() => <Repeat />} title="Sem planos" description="Cria o primeiro plano de subscrição." /></Card> : (
+        plans.length === 0 ? <Card className="card-pad"><EmptyState icon={() => <Repeat />} title="Sem planos" /></Card> : (
           <div className="grid-3">
             {plans.map(p => (
               <Card key={p.id} className="card-pad card-hover">
@@ -96,7 +96,7 @@ export default function Subscricoes() {
       )}
 
       {tab === 'pagamentos' && (
-        payments.length === 0 ? <Card className="card-pad"><EmptyState icon={() => <CreditCard />} title="Sem pagamentos" description="Regista pagamentos de subscrições." /></Card> : (
+        payments.length === 0 ? <Card className="card-pad"><EmptyState icon={() => <CreditCard />} title="Sem pagamentos" /></Card> : (
           <Card className="card-pad"><table className="table">
             <thead><tr><th>Data</th><th>Subscritor</th><th>Plano</th><th>Valor</th><th>Método</th><th>Estado</th></tr></thead>
             <tbody>{payments.map(p => {
@@ -117,7 +117,7 @@ export default function Subscricoes() {
       )}
 
       {tab === 'utilizacao' && (
-        <Card className="card-pad"><EmptyState icon={() => <Calendar />} title="Utilização de benefícios" description="A utilização de benefícios será registada à medida que os subscritores consomem os planos." /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <Calendar />} title="Utilização de benefícios" /></Card>
       )}
 
       {tab === 'atraso' && (
@@ -144,7 +144,7 @@ export default function Subscricoes() {
       </Modal>
 
       <Modal open={subModal} onClose={() => setSubModal(false)} title="Novo subscritor">
-        <div className="field"><label className="label">Cliente</label><select className="select" value={sub.customerId} onChange={e => setSub(f => ({ ...f, customerId: e.target.value }))}><option value="">Selecionar…</option>{data.customers.map(c => <option key={c.id} value={c.id}>{nomeSemRepetir(data.customers, c)}</option>)}</select></div>
+        <div className="field"><label className="label">Cliente</label><EscolherCliente clientes={data.customers} value={sub.customerId} onChange={id => setSub(f => ({ ...f, customerId: id }))} /></div>
         <div className="field"><label className="label">Plano</label><select className="select" value={sub.planId} onChange={e => setSub(f => ({ ...f, planId: e.target.value }))}><option value="">Selecionar…</option>{plans.filter(p => p.active).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
         <div className="grid-2">
           <div className="field"><label className="label">Início</label><input type="date" className="input" value={sub.startedAt} onChange={e => setSub(f => ({ ...f, startedAt: e.target.value }))} /></div>

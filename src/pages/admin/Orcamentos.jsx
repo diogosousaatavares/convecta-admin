@@ -77,7 +77,7 @@ export default function Orcamentos() {
         <EmptyState
           icon={MessageSquare}
           title="Ainda não há pedidos"
-          description="Quando alguém pedir orçamento na app, chega aqui." 
+          
         />
       )}
 

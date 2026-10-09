@@ -32,7 +32,7 @@ export default function FidelizacaoRecompensas() {
     <AdminPage title="Recompensas" subtitle="Catálogo de recompensas do programa de fidelização."
       actions={<Button variant="primary" onClick={openNew}><Plus size={16} /> Nova recompensa</Button>}>
       {rewards.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <Award />} title="Sem recompensas" description="Cria recompensas resgatáveis com carimbos." /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <Award />} title="Sem recompensas" /></Card>
       ) : (
         <div className="grid-3">
           {rewards.map(r => (

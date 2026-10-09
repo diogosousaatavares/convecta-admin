@@ -36,7 +36,7 @@ export default function AgendaBlocks() {
       info={{ description: 'Marca períodos em que um profissional não está disponível: formação, pausa, férias, manutenção ou qualquer motivo operacional. Impede que marcações sejam criadas nesses slots.', impact: 'Bloqueios incorretos ou esquecidos causam marcações em conflito, clientes insatisfeitos e uma agenda caótica. Manter os bloqueios atualizados é essencial para a fiabilidade da agenda.', links: ['Agenda', 'Profissionais', 'Horários'] }}
       actions={<Button variant="primary" onClick={() => setModal(true)}><Plus size={16} /> Novo bloqueio</Button>}>
       {blocks.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <Ban />} title="Sem bloqueios" description="Cria bloqueios para férias, pausas ou indisponibilidades." /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <Ban />} title="Sem bloqueios" /></Card>
       ) : (
         <Card>
           <table className="table">

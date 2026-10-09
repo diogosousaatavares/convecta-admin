@@ -41,7 +41,6 @@ export default function Reviews() {
     <AdminLayout>
       <div className="page-head">
         <h1>Avaliações</h1>
-        <p>O que os clientes disseram depois do corte. Só tu as vês — nada disto aparece ao público.</p>
       </div>
 
       <div className="kpi-grid">
@@ -82,7 +81,7 @@ export default function Reviews() {
         </div>
 
         {reviews.length === 0 ? (
-          <EmptyState icon={() => <Star />} title="Sem avaliações" description={data.reviews.length === 0 ? 'Depois de cada corte, o cliente é convidado a avaliar na app. As respostas aparecem aqui.' : 'Nenhuma avaliação com estes filtros.'} />
+          <EmptyState icon={() => <Star />} title="Sem avaliações" />
         ) : (
           <div className="flex-col gap-12">
             {reviews.map(r => {

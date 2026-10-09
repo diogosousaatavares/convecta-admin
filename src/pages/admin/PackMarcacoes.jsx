@@ -90,8 +90,7 @@ export default function PackMarcacoes() {
       {lista.length === 0 ? (
         <Card className="card-pad mb-24">
           <EmptyState icon={() => <CalendarDays />}
-            title={verPassadas ? 'Ainda não houve cortes de pack' : 'Nenhum corte de pack marcado'}
-            description="Quando um cliente marcar com o pack, a marcação aparece aqui e na agenda com a etiqueta PACK." />
+            title={verPassadas ? 'Ainda não houve cortes de pack' : 'Nenhum corte de pack marcado'} />
         </Card>
       ) : (
         <Card className="card-pad mb-24" style={{ overflowX: 'auto' }}>

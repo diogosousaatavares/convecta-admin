@@ -34,7 +34,6 @@ export default function ProPerformance({ titulo = 'Desempenho dos Profissionais'
         <Card className="card-pad"><EmptyState icon={() => <Award />} title="Sem profissionais" /></Card>
       ) : (
         <Card className="card-pad">
-          <p className="text-sec text-xs mb-12">Receita sem gorjetas, pela data do pagamento. Os mesmos números das Comissões e da Conta do Profissional.</p>
           <div style={{ overflowX: 'auto' }}>
           <table className="table">
             <thead><tr><th>Profissional</th><th>Na agenda</th><th>Pagas</th><th>Canceladas</th><th>Receita</th><th>Comissão</th><th>Gorjetas</th><th>Clientes</th><th>Ticket médio</th></tr></thead>

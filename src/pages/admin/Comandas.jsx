@@ -8,7 +8,7 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice, formatDateShortNum } from '@/lib/format';
-import { nomeSemRepetir } from '@/lib/nomes';
+import EscolherCliente from '@/components/admin/EscolherCliente';
 
 const STATUS_PATH = { abertas: 'open', pendentes: 'pending', pagas: 'paid', canceladas: 'cancelled', historico: 'all' };
 const STATUS_LABEL = { open: 'Aberta', pending: 'Pendente', paid: 'Paga', cancelled: 'Cancelada' };
@@ -66,7 +66,7 @@ export default function Comandas() {
     <AdminPage title={titles[statusFilter] || 'Comandas'} subtitle="Operação comercial: serviços + produtos + pagamento."
       actions={<Button variant="primary" onClick={openNew}><Plus size={16} /> Nova comanda</Button>}>
       {comandas.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <ReceiptText />} title="Sem comandas" description="Cria a primeira comanda para registar uma transação." /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <ReceiptText />} title="Sem comandas" /></Card>
       ) : (
         <Card>
           <table className="table">
@@ -97,7 +97,7 @@ export default function Comandas() {
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Editar comanda' : 'Nova comanda'}>
         <div className="grid-2">
           <div className="field"><label className="label">Cliente</label>
-            <select className="select" value={form.customerId} onChange={e => setForm(f => ({ ...f, customerId: e.target.value }))}><option value="">Selecionar…</option>{data.customers.map(c => <option key={c.id} value={c.id}>{nomeSemRepetir(data.customers, c)}</option>)}</select></div>
+            <EscolherCliente clientes={data.customers} value={form.customerId} onChange={id => setForm(f => ({ ...f, customerId: id }))} /></div>
           <div className="field"><label className="label">Profissional</label>
             <select className="select" value={form.professionalId} onChange={e => setForm(f => ({ ...f, professionalId: e.target.value }))}><option value="">Selecionar…</option>{data.professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
         </div>

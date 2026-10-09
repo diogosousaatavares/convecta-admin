@@ -41,9 +41,9 @@ export default function ClientBirthdays() {
       </div>
 
       {withBirthday === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <Cake />} title="Sem datas de nascimento" description="Preenche a data de nascimento nos perfis dos clientes para ver os aniversários." /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <Cake />} title="Sem datas de nascimento" /></Card>
       ) : list.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <Cake />} title="Nenhum aniversário" description="Não há aniversários no período selecionado." /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <Cake />} title="Nenhum aniversário" /></Card>
       ) : (
         <Card className="card-pad">
           <table className="table">

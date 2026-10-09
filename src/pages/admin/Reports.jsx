@@ -192,7 +192,7 @@ export default function Reports() {
         <Card className="card-pad">
           <h3 style={{ fontSize: 17, marginBottom: 16 }}>Receita por barbeiro</h3>
           {byBarber.length === 0 ? (
-            <EmptyState title="Sem dados" description="Não há receita por barbeiro neste período." />
+            <EmptyState title="Sem dados" />
           ) : (
             <div className="chart-box">
               <ResponsiveContainer width="100%" height={240}>
@@ -212,7 +212,7 @@ export default function Reports() {
         <Card className="card-pad">
           <h3 style={{ fontSize: 17, marginBottom: 16 }}>Estado das marcações</h3>
           {statusDist.length === 0 ? (
-            <EmptyState title="Sem dados" description="Não há estados de marcação neste período." />
+            <EmptyState title="Sem dados" />
           ) : (
             <div className="chart-box">
               <ResponsiveContainer width="100%" height={240}>
@@ -233,7 +233,7 @@ export default function Reports() {
       <Card className="card-pad">
         <h3 style={{ fontSize: 17, marginBottom: 16 }}>Top 5 serviços (por receita)</h3>
         {byService.length === 0 ? (
-            <EmptyState title="Sem dados" description="Não há receita por serviço neste período." />
+            <EmptyState title="Sem dados" />
         ) : (
           <div className="chart-box">
             <ResponsiveContainer width="100%" height={240}>

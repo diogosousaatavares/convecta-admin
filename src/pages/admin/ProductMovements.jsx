@@ -13,7 +13,7 @@ export default function ProductMovements() {
   return (
     <AdminPage title="Movimentos de Stock" subtitle="Histórico de entradas, saídas e ajustes.">
       {moves.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <ArrowDownCircle />} title="Sem movimentos" description="Os ajustes de stock registados em Produtos aparecem aqui." /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <ArrowDownCircle />} title="Sem movimentos" /></Card>
       ) : (
         <Card className="card-pad">
           <table className="table">

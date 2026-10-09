@@ -158,9 +158,6 @@ export default function RedesSociais() {
 
       <Card className="card-pad" style={{ marginBottom: 16 }}>
         <h3 style={{ margin: 0, fontSize: 17 }}>{MODELO.nome}</h3>
-        <p className="text-sec" style={{ margin: '6px 0 0', fontSize: 15 }}>
-          Publica no dia em que abres as marcações.
-        </p>
 
         {barbearia?.semLogo && (
           <div className="rs-aviso">
@@ -201,10 +198,6 @@ export default function RedesSociais() {
 
       <Card className="card-pad" style={{ marginTop: 16 }}>
         <h3 style={{ margin: 0, fontSize: 15 }}>A legenda</h3>
-        <p className="text-sec text-sm" style={{ margin: '6px 0 12px' }}>
-          Muda o que quiseres. Metade dos posts que nunca são publicados morrem na pergunta
-          «e agora o que é que eu escrevo aqui?».
-        </p>
         <pre className="rs-legenda">{barbearia ? legenda(barbearia) : ''}</pre>
       </Card>
     </AdminPage>

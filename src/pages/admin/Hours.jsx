@@ -70,7 +70,6 @@ export default function Hours() {
     <AdminLayout>
       <div className="page-head" data-tour="horarios">
         <h1>Horário de funcionamento</h1>
-        <p>Define os horários de abertura, fecho e pausas de cada dia.</p>
       </div>
 
       <Card className="card-pad">

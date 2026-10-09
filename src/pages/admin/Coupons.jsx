@@ -40,7 +40,7 @@ export default function Coupons() {
     <AdminPage title="Cupões" subtitle="Códigos promocionais para descontos em comanda."
       actions={<Button variant="primary" onClick={openNew}><Plus size={16} /> Novo cupão</Button>}>
       {coupons.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <Ticket />} title="Sem cupões" description="Cria códigos promocionais aplicáveis no checkout." /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <Ticket />} title="Sem cupões" /></Card>
       ) : (
         <div className="meg-grid">
           {coupons.map(p => (

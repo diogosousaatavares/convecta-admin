@@ -60,9 +60,6 @@ export default function Parametros() {
         {row('Confirmação automática', 'Ligado: a marcação do cliente entra já confirmada e és avisado. Desligado: entra «por confirmar» e confirmas tu.', <Toggle checked={v('autoConfirm', true)} onChange={x => save({ autoConfirm: x })} />)}
         {row('Cancelamento pelo cliente', 'Se o cliente pode desmarcar pela app.', <Toggle checked={v('allowClientCancel', true)} onChange={x => save({ allowClientCancel: x })} />)}
         {row('Prazo para cancelar (horas)', 'Até quantas horas antes da hora marcada o cliente ainda pode desmarcar. Depois disso só a ligar-te.', <NumInput value={v('cancelMinHours', 2)} min={0} max={72} onChange={x => save({ cancelMinHours: x })} />)}
-        <p className="text-sec text-sm" style={{ margin: '16px 0 0', lineHeight: 1.6 }}>
-          Horários de abertura: em <strong style={{ color: 'var(--text)' }}>Horários</strong>. Folgas e horas de cada barbeiro: em <strong style={{ color: 'var(--text)' }}>Profissionais → Horários</strong>. Cartão de fidelidade: em <strong style={{ color: 'var(--text)' }}>Fidelização</strong>.
-        </p>
       </Card>
     </AdminPage>
   );

@@ -95,8 +95,7 @@ export default function ServiceCategories() {
         </div>
 
         {categorias.length === 0 ? (
-          <EmptyState icon={() => <Tag />} title="Ainda sem categorias"
-            description="Cria a primeira acima — por exemplo «Cortes». Depois, ao criar um serviço, escolhes a categoria dele." />
+          <EmptyState icon={() => <Tag />} title="Ainda sem categorias" />
         ) : (
           <div className="flex-col gap-8">
             {categorias.map((c, i) => (

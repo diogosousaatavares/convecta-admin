@@ -260,8 +260,7 @@ export default function MbWay() {
       )}
       {porConfirmar.length === 0 && packsPorConfirmar.length > 0 ? null : porConfirmar.length === 0 ? (
         <Card className="card-pad" style={{ marginBottom: 24 }}>
-          <EmptyState icon={() => <MbIcon size={40} />} title="Nada à espera"
-            description="Quando um cliente pagar uma marcação por MB WAY, aparece aqui com o print. Recebes também uma notificação." />
+          <EmptyState icon={() => <MbIcon size={40} />} title="Nada à espera" />
         </Card>
       ) : (
         <div className="grid-3" style={{ marginBottom: 24 }}>
@@ -337,7 +336,6 @@ export default function MbWay() {
             </p>
             <img src={verPrint.url} alt="Print do pagamento MB WAY"
               style={{ width: '100%', maxHeight: '60vh', objectFit: 'contain', borderRadius: 10, background: 'var(--elevated)' }} />
-            <p className="text-sec text-xs" style={{ margin: '12px 0' }}>Confirma na app do teu banco antes de carregar em «Recebi».</p>
             {verPrint.pagamento.estado === 'enviado' && (
               <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}>
                 <Button variant="secondary" onClick={() => setRejeitar({ pagamento: verPrint.pagamento, motivo: '' })}>Não recebi</Button>

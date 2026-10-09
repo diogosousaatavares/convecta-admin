@@ -25,7 +25,7 @@ export default function ProductStock() {
 
       <Card className="card-pad">
         <h3 style={{ fontSize: 18, marginBottom: 16 }}>Estado do stock</h3>
-        {data.products.length === 0 ? <EmptyState icon={() => <Package />} title="Sem produtos" description="Adiciona produtos para controlar stock e consumíveis." /> : (
+        {data.products.length === 0 ? <EmptyState icon={() => <Package />} title="Sem produtos" /> : (
           <table className="table">
             <thead><tr><th>Produto</th><th>Stock</th><th>Mínimo</th><th>Estado</th><th>Valor (custo)</th></tr></thead>
             <tbody>

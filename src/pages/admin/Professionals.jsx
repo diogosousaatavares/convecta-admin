@@ -174,7 +174,7 @@ export default function Professionals() {
       )}
 
       {data.professionals.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <UserCog />} title="Sem profissionais" description="Adiciona o primeiro profissional." /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <UserCog />} title="Sem profissionais" /></Card>
       ) : isMobile ? (
         /*
          * `minmax(0, 1fr)` e nao `1fr`: uma coluna de grelha nunca encolhe

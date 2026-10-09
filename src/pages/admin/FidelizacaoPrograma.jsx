@@ -81,7 +81,6 @@ export default function FidelizacaoPrograma() {
               <label className="label">Cortes para ganhar o prémio</label>
               <input type="number" className="input" min="3" max="20" value={carimbos} disabled={!ativo}
                 onChange={e => setCarimbos(e.target.value)} style={{ maxWidth: 120 }} />
-              <div className="text-sec text-xs" style={{ marginTop: 4 }}>O {n + 1}.º corte é o prémio.</div>
             </div>
             <div className="field">
               <label className="label">Prémio</label>
@@ -94,18 +93,12 @@ export default function FidelizacaoPrograma() {
                 <Button variant={claro ? 'secondary' : 'primary'} size="sm" disabled={!ativo} onClick={() => setClaro(false)}>Escuro</Button>
                 <Button variant={claro ? 'primary' : 'secondary'} size="sm" disabled={!ativo} onClick={() => setClaro(true)}>Claro</Button>
               </div>
-              <div className="text-sec text-xs" style={{ marginTop: 6 }}>
-                As cores são as da tua marca, definidas em «O Meu Site». Aqui escolhes só o fundo.
-              </div>
             </div>
 
             <div className="field">
               <label className="label">Validade do cartão (meses)</label>
               <input type="number" className="input" min="0" max="24" value={validade} disabled={!ativo}
                 onChange={e => setValidade(e.target.value)} style={{ maxWidth: 120 }} />
-              <div className="text-sec text-xs" style={{ marginTop: 4 }}>
-                Conta a partir do primeiro carimbo de cada cartão. 0 = sem prazo.
-              </div>
             </div>
           </div>
 
@@ -133,9 +126,6 @@ export default function FidelizacaoPrograma() {
               <div className="text-sec text-sm">Cartão desligado. O cliente não vê nada e o balcão não carimba.</div>
             </Card>
           )}
-          <p className="text-sec text-xs" style={{ marginTop: 12, maxWidth: 340, lineHeight: 1.5 }}>
-            É este o cartão que o cliente vê no telemóvel, com as cores da tua marca. Muda a cor em «O Meu Site» e muda aqui também.
-          </p>
         </div>
       </div>
     </AdminPage>

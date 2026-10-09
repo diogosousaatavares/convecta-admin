@@ -2688,3 +2688,7 @@ html:not(.theme-light) .marca-escuro { display: block !important; }
 .linha-opcao[aria-checked="true"] .interruptor i { left: 22px; }
 
 @media (max-width: 639px) { .atualizar-quando { display: none; } }
+
+/* .so-pc: coisas que no telemovel so fazem barulho. Continuam no computador. */
+@media (max-width: 767px) { .so-pc { display: none !important; } }
+@media (min-width: 768px) { .so-telemovel { display: none !important; } }

@@ -7,7 +7,7 @@ import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatDateNum, todayStr } from '@/lib/format';
-import { nomeSemRepetir } from '@/lib/nomes';
+import EscolherCliente from '@/components/admin/EscolherCliente';
 
 const PRIOS = { normal: 'Normal', alta: 'Alta', urgente: 'Urgente' };
 const STATUS = { waiting: 'À espera', oferecido: 'Vaga oferecida', marcado: 'Marcou', expirou: 'Deixou expirar', cancelado: 'Saiu', contacted: 'Contactado', scheduled: 'Agendado', closed: 'Fechado' };
@@ -50,7 +50,7 @@ export default function AgendaWaitlist() {
         <button className={`chip ${vista === 'todos' ? 'active' : ''}`} onClick={() => setVista('todos')}>Tudo</button>
       </div>
       {rowsVis.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <Clock />} title="Ninguém à espera" description="Quando um cliente pedir, na app, para ser avisado se uma hora vagar, aparece aqui." /></Card>
+        <Card className="card-pad"><EmptyState icon={() => <Clock />} title="Ninguém à espera" /></Card>
       ) : (
         <Card>
           <table className="table">
@@ -93,9 +93,7 @@ export default function AgendaWaitlist() {
 
       <Modal open={modal} onClose={() => setModal(false)} title="Adicionar à lista de espera">
         <div className="field"><label className="label">Cliente</label>
-          <select className="select" value={form.customerId} onChange={e => setForm(f => ({ ...f, customerId: e.target.value }))}>
-            <option value="">Selecionar…</option>{data.customers.map(c => <option key={c.id} value={c.id}>{nomeSemRepetir(data.customers, c)}</option>)}
-          </select></div>
+          <EscolherCliente clientes={data.customers} value={form.customerId} onChange={id => setForm(f => ({ ...f, customerId: id }))} /></div>
         <div className="field"><label className="label">Serviço</label>
           <select className="select" value={form.serviceId} onChange={e => setForm(f => ({ ...f, serviceId: e.target.value }))}>
             <option value="">Selecionar…</option>{data.services.filter(s => s.isActive).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}

@@ -107,7 +107,6 @@ export default function Notifications() {
       <SeparadoresDaFamilia />
       <div className="page-head" data-tour="notificacoes">
         <h1>Notificações</h1>
-        <p>Cria e gere os avisos enviados aos clientes na aplicação.</p>
       </div>
 
       {/* O sitio onde se testa se este aparelho recebe, sempre a mao. No
@@ -123,10 +122,6 @@ export default function Notifications() {
             style={{ width: 18, height: 18, marginTop: 2, accentColor: 'var(--gold)', flexShrink: 0 }} />
           <span>
             <span className="fw-600" style={{ display: 'block' }}>Lembrar o cliente antes do corte</span>
-            <span className="text-sec text-sm">
-              Quem tem notificações ligadas recebe notificação. Quem não tem, mas confirmou o email, recebe email.
-              Quem não tem nenhum dos dois fica registado como não avisado — podes ver isso abaixo.
-            </span>
           </span>
         </label>
 
@@ -135,9 +130,6 @@ export default function Notifications() {
             <label className="label" htmlFor="horas-antes">Quantas horas antes</label>
             <input id="horas-antes" type="number" className="input" min="1" max="72" value={horasAntes}
               onChange={e => setHorasAntes(e.target.value)} style={{ maxWidth: 110 }} />
-            <div className="text-sec text-xs" style={{ marginTop: 4 }}>
-              24 horas é o habitual: dá tempo de desmarcar e ainda se lembra no próprio dia.
-            </div>
           </div>
         )}
 
@@ -148,24 +140,9 @@ export default function Notifications() {
             style={{ width: 18, height: 18, marginTop: 2, accentColor: 'var(--gold)', flexShrink: 0 }} />
           <span>
             <span className="fw-600" style={{ display: 'block' }}>Só aceitar marcações de quem confirmou o email</span>
-            <span className="text-sec text-sm">
-              Quem se regista recebe logo um email com um link e não marca enquanto não clicar.
-              Ficas com a certeza de que consegues falar com toda a gente que tem hora marcada.
-            </span>
           </span>
         </label>
 
-        {exigirEmail && (
-          <div className="text-sec text-xs" style={{
-            marginTop: 12, padding: '10px 12px', borderRadius: 8,
-            background: 'var(--surface-2, rgba(0,0,0,.04))', lineHeight: 1.6,
-          }}>
-            <strong>Antes de ligares, pesa isto:</strong> é uma porta fechada no momento
-            exacto em que a pessoa decidiu marcar. Uma parte vai ao correio e não volta —
-            ainda por cima porque a primeira mensagem costuma cair no spam.
-            Tu continuas a poder marcar por qualquer cliente a partir da agenda.
-          </div>
-        )}
 
         <div style={{ marginTop: 16 }}>
           <Button variant="primary" onClick={guardarLembretes} disabled={aGuardar}>
@@ -175,14 +152,14 @@ export default function Notifications() {
       </Card>
 
       <div className="flex items-center gap-16 mb-24" style={{ marginBottom: 22, flexWrap: 'wrap' }}>
-        <div className="notif-card" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="notif-card so-pc" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div className="notif-ico" style={{ width: 36, height: 36 }}><Bell size={17} /></div>
           <div>
             <div className="text-xs" style={{ color: '#7A746A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total</div>
             <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, color: '#fff' }}>{notifications.length}</div>
           </div>
         </div>
-        <div className="notif-card" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="notif-card so-pc" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div className="notif-ico" style={{ width: 36, height: 36 }}><Send size={17} /></div>
           <div>
             <div className="text-xs" style={{ color: '#7A746A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ativas</div>
@@ -195,7 +172,7 @@ export default function Notifications() {
       </div>
 
       {notifications.length === 0 ? (
-        <EmptyState icon={() => <Bell size={40} />} title="Sem notificações" description="Cria o primeiro aviso para os teus clientes." />
+        <EmptyState icon={() => <Bell size={40} />} title="Sem notificações" />
       ) : (
         <div className="flex-col gap-12">
           {notifications.map(n => {
@@ -260,7 +237,6 @@ export default function Notifications() {
           <label className="label">Mensagem</label>
           <textarea className="textarea" rows={4} value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} placeholder="Escreve a mensagem que os clientes vão ver…" maxLength={400} />
         </div>
-        <p className="text-xs text-sec">A notificação fica visível de imediato para todos os clientes na aplicação.</p>
       </Modal>
     </AdminLayout>
   );
