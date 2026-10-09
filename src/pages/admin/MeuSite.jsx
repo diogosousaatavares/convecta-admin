@@ -762,6 +762,8 @@ const CSS_MT=`
  * combinam com cada um, aplicadas ao escolher.
  */
 const GRADIENTES={
+  noite:{l:'Noite',base:'#060607',manchas:['#2E2E36','#141417','#3C3C46'],
+    cores:{bg:'#09090B',surface:'#141417',elevated:'#1C1C20',text:'#F4F4F5',textSec:'#A1A1AA',border:'#27272A',gold:'#FFFFFF'}},
   prata:{l:'Prata',base:'#E4E4E8',manchas:['#FFFFFF','#C9C9D1','#F2F2F5'],
     cores:{bg:'#E4E4E8',surface:'#F4F4F6',elevated:'#FFFFFF',text:'#141416',textSec:'#5E5E66',border:'#D2D2D8',gold:'#141416'}},
   ceu:{l:'Céu',base:'#B9D6F2',manchas:['#EAF4FF','#7FB6EC','#A9CFF4'],
@@ -914,7 +916,10 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
   const fundo=(patch)=>{setTema(t=>({...t,background:{...t.background,...patch}}));setSucesso(false)}
   // Escolher um gradiente muda tambem as cores do site, como um «estilo».
   const escolherGradiente=(id)=>{const g=GRADIENTES[id];if(!g)return
-    setTema(t=>({...t,colors:{...t.colors,...g.cores},background:{...t.background,ativo:true,tipo:'gradiente',gradiente:id}}));setSucesso(false)}
+    // Tudo passa a seguir a paleta nova: as cores pintadas peca a peca
+    // (tocar para mudar) ficavam por cima e faziam texto escuro em fundo
+    // escuro, como o cartao do pack.
+    setTema(t=>({...t,colors:{...t.colors,...g.cores},elementos:{},pecas:{},background:{...t.background,ativo:true,tipo:'gradiente',gradiente:id}}));setSucesso(false)}
   const fonte=(k,v)=>{setTema(t=>({...t,fonts:{...t.fonts,[k]:v}}));setSucesso(false)}
   const raiz=(k,v)=>{setTema(t=>({...t,[k]:v}));setSucesso(false)}
   const inf=(k,v)=>{setInfo(i=>({...i,[k]:v}));setSucesso(false)}
