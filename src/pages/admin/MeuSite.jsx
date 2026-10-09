@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Image as ImagemIco, Sparkles, Palette, Waves, Type, LayoutList, Images } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import TourDemo from '@/components/admin/TourDemo';
 import { useStore } from '@/hooks/useStore';
@@ -655,6 +656,7 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
   const[larguraPrevia,setLarguraPrevia]=useState(()=>larguraDaPrevia())
   // Comeca no logotipo: e o caminho curto de quem nao quer escolher nada.
   const[painel,setPainel]=useState('marca')
+  const[gaveta,setGaveta]=useState(false)
   const chaveGuia=`${CHAVE_TUTORIAL}:${biz?.id||''}`
   const[tema,setTema]=useState(()=>structuredClone(TEMA_OMISSAO))
   const[info,setInfo]=useState({tagline:'',description:'',coverImageUrl:'',
@@ -879,50 +881,8 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
       </div>
   )
 
-  if(soPrevia)return blocoPrevia
-
-  return(
-    // No computador: os controlos a esquerda, o telemovel fixo a direita.
-    // No telemovel: uma coluna so — aquela segunda coluna de 360px fixos era
-    // o que fazia a pagina sair do ecra para o lado.
-    <div style={telemovel
-      ?{display:'flex',flexDirection:'column',gap:22}
-      :{display:'grid',gridTemplateColumns:'minmax(0,1fr) 360px',gap:22,alignItems:'start'}}>
-
-      <TourDemo passos={PASSOS_GUIA} chave={chaveGuia} ativo={!carregando}/>
-
-      <div style={{display:'flex',flexDirection:'column',gap:18,minWidth:0}}>
-
-        {demo?(
-          <Card style={{padding:'16px 20px'}}>
-            <div style={{fontSize:14,color:T,fontWeight:700,marginBottom:4}}>Demonstração ao vivo</div>
-            <div style={{fontSize:14,color:T2,lineHeight:1.55}}>{telemovel?'Toca numa peça do telemóvel acima e depois em «Editar». Ou escolhe as cores aqui em baixo. ':''}É exatamente o editor que tens no teu painel. Muda à vontade: nada do que fizeres aqui é gravado.</div>
-          </Card>
-        ):(
-        /* O cartao do link saiu daqui: a faixa do painel — a mesma que estava
-           no topo de todas as paginas — passou a aparecer nesta pagina e so
-           nesta, e faz mais do que este cartao fazia (copiar, partilhar e
-           abrir). Duas caixas com o mesmo endereco no mesmo ecra e uma a
-           mais. */
-        null
-        )}
-
-        {/* Eram sete separadores em duas linhas de quatro ao telemovel, porque
-            lado a lado davam 45px cada e os nomes partiam-se. Agora e uma
-            linha que se arrasta com o dedo, como as outras filas do painel:
-            os nomes cabem inteiros e nao se gastam duas linhas de ecra. */}
-        <div className="sa-tira" data-tour="site-separadores"
-          style={{display:'flex',gap:3,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}}>
-          {PAINEIS.filter(pn=>!(demo&&pn.id==='galeria')).map(pn=>(
-            <button key={pn.id} onClick={()=>setPainel(pn.id)}
-              style={{flex:telemovel?'0 0 auto':1,padding:telemovel?'10px 14px':'9px 6px',
-                borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',
-                fontSize:14,fontWeight:painel===pn.id?700:600,
-                background:painel===pn.id?T:'transparent',
-                color:painel===pn.id?W:T2,transition:'background .15s,color .15s'}}>{pn.l}</button>
-          ))}
-        </div>
-
+  const paineis=(
+    <>
         {painel==='sugestao'&&(
           <SugestaoDesign biz={bizVisto} logo={logoUrl||tema.favicon} endereco={endereco}
             irParaMarca={()=>setPainel('marca')}
@@ -1135,6 +1095,136 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
             </div>
           </Card>
         )}
+    </>
+  )
+
+  if(soPrevia)return blocoPrevia
+
+
+  /*
+   * NO TELEMOVEL O EDITOR E O DA CONCORRENCIA (decisao do Diogo, 09/10/2026):
+   * o site ocupa o ecra, «Publicar» fica em cima, e os paineis abrem numa
+   * gaveta por cima do telemovel, a partir de uma barra de icones em baixo.
+   * Ve-se sempre o resultado enquanto se mexe. No computador fica a grelha
+   * de sempre: controlos a esquerda, telemovel fixo a direita.
+   */
+  if(telemovel&&!demo){
+    const ABAS=[
+      {id:'marca',l:'Logótipo',I:ImagemIco},{id:'sugestao',l:'Estilos',I:Sparkles},{id:'cores',l:'Cores',I:Palette},
+      {id:'fundo',l:'Fundo',I:Waves},{id:'tipo',l:'Letra',I:Type},{id:'info',l:'Conteúdo',I:LayoutList},{id:'galeria',l:'Fotos',I:Images},
+    ]
+    const abrir=id=>{setPainel(id);setGaveta(true)}
+    const rotulo=ABAS.find(a=>a.id===painel)?.l||''
+    return(
+      <div className="ms">
+        <style dangerouslySetInnerHTML={{__html:CSS_MS}}/>
+        <TourDemo passos={PASSOS_GUIA} chave={chaveGuia} ativo={!carregando}/>
+
+        <div className="ms-topo" data-tour="site-guardar">
+          <span className={alterado?'ms-estado por':'ms-estado'}>{guardando?'A publicar…':alterado?'Por publicar':'Publicado'}</span>
+          <div className="ms-topo-btns">
+            {alterado&&!guardando&&(
+              <button type="button" className="ms-descartar" onClick={()=>{setTema(guardadoTema);setInfo(guardadoInfo);setLogoUrl(logoGravado);setSucesso(false)}}>Descartar</button>
+            )}
+            {!alterado&&!guardando&&<a className="ms-descartar" href={'https://'+endereco} target="_blank" rel="noreferrer">Abrir o site</a>}
+            <button type="button" className="ms-publicar" disabled={guardando||!alterado} onClick={guardar}>
+              {guardando?<Spin size={14}/>:null}{guardando?'':'Publicar'}
+            </button>
+          </div>
+        </div>
+
+        {erro&&<div className="ms-erro">{erro}</div>}
+
+        <div className="ms-palco" data-tour="site-previa" onClick={()=>setGaveta(false)}>
+          <div onClick={e=>e.stopPropagation()}>
+            <Telemovel largura={larguraPrevia}>
+              <PreviaReal endereco={endereco} tema={tema} info={info} logoUrl={logoUrl}
+                editar={tocarParaMudar} onEditar={setAlvoEdicao}/>
+            </Telemovel>
+            {alvoEdicao&&(
+              <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',bottom:8,
+                width:'min(100%, 380px)',maxHeight:'70%',display:'flex',zIndex:5}}>
+                <div style={{width:'100%'}}>
+                  <EditorDePeca peca={alvoEdicao} tema={tema} onMudar={mudarPeca}
+                    onNome={v=>raiz('appName',v)} nomeDeSistema={biz.name}
+                    onRepor={reporPeca} onFechar={()=>setAlvoEdicao(null)}/>
+                </div>
+              </div>
+            )}
+          </div>
+          <label className="ms-tocar" onClick={e=>e.stopPropagation()}>
+            Tocar para mudar
+            <Interruptor ligado={tocarParaMudar} onChange={v=>{setTocarParaMudar(v);if(!v)setAlvoEdicao(null)}}/>
+          </label>
+        </div>
+
+        <div className="ms-barra" data-tour="site-separadores">
+          {ABAS.map(a=>(
+            <button key={a.id} type="button" className={gaveta&&painel===a.id?'on':''} onClick={()=>abrir(a.id)}>
+              <a.I size={21} strokeWidth={gaveta&&painel===a.id?2.4:1.9}/><span>{a.l}</span>
+            </button>
+          ))}
+        </div>
+
+        {gaveta&&(
+          <>
+            <div className="ms-veu" onClick={()=>setGaveta(false)}/>
+            <div className="ms-gaveta" role="dialog" aria-label={rotulo}>
+              <div className="ms-gaveta-topo">
+                <b>{rotulo}</b>
+                <button type="button" aria-label="Fechar" onClick={()=>setGaveta(false)}>✕</button>
+              </div>
+              <div className="ms-gaveta-corpo">{paineis}</div>
+            </div>
+          </>
+        )}
+      </div>
+    )
+  }
+
+  return(
+    // No computador: os controlos a esquerda, o telemovel fixo a direita.
+    // No telemovel: uma coluna so — aquela segunda coluna de 360px fixos era
+    // o que fazia a pagina sair do ecra para o lado.
+    <div style={telemovel
+      ?{display:'flex',flexDirection:'column',gap:22}
+      :{display:'grid',gridTemplateColumns:'minmax(0,1fr) 360px',gap:22,alignItems:'start'}}>
+
+      <TourDemo passos={PASSOS_GUIA} chave={chaveGuia} ativo={!carregando}/>
+
+      <div style={{display:'flex',flexDirection:'column',gap:18,minWidth:0}}>
+
+        {demo?(
+          <Card style={{padding:'16px 20px'}}>
+            <div style={{fontSize:14,color:T,fontWeight:700,marginBottom:4}}>Demonstração ao vivo</div>
+            <div style={{fontSize:14,color:T2,lineHeight:1.55}}>{telemovel?'Toca numa peça do telemóvel acima e depois em «Editar». Ou escolhe as cores aqui em baixo. ':''}É exatamente o editor que tens no teu painel. Muda à vontade: nada do que fizeres aqui é gravado.</div>
+          </Card>
+        ):(
+        /* O cartao do link saiu daqui: a faixa do painel — a mesma que estava
+           no topo de todas as paginas — passou a aparecer nesta pagina e so
+           nesta, e faz mais do que este cartao fazia (copiar, partilhar e
+           abrir). Duas caixas com o mesmo endereco no mesmo ecra e uma a
+           mais. */
+        null
+        )}
+
+        {/* Eram sete separadores em duas linhas de quatro ao telemovel, porque
+            lado a lado davam 45px cada e os nomes partiam-se. Agora e uma
+            linha que se arrasta com o dedo, como as outras filas do painel:
+            os nomes cabem inteiros e nao se gastam duas linhas de ecra. */}
+        <div className="sa-tira" data-tour="site-separadores"
+          style={{display:'flex',gap:3,padding:4,borderRadius:12,background:W2,border:`1px solid ${BD}`}}>
+          {PAINEIS.filter(pn=>!(demo&&pn.id==='galeria')).map(pn=>(
+            <button key={pn.id} onClick={()=>setPainel(pn.id)}
+              style={{flex:telemovel?'0 0 auto':1,padding:telemovel?'10px 14px':'9px 6px',
+                borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',
+                fontSize:14,fontWeight:painel===pn.id?700:600,
+                background:painel===pn.id?T:'transparent',
+                color:painel===pn.id?W:T2,transition:'background .15s,color .15s'}}>{pn.l}</button>
+          ))}
+        </div>
+
+        {paineis}
 
         {erro&&(
           <div style={{padding:'12px 16px',borderRadius:10,background:`${R}12`,border:`1px solid ${R}38`,
@@ -1368,3 +1458,36 @@ export default function MeuSite() {
     </AdminLayout>
   );
 }
+
+const CSS_MS=`
+.ms { position: relative; margin: -8px calc(var(--pad-lado) * -1) 0; padding: 0 var(--pad-lado); }
+.ms-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; }
+.ms-estado { font-size: 14px; color: var(--text-sec); font-weight: 600; }
+.ms-estado.por { color: var(--gold-tinta); }
+.ms-topo-btns { display: flex; gap: 8px; align-items: center; }
+.ms-descartar { background: transparent; border: 0; color: var(--text-sec); font: inherit; font-size: 14.5px; cursor: pointer; padding: 8px; }
+.ms-publicar { min-height: 40px; padding: 0 18px; border-radius: 999px; border: 0; background: var(--text); color: var(--surface); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.ms-publicar:disabled { opacity: .35; cursor: default; }
+.ms-erro { padding: 10px 14px; border-radius: 10px; background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.4); color: var(--error); font-size: 14px; margin-bottom: 10px; }
+.ms-palco { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 6px 0 150px; }
+.ms-palco > div:first-child { position: relative; }
+.ms-tocar { display: inline-flex; align-items: center; gap: 10px; font-size: 14.5px; color: var(--text); font-weight: 600; }
+.ms-barra {
+  position: fixed; left: 0; right: 0; bottom: calc(58px + env(safe-area-inset-bottom, 0px)); z-index: 70;
+  display: flex; gap: 2px; padding: 6px 8px; overflow-x: auto; scrollbar-width: none;
+  background: var(--surface); border-top: 1px solid var(--border);
+}
+.ms-barra::-webkit-scrollbar { display: none; }
+.ms-barra button { flex: 1 0 68px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px; border: 0; border-radius: 10px; background: transparent; color: var(--text-sec); font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+.ms-barra button.on { color: var(--text); background: var(--elevated); }
+.ms-veu { position: fixed; inset: 0; z-index: 94; background: rgba(0,0,0,.35); }
+.ms-gaveta {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 95; max-height: 72vh; display: flex; flex-direction: column;
+  background: var(--bg); border-radius: 18px 18px 0 0; box-shadow: 0 -12px 40px rgba(0,0,0,.25);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.ms-gaveta-topo { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 8px; }
+.ms-gaveta-topo b { font-size: 17px; }
+.ms-gaveta-topo button { width: 36px; height: 36px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text-sec); font-size: 15px; cursor: pointer; }
+.ms-gaveta-corpo { overflow-y: auto; padding: 0 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+`
