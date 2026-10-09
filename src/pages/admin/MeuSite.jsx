@@ -138,35 +138,46 @@ const COMODIDADES_SUGERIDAS=[
 
 function Comodidades({lista,onChange}){
   const[novo,setNovo]=useState('')
+  const[aberto,setAberto]=useState(false)
   const todas=[...COMODIDADES_SUGERIDAS,...lista.filter(c=>!COMODIDADES_SUGERIDAS.includes(c))]
   const add=()=>{
     const v=novo.trim()
     if(!v||lista.includes(v))return setNovo('')
     onChange([...lista,v]);setNovo('')
   }
-  /* Uma lista so. Cada comodidade e um botao: ligado fica cheio com um visto,
-     desligado fica so com a borda. Era uma lista das escolhidas com «×», outra
-     das por escolher com «+», e um titulo a explicar — tres coisas para uma. */
+  /* Fechada mostra so as escolhidas, numa linha. Aberta e uma lista de
+     interruptores, como as definicoes do telemovel. Eram dezasseis pilulas
+     pretas e brancas misturadas — lia-se mal o que estava ligado. */
   return(
-    <div>
-      <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:12}}>
-        {todas.map(c=>{
-          const on=lista.includes(c)
-          return(
-            <button key={c} type="button" onClick={()=>onChange(on?lista.filter(x=>x!==c):[...lista,c])}
-              style={{display:'inline-flex',alignItems:'center',gap:6,padding:'8px 13px',borderRadius:20,cursor:'pointer',fontFamily:'inherit',
-                background:on?T:'transparent',border:`1px solid ${on?T:BD}`,color:on?W:T2,fontSize:14,fontWeight:on?600:500}}>
-              {on?'✓ ':''}{c}
-            </button>
-          )
-        })}
-      </div>
-      <div style={{display:'flex',gap:8}}>
-        <Inp value={novo} onChange={e=>setNovo(e.target.value)}
-          onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();add()}}}
-          placeholder="Outra…" style={{flex:1}}/>
-        <Btn v="secondary" onClick={add} disabled={!novo.trim()}>Adicionar</Btn>
-      </div>
+    <div style={{border:`1px solid ${BD}`,borderRadius:12,overflow:'hidden',background:W2}}>
+      <button type="button" onClick={()=>setAberto(v=>!v)}
+        style={{width:'100%',display:'flex',alignItems:'center',gap:10,padding:'12px 14px',border:0,background:'transparent',
+          cursor:'pointer',fontFamily:'inherit',color:T,textAlign:'left'}}>
+        <span style={{flex:1,minWidth:0}}>
+          <span style={{display:'block',fontSize:15,fontWeight:600}}>{lista.length?`${lista.length} escolhidas`:'Nenhuma escolhida'}</span>
+          {!aberto&&lista.length>0&&<span style={{display:'block',fontSize:14,color:T2,marginTop:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{lista.join(' · ')}</span>}
+        </span>
+        <span style={{fontSize:14,fontWeight:600,color:T2,flexShrink:0}}>{aberto?'Fechar':'Mudar'}</span>
+      </button>
+      {aberto&&(
+        <div style={{borderTop:`1px solid ${BD}`}}>
+          {todas.map(c=>{
+            const on=lista.includes(c)
+            return(
+              <div key={c} style={{display:'flex',alignItems:'center',gap:12,minHeight:46,padding:'0 14px',borderBottom:`1px solid ${BD}`}}>
+                <span style={{flex:1,fontSize:15,color:on?T:T2,fontWeight:on?600:400}}>{c}</span>
+                <Interruptor ligado={on} onChange={()=>onChange(on?lista.filter(x=>x!==c):[...lista,c])}/>
+              </div>
+            )
+          })}
+          <div style={{display:'flex',gap:8,padding:10}}>
+            <Inp value={novo} onChange={e=>setNovo(e.target.value)}
+              onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();add()}}}
+              placeholder="Outra…" style={{flex:1}}/>
+            <Btn v="secondary" onClick={add} disabled={!novo.trim()}>Adicionar</Btn>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -922,10 +933,15 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
     if(demo)return
     setGuardando(true);setErro('');setSucesso(false)
     try{
-      await updateBusiness(biz.id,{...(logoUrl!==logoGravado?{logo_url:logoUrl}:{}),settings:{...(settingsAtuais||{}),
+      // As definicoes lidas de novo antes de gravar: o cartao de fidelidade,
+      // os packs e o resto vivem noutras paginas e podem ter mudado desde que
+      // esta abriu. Gravar a copia antiga apagava-os.
+      let base=settingsAtuais||{}
+      try{base=(await getBusiness())?.settings||base}catch{}
+      await updateBusiness(biz.id,{...(logoUrl!==logoGravado?{logo_url:logoUrl}:{}),settings:{...base,
         theme:tema, tagline:info.tagline, description:info.description,
         coverImageUrl:info.coverImageUrl, amenities:info.amenities,
-        social:info.social, loyalty:info.loyalty}})
+        social:info.social}})
       setSettingsAtuais(s=>({...(s||{}),theme:tema,...info}))
       setLogoGravado(logoUrl)
       setSucesso(true);onGuardado?.()
@@ -1113,28 +1129,6 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
               <div>
                 <Lbl>Comodidades</Lbl>
                 <Comodidades lista={info.amenities} onChange={v=>inf('amenities',v)}/>
-              </div>
-              <div style={{paddingTop:12,borderTop:`1px solid ${BD}`}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,marginBottom:10}}>
-                  <Lbl>Cartão de fidelidade</Lbl>
-                  <label style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer',userSelect:'none'}}>
-                    <input type="checkbox" checked={info.loyalty.ativo===true}
-                      onChange={e=>inf('loyalty',{...info.loyalty,ativo:e.target.checked})}
-                      style={{width:16,height:16,accentColor:YD,cursor:'pointer'}}/>
-                    <span style={{fontSize:14,color:T2}}>Mostrar no site</span>
-                  </label>
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:telemovel?'1fr':'1fr 1fr',gap:14,
-                  opacity:info.loyalty.ativo!==true?.4:1,pointerEvents:info.loyalty.ativo!==true?'none':'auto'}}>
-                  <div>
-                    <Inp type="number" min="1" max="30" value={info.loyalty.stampsNeeded}
-                      onChange={e=>inf('loyalty',{...info.loyalty,stampsNeeded:Number(e.target.value)||1})}/>
-                  </div>
-                  <div>
-                    <Inp type="number" min="1" max="36" value={info.loyalty.validMonths}
-                      onChange={e=>inf('loyalty',{...info.loyalty,validMonths:Number(e.target.value)||1})}/>
-                  </div>
-                </div>
               </div>
               <div style={{display:'grid',gridTemplateColumns:telemovel?'1fr':'1fr 1fr 1fr',gap:12,paddingTop:12,borderTop:`1px solid ${BD}`}}>
                 {['instagram','facebook','tiktok'].map(r=>(
