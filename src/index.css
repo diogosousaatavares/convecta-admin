@@ -417,10 +417,7 @@ input, textarea, select { font-family: inherit; }
   border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
   color: var(--text); font-size: 15px;
 }
-.dias-teste-txt { display: block; min-width: 0; }
-.dias-teste strong { display: block; font-weight: 700; }
-/* A data por baixo: um numero sozinho pede confianca, uma data nao. */
-.dias-teste small { display: block; font-size: 13px; color: var(--text-sec); margin-top: 2px; }
+.dias-teste strong { font-weight: 700; }
 .dias-teste-ir { font-size: 14px; color: var(--text-sec); white-space: nowrap; flex-shrink: 0; }
 .dias-teste.apertado { background: rgba(239, 68, 68, 0.10); }
 .dias-teste.apertado strong { color: #B91C1C; }

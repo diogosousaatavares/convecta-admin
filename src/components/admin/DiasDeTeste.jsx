@@ -23,12 +23,9 @@ import dataService from '@/lib/dataService';
  * Agora há um relógio: de minuto a minuto refaz-se a conta. E a conta deixou
  * de ser só em dias.
  *
- * ── A contagem muda de unidade à medida que aperta ──────────────────────
- *
- * «Faltam 14 dias» e «faltam 2 dias» não são a mesma frase a dizer números
- * diferentes: são dois avisos diferentes. Nos últimos dias conta-se em dias
- * com a data à vista; no último dia conta-se em HORAS, porque é aí que a
- * diferença entre «amanhã» e «logo à noite» decide se ele trata disto.
+ * Conta DIAS, e mais nada — nem horas, nem minutos. Um relógio ao segundo
+ * num aviso destes não ajuda a decidir nada: só mete pressão. O que muda nos
+ * últimos três dias é a cor, não a unidade.
  */
 export default function DiasDeTeste() {
   const [sub, setSub] = useState(null);
@@ -42,10 +39,11 @@ export default function DiasDeTeste() {
     return () => { vivo = false; };
   }, []);
 
-  /* O relógio. De minuto a minuto: chega para a contagem em horas estar
-     sempre certa e não custa nada. */
+  /* De dez em dez minutos. Não é para a contagem mexer — ela só muda uma
+     vez por dia —, é para MUDAR quando o dia vira, num painel que fica
+     aberto durante dias seguidos. */
   useEffect(() => {
-    const t = setInterval(() => setAgora(Date.now()), 60000);
+    const t = setInterval(() => setAgora(Date.now()), 600000);
     return () => clearInterval(t);
   }, []);
 
@@ -55,40 +53,21 @@ export default function DiasDeTeste() {
   if (Number.isNaN(fim)) return null;
 
   const faltam = fim - agora;
-  const horas = Math.ceil(faltam / 3600000);
   const dias = Math.ceil(faltam / 86400000);
 
-  /* O dia em que acaba, por extenso curto. É o que torna o aviso
-     verificável: um número sozinho pede confiança, uma data não. */
-  const quando = new Date(fim).toLocaleDateString('pt-PT', { day: 'numeric', month: 'long' });
+  const texto =
+    faltam <= 0 ? 'A experiência acabou'
+    : dias === 1 ? 'Último dia de experiência'
+    : `Faltam ${dias} dias de experiência`;
 
-  let texto;
-  let aperto = '';
-  if (faltam <= 0) {
-    texto = 'A experiência acabou';
-    aperto = 'acabou';
-  } else if (horas <= 1) {
-    texto = 'Acaba dentro de uma hora';
-    aperto = 'apertado';
-  } else if (horas <= 24) {
-    texto = `Faltam ${horas} horas`;
-    aperto = 'apertado';
-  } else if (dias === 2) {
-    texto = 'Faltam 2 dias';
-    aperto = 'apertado';
-  } else if (dias === 3) {
-    texto = 'Faltam 3 dias';
-    aperto = 'apertado';
-  } else {
-    texto = `Faltam ${dias} dias`;
-  }
+  /* Três dias é onde a conversa muda: deixa de ser informação e passa a ser
+     uma coisa para resolver esta semana. A unidade é a mesma; o que muda é
+     a cor. */
+  const aperto = faltam <= 0 ? 'acabou' : dias <= 3 ? 'apertado' : '';
 
   return (
     <Link to="/admin/subscricao" className={`dias-teste ${aperto}`}>
-      <span className="dias-teste-txt">
-        <strong>{texto}</strong>
-        {faltam > 0 && <small>A experiência acaba a {quando}</small>}
-      </span>
+      <strong>{texto}</strong>
       <span className="dias-teste-ir">{faltam <= 0 ? 'Activar' : 'Ver plano'} →</span>
     </Link>
   );
