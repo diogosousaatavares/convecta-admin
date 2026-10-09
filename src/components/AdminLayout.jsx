@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import MbIcon from '@/components/MbIcon';
-import { MoreHorizontal, LayoutDashboard, CalendarDays, CalendarRange, Users, Scissors, UserCog, Clock, Settings, Bell, BarChart3, Menu, X, LogOut, Wallet, Package, Megaphone, Star, ChevronDown, DollarSign, Palette, Gift, Repeat, Ticket, ReceiptText, CreditCard, UserPlus, Search, Plus, HelpCircle, Phone, Mail, Send, Smartphone } from 'lucide-react';
+/* Os icones dos oito grupos antigos sairam com eles: com cinco entradas, os
+   icones usados sao cinco. */
+import { MoreHorizontal, LayoutDashboard, CalendarDays, Users, Menu, LogOut, Wallet, ChevronDown, Search, HelpCircle, Phone, Mail, Send } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
@@ -49,75 +51,47 @@ import PrimeirosPassos from '@/components/PrimeirosPassos';
 
 const GROUPS_TODOS = [
   /*
-   * Oito entradas. Eram treze, com 63 destinos por baixo.
+   * CINCO ENTRADAS. Eram oito; antes disso, treze com 63 destinos por baixo.
    *
-   * Um barbeiro que entrava pela primeira vez via sessenta e oito sitios para
-   * onde ir e nao sabia por onde comecar — foi o que dois deles disseram por
-   * palavras deles: "e confusa", "a BUK e mais simples".
+   * O menu passa a ter a mesma forma nos dois sitios: no telemovel e a barra
+   * de baixo, no computador e a barra do lado, e as entradas sao as mesmas.
+   * Quatro sao o trabalho de todos os dias; a quinta e a gaveta.
    *
    * Nada foi apagado: todas as paginas existem e todos os enderecos
-   * funcionam. O que mudou foi a arrumacao.
+   * funcionam. O que mudou foi a arrumacao — e sobretudo quantas decisoes
+   * ele tem de tomar antes de chegar ao que quer.
    *
-   * Dentro de um grupo, uma linha com `titulo` e um cabecalho — nao se
-   * carrega nela. E o que permite que a gaveta "Mais" seja uma gaveta com
-   * separadores e nao trinta linhas despejadas.
+   * Dentro de um grupo, uma linha com `titulo` e um cabecalho e nao se
+   * carrega nela. E o que permite que o «Mais» seja uma gaveta arrumada por
+   * assunto, em vez de vinte e quatro linhas despejadas.
    */
 
-  // O dia de trabalho. E aqui que ele vive.
+  // 1. O dia de trabalho. E aqui que ele vive, e e a porta de entrada.
   { type: 'group', label: 'Hoje', icon: CalendarDays, items: [
     { to: '/admin/agenda', label: 'Agenda', exact: true },
     { to: '/admin/agenda/marcacoes', label: 'Marcações' },
     // Os servicos sem preco fixo nao passam pela agenda: chegam como pedido.
-    // E trabalho do dia como qualquer outro, por isso vive aqui e nao na
-    // gaveta — e e para aqui que abre o aviso que lhe toca no telemovel.
+    // E trabalho do dia como qualquer outro, e e para aqui que abre o aviso
+    // que lhe toca no telemovel.
     { to: '/admin/orcamentos', label: 'Orçamentos' },
     { to: '/admin/agenda/lista-espera', label: 'Lista de espera' },
     { to: '/admin/agenda/encaixes', label: 'Encaixes' },
     { to: '/admin/agenda/bloqueios', label: 'Bloqueios' }
   ]},
 
-  /*
-   * O Resumo era a primeira linha da gaveta "Mais" e ninguem o encontrava.
-   * E o segundo ecra mais aberto a seguir a agenda: fica a seguir a ela.
-   */
+  // 2. Como vai o negocio, num ecra so.
   { type: 'item', to: '/admin/dashboard', label: 'Resumo', icon: LayoutDashboard },
 
+  // 3. Quem paga as contas.
   { type: 'group', label: 'Clientes', icon: Users, items: [
     { to: '/admin/clientes', label: 'Clientes', exact: true },
     { to: '/admin/clientes/aniversarios', label: 'Aniversários' },
     { to: '/admin/avaliacoes', label: 'Avaliações' }
   ]},
 
-  // Os barbeiros e tudo o que lhes diz respeito, incluindo o horario da casa
-  // — que e a pergunta que se faz logo a seguir a "quem trabalha aqui".
-  { type: 'group', label: 'Equipa', icon: UserCog, items: [
-    { to: '/admin/profissionais', label: 'Profissionais', exact: true },
-    { to: '/admin/profissionais/equipa', label: 'Equipa e acessos' },
-    { to: '/admin/horarios', label: 'Horário da barbearia' },
-    { to: '/admin/profissionais/horarios', label: 'Horários de cada um' },
-    { to: '/admin/profissionais/ferias', label: 'Férias e folgas' },
-    { to: '/admin/profissionais/comissoes', label: 'Comissões' }
-  ]},
-
-  // Separados: "Servicos e produtos" numa linha so partia ao meio na barra
-  // lateral e ficava a ocupar duas linhas.
-  { type: 'group', label: 'Serviços', icon: Scissors, items: [
-    { to: '/admin/servicos', label: 'Serviços', exact: true },
-    { to: '/admin/servicos/categorias', label: 'Categorias' }
-  ]},
-
-  { type: 'group', label: 'Produtos', icon: Package, items: [
-    { to: '/admin/produtos', label: 'Produtos', exact: true },
-    { to: '/admin/produtos/stock', label: 'Stock' },
-    { to: '/admin/produtos/movimentos', label: 'Entradas e saídas' },
-    { to: '/admin/produtos/fornecedores', label: 'Fornecedores' }
-  ]},
-
   /*
-   * O dinheiro do dia-a-dia. As contas, os fluxos e os historicos vivem na
-   * pagina do Financeiro, que ja e um indice com separadores — dez linhas de
-   * menu para isso era a razao de ninguem perceber a diferenca entre
-   * "Entradas/Saidas" e "Receitas/Despesas".
+   * 4. O dinheiro do dia-a-dia. As contas, os fluxos e os historicos vivem
+   * na pagina do Financeiro, que ja e um indice com separadores.
    */
   { type: 'group', label: 'Dinheiro', icon: Wallet, items: [
     { to: '/admin/financeiro/caixa', label: 'Caixa', exact: true },
@@ -128,23 +102,30 @@ const GROUPS_TODOS = [
     { to: '/admin/financeiro', label: 'Todas as contas' }
   ]},
 
-  { type: 'item', to: '/admin/o-meu-site', label: 'O meu site', icon: Palette },
-
   /*
-   * A gaveta. Tudo o que nao se usa todas as semanas, arrumado por assunto.
+   * 5. A GAVETA.
    *
-   * Tinha trinta e duas linhas ate as Definicoes, as Comandas, os Relatorios
-   * e as Promocoes ganharem separadores por dentro (ver
-   * SeparadoresDaFamilia). A partir dai o menu so precisa da porta de cada
-   * familia — as paginas irmas encontram-se la dentro.
-   *
-   * As linhas que sobram continuam agrupadas por assunto: dez linhas
-   * seguidas ainda e uma lista para ler, e nao um sitio onde se procura.
+   * Tudo o que nao se abre todos os dias — a equipa, o que se vende, a
+   * fidelizacao, o site, as definicoes. Montam-se uma vez e depois mexe-se
+   * neles de mes a mes; nao tem lugar numa barra que serve para trabalhar.
    */
   { type: 'group', label: 'Mais', icon: MoreHorizontal, items: [
-    { titulo: 'Como vai o negócio' },
-    { to: '/admin/relatorios', label: 'Relatórios' },
+    { titulo: 'A equipa' },
+    { to: '/admin/profissionais', label: 'Profissionais' },
+    { to: '/admin/profissionais/equipa', label: 'Equipa e acessos' },
+    { to: '/admin/horarios', label: 'Horário da barbearia' },
+    { to: '/admin/profissionais/horarios', label: 'Horários de cada um' },
+    { to: '/admin/profissionais/ferias', label: 'Férias e folgas' },
+    { to: '/admin/profissionais/comissoes', label: 'Comissões' },
     { to: '/admin/profissionais/desempenho', label: 'Desempenho da equipa' },
+
+    { titulo: 'O que vendes' },
+    { to: '/admin/servicos', label: 'Serviços' },
+    { to: '/admin/servicos/categorias', label: 'Categorias' },
+    { to: '/admin/produtos', label: 'Produtos' },
+    { to: '/admin/produtos/stock', label: 'Stock' },
+    { to: '/admin/produtos/movimentos', label: 'Entradas e saídas' },
+    { to: '/admin/produtos/fornecedores', label: 'Fornecedores' },
 
     { titulo: 'Fidelizar e vender mais' },
     { to: '/admin/fidelizacao', label: 'Cartão de fidelidade' },
@@ -153,7 +134,9 @@ const GROUPS_TODOS = [
     { to: '/admin/promocoes', label: 'Promoções e cupões' },
 
     { titulo: 'A barbearia' },
+    { to: '/admin/o-meu-site', label: 'O meu site' },
     { to: '/admin/redes-sociais', label: 'Redes sociais' },
+    { to: '/admin/relatorios', label: 'Relatórios' },
     { to: '/admin/definicoes', label: 'Definições' },
 
     { titulo: 'A Convecta' },
@@ -265,15 +248,15 @@ function gruposPara(demo, profissional) {
  * Nao se apaga nada: o menu inteiro continua a um toque, no «Mais». O que
  * muda e o que ele ve sem pedir.
  *
- * Os quatro primeiros sao os que se abrem todos os dias. «O meu site»
- * monta-se uma vez e depois so se mostra — se um dia quiseres trocá-lo pelo
- * Resumo, e esta lista e mais nada.
+ * Sao os mesmos quatro do menu do computador, e pela mesma razao: sao os que
+ * se abrem todos os dias. «O meu site» monta-se uma vez e depois so se
+ * mostra, por isso foi para a gaveta com os outros.
  */
 const BAIXO = [
   { to: '/admin/agenda', label: 'Hoje', icon: CalendarDays },
+  { to: '/admin/dashboard', label: 'Resumo', icon: LayoutDashboard },
   { to: '/admin/clientes', label: 'Clientes', icon: Users },
   { to: '/admin/financeiro/caixa', label: 'Dinheiro', icon: Wallet },
-  { to: '/admin/o-meu-site', label: 'O meu site', icon: Palette },
 ];
 
 function BarraDeBaixo({ onMais, aberto }) {
