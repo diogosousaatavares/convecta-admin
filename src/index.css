@@ -580,7 +580,22 @@ input, textarea, select { font-family: inherit; }
 @media (max-width: 768px) {
   .admin-topbar-email { display: none; }
   .admin-topbar { margin: 0 -16px 20px; padding: 0 16px; width: calc(100% + 32px); }
-  .admin-topbar-hamburger { display: inline-flex; }
+}
+
+/*
+ * O HAMBURGUER SAI DO TELEMOVEL.
+ *
+ * No computador continua a servir: e ele que encolhe e abre a barra lateral.
+ * No telemovel abria a gaveta — e a gaveta passou a abrir-se pelo «Mais», na
+ * barra de baixo. Duas portas para a mesma sala, uma delas escondida num
+ * canto do cabecalho, e so mais uma coisa para ele decidir.
+ *
+ * 767px e nao 768: e o mesmo ponto onde a barra lateral vira gaveta e a
+ * barra de baixo aparece. Um pixel de diferenca entre as duas regras deixava
+ * uma largura sem menu nenhum.
+ */
+@media (max-width: 767px) {
+  .admin-topbar-hamburger { display: none; }
 }
 
 

@@ -525,10 +525,12 @@ export default function AdminLayout({ children }) {
         )}
         <div className="admin-topbar">
           <div className="admin-topbar-left">
-            <button className="btn btn-ghost btn-icon admin-topbar-hamburger" onClick={() => {
-              if (window.matchMedia('(max-width: 767px)').matches) setOpen(!open);
-              else setCollapsed(value => !value);
-            }} aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'} aria-expanded={!collapsed}>
+            {/* So no computador: aqui o botao encolhe e abre a barra lateral.
+                No telemovel esta escondido — a gaveta abre-se pelo «Mais», na
+                barra de baixo, e duas portas para a mesma sala e uma a mais. */}
+            <button className="btn btn-ghost btn-icon admin-topbar-hamburger"
+              onClick={() => setCollapsed(value => !value)}
+              aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'} aria-expanded={!collapsed}>
               <Menu size={20} />
             </button>
             {data.business?.logo
