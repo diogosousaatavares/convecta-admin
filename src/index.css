@@ -2612,6 +2612,37 @@ html:not(.theme-light) .marca-escuro { display: block !important; }
    As filas que deslizam de proposito — filtros, separadores — tem a sua
    propria barra interna e nao sao afectadas.
    ============================================================ */
+/* ── A barra de baixo (telemovel) ─────────────────────────────────────────
+   Cinco destinos e mais nada. O menu inteiro continua a um toque, no «Mais».
+   No computador nao existe: la ha barra lateral e espaco para ela. */
+.bnav { display: none; }
+@media (max-width: 767px) {
+  .bnav {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, .06);
+  }
+  .bnav-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; min-height: 58px; padding: 6px 2px; min-width: 0;
+    background: none; border: 0; cursor: pointer; font: inherit;
+    font-size: 11px; font-weight: 600; color: var(--text-ter); text-decoration: none;
+  }
+  .bnav-item span {
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .bnav-item.activo { color: var(--gold-tinta); }
+  .bnav-item.activo svg { stroke-width: 2.4; }
+  /* Com a gaveta aberta a barra sai da frente: duas navegacoes ao mesmo
+     tempo no mesmo ecra e uma a mais. */
+  .bnav-escondida { display: none; }
+  /* E a pagina ganha chao por baixo, para o ultimo botao de cada ecra nao
+     ficar debaixo da barra. */
+  .admin-content { padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+}
+
 @media (max-width: 767px) {
   .admin-content { overflow-x: clip; }
   .admin-content :where(p, span, div, a, td, th, li, dd, h1, h2, h3, h4) {

@@ -252,6 +252,51 @@ function gruposPara(demo, profissional) {
     .filter(g => !g.items || g.items.length > 0);
 }
 
+/*
+ * A BARRA DE BAIXO, no telemovel.
+ *
+ * O menu tem oito grupos que abrem para perto de trinta sitios. Isso e
+ * arrumacao boa para quem ja conhece a casa — e e exactamente o que faz um
+ * barbeiro dizer «e confusa» no primeiro dia. Quem olhou para a concorrencia
+ * ve a mesma coisa do outro lado: nao tem menos funcionalidades, tem menos
+ * ESCOLHAS A PRIMEIRA VISTA. Cinco destinos na barra de baixo, e o resto
+ * atras de um botao.
+ *
+ * Nao se apaga nada: o menu inteiro continua a um toque, no «Mais». O que
+ * muda e o que ele ve sem pedir.
+ *
+ * Os quatro primeiros sao os que se abrem todos os dias. «O meu site»
+ * monta-se uma vez e depois so se mostra — se um dia quiseres trocá-lo pelo
+ * Resumo, e esta lista e mais nada.
+ */
+const BAIXO = [
+  { to: '/admin/agenda', label: 'Hoje', icon: CalendarDays },
+  { to: '/admin/clientes', label: 'Clientes', icon: Users },
+  { to: '/admin/financeiro/caixa', label: 'Dinheiro', icon: Wallet },
+  { to: '/admin/o-meu-site', label: 'O meu site', icon: Palette },
+];
+
+function BarraDeBaixo({ onMais, aberto }) {
+  const location = useLocation();
+  /* Activo pelo inicio do endereco: dentro da Agenda ha Marcacoes, Encaixes
+     e Bloqueios, e todos continuam a ser «Hoje». */
+  const activo = (to) => location.pathname === to || location.pathname.startsWith(to + '/');
+  return (
+    <nav className={`bnav${aberto ? ' bnav-escondida' : ''}`} aria-label="Principal">
+      {BAIXO.map(b => (
+        <Link key={b.to} to={b.to} className={`bnav-item${activo(b.to) ? ' activo' : ''}`}>
+          <b.icon size={21} />
+          <span>{b.label}</span>
+        </Link>
+      ))}
+      <button type="button" className="bnav-item" onClick={onMais} aria-label="Abrir o menu">
+        <MoreHorizontal size={21} />
+        <span>Mais</span>
+      </button>
+    </nav>
+  );
+}
+
 export default function AdminLayout({ children }) {
   const data = useStore();
   const location = useLocation();
@@ -455,6 +500,7 @@ export default function AdminLayout({ children }) {
     <div className={`admin-layout ${collapsed ? 'sidebar-collapsed' : ''}`}>
       <aside className={`admin-sidebar ${open ? 'open' : ''} ${collapsed ? 'collapsed' : ''}`}>{sidebar}</aside>
       {open && <div onClick={() => setOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:99 }} />}
+      <BarraDeBaixo onMais={() => setOpen(true)} aberto={open} />
       <Modal open={supportOpen} onClose={() => setSupportOpen(false)} title="Apoio ao cliente">
         <div className="support-contact-list">
           <a href="tel:+351914874725" className="support-contact"><Phone size={17} /> <span><strong>Ligar</strong><small>914 874 725</small></span></a>
