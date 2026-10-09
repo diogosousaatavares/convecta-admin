@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import MbIcon from '@/components/MbIcon';
 /* Os icones dos oito grupos antigos sairam com eles: com cinco entradas, os
    icones usados sao cinco. */
-import { MoreHorizontal, LayoutDashboard, CalendarDays, Users, Star, Menu, LogOut, ChevronDown, Search, HelpCircle, Phone, Mail, Send } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, LayoutDashboard, CalendarDays, Users, Star, Menu, LogOut, ChevronDown, Search, HelpCircle, Phone, Mail, Send } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
@@ -262,6 +262,22 @@ export function gruposPara(demo, profissional) {
  * e o que traz clientes novos, e um barbeiro que ve as avaliacoes todos os
  * dias pede mais e responde mais depressa.
  */
+/*
+ * O TITULO DA PAGINA, para a barra de cima no telemovel. Procura-se no menu
+ * todo a entrada cuja rota e a mais comprida que ainda encaixa no caminho
+ * actual, para que /admin/servicos/categorias de «Serviços» e nao «Mais».
+ */
+function tituloDaPagina(pathname) {
+  let melhor = null;
+  const ve = (it) => {
+    if (!it || !it.to) return;
+    const base = it.to.split('?')[0];
+    if ((pathname === base || pathname.startsWith(base + '/')) && (!melhor || base.length > melhor.to.length)) melhor = { to: base, label: it.label };
+  };
+  GROUPS_TODOS.forEach(g => { ve(g); (g.items || []).forEach(ve); });
+  return melhor?.label || '';
+}
+
 const BAIXO = [
   { to: '/admin/agenda', label: 'Hoje', icon: CalendarDays },
   { to: '/admin/dashboard', label: 'Resumo', icon: LayoutDashboard },
@@ -555,6 +571,21 @@ export default function AdminLayout({ children }) {
             Demonstração — mexe à vontade. Os dados voltam ao início de hora a hora.
           </div>
         )}
+        {/* No telemovel, uma pagina que nao e uma das cinco de baixo e uma
+            pagina «de dentro»: tem seta para voltar e o nome em cima, como
+            num ecra nativo. Voltar e voltar mesmo — para onde se estava. */}
+        {!noComputador && !BAIXO.some(b => location.pathname === b.to) && location.pathname !== '/admin/mais' ? (
+        <div className="admin-topbar admin-topbar-dentro">
+          <button type="button" className="btn btn-ghost btn-icon" aria-label="Voltar"
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/admin/mais'))}>
+            <ArrowLeft size={22} />
+          </button>
+          <span className="admin-topbar-titulo">{tituloDaPagina(location.pathname)}</span>
+          <div className="admin-topbar-right">
+            <SinoAvisos businessId={data.business?.id} porConfirmar={porConfirmar} />
+          </div>
+        </div>
+        ) : (
         <div className="admin-topbar">
           <div className="admin-topbar-left">
             {noComputador && (
@@ -601,6 +632,7 @@ export default function AdminLayout({ children }) {
             </button>
           </div>
         </div>
+        )}
         {/* A FAIXA DO LINK vive no «O meu site», e so la.
             Esteve em todas as paginas, e a razao era boa: e a coisa que ele
             mais partilha e no Dashboard ninguem a encontrava. Mas uma faixa

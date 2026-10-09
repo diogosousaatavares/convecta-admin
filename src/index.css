@@ -2692,3 +2692,8 @@ html:not(.theme-light) .marca-escuro { display: block !important; }
 /* .so-pc: coisas que no telemovel so fazem barulho. Continuam no computador. */
 @media (max-width: 767px) { .so-pc { display: none !important; } }
 @media (min-width: 768px) { .so-telemovel { display: none !important; } }
+
+/* A barra de cima nas paginas de dentro (telemovel): seta, nome, sino. */
+.admin-topbar-dentro { justify-content: flex-start; gap: 6px; }
+.admin-topbar-dentro .admin-topbar-titulo { flex: 1; text-align: center; font-size: 15px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-topbar-dentro .admin-topbar-right { min-width: 40px; justify-content: flex-end; }
