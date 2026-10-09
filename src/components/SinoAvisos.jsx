@@ -14,7 +14,7 @@ import { supabase } from '@/lib/supabase';
  */
 
 const ICONE = { marcacao: CalendarPlus, cancelada: CalendarX, pack: Repeat, avaliacao: Star, convecta: Megaphone };
-const COR = { marcacao: '#22C55E', cancelada: '#EF4444', pack: '#C9A227', avaliacao: '#F59E0B', convecta: '#3B82F6' };
+const COR = { marcacao: '#22C55E', cancelada: '#EF4444', pack: 'var(--gold)', avaliacao: '#F59E0B', convecta: '#3B82F6' };
 
 function haQuanto(iso) {
   const s = Math.max(0, (Date.now() - new Date(iso)) / 1000);
@@ -104,7 +104,7 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
               const Icone = ICONE[a.tipo] || Bell;
               return (
                 <button key={a.id} onClick={() => ir(a.url)} style={linha(!a.lido)}>
-                  <span style={bola(COR[a.tipo] || '#C9A227')}><Icone size={15} /></span>
+                  <span style={bola(COR[a.tipo] || 'var(--gold)')}><Icone size={15} /></span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <b style={{ fontSize: 15, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.titulo}</b>
                     {a.mensagem && <small style={{ display: 'block', color: 'var(--text-sec)', fontSize: 14, lineHeight: 1.4 }}>{a.mensagem}</small>}

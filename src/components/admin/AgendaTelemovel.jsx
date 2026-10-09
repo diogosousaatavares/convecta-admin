@@ -264,7 +264,7 @@ export default function AgendaTelemovel({
                         type="button"
                         key={a.id}
                         className={`agm-bloco ${est.cor}${curto ? ' curto' : ''}`}
-                        style={{ top: topo, height: alt, ...(a.usaPack && !a.blocked ? { boxShadow: 'inset 4px 0 0 #C9A227' } : null) }}
+                        style={{ top: topo, height: alt, ...(a.usaPack && !a.blocked ? { boxShadow: 'inset 4px 0 0 var(--gold)' } : null) }}
                         onClick={() => onSelect(a)}
                       >
                         <span className="agm-bloco-barra" />

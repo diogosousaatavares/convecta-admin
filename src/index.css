@@ -231,12 +231,12 @@ input, textarea, select { font-family: inherit; }
 .btn-gold-pill.btn-sm { padding: 9px 15px; font-size: 14.5px; }
 
 /* ===== NOTIFICATION CARD (brand) ===== */
-.notif-card { background: #1E1E1E; border: 1px solid rgba(var(--gold-rgb),0.22); border-radius: 14px; padding: 16px; transition: border-color 200ms ease, transform 200ms ease; }
+.notif-card { background: var(--surface); border: 1px solid rgba(var(--gold-rgb),0.22); border-radius: 14px; padding: 16px; transition: border-color 200ms ease, transform 200ms ease; }
 .notif-card.unread { border-color: rgba(var(--gold-rgb),0.55); }
 .notif-card:active { transform: scale(0.99); }
 .notif-ico { width: 40px; height: 40px; border-radius: 11px; background: rgba(var(--gold-rgb),0.14); display: flex; align-items: center; justify-content: center; color: var(--gold-tinta); flex-shrink: 0; }
-.notif-title { font-size: 15px; font-weight: 700; color: #fff; }
-.notif-msg { color: #B0B0B0; font-size: 15px; margin-top: 6px; line-height: 1.45; }
+.notif-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.notif-msg { color: var(--text-sec); font-size: 15px; margin-top: 6px; line-height: 1.45; }
 .notif-date { font-size: 13.5px; color: #7A746A; margin-top: 8px; }
 .notif-badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: var(--radius-pill); font-size: 10.5px; font-weight: 600; letter-spacing: 0.3px; background: rgba(var(--gold-rgb),0.12); color: var(--gold-tinta); border: 1px solid rgba(var(--gold-rgb),0.3); }
 .notif-badge.promo { background: rgba(var(--gold-rgb),0.18); }

@@ -14,7 +14,7 @@ import { round2 } from '@/lib/domain/money';
 import { Card, Button, EmptyState } from '@/components/ui';
 import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
 
-const GOLD = '#C9A227';
+const GOLD = 'var(--gold)';
 const GOLD_SOFT = '#E6C65A';
 const PALETTE = ['#C9A227', '#E6C65A', '#8A6A18', '#F7E078', '#B8901F', '#6E5512'];
 

@@ -155,14 +155,14 @@ export default function Notifications() {
         <div className="notif-card so-pc" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div className="notif-ico" style={{ width: 36, height: 36 }}><Bell size={17} /></div>
           <div>
-            <div className="text-xs" style={{ color: '#7A746A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total</div>
-            <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, color: '#fff' }}>{notifications.length}</div>
+            <div className="text-xs" style={{ color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total</div>
+            <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, color: 'var(--text)' }}>{notifications.length}</div>
           </div>
         </div>
         <div className="notif-card so-pc" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div className="notif-ico" style={{ width: 36, height: 36 }}><Send size={17} /></div>
           <div>
-            <div className="text-xs" style={{ color: '#7A746A', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ativas</div>
+            <div className="text-xs" style={{ color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ativas</div>
             <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, color: 'var(--gold-tinta)' }}>{activeCount}</div>
           </div>
         </div>
@@ -186,7 +186,7 @@ export default function Notifications() {
                     <div className="flex items-center gap-8" style={{ flexWrap: 'wrap' }}>
                       <span className="notif-title">{n.title}</span>
                       <span className={`notif-badge ${meta.cls}`}>{meta.label}</span>
-                      <span className={`notif-badge ${n.active ? '' : ''}`} style={n.active ? { background: 'rgba(34,197,94,0.12)', color: 'var(--success)', borderColor: 'rgba(34,197,94,0.3)' } : { background: 'rgba(255,255,255,0.05)', color: '#7A746A', borderColor: 'rgba(255,255,255,0.1)' }}>
+                      <span className={`notif-badge ${n.active ? '' : ''}`} style={n.active ? { background: 'rgba(34,197,94,0.12)', color: 'var(--success)', borderColor: 'rgba(34,197,94,0.3)' } : { background: 'rgba(255,255,255,0.05)', color: 'var(--text-sec)', borderColor: 'rgba(255,255,255,0.1)' }}>
                         {n.active ? 'Ativa' : 'Inativa'}
                       </span>
                     </div>

@@ -160,40 +160,57 @@ export function getCustomerStats(state, customerId) {
 
 // --- Ocupação do profissional (minutos / minutos disponíveis) --------------
 // NÃO usa contagem de marcações. Usa duração real (snapshot) vs horário.
+//
+// O que conta como «disponível» (revisto a 09/10/2026 — dava 3,33 % num
+// mês com 30 marcações):
+//   - só os dias até hoje: um mês a meio tem 20 dias por acontecer, e esses
+//     não são horas vazias, ainda não existem;
+//   - o horário do próprio barbeiro quando o tem, senão o da casa;
+//   - menos as pausas (almoço), menos os dias de férias/ausência,
+//     menos os bloqueios que ele próprio pôs na agenda.
 export function getProfessionalOccupancy(state, professionalId, range) {
   let occupied = 0;
   let available = 0;
   const pro = state.professionals.find(p => p.id === professionalId);
   if (!pro || !range) return { occupied: 0, available: 0, rate: 0 };
 
+  const hoje = localDateStr(new Date());
   const cursor = parseLocalDate(range.from);
-  const end = parseLocalDate(range.to);
+  const end = parseLocalDate(range.to < hoje ? range.to : hoje);
+  const horario = pro.schedule || state.business.openingHours || [];
+  const ausencias = (state.timeOff || []).filter(t => t.professionalId === professionalId);
+
   while (cursor <= end) {
     const ds = localDateStr(cursor);
-    const hours = state.business.openingHours.find(h => h.day === dayNameOf(ds));
-    if (hours && hours.isOpen) {
+    const hours = horario.find(h => h.day === dayNameOf(ds));
+    const deFerias = ausencias.some(t => t.startDate <= ds && ds <= t.endDate);
+    if (hours && hours.isOpen && !deFerias) {
       const open = toMinutes(hours.open);
       const close = toMinutes(hours.close);
-      available += (close - open); // minutos disponíveis no dia
-      const dayAppts = state.appointments.filter(a =>
-        a.professionalId === professionalId &&
-        a.date === ds &&
-        a.status !== APPT_STATES.CANCELLED &&
-        a.status !== APPT_STATES.NO_SHOW &&
-        !a.blocked
-      );
-      dayAppts.forEach(a => { occupied += appointmentDuration(state, a); });
+      let dia = Math.max(0, close - open);
+      (hours.breaks || []).forEach(b => {
+        const a = Math.max(open, toMinutes(b.start)), z = Math.min(close, toMinutes(b.end));
+        if (z > a) dia -= (z - a);
+      });
+      const doDia = state.appointments.filter(a => a.professionalId === professionalId && a.date === ds);
+      doDia.forEach(a => {
+        if (a.blocked || a.status === 'blocked') { dia -= appointmentDuration(state, a); return; }
+        if (a.status === APPT_STATES.CANCELLED || a.status === APPT_STATES.NO_SHOW) return;
+        occupied += appointmentDuration(state, a);
+      });
+      available += Math.max(0, dia);
     }
     cursor.setDate(cursor.getDate() + 1);
   }
-  const rate = available > 0 ? round2((occupied / available) * 100) : 0;
+  const rate = available > 0 ? Math.min(100, round2((occupied / available) * 100)) : 0;
   return { occupied, available, rate };
 }
 
 // Ocupação agregada de todos os profissionais (minutos ocupados / disponíveis).
 export function getOccupancy(state, range) {
   let occupied = 0, available = 0;
-  state.professionals.forEach(p => {
+  // Só quem corta: um barbeiro inativo não tem horas vazias.
+  state.professionals.filter(p => p.isActive !== false).forEach(p => {
     const o = getProfessionalOccupancy(state, p.id, range);
     occupied += o.occupied; available += o.available;
   });

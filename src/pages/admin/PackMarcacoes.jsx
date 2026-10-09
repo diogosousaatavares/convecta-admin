@@ -24,7 +24,7 @@ const ESTADO = {
 };
 
 const riscado = {
-  background: 'linear-gradient(to top right, transparent calc(50% - 1.5px), #C9A227 calc(50% - 1.5px), #C9A227 calc(50% + 1.5px), transparent calc(50% + 1.5px))',
+  background: 'linear-gradient(to top right, transparent calc(50% - 1.5px), var(--gold) calc(50% - 1.5px), var(--gold) calc(50% + 1.5px), transparent calc(50% + 1.5px))',
 };
 
 export default function PackMarcacoes() {
@@ -146,8 +146,8 @@ export default function PackMarcacoes() {
                       <div key={i} style={{ display: 'grid', gap: 3, minWidth: 0 }}>
                         <div style={{
                           width: '100%', aspectRatio: '1', borderRadius: '50%', display: 'grid', placeItems: 'center',
-                          border: `2px ${feito || m ? 'solid' : 'dashed'} ${feito ? '#16a34a' : 'var(--border-strong, var(--border))'}`,
-                          ...(feito ? { background: '#16a34a', color: '#fff' } : m ? riscado : null),
+                          border: `2px ${feito || m ? 'solid' : 'dashed'} ${feito ? 'var(--success)' : 'var(--border-strong, var(--border))'}`,
+                          ...(feito ? { background: 'var(--success)', color: '#fff' } : m ? riscado : null),
                         }} title={feito ? 'Feito' : m ? `Marcado · ${formatDateShortNum(m.date)} ${m.startTime}` : 'Por marcar'}>
                           {feito && <Check size={14} strokeWidth={3} />}
                         </div>
