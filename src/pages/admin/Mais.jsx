@@ -101,7 +101,7 @@ export default function Mais() {
           <LogOut size={17} /> Terminar sessão
         </button>
 
-        <div className="mais-rodape">Convecta · feito em Alfena, Porto</div>
+        <div className="mais-rodape">Convecta</div>
       </div>
     </AdminLayout>
   );
