@@ -2725,3 +2725,14 @@ h1, h2, h3, h4, .kpi .value, .res-num, .value { font-variant-numeric: lining-num
 .ec-caixa { display: flex; align-items: center; gap: 8px; padding: 0 12px; min-height: 44px; border-radius: 10px; background: var(--elevated); border: 1px solid var(--border); color: var(--text-sec); }
 .ec-caixa:focus-within { border-color: var(--gold); }
 .ec-input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font-size: 15px; outline: none; }
+
+/* ── Nada anda para o lado ──────────────────────────────────────────────
+   A janela «Nova marcacao» deslizava para a esquerda e para a direita no
+   iPhone: os campos de data e hora do iOS sao mais largos do que a caixa, e
+   a janela, que so devia rolar para baixo, rolava tambem para o lado. */
+html, body { overflow-x: hidden; max-width: 100vw; }
+.modal { overflow-x: hidden; }
+.modal-body, .modal-foot, .modal-head { max-width: 100%; }
+.modal input, .modal select, .modal textarea, .modal .input, .modal .select { max-width: 100%; min-width: 0; box-sizing: border-box; }
+input[type="date"], input[type="time"], input[type="datetime-local"] { width: 100%; max-width: 100%; min-width: 0; -webkit-appearance: none; appearance: none; box-sizing: border-box; }
+@media (max-width: 767px) { .modal-overlay { padding: 12px; overflow: hidden; } .modal { max-width: 100%; } }
