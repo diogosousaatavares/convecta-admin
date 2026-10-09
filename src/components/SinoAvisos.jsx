@@ -86,6 +86,7 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
           boxShadow: '0 22px 50px rgba(0,0,0,.20)', overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', fontWeight: 700, fontSize: 15.5 }}>Avisos</div>
           <div style={{ maxHeight: 'min(420px, 70dvh)', overflowY: 'auto' }}>
+            {porConfirmar > 0 && <div style={TITULO_GRUPO}>A barbearia</div>}
             {porConfirmar > 0 && (
               <button onClick={() => ir('/admin/marcacoes')} style={linha(true)}>
                 <span style={bola('#F59E0B')}><Clock size={15} /></span>
@@ -100,7 +101,15 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
                 Ainda não há avisos. Quando entrar uma marcação, aparece aqui.
               </div>
             )}
-            {avisos.map(a => {
+            {/* Primeiro o que e da barbearia (marcacoes, cancelamentos, packs,
+                avaliacoes); depois, a parte, o que a Convecta manda. */}
+            {[['barbearia', avisos.filter(a => a.tipo !== 'convecta')], ['convecta', avisos.filter(a => a.tipo === 'convecta')]]
+              .filter(([, l]) => l.length > 0)
+              .flatMap(([grupo, lista]) => [
+                (grupo === 'convecta' || porConfirmar === 0)
+                  ? <div key={'t-' + grupo} style={TITULO_GRUPO}>{grupo === 'barbearia' ? 'A barbearia' : 'Convecta'}</div>
+                  : null,
+                ...lista.map(a => {
               const Icone = ICONE[a.tipo] || Bell;
               return (
                 <button key={a.id} onClick={() => ir(a.url)} style={linha(!a.lido)}>
@@ -112,7 +121,7 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
                   <small style={{ color: 'var(--text-sec)', fontSize: 13.5, flexShrink: 0 }}>{haQuanto(a.created_at)}</small>
                 </button>
               );
-            })}
+            })])}
           </div>
         </div>
       )}
@@ -120,6 +129,7 @@ export default function SinoAvisos({ businessId, porConfirmar = 0 }) {
   );
 }
 
+const TITULO_GRUPO = { padding: '10px 16px 6px', fontSize: 12, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-ter, var(--text-sec))' };
 const linha = (novo) => ({
   width: '100%', display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 16px', textAlign: 'left',
   border: 'none', borderBottom: '1px solid var(--border)', cursor: 'pointer', fontFamily: 'inherit', color: 'var(--text)',
