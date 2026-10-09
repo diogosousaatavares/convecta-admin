@@ -3,7 +3,7 @@ import { Download, Share2, Copy, Check, RefreshCw } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import { Card, Button } from '@/components/ui';
 import { useToast } from '@/components/ui/ToastContext';
-import { getBusiness, DOMINIO_BASE } from '@/lib/designService';
+import { getBusiness, listGallery, DOMINIO_BASE } from '@/lib/designService';
 import {
   MODELO, desenhar, carregarImagem, garantirFonte,
   paraBlob, nomeDoFicheiro, legenda,
@@ -67,7 +67,7 @@ export default function RedesSociais() {
       // em logo_url e o ícone QUADRADO em theme.favicon. No post quer-se o
       // logótipo, não o ícone; o favicon só entra se não houver logótipo.
       const logoUrl = b?.logo_url || t.favicon;
-      await garantirFonte();
+      await garantirFonte(t.fonts?.heading);
       /*
        * O logótipo é o que ele carregou em «O Meu Site → Marca», e só na
        * falta desse é que se usa o da Visão Geral. É a mesma ordem que a app
@@ -78,13 +78,38 @@ export default function RedesSociais() {
        * contaminado e o botão de descarregar rebentava.
        */
       const logo = await carregarImagem(logoUrl, true);
+      /*
+       * O que os telemóveis dos cartazes mostram é a app e o site DELE:
+       * o ícone que a app instala (theme.favicon), a capa do site (ou a
+       * primeira foto da galeria — a mesma ordem do site), a letra dos
+       * títulos e a localidade. Nada disto é obrigatório: o que faltar fica
+       * como no cartaz original.
+       */
+      const fotos = await listGallery().catch(() => []);
+      const capaUrl = def.coverImageUrl || fotos[0]?.image_url || '';
+      const [icone, capa] = await Promise.all([
+        t.favicon ? carregarImagem(t.favicon, true) : null,
+        capaUrl ? carregarImagem(capaUrl, true) : null,
+      ]);
+      // A localidade é a última parte da morada, sem o código postal — como
+      // a etiqueta por cima do nome no site.
+      const sitio = String(def.address || '').split(',').map(x => x.trim()).filter(Boolean);
+      const local = sitio.length ? sitio[sitio.length - 1].replace(/^\d{4}-\d{3}\s*/, '') : '';
+      // O nome que o cliente vê é o do tema (appName); o `name` é o de sistema.
+      const nome = String(t.appName || '').trim() || b?.name || 'A tua barbearia';
       const slug = b?.slug || 'a-tua-barbearia';
       setBarbearia({
-        nome: b?.name || 'A tua barbearia',
+        nome,
+        nomeCurto: nome,
         slug,
         endereco: b?.domain || `${slug}.${DOMINIO_BASE}`,
+        local,
         logo,
+        icone,
+        capa,
         cor,
+        fundo: t.colors?.bg || '#0B0B0B',
+        fonteTitulo: t.fonts?.heading || '',
         semLogo: !logo && !!logoUrl,
       });
     } catch (e) {

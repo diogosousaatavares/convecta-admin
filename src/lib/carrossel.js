@@ -127,9 +127,23 @@ export const MODELO = {
         // já diz quem é, e o nome desalinhava o conjunto.
         { tipo: 'vazio', limpar: 'tudo',   x: 0.5495, y: 0.0556, X: 0.8242, Y: 0.1528 },
         { tipo: 'logo',  limpar: 'nada',   x: 0.5852, y: 0.0688, X: 0.8599, Y: 0.1326, recuo: 0, alinhar: 'esquerda' },
-        // A barra do browser, dentro do telemóvel: letra branca sobre preto.
-        { tipo: 'endereco', limpar: 'claro', x: 0.345, y: 0.5400, X: 0.705, Y: 0.5730,
-          peso: 500, alinhar: 'centro', tamanho: 0.0180, cor: '#FFFFFF', fundo: '#000000', cortar: true },
+        // A barra do browser, dentro do telemóvel: letra branca sobre o cinza
+        // quase preto da barra. A faixa é pintada inteira com a cor da barra
+        // (#0E0E0E): apagar só a letra clara deixava o halo escuro do JPEG à
+        // volta do texto antigo, a fazer de fantasma. Começa a seguir ao
+        // cadeado e pára antes do «Instagram».
+        { tipo: 'endereco', limpar: 'tudo', x: 0.3680, y: 0.5410, X: 0.7050, Y: 0.5625,
+          peso: 500, alinhar: 'esquerda', tamanho: 0.0180, cor: '#FFFFFF', fundo: '#0E0E0E', cortar: true },
+        /*
+         * O site DELE por trás do menu do Instagram: a capa, a localidade, o
+         * nome na letra do tema e o botão na cor dele. O menu fica por cima,
+         * intacto (é o `excluir`).
+         */
+        { tipo: 'site', limpar: 'nada', x: 0.2198, y: 0.5889, X: 0.7775, Y: 1, esbater: 0.0417,
+          excluir: { x: 0.369, y: 0.5875, X: 0.7399, Y: 0.8042, raio: 0.0201 },
+          etiqueta: { x: 0.2637, y: 0.8514, tamanho: 0.0111 },
+          nome: { x: 0.2537, y: 0.9125, X: 0.7436, tamanho: 0.0486, minimo: 0.025 },
+          botoes: [{ x: 0.2509, y: 0.9389, X: 0.7399, Y: 0.9868, raio: 0.0128, texto: 'Marcar agora', cheio: true }] },
       ],
     },
     {
@@ -143,9 +157,35 @@ export const MODELO = {
          */
         { tipo: 'frase', limpar: 'escuro', x: 0.110, y: 0.0530, X: 0.910, Y: 0.1040,
           antes: 'Depois de teres a app da ', alinhar: 'centro', tamanho: 0.0365, minimo: 0.022 },
+        // «…já podes marcar a tua consulta.» — numa barbearia é uma
+        // MARCAÇÃO, não uma consulta (Diogo, 09/10). O risco amarelo fica.
+        { tipo: 'texto', texto: 'já podes fazer a tua marcação.', limpar: 'escuro',
+          x: 0.090, y: 0.1419, X: 0.910, Y: 0.1912,
+          peso: 800, tracking: -0.035, alinhar: 'centro', tamanho: 0.0414, minimo: 0.026 },
+        // O ícone no ecrã inicial é o DELE (o mesmo que a app instala), com
+        // o nome por baixo — não um «M Marcações» qualquer.
+        { tipo: 'icone', limpar: 'tudo', x: 0.3262, y: 0.3024, X: 0.4162, Y: 0.3887,
+          icone: { x: 0.3351, y: 0.3074, X: 0.4082, Y: 0.3645, raio: 0.225 },
+          rotulo: { y: 0.3787, tamanho: 0.0114, largura: 0.0891 } },
       ],
     },
-    { ficheiro: '5.jpg', larg: 1122, alt: 1402, cabecalho: false, zonas: [] },
+    {
+      ficheiro: '5.jpg', larg: 1122, alt: 1402, cabecalho: false,
+      zonas: [
+        // «e marca a tua próxima consulta.» — marcação, não consulta.
+        { tipo: 'texto', texto: 'e faz a tua próxima marcação.', limpar: 'escuro',
+          x: 0.170, y: 0.2625, X: 0.830, Y: 0.2946,
+          peso: 400, alinhar: 'centro', tamanho: 0.0264, minimo: 0.020, cor: '#1A1A1A' },
+        // O site dele no telemóvel: capa, localidade, nome e os dois botões.
+        { tipo: 'site', limpar: 'nada', x: 0.2941, y: 0.3723, X: 0.7094, Y: 0.8595, esbater: 0.0499,
+          etiqueta: { x: 0.3164, y: 0.6705, tamanho: 0.0086 },
+          nome: { x: 0.3146, y: 0.7168, X: 0.6863, tamanho: 0.0328, minimo: 0.0185 },
+          botoes: [
+            { x: 0.3137, y: 0.734, X: 0.6845, Y: 0.7732, raio: 0.0089, texto: 'Marcar agora', cheio: true },
+            { x: 0.3137, y: 0.7832, X: 0.6845, Y: 0.8224, raio: 0.0089, texto: 'Ver serviços' },
+          ] },
+      ],
+    },
   ],
 }
 
@@ -409,12 +449,210 @@ function porLogo(ctx, z, larg, alt, logo, inicial, corMarca) {
   ctx.fillText(String(inicial || 'B').toUpperCase(), esq ? ix : ix + iw / 2, iy + ih / 2 + ih * 0.02)
 }
 
+// ── A app e o site dele, dentro dos telemóveis ─────────────────────────────
+
+const LETRA_TITULO_BASE = 'Playfair Display'
+const serifa = (peso, tam, familia) =>
+  `${peso} ${tam}px "${familia || LETRA_TITULO_BASE}", "${LETRA_TITULO_BASE}", Georgia, serif`
+
+/** Texto escuro ou claro, conforme o que se lê melhor por cima da cor. */
+function corSobre(hex) {
+  const c = String(hex || '#C9A227').replace('#', '')
+  const n = c.length === 3 ? c.split('').map(x => x + x).join('') : c
+  const [r, g, b] = [0, 2, 4].map(i => parseInt(n.slice(i, i + 2), 16) / 255)
+    .map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.32 ? '#111111' : '#FFFFFF'
+}
+
+function caixaRedonda(ctx, x, y, w, h, r) {
+  const k = Math.max(0, Math.min(r, w / 2, h / 2))
+  ctx.moveTo(x + k, y)
+  ctx.arcTo(x + w, y, x + w, y + h, k)
+  ctx.arcTo(x + w, y + h, x, y + h, k)
+  ctx.arcTo(x, y + h, x, y, k)
+  ctx.arcTo(x, y, x + w, y, k)
+  ctx.closePath()
+}
+
+/** Uma imagem a encher a caixa toda, cortada ao centro (como `cover`). */
+function encher(ctx, img, x, y, w, h) {
+  const k = Math.max(w / img.width, h / img.height)
+  const iw = img.width * k, ih = img.height * k
+  ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih)
+}
+
+/** Corta com reticências até caber. */
+function caber(ctx, texto, largura) {
+  let t = String(texto || '')
+  if (ctx.measureText(t).width <= largura) return t
+  while (t.length > 1 && ctx.measureText(t + '…').width > largura) t = t.slice(0, -1)
+  return t.trimEnd() + '…'
+}
+
+/*
+ * O ícone da app no ecrã inicial (cartaz 4).
+ *
+ * É o mesmo que a app dele instala: o ícone quadrado de «O Meu Site», ou o
+ * logótipo sobre o fundo do tema, ou — sem nenhum dos dois — a inicial na
+ * cor dele. Por baixo, o nome, cortado como o iPhone corta.
+ */
+function desenharIcone(ctx, z, L, A, b) {
+  const i = z.icone
+  const x = i.x * L, y = i.y * A, w = (i.X - i.x) * L, h = (i.Y - i.y) * A
+  const r = w * (i.raio ?? 0.225)
+
+  ctx.save()
+  ctx.shadowColor = 'rgba(0,0,0,0.28)'; ctx.shadowBlur = w * 0.08; ctx.shadowOffsetY = w * 0.03
+  ctx.beginPath(); caixaRedonda(ctx, x, y, w, h, r)
+  ctx.fillStyle = b.icone ? '#000000' : (b.fundo || '#0B0B0B')
+  ctx.fill()
+  ctx.restore()
+
+  ctx.save()
+  ctx.beginPath(); caixaRedonda(ctx, x, y, w, h, r); ctx.clip()
+  if (b.icone) {
+    encher(ctx, b.icone, x, y, w, h)
+  } else if (b.logo) {
+    const m = w * 0.16, k = Math.min((w - 2 * m) / b.logo.width, (h - 2 * m) / b.logo.height)
+    const lw = b.logo.width * k, lh = b.logo.height * k
+    ctx.drawImage(b.logo, x + (w - lw) / 2, y + (h - lh) / 2, lw, lh)
+  } else {
+    ctx.fillStyle = b.cor
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+    ctx.font = serifa(700, h * 0.58, b.fonteTitulo)
+    ctx.fillText(String(b.nome || 'B')[0].toUpperCase(), x + w / 2, y + h * 0.53)
+  }
+  ctx.restore()
+
+  const ro = z.rotulo
+  ctx.save()
+  ctx.font = fonte(500, ro.tamanho * A)
+  ctx.fillStyle = '#FFFFFF'
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+  ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 3
+  ctx.fillText(caber(ctx, b.nomeCurto || b.nome, ro.largura * L), x + w / 2, ro.y * A)
+  ctx.restore()
+}
+
+/*
+ * O topo do site dele, dentro do telemóvel (cartazes 3 e 5).
+ *
+ * A fotografia de capa (ou a primeira da galeria) entra no lugar da foto
+ * genérica, escurecida em baixo como no site a sério; o cimo esbate-se no
+ * que já lá estava, para não haver costura junto à barra de estado. Sem
+ * fotografia, fica a foto do cartaz e só a parte de baixo é repintada.
+ * Depois: a localidade na cor dele, o nome na letra do tema dele e os
+ * botões na cor dele — que é o que o cliente vai ver quando abrir o link.
+ */
+function desenharSite(ctx, z, L, A, b) {
+  const x0 = Math.round(z.x * L), y0 = Math.round(z.y * A)
+  const w = Math.round((z.X - z.x) * L), h = Math.round((z.Y - z.y) * A)
+  const esb = (z.esbater ?? 0.04) * A
+
+  const off = document.createElement('canvas')
+  off.width = w; off.height = h
+  const o = off.getContext('2d')
+  let inicio = 0                                 // onde a máscara começa a ser opaca
+  if (b.capa) {
+    encher(o, b.capa, 0, 0, w, h)
+    const g = o.createLinearGradient(0, 0, 0, h)
+    g.addColorStop(0, 'rgba(4,3,2,0.30)')
+    g.addColorStop(0.45, 'rgba(4,3,2,0.50)')
+    g.addColorStop(0.75, 'rgba(4,3,2,0.86)')
+    g.addColorStop(1, 'rgba(4,3,2,0.97)')
+    o.fillStyle = g; o.fillRect(0, 0, w, h)
+  } else {
+    o.fillStyle = 'rgb(4,3,2)'; o.fillRect(0, 0, w, h)
+    // Só por baixo do texto, para apagar o «A tua barbearia» do cartaz.
+    inicio = Math.max(0, z.etiqueta.y * A - y0 - 0.075 * A)
+  }
+  // Máscara: transparente em cima, opaca a seguir ao esbatido.
+  o.globalCompositeOperation = 'destination-in'
+  const m = o.createLinearGradient(0, inicio, 0, inicio + esb)
+  m.addColorStop(0, 'rgba(0,0,0,0)'); m.addColorStop(1, 'rgba(0,0,0,1)')
+  o.fillStyle = m; o.fillRect(0, 0, w, h)
+  o.globalCompositeOperation = 'source-over'
+
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(x0, y0, w, h)
+  if (z.excluir) {
+    const e = z.excluir
+    caixaRedonda(ctx, e.x * L, e.y * A, (e.X - e.x) * L, (e.Y - e.y) * A, e.raio * L)
+  }
+  ctx.clip('evenodd')
+  ctx.drawImage(off, x0, y0)
+  ctx.restore()
+
+  // A localidade, por cima do nome.
+  const et = z.etiqueta
+  ctx.save()
+  const te = et.tamanho * A
+  ctx.font = fonte(600, te)
+  ctx.letterSpacing = `${te * 0.26}px`
+  ctx.fillStyle = b.cor
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'
+  ctx.fillText(caber(ctx, String(b.local || 'Barbearia').toUpperCase(), (z.nome.X - et.x) * L), et.x * L, et.y * A)
+  ctx.restore()
+
+  // O nome, na letra de títulos do tema. Encolhe até caber; se nem assim, corta.
+  const n = z.nome
+  const larg = (n.X - n.x) * L
+  let t = n.tamanho * A
+  const tmin = (n.minimo ?? n.tamanho * 0.6) * A
+  ctx.save()
+  ctx.font = serifa(700, t, b.fonteTitulo)
+  while (ctx.measureText(b.nome).width > larg && t > tmin) { t -= 1; ctx.font = serifa(700, t, b.fonteTitulo) }
+  ctx.fillStyle = '#F4EFE6'
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'
+  ctx.fillText(caber(ctx, b.nome, larg), n.x * L, n.y * A)
+  ctx.restore()
+
+  for (const bt of z.botoes || []) desenharBotao(ctx, bt, L, A, b)
+}
+
+function desenharBotao(ctx, bt, L, A, b) {
+  const x = bt.x * L, y = bt.y * A, w = (bt.X - bt.x) * L, h = (bt.Y - bt.y) * A
+  const r = (bt.raio ?? 0.01) * L
+  ctx.save()
+  ctx.beginPath(); caixaRedonda(ctx, x, y, w, h, r)
+  if (bt.cheio) {
+    ctx.fillStyle = b.cor; ctx.fill()
+  } else {
+    ctx.fillStyle = 'rgba(4,3,2,0.55)'; ctx.fill()
+    ctx.strokeStyle = 'rgba(255,255,255,0.22)'; ctx.lineWidth = Math.max(1.5, h * 0.03); ctx.stroke()
+  }
+  const cor = bt.cheio ? corSobre(b.cor) : '#FFFFFF'
+  const tam = h * 0.30
+  ctx.font = fonte(600, tam)
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left'
+  const tw = ctx.measureText(bt.texto).width
+  const ic = bt.cheio ? tam * 1.05 : 0, esp = bt.cheio ? tam * 0.55 : 0
+  let cx = x + (w - (ic + esp + tw)) / 2
+  const cy = y + h / 2
+  if (bt.cheio) {
+    // O calendário do botão «Marcar agora», como no site.
+    ctx.strokeStyle = cor; ctx.lineWidth = Math.max(1.5, tam * 0.11); ctx.lineCap = 'round'
+    const s = ic, top = cy - s * 0.45
+    ctx.beginPath(); caixaRedonda(ctx, cx, top + s * 0.08, s, s * 0.84, s * 0.16); ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(cx, top + s * 0.36); ctx.lineTo(cx + s, top + s * 0.36)
+    ctx.moveTo(cx + s * 0.3, top - s * 0.04); ctx.lineTo(cx + s * 0.3, top + s * 0.18)
+    ctx.moveTo(cx + s * 0.7, top - s * 0.04); ctx.lineTo(cx + s * 0.7, top + s * 0.18)
+    ctx.stroke()
+    cx += ic + esp
+  }
+  ctx.fillStyle = cor
+  ctx.fillText(bt.texto, cx, cy + tam * 0.04)
+  ctx.restore()
+}
+
 // ── O desenho de um cartaz ─────────────────────────────────────────────────
 
 /**
  * ecra      — um item de MODELO.ecras
  * imagem    — o <img> do ficheiro já carregado
- * barbearia — { nome, endereco, slug, logo, cor }
+ * barbearia — { nome, nomeCurto, endereco, slug, local, logo, icone, capa, cor, fundo, fonteTitulo }
  */
 export function desenhar(canvas, ecra, imagem, barbearia) {
   const L = ecra.larg, A = ecra.alt
@@ -438,6 +676,12 @@ export function desenhar(canvas, ecra, imagem, barbearia) {
       linha(ctx, barbearia.endereco, z, L, A)
     } else if (z.tipo === 'frase') {
       frase(ctx, z, L, A, z.antes, barbearia.nome)
+    } else if (z.tipo === 'texto') {
+      linha(ctx, z.texto, z, L, A)
+    } else if (z.tipo === 'icone') {
+      desenharIcone(ctx, z, L, A, barbearia)
+    } else if (z.tipo === 'site') {
+      desenharSite(ctx, z, L, A, barbearia)
     }
   }
   return canvas
@@ -467,18 +711,28 @@ export function carregarImagem(url, comCors = false) {
  * de abrir a página, isso acontecia quase sempre — e o cartaz saía com uma
  * letra que não é a dele.
  */
-export async function garantirFonte() {
+export async function garantirFonte(titulo) {
   if (typeof document === 'undefined' || !document.fonts) return
-  const id = 'carrossel-inter'
-  if (!document.getElementById(id)) {
+  /*
+   * Além da Inter, a letra de títulos do tema dele (o nome no site, dentro
+   * do telemóvel, sai na mesma letra que o cliente vai ver) e a Playfair,
+   * que é a de origem quando o tema não escolheu outra.
+   */
+  const familias = [['Inter', '400;500;600;700;800;900'], [LETRA_TITULO_BASE, '600;700']]
+  if (titulo && titulo !== LETRA_TITULO_BASE && titulo !== 'Inter') familias.push([titulo, '600;700'])
+  for (const [nome, pesos] of familias) {
+    const id = 'carrossel-' + nome.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    if (document.getElementById(id)) continue
     const l = document.createElement('link')
     l.id = id; l.rel = 'stylesheet'
-    l.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap'
+    l.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(nome).replace(/%20/g, '+')}:wght@${pesos}&display=swap`
     document.head.appendChild(l)
   }
   try {
-    await Promise.all(['400', '500', '600', '700', '800', '900']
-      .map(p => document.fonts.load(`${p} 80px "Inter"`).catch(() => {})))
+    await Promise.all([
+      ...['400', '500', '600', '700', '800', '900'].map(p => document.fonts.load(`${p} 80px "Inter"`).catch(() => {})),
+      ...familias.slice(1).map(([nome]) => document.fonts.load(`700 80px "${nome}"`).catch(() => {})),
+    ])
   } catch { /* segue com a letra de recurso */ }
 }
 
