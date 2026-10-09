@@ -755,6 +755,48 @@ const CSS_MT=`
   -webkit-mask-image: radial-gradient(9px 5px at 9px 100%, transparent 98%, #000); -webkit-mask-size: 18px 100%; mask-image: radial-gradient(9px 5px at 9px 100%, transparent 98%, #000); mask-size: 18px 100%; }
 `
 
+
+/*
+ * Os sete fundos em gradiente. Os mesmos ids e cores de base do site do
+ * cliente (src/lib/fundosGradiente.js); aqui juntam-se as cores do site que
+ * combinam com cada um, aplicadas ao escolher.
+ */
+const GRADIENTES={
+  prata:{l:'Prata',base:'#E4E4E8',manchas:['#FFFFFF','#C9C9D1','#F2F2F5'],
+    cores:{bg:'#E4E4E8',surface:'#F4F4F6',elevated:'#FFFFFF',text:'#141416',textSec:'#5E5E66',border:'#D2D2D8',gold:'#141416'}},
+  ceu:{l:'Céu',base:'#B9D6F2',manchas:['#EAF4FF','#7FB6EC','#A9CFF4'],
+    cores:{bg:'#C6DEF5',surface:'#E6F1FC',elevated:'#FFFFFF',text:'#0B1B2E',textSec:'#45607C',border:'#AECAE6',gold:'#0B1B2E'}},
+  vinho:{l:'Vinho',base:'#4A060B',manchas:['#A3242B','#6E0A12','#2A0306'],
+    cores:{bg:'#43070B',surface:'#5A0D13',elevated:'#6B141B',text:'#FFF1F1',textSec:'#E0B2B5',border:'#7A2228',gold:'#FFFFFF'}},
+  brasa:{l:'Brasa',base:'#17110F',manchas:['#C24A1C','#3A2721','#0C0807'],
+    cores:{bg:'#17110F',surface:'#221A17',elevated:'#2C221E',text:'#F6EDE7',textSec:'#B8A69B',border:'#3A2E29',gold:'#E0612A'}},
+  ametista:{l:'Ametista',base:'#2C0C58',manchas:['#8F2BE8','#B04FD6','#4A1490'],
+    cores:{bg:'#2A0B54',surface:'#36116A',elevated:'#43187F',text:'#F7F0FF',textSec:'#CDB6EE',border:'#55259A',gold:'#E9CCFF'}},
+  rosa:{l:'Rosa',base:'#F3C3DD',manchas:['#FFE6F2','#E8559F','#F7A9D0'],
+    cores:{bg:'#F6CFE3',surface:'#FBE7F1',elevated:'#FFFFFF',text:'#3A0520',textSec:'#8A4A68',border:'#EBB0CD',gold:'#DC0E84'}},
+  aurora:{l:'Aurora',base:'#15212A',manchas:['#1F9A66','#2A4A55','#0B151B'],
+    cores:{bg:'#15212A',surface:'#1D2C33',elevated:'#26383F',text:'#EAF6F1',textSec:'#9DB5AE',border:'#2F444A',gold:'#3BD18A'}},
+}
+const CSS_FG=`
+.fg-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: var(--elevated, #f2f2f2); margin: 12px 0; }
+.fg-seg button { min-height: 40px; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 14.5px; font-weight: 600; color: var(--text-sec, #666); cursor: pointer; }
+.fg-seg button.on { background: var(--text, #111); color: var(--surface, #fff); }
+.fg-grelha { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 12px; scrollbar-width: none; }
+.fg-grelha::-webkit-scrollbar { display: none; }
+.fg-opcao { flex: 0 0 104px; display: flex; flex-direction: column; gap: 6px; border: 0; background: none; padding: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; color: var(--text-sec, #666); }
+.fg-opcao.on { color: var(--text, #111); }
+.fg-amostra { position: relative; display: block; height: 70px; border-radius: 12px; overflow: hidden; }
+.fg-opcao.on .fg-amostra { outline: 2px solid var(--text, #111); outline-offset: 2px; }
+.fg-amostra i { position: absolute; width: 90px; height: 90px; border-radius: 50%; filter: blur(16px); }
+.fg-amostra i:nth-child(1) { left: -30px; top: -40px; animation: fg-m1 6s ease-in-out infinite alternate; }
+.fg-amostra i:nth-child(2) { right: -34px; top: 0; animation: fg-m2 7s ease-in-out infinite alternate; }
+.fg-amostra i:nth-child(3) { left: 10px; bottom: -60px; animation: fg-m1 8s ease-in-out infinite alternate-reverse; }
+.fg-amostra em { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(255,255,255,.6); }
+@keyframes fg-m1 { to { transform: translate(24px, 14px); } }
+@keyframes fg-m2 { to { transform: translate(-20px, 18px); } }
+@media (prefers-reduced-motion: reduce) { .fg-amostra i { animation: none; } }
+`
+
 function paraDataUrl(file){
   return new Promise((ok,falha)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>falha(new Error('Não foi possível ler a imagem.'));r.readAsDataURL(file)})
 }
@@ -870,6 +912,9 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
   const reporPeca=chave=>{setTema(t=>{const p={...(t.pecas||{})};delete p[chave];return{...t,pecas:p}});setSucesso(false)}
   const reporElementos=ks=>{setTema(t=>{const e={...(t.elementos||{})};ks.forEach(k=>delete e[k]);return{...t,elementos:e}});setSucesso(false)}
   const fundo=(patch)=>{setTema(t=>({...t,background:{...t.background,...patch}}));setSucesso(false)}
+  // Escolher um gradiente muda tambem as cores do site, como um «estilo».
+  const escolherGradiente=(id)=>{const g=GRADIENTES[id];if(!g)return
+    setTema(t=>({...t,colors:{...t.colors,...g.cores},background:{...t.background,ativo:true,tipo:'gradiente',gradiente:id}}));setSucesso(false)}
   const fonte=(k,v)=>{setTema(t=>({...t,fonts:{...t.fonts,[k]:v}}));setSucesso(false)}
   const raiz=(k,v)=>{setTema(t=>({...t,[k]:v}));setSucesso(false)}
   const inf=(k,v)=>{setInfo(i=>({...i,[k]:v}));setSucesso(false)}
@@ -1044,8 +1089,30 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
             </div>
 
             {tema.background.ativo&&<>
+              {/* Dois tipos: as linhas de luz de sempre, ou um gradiente que
+                  se mexe (os sete da concorrencia). O gradiente traz as cores
+                  do site que combinam com ele. */}
+              <style dangerouslySetInnerHTML={{__html:CSS_FG}}/>
+              <div className="fg-seg">
+                <button type="button" className={tema.background.tipo!=='gradiente'?'on':''} onClick={()=>fundo({tipo:'linhas'})}>Linhas de luz</button>
+                <button type="button" className={tema.background.tipo==='gradiente'?'on':''} onClick={()=>escolherGradiente(tema.background.gradiente||'brasa')}>Gradiente</button>
+              </div>
+              {tema.background.tipo==='gradiente'?(
+                <div className="fg-grelha">
+                  {Object.entries(GRADIENTES).map(([id,g])=>(
+                    <button key={id} type="button" className={`fg-opcao${tema.background.gradiente===id?' on':''}`} onClick={()=>escolherGradiente(id)}>
+                      <span className="fg-amostra" style={{background:g.base}}>
+                        <i style={{background:g.manchas[0]}}/><i style={{background:g.manchas[1]}}/><i style={{background:g.manchas[2]}}/>
+                        <em style={{background:g.cores.gold}}/>
+                      </span>
+                      <span>{g.l}</span>
+                    </button>
+                  ))}
+                </div>
+              ):(
               <LinhaCor campo={{l:'Cor das linhas',d:'branco é o do exemplo'}}
                 valor={tema.background.cor} onChange={v=>fundo({cor:v})}/>
+              )}
 
               <div style={{padding:'14px 0',borderBottom:`1px solid ${BD}`}}>
                 <Lbl>Intensidade — {Math.round(tema.background.intensidade*100)}%</Lbl>
@@ -1063,8 +1130,8 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
                   style={{width:'100%',accentColor:Y}}/>
               </div>
 
-              <PreviaFundo cor={tema.background.cor} fundo={tema.colors.bg}
-                intensidade={tema.background.intensidade} velocidade={tema.background.velocidade}/>
+              {tema.background.tipo!=='gradiente'&&<PreviaFundo cor={tema.background.cor} fundo={tema.colors.bg}
+                intensidade={tema.background.intensidade} velocidade={tema.background.velocidade}/>}
             </>}
           </Card>
         )}
