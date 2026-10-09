@@ -6,35 +6,50 @@ import { supabase } from '@/lib/supabase';
 import authService from '@/lib/authService';
 import { useToast } from '@/components/ui/ToastContext';
 import AdminLayout from '@/components/AdminLayout';
-import { Card, Avatar, Badge, Button } from '@/components/ui';
+import { Card, Avatar, Button } from '@/components/ui';
 import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
 
 // O que cada tipo de pessoa vê no painel. É o espelho das regras da base de
 // dados (ACESSO_PROFISSIONAL.sql) e de modulos.js — mudar num sítio é mudar nos três.
 const AREAS = [
-  { nome: 'Agenda', dono: 'tudo', pro: 'parcial', notaPro: 'mexe só na coluna dele; o dono escolhe em cada um se vê a agenda toda ou só a dele' },
-  { nome: 'Confirmar presença e cobrar', dono: 'tudo', pro: 'parcial', notaPro: 'só as marcações dele' },
-  { nome: 'Clientes', dono: 'tudo', pro: 'tudo', notaPro: 'vê e edita as fichas' },
-  { nome: 'Lista de espera', dono: 'tudo', pro: 'parcial', notaPro: 'só a dele' },
-  { nome: 'Férias e folgas', dono: 'tudo', pro: 'parcial', notaPro: 'só as dele' },
-  { nome: 'A conta dele (comissões)', dono: 'tudo', pro: 'parcial', notaPro: 'só os números dele' },
-  { nome: 'Notificações', dono: 'tudo', pro: 'tudo', notaPro: '' },
-  { nome: 'Financeiro e caixa', dono: 'tudo', pro: 'nada', notaPro: 'não vê a faturação nem a caixa' },
-  { nome: 'Produtos e stock', dono: 'tudo', pro: 'nada', notaPro: 'pode vender no checkout, não gere' },
-  { nome: 'Serviços e preços', dono: 'tudo', pro: 'nada', notaPro: '' },
-  { nome: 'Profissionais e equipa', dono: 'tudo', pro: 'nada', notaPro: 'não cria nem apaga colegas' },
-  { nome: 'Site, cores e redes', dono: 'tudo', pro: 'nada', notaPro: '' },
-  { nome: 'Definições e subscrição', dono: 'tudo', pro: 'nada', notaPro: '' },
+  { nome: 'Agenda', dono: 'tudo', pro: 'parcial' },
+  { nome: 'Confirmar presença e cobrar', dono: 'tudo', pro: 'parcial' },
+  { nome: 'Clientes', dono: 'tudo', pro: 'tudo' },
+  { nome: 'Lista de espera', dono: 'tudo', pro: 'parcial' },
+  { nome: 'Férias e folgas', dono: 'tudo', pro: 'parcial' },
+  { nome: 'A conta dele (comissões)', dono: 'tudo', pro: 'parcial' },
+  { nome: 'Notificações', dono: 'tudo', pro: 'tudo' },
+  { nome: 'Financeiro e caixa', dono: 'tudo', pro: 'nada' },
+  { nome: 'Produtos e stock', dono: 'tudo', pro: 'nada' },
+  { nome: 'Serviços e preços', dono: 'tudo', pro: 'nada' },
+  { nome: 'Profissionais e equipa', dono: 'tudo', pro: 'nada' },
+  { nome: 'Site, cores e redes', dono: 'tudo', pro: 'nada' },
+  { nome: 'Definições e subscrição', dono: 'tudo', pro: 'nada' },
 ];
 
-const COR = { tudo: 'var(--success)', parcial: 'var(--gold)', nada: 'var(--error)' };
-const TXT = { tudo: 'Vê e mexe', parcial: 'Só o dele', nada: 'Não vê' };
+/*
+ * TRES ESTADOS, TRES PASTILHAS.
+ *
+ * Eram tres frases a verde, amarelo e vermelho, e por baixo de quase todas
+ * uma linha de letra pequena a dizer por outras palavras o mesmo. Treze
+ * areas vezes duas colunas vezes duas linhas e um texto, nao uma tabela —
+ * e uma tabela existe para se ler de relance.
+ *
+ * Fica uma pastilha por celula, todas do mesmo tamanho e alinhadas em
+ * coluna: a diferenca entre linhas ve-se pela cor, antes de se ler uma
+ * unica palavra.
+ */
+const NIVEIS = {
+  tudo:    { l: 'Vê e mexe', Ic: Eye,    cor: 'var(--success)', rgb: '34,197,94' },
+  parcial: { l: 'Só o dele', Ic: Pencil, cor: 'var(--gold-tinta)', rgb: 'var(--gold-rgb)' },
+  nada:    { l: 'Não vê',    Ic: EyeOff, cor: 'var(--error)',   rgb: '239,68,68' },
+};
 
 function Ponto({ nivel }) {
-  const Icone = nivel === 'nada' ? EyeOff : nivel === 'parcial' ? Pencil : Eye;
+  const n = NIVEIS[nivel] || NIVEIS.nada;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: COR[nivel], fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap' }}>
-      <Icone size={14} /> {TXT[nivel]}
+    <span className="qvq-pastilha" style={{ color: n.cor, background: `rgba(${n.rgb}, .12)` }}>
+      <n.Ic size={14} /> {n.l}
     </span>
   );
 }
@@ -156,60 +171,60 @@ export default function Equipa() {
       {/* No telemovel esta tabela de referencia era o terco de baixo do ecra
           em letra miuda, e nao se faz nada com ela. Fica no computador. */}
       <Card style={{ display: estreito ? 'none' : undefined }}>
-        <div className="fw-600" style={{ marginBottom: 4 }}>Quem vê o quê</div>
-        <p className="text-sec text-sm" style={{ marginTop: 0 }}>É a regra da casa, trancada na base de dados. O dono vê tudo; um profissional com acesso vê só o que lhe toca. O que se pode ajustar em cada um está no bloco de acesso (toca no profissional em cima).</p>
-        {estreito ? (
-          <details style={{ marginTop: 10 }}>
-            <summary style={{ cursor: 'pointer', fontSize: 15, fontWeight: 600, padding: '9px 0' }}>
-              Ver área a área
-            </summary>
-            <div style={{ display: 'grid', gap: 8, marginTop: 6 }}>
-              {AREAS.map(a => (
-                <div key={a.nome} style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid var(--border)' }}>
-                  <div className="fw-600" style={{ fontSize: 15 }}>{a.nome}</div>
-                  <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 5 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                      <Crown size={13} style={{ color: 'var(--gold-tinta)' }} /><Ponto nivel={a.dono} />
-                    </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                      <ShieldCheck size={13} style={{ color: 'var(--success)' }} /><Ponto nivel={a.pro} />
-                    </span>
-                  </div>
-                  {a.notaPro && <div className="text-sec text-sm" style={{ marginTop: 4 }}>{a.notaPro}</div>}
-                </div>
-              ))}
+        <style dangerouslySetInnerHTML={{ __html: CSS_QVQ }} />
+        {/* A frase que aqui estava dizia tres coisas que o proprio quadro
+            mostra, e mandava-o tocar num profissional «em cima» — que e
+            onde ele ja tinha estado para chegar aqui. */}
+        <div className="qvq-h">Quem vê o quê</div>
+
+        <div className="qvq">
+          <div className="qvq-cab">
+            <span>Área</span>
+            <span><Crown size={14} /> Dono</span>
+            <span><ShieldCheck size={14} /> Com acesso</span>
+          </div>
+          {AREAS.map(a => (
+            <div className="qvq-linha" key={a.nome}>
+              <span className="qvq-area">{a.nome}</span>
+              <span><Ponto nivel={a.dono} /></span>
+              <span><Ponto nivel={a.pro} /></span>
             </div>
-          </details>
-        ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table className="table" style={{ minWidth: 560 }}>
-            <thead>
-              <tr>
-                <th>Área</th>
-                <th><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Crown size={14} style={{ color: 'var(--gold-tinta)' }} /> Dono</span></th>
-                <th><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><ShieldCheck size={14} style={{ color: 'var(--success)' }} /> Profissional com acesso</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {AREAS.map(a => (
-                <tr key={a.nome}>
-                  <td className="fw-600">{a.nome}</td>
-                  <td><Ponto nivel={a.dono} /></td>
-                  <td>
-                    <Ponto nivel={a.pro} />
-                    {a.notaPro && <div className="text-sec text-sm" style={{ marginTop: 2 }}>{a.notaPro}</div>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        )}
-        <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Badge variant="success">Sem acesso = não entra no painel</Badge>
-          <Badge>Um profissional só cobra as marcações dele</Badge>
+          ))}
         </div>
       </Card>
     </AdminLayout>
   );
 }
+
+const CSS_QVQ = `
+.qvq-h { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+
+/* Tres colunas fixas, e nao uma tabela que se arrasta de lado: as pastilhas
+   tem de ficar uma debaixo da outra, porque e a coluna que se le, nao a
+   linha. */
+.qvq { display: grid; grid-template-columns: 1fr 150px 150px; }
+.qvq-cab, .qvq-linha { display: contents; }
+.qvq-cab > span {
+  padding: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--text-ter);
+  display: flex; align-items: center; gap: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.qvq-linha > span {
+  display: flex; align-items: center; min-height: 50px;
+  border-bottom: 1px solid var(--border);
+}
+.qvq-linha:last-child > span { border-bottom: 0; }
+.qvq-area { font-size: 15.5px; font-weight: 600; padding-right: 14px; }
+.qvq-pastilha {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px; border-radius: 999px;
+  font-size: 13.5px; font-weight: 700; white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .qvq { grid-template-columns: 1fr 128px 128px; }
+  .qvq-area { font-size: 14.5px; }
+  .qvq-pastilha { padding: 6px 9px; font-size: 13px; }
+}
+`;
