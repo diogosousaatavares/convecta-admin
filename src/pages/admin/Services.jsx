@@ -79,7 +79,7 @@ export default function Services() {
         <Card className="card-pad"><EmptyState icon={() => <Scissors />} title="Sem serviços" action={<Button variant="primary" onClick={openNew}>Criar serviço</Button>} /></Card>
       ) : (
         grupos.map(g => (
-        <div key={g.nome} style={{ marginBottom: 26 }}>
+        <div key={g.nome} style={{ marginBottom: 26 }} data-tour={g === grupos[0] ? 'servicos-lista' : undefined}>
           <div className="flex items-center gap-8" style={{ marginBottom: 10 }}>
             <h2 style={{ fontSize: 15, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-sec)', margin: 0 }}>{g.nome}</h2>
             <span className="text-sec text-xs">{g.servicos.length}</span>

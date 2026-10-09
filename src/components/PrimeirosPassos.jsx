@@ -176,13 +176,17 @@ export default function PrimeirosPassos() {
    * conta sobe, aparece por dois segundos quanto falta — e no ultimo passo
    * nao aparece nada disto, porque ai o que aparece e a app pronta.
    */
-  const antes = useRef(null);
+  /* A conta que ja se viu fica guardada na sessao, nao num ref: o
+     componente nasce de novo em cada pagina, e um ref nasce vazio com ele.
+     Era por isso que «Faltam 3 passos» aparecia a cada mudanca de aba. So
+     ha festa quando a conta sobe em relacao a ultima que se viu. */
   const [festa, setFesta] = useState(null);
   useEffect(() => {
     if (!pronto) return;
-    const anterior = antes.current;
-    antes.current = prontos;
-    if (anterior === null || prontos <= anterior) return;
+    let vista = null;
+    try { const v = sessionStorage.getItem('convecta_passos_vistos'); vista = v === null ? null : Number(v); } catch { /* sem storage */ }
+    try { sessionStorage.setItem('convecta_passos_vistos', String(prontos)); } catch { /* idem */ }
+    if (vista === null || prontos <= vista) return;
     if (prontos === total) return;
     setFesta({ falta: total - prontos, n: Date.now() });
     const t = setTimeout(() => setFesta(null), 2200);

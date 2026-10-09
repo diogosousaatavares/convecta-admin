@@ -128,7 +128,7 @@ const CSS = `
   text-transform: uppercase; color: var(--text-ter);
 }
 .mais-caixa {
-  border-radius: 14px; background: var(--elevated);
+  border-radius: var(--radius-card); background: var(--elevated);
   border: 1px solid var(--border); overflow: hidden;
 }
 .mais-linha {
@@ -144,7 +144,7 @@ const CSS = `
 
 .mais-sair {
   display: flex; align-items: center; justify-content: center; gap: 9px;
-  width: 100%; min-height: 52px; border-radius: 14px; cursor: pointer; font: inherit;
+  width: 100%; min-height: 52px; border-radius: var(--radius-card); cursor: pointer; font: inherit;
   font-size: 16px; font-weight: 700;
   border: 1px solid rgba(239, 68, 68, .35); background: rgba(239, 68, 68, .08);
   color: #B91C1C;

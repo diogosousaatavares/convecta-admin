@@ -72,7 +72,7 @@ export default function Hours() {
         <h1>Horário de funcionamento</h1>
       </div>
 
-      <Card className="card-pad">
+      <Card className="card-pad" data-tour="horarios-lista">
         {DAYS.map(day => {
           const h = horas.find(x => x.day === day) || { isOpen: false, open: '09:00', close: '19:00', breaks: [] };
           const breaks = h.breaks || [];

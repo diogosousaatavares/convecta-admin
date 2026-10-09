@@ -207,17 +207,17 @@ export default function RedesSociais() {
 const CSS = `
 .rs-botoes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
 .rs-aviso {
-  margin-top: 14px; padding: 11px 14px; border-radius: 10px; line-height: 1.55;
+  margin-top: 14px; padding: 11px 14px; border-radius: var(--radius-card); line-height: 1.55;
   background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.25);
   font-size: 13px; color: var(--text-sec);
 }
 .rs-grelha { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .rs-cartao { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-.rs-tela { width: 100%; border-radius: 10px; overflow: hidden; background: var(--elevated); }
+.rs-tela { width: 100%; border-radius: var(--radius-card); overflow: hidden; background: var(--elevated); }
 .rs-tela canvas { width: 100%; height: 100%; display: block; }
 .rs-pe { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .rs-legenda {
-  margin: 0; padding: 14px 16px; border-radius: 10px; white-space: pre-wrap; word-break: break-word;
+  margin: 0; padding: 14px 16px; border-radius: var(--radius-card); white-space: pre-wrap; word-break: break-word;
   background: var(--elevated); border: 1px solid var(--border);
   font-family: inherit; font-size: 13.5px; line-height: 1.65; color: var(--text);
 }

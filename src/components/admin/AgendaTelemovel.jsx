@@ -133,7 +133,7 @@ export default function AgendaTelemovel({
   const doProfissional = appts.filter(a => a.professionalId === proId && (a.blocked || a.status !== 'cancelled'));
 
   return (
-    <div className="agm">
+    <div className="agm" data-tour="agenda">
       {/* ---- Titulo, mes e navegacao de dias ---- */}
       <header className="agm-top">
         <div className="agm-top-txt">

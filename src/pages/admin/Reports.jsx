@@ -16,7 +16,7 @@ import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
 
 const GOLD = 'var(--gold)';
 const GOLD_SOFT = '#E6C65A';
-const PALETTE = ['#C9A227', '#E6C65A', '#8A6A18', '#F7E078', '#B8901F', '#6E5512'];
+const PALETTE = ['var(--gold)', 'color-mix(in srgb, var(--gold) 60%, white)', 'color-mix(in srgb, var(--gold) 60%, black)', 'color-mix(in srgb, var(--gold) 35%, white)', 'color-mix(in srgb, var(--gold) 80%, black)', 'color-mix(in srgb, var(--gold) 40%, black)'];
 
 const PERIODS = [
   { key: '7d', label: '7 dias' },

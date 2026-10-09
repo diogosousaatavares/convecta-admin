@@ -167,7 +167,7 @@ const CSS = `
 .cli-novo {
   width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0; cursor: pointer;
   display: grid; place-items: center; border: 0;
-  background: var(--gold); color: #100E0B;
+  background: var(--text); color: var(--surface);
 }
 .cli-lista { display: flex; flex-direction: column; gap: 16px; max-width: 640px; }
 .cli-letra {
@@ -175,7 +175,7 @@ const CSS = `
   margin: 0 0 6px 14px;
 }
 .cli-caixa {
-  border-radius: 14px; background: var(--elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-card); background: var(--elevated); border: 1px solid var(--border);
   overflow: hidden;
 }
 .cli-linha {

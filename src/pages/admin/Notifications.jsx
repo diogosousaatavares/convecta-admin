@@ -112,7 +112,7 @@ export default function Notifications() {
       {/* O sitio onde se testa se este aparelho recebe, sempre a mao. No
           Dashboard a linha desaparece depois do primeiro teste do dia; aqui
           fica. */}
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 20 }} data-tour="notificacoes-aviso">
         <AvisoPush businessId={data.business?.id} userId={authService.getCurrentUser()?.id} papel="admin" comTeste sempre />
       </div>
 

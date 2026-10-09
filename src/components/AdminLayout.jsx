@@ -208,18 +208,18 @@ const PASSOS_DEMO = [
  * ele tem mesmo de fazer hoje.
  */
 const PASSOS_BARBEIRO = [
-  { rota: '/admin/dashboard', alvo: 'link-barbearia', titulo: 'Este é o teu endereço',
-    texto: 'O site da tua barbearia já está no ar. É este link que vais pôr no Instagram e mandar aos clientes — copia-se com um toque.' },
-  { rota: '/admin/servicos', alvo: 'servicos', titulo: 'Confirma os teus preços',
-    texto: 'Criámos alguns serviços para arrancares. Apaga os que não fazes, muda os preços e a duração de cada um — a duração é o que decide as horas que o cliente vê.' },
-  { rota: '/admin/horarios', alvo: 'horarios', titulo: 'A que horas abres',
+  { rota: '/admin/servicos', alvo: 'servicos-lista', titulo: 'Confirma os teus preços',
+    texto: 'Criámos alguns serviços para arrancares. Apaga os que não fazes, muda os preços e a duração — a duração é o que decide as horas que o cliente vê.' },
+  { rota: '/admin/horarios', alvo: 'horarios-lista', titulo: 'A que horas abres',
     texto: 'Põe o horário real da barbearia e os dias de folga. Fora disto ninguém consegue marcar.' },
+  { rota: '/admin/o-meu-site', alvo: 'link-barbearia', titulo: 'Este é o teu endereço',
+    texto: 'O site da tua barbearia já está no ar. É este link que vais pôr no Instagram e mandar aos clientes — copia-se com um toque.' },
   { rota: '/admin/o-meu-site', alvo: 'meu-site', titulo: 'Põe a tua cara',
-    texto: 'Logótipo, cores, capa e fotos. Mudas aqui e vês o resultado num telemóvel, ao lado, antes de publicar.' },
-  { rota: '/admin/definicoes/notificacoes', alvo: 'notificacoes', titulo: 'Para o telemóvel tocar',
-    texto: 'Liga as notificações neste telemóvel. É assim que sabes de uma marcação no segundo em que ela entra — sem abrir nada.' },
+    texto: 'Logótipo, cores, capa e fotos. Mudas aqui e vês o resultado antes de publicar.' },
+  { rota: '/admin/definicoes/notificacoes', alvo: 'notificacoes-aviso', titulo: 'Para o telemóvel tocar',
+    texto: 'Liga as notificações neste telemóvel. É assim que sabes de uma marcação no segundo em que ela entra.' },
   { rota: '/admin/agenda', alvo: 'agenda', titulo: 'É aqui que elas caem',
-    texto: 'Cada coluna é um barbeiro. Agora falta uma coisa só: partilhar o teu link. Sem isso a agenda fica bonita e vazia.' },
+    texto: 'Agora falta uma coisa só: partilhar o teu link. Sem isso a agenda fica bonita e vazia.' },
 ];
 
 /* Exportada: a pagina «Mais» desenha o menu inteiro e tem de ser o MESMO

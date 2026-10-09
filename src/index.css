@@ -2159,8 +2159,8 @@ html.theme-light .page-info-popover { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12)
 .agm-top { display: flex; align-items: flex-start; gap: 12px; margin: 4px 0 18px; }
 .agm-top-txt { flex: 1; min-width: 0; }
 .agm-titulo {
-  font-family: var(--font-body);
-  font-size: 34px; font-weight: 800; letter-spacing: -0.02em;
+  font-family: var(--font-head);
+  font-size: 22px; font-weight: 600; letter-spacing: 0;
   line-height: 1.05; color: var(--text); margin: 0;
 }
 .agm-mes { margin: 2px 0 0; font-size: 16px; color: var(--text-sec); }
@@ -2231,7 +2231,7 @@ html.theme-light .page-info-popover { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12)
 .agm-fechado {
   display: flex; flex-direction: column; gap: 6px; align-items: center;
   padding: 44px 24px; text-align: center;
-  border: 1px solid var(--linha-agm); border-radius: 16px;
+  border: 1px solid var(--linha-agm); border-radius: var(--radius-card);
   background: var(--surface); color: var(--text);
   font-size: 15px; font-weight: 600;
 }
@@ -2736,3 +2736,34 @@ html, body { overflow-x: hidden; max-width: 100vw; }
 .modal input, .modal select, .modal textarea, .modal .input, .modal .select { max-width: 100%; min-width: 0; box-sizing: border-box; }
 input[type="date"], input[type="time"], input[type="datetime-local"] { width: 100%; max-width: 100%; min-width: 0; -webkit-appearance: none; appearance: none; box-sizing: border-box; }
 @media (max-width: 767px) { .modal-overlay { padding: 12px; overflow: hidden; } .modal { max-width: 100%; } }
+
+/* ── Um só padrão para todas as abas (auditoria de 09/10/2026) ───────────
+   Um raio de cartão, uma altura de campo, um estilo de número, um estado
+   «escolhido». O painel é neutro: o escolhido é a tinta, como o botão
+   principal — em todos os separadores, não só nos filtros. */
+.admin-content .ag-viewseg button.active,
+.admin-content .period-tabs button.active,
+.admin-content .ag-side-btn.active,
+.admin-content .chip.active,
+.admin-content .date-chip.selected,
+.admin-content .slot.selected,
+.admin-content .bp-tab.active,
+html.theme-light .admin-content .ag-viewseg button.active,
+html.theme-light .admin-content .period-tabs button.active,
+html.theme-light .admin-content .ag-side-btn.active,
+html.theme-light .admin-content .chip.active,
+html.theme-light .admin-content .date-chip.selected,
+html.theme-light .admin-content .slot.selected,
+html.theme-light .admin-content .bp-tab.active { background: var(--text); color: var(--surface); border-color: var(--text); }
+/* Os números dos cartões: a mesma letra e a mesma cor em todo o lado. */
+.admin-content .kpi .value, html.theme-light .admin-content .kpi .value,
+.admin-content .kpi .value.gold, html.theme-light .admin-content .kpi .value.gold { font-family: var(--font-body); font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -.02em; }
+.admin-content .kpi .value.neg { color: var(--error); }
+/* Títulos de secção: 18px, sempre. */
+.admin-content .card > h3, .admin-content .card-pad > h3, .admin-content .card .flex > h3, .admin-content .card h3[style] { font-size: 18px !important; }
+/* Campos: 44px de altura. */
+.admin-content .input, .admin-content .select { height: 44px; padding-top: 0; padding-bottom: 0; }
+.admin-content .ec-caixa { min-height: 44px; height: 44px; }
+.admin-content .btn-sm { font-size: 14px; }
+/* Cartões com o mesmo raio. */
+.admin-content .card, .admin-content .res-num, .admin-content .cli-lista > div, .admin-content .mais-caixa { border-radius: var(--radius-card); }

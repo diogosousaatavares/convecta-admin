@@ -1418,7 +1418,7 @@ export default function MeuSite() {
       </div>
       {/* O DesignTab guarda e mantem o seu proprio estado; nao ha nada para
           recarregar aqui. Fica a funcao porque e o contrato do componente. */}
-      <DesignTab biz={biz} onGuardado={() => {}} />
+      <div data-tour="meu-site"><DesignTab biz={biz} onGuardado={() => {}} /></div>
     </AdminLayout>
   );
 }

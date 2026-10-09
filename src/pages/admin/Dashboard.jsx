@@ -340,16 +340,16 @@ const CSS_RESUMO = `
 }
 .res-num {
   display: flex; flex-direction: column; gap: 8px;
-  padding: 16px 18px; border-radius: 14px;
+  padding: 16px 18px; border-radius: var(--radius-card);
   background: var(--surface); border: 1px solid var(--border);
 }
 .res-num span { font-size: 14px; color: var(--text-sec); }
-.res-num b { font-size: 27px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.res-num b { font-size: 24px; font-weight: 700; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
 /* Ao telemovel um por linha, como os da concorrencia: dois numeros grandes
    lado a lado num ecra de 390px ficam ambos espremidos. */
 @media (max-width: 560px) {
   .res-numeros { grid-template-columns: 1fr; gap: 8px; }
   .res-num { flex-direction: row; align-items: baseline; justify-content: space-between; padding: 14px 16px; }
-  .res-num b { font-size: 23px; }
+  .res-num b { font-size: 24px; }
 }
 `;
