@@ -1914,9 +1914,29 @@ html.theme-light .admin-content .text-gold { color: var(--text); }
   cursor: pointer; font-family: inherit;
 }
 .aviso-push-btn:disabled { opacity: .6; cursor: wait; }
+/*
+ * A FAIXA DO IPHONE E PRETA E BRANCA, e nao amarela.
+ *
+ * Amarelo neste painel quer dizer «a Convecta esta a falar» ou «marca da
+ * barbearia», conforme o sitio — e esta faixa nao e nem uma coisa nem outra:
+ * e uma instrucao do telemovel. A tinta e o fundo trocam de lugar (o fundo e
+ * a cor do texto, e o texto a cor do fundo), por isso em modo claro e preta
+ * com letras brancas e em modo escuro e o contrario. Nunca desaparece e
+ * nunca compete com o amarelo.
+ */
+.aviso-push-preto {
+  background: var(--text); border: none; cursor: pointer;
+  text-align: left; font: inherit; width: 100%;
+  align-items: center; gap: 12px;
+}
+.aviso-push-preto .aviso-push-txt b { color: var(--bg); font-size: 16px; }
+.aviso-push-preto .aviso-push-txt span { color: var(--bg); opacity: .62; font-size: 14px; }
+.aviso-push-seta { color: var(--bg); opacity: .8; flex-shrink: 0; }
+
 @media (max-width: 560px) {
   .aviso-push { flex-wrap: wrap; }
   .aviso-push-btn { width: 100%; }
+  .aviso-push-preto { flex-wrap: nowrap; }
 }
 
 /* O --border desta aplicacao foi reescrito mais acima pelo bloco de

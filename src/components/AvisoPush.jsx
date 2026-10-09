@@ -96,19 +96,27 @@ export default function AvisoPush({ businessId, userId, papel, texto, comTeste =
   const noIPhone = estado === 'precisa-ecra';
   const recusado = estado === 'negado';
 
+  /* No iPhone a faixa inteira e o botao: abre o tutorial. */
+  if (noIPhone) {
+    return (
+      <button type="button" className="aviso-push aviso-push-preto"
+        onClick={() => window.dispatchEvent(new Event('convecta-guardar-ecra'))}>
+        <span className="aviso-push-txt">
+          <b>Guarda no ecrã principal</b>
+          <span>Sem isto o iPhone não toca.</span>
+        </span>
+        <Smartphone size={22} className="aviso-push-seta" />
+      </button>
+    );
+  }
+
   return (
     <div className="aviso-push">
       <span className="aviso-push-ico">
-        {noIPhone ? <Smartphone size={19} /> : recusado ? <BellOff size={19} /> : <Bell size={19} />}
+        {recusado ? <BellOff size={19} /> : <Bell size={19} />}
       </span>
       <div className="aviso-push-txt">
-        {noIPhone ? (
-          <>
-            <b>Guarde primeiro no ecrã principal</b>
-            <span>No iPhone, as notificações só funcionam depois de guardar este painel no ecrã
-              principal. Use o menu de partilha e escolha «Adicionar ao ecrã principal».</span>
-          </>
-        ) : recusado ? (
+        {recusado ? (
           <>
             <b>Notificações bloqueadas neste aparelho</b>
             <span>Foram recusadas antes. Para as reactivar é nas definições do browser,
@@ -122,7 +130,7 @@ export default function AvisoPush({ businessId, userId, papel, texto, comTeste =
           </>
         )}
       </div>
-      {!noIPhone && !recusado && (
+      {!recusado && (
         <button type="button" className="aviso-push-btn" onClick={ligar} disabled={aPedir}>
           {aPedir ? 'A ligar…' : 'Ligar'}
         </button>
