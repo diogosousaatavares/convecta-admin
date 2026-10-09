@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Image as ImagemIco, Sparkles, Palette, Waves, Type, LayoutList, Images } from 'lucide-react';
+import { Image as ImagemIco, Sparkles, Palette, Waves, Type, LayoutList, Images, LayoutTemplate } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
 import TourDemo from '@/components/admin/TourDemo';
 import { useStore } from '@/hooks/useStore';
@@ -542,7 +542,7 @@ function Previsualizacao({tema,info,biz,endereco}){
 }
 
 // ── Aba Design ─────────────────────────────────────────────────────────────
-const PAINEIS=[{id:'marca',l:'Logótipo'},{id:'sugestao',l:'Sugestão'},{id:'cores',l:'Cores'},{id:'fundo',l:'Fundo'},
+const PAINEIS=[{id:'marca',l:'Logótipo'},{id:'cabecalho',l:'Tema'},{id:'sugestao',l:'Sugestão'},{id:'cores',l:'Cores'},{id:'fundo',l:'Fundo'},
                {id:'tipo',l:'Letra'},{id:'info',l:'Conteúdo'},{id:'galeria',l:'Fotos'}]
 
 /*
@@ -639,6 +639,111 @@ function PreviaFundo({cor,fundo,intensidade,velocidade}){
 
 // Na demonstração (site da Convecta) nada vai para o servidor: as imagens
 // ficam no próprio browser, como data URL, e só vivem na pré-visualização.
+
+/*
+ * OS TEMAS DO TOPO DO SITE.
+ *
+ * Cada miniatura e um desenho do topo, a cinzento, como a concorrencia
+ * mostra os dela: ve-se a forma, nao as cores. As cores sao as do site e
+ * mudam-se nas Cores. O site do cliente desenha-os em Cabecalho.jsx; os ids
+ * tem de ser os mesmos dos dois lados.
+ */
+const TEMAS_TOPO=[
+  {id:'classico',l:'Clássico'},{id:'simples',l:'Simples'},{id:'capa',l:'Capa'},{id:'letreiro',l:'Letreiro'},
+  {id:'carrossel',l:'Três fotos'},{id:'capa-logo',l:'Capa e logo'},{id:'moldura',l:'Moldura'},{id:'rasgado',l:'Rasgado'},
+  {id:'janelas',l:'Janelas'},{id:'selos',l:'Selos'},{id:'ecra',l:'Ecrã inteiro'},{id:'passadeira',l:'Passadeira'},
+  {id:'cartao',l:'Cartão'},{id:'ondas',l:'Ondas'},{id:'editorial',l:'Editorial'},{id:'pincel',l:'Pincel'},
+]
+
+function MiniTopo({id}){
+  const N=<b className="mt-n">Nome</b>, F=<i className="mt-f"/>, L=<u className="mt-l"/>
+  const d={
+    classico:<div className="mt mt-escuro mt-baixo"><i className="mt-f" style={{width:'50%',margin:0}}/><b className="mt-n" style={{alignSelf:'flex-start'}}>Nome</b><i className="mt-btn"/></div>,
+    simples:<div className="mt">{L}{N}{F}</div>,
+    capa:<div className="mt mt-sem"><s className="mt-capa esbate"/>{N}{F}</div>,
+    letreiro:<div className="mt mt-sem"><div className="mt-letreiro">{Array(7).fill(0).map((_,i)=><span key={i}>Nome Nome Nome</span>)}</div><u className="mt-l grande"/></div>,
+    carrossel:<div className="mt">{N}<div className="mt-tres"><s/><s className="meio"/><s/></div>{F}</div>,
+    'capa-logo':<div className="mt mt-sem"><s className="mt-capa"/><u className="mt-l grande sobe"/>{N}{F}</div>,
+    moldura:<div className="mt"><div className="mt-moldura"><s/><b className="mt-n claro">Nome</b></div></div>,
+    rasgado:<div className="mt mt-sem"><div className="mt-rasgado"><u className="mt-l"/><b className="mt-n claro">Nome</b></div></div>,
+    janelas:<div className="mt">{N}<div className="mt-janelas"><s className="a"/><s className="b"/><s className="c"/></div></div>,
+    selos:<div className="mt"><div className="mt-selos"><s className="g"/><s className="p"/></div>{N}{F}</div>,
+    ecra:<div className="mt mt-cinza">{L}<b className="mt-n claro">Nome</b><i className="mt-f claro"/><em className="mt-seta"/></div>,
+    passadeira:<div className="mt mt-cinza mt-baixo"><div className="mt-passa">Nome ✱ Nome ✱ Nome</div>{L}<i className="mt-f claro"/><em className="mt-seta"/></div>,
+    cartao:<div className="mt">{F}<div className="mt-cartao"><u className="mt-l"/><b className="mt-n claro">Nome</b></div></div>,
+    ondas:<div className="mt mt-sem"><s className="mt-capa onda"/>{N}{F}</div>,
+    editorial:<div className="mt mt-cinza mt-baixo"><div className="mt-edit"><b className="mt-n claro">Nome</b><i className="mt-f claro"/></div></div>,
+    pincel:<div className="mt mt-sem"><div className="mt-pincel"><u className="mt-l"/><b className="mt-n claro">Nome</b></div></div>,
+  }
+  return d[id]||null
+}
+
+function EscolherCabecalho({valor,onEscolher}){
+  return(
+    <div className="mt-grelha">
+      <style dangerouslySetInnerHTML={{__html:CSS_MT}}/>
+      {TEMAS_TOPO.map(t=>(
+        <button key={t.id} type="button" className={`mt-opcao${valor===t.id?' on':''}`} onClick={()=>onEscolher(t.id)}>
+          <MiniTopo id={t.id}/>
+          <span>{t.l}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+const CSS_MT=`
+.mt-grelha { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px; }
+.mt-opcao { display: flex; flex-direction: column; gap: 7px; align-items: stretch; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: var(--text-sec, #888); font-size: 13px; font-weight: 600; text-align: center; }
+.mt-opcao.on { color: var(--text, #111); }
+.mt-opcao.on .mt { outline: 2px solid var(--text, #111); outline-offset: 2px; }
+.mt { position: relative; aspect-ratio: 9 / 15; border-radius: 12px; background: #fff; border: 1px solid #e6e6e6; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 8px; color: #111; }
+.mt-sem { justify-content: flex-start; padding: 0 0 8px; }
+.mt-escuro { background: #2b2b2b; }
+.mt-escuro .mt-n { color: #fff; }
+.mt-cinza { background: linear-gradient(#9c9c9c, #6e6e6e); }
+.mt-baixo { justify-content: flex-end; }
+.mt-n { font-size: 10px; font-weight: 800; color: #111; line-height: 1; }
+.mt-n.claro { color: #fff; }
+.mt-f { display: block; width: 70%; height: 3px; border-radius: 2px; background: #bbb; margin-top: 1px; }
+.mt-f.claro { background: rgba(255,255,255,.75); }
+.mt-btn { display: block; width: 100%; height: 7px; border-radius: 3px; background: #fff; margin-top: 2px; }
+.mt-l { display: block; width: 18px; height: 18px; border-radius: 5px; background: #ddd; flex-shrink: 0; }
+.mt-l.grande { width: 30px; height: 30px; border-radius: 8px; }
+.mt-l.sobe { margin-top: -18px; border: 2px solid #fff; }
+.mt-seta { display: block; width: 10px; height: 10px; border-radius: 999px; background: rgba(255,255,255,.5); }
+.mt s { display: block; text-decoration: none; background: #d9d9d9; }
+.mt-capa { width: 100%; height: 48%; flex-shrink: 0; }
+.mt-capa.esbate { -webkit-mask-image: linear-gradient(#000 40%, transparent); mask-image: linear-gradient(#000 40%, transparent); margin-bottom: -10px; }
+.mt-capa.onda { -webkit-mask-image: radial-gradient(10px 7px at 10px 100%, transparent 98%, #000) 0 0 / 20px 100% repeat-x; mask-image: radial-gradient(10px 7px at 10px 100%, transparent 98%, #000); mask-size: 20px 100%; }
+.mt-letreiro { position: absolute; inset: -6px; display: flex; flex-direction: column; justify-content: center; transform: rotate(-8deg); }
+.mt-letreiro span { white-space: nowrap; font-size: 13px; font-weight: 800; color: #111; opacity: .8; line-height: 1.05; }
+.mt-letreiro + .mt-l { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #ccc; }
+.mt-tres { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 3px; width: 100%; align-items: center; }
+.mt-tres s { height: 30px; border-radius: 4px; }
+.mt-tres s.meio { height: 38px; }
+.mt-moldura { width: 88%; background: #111; padding: 5px 5px 7px; border-radius: 2px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.mt-moldura s { width: 100%; height: 70px; }
+.mt-rasgado { width: 100%; height: 58%; background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  clip-path: polygon(0 0, 100% 0, 100% 92%, 90% 100%, 80% 93%, 70% 99%, 60% 92%, 50% 100%, 40% 93%, 30% 99%, 20% 92%, 10% 100%, 0 93%); }
+.mt-janelas { position: relative; width: 100%; height: 70px; }
+.mt-janelas s { position: absolute; border: 2px solid #222; border-top-width: 5px; background: #e2e2e2; border-radius: 3px; }
+.mt-janelas .a { left: 0; top: 10px; width: 55%; height: 52px; transform: rotate(-8deg); }
+.mt-janelas .b { right: 0; top: 12px; width: 55%; height: 52px; transform: rotate(8deg); }
+.mt-janelas .c { left: 20%; top: 0; width: 60%; height: 66px; z-index: 2; }
+.mt-selos { position: relative; width: 100%; height: 70px; }
+.mt-selos s { position: absolute; background: #e4e4e4; outline: 3px dotted #fff; outline-offset: -2px; box-shadow: 0 4px 10px rgba(0,0,0,.15); border: 3px solid #fff; }
+.mt-selos .g { left: 6%; top: 0; width: 62%; height: 60px; transform: rotate(-3deg); }
+.mt-selos .p { right: 4%; bottom: 0; width: 40%; height: 38px; transform: rotate(5deg); background: #cfcfcf; }
+.mt-passa { position: absolute; top: 8px; left: -4px; white-space: nowrap; font-size: 12px; font-weight: 800; color: #fff; }
+.mt-cartao { width: 92%; height: 58%; border-radius: 8px; background: linear-gradient(#a5a5a5, #7a7a7a); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+.mt-edit { width: 100%; display: flex; justify-content: space-between; align-items: flex-end; gap: 6px; }
+.mt-edit .mt-f { width: 40%; }
+.mt-pincel { width: 100%; height: 60%; background: linear-gradient(#9c9c9c, #6e6e6e); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  -webkit-mask-image: radial-gradient(9px 5px at 9px 100%, transparent 98%, #000); -webkit-mask-size: 18px 100%; mask-image: radial-gradient(9px 5px at 9px 100%, transparent 98%, #000); mask-size: 18px 100%; }
+`
+
 function paraDataUrl(file){
   return new Promise((ok,falha)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>falha(new Error('Não foi possível ler a imagem.'));r.readAsDataURL(file)})
 }
@@ -883,6 +988,11 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
 
   const paineis=(
     <>
+        {painel==='cabecalho'&&(
+          <EscolherCabecalho valor={tema.cabecalho||'classico'}
+            onEscolher={id=>{setTema(t=>({...t,cabecalho:id}));setSucesso(false)}}/>
+        )}
+
         {painel==='sugestao'&&(
           <SugestaoDesign biz={bizVisto} logo={logoUrl||tema.favicon} endereco={endereco}
             irParaMarca={()=>setPainel('marca')}
@@ -1110,7 +1220,7 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
    */
   if(telemovel&&!demo){
     const ABAS=[
-      {id:'marca',l:'Logótipo',I:ImagemIco},{id:'sugestao',l:'Estilos',I:Sparkles},{id:'cores',l:'Cores',I:Palette},
+      {id:'cabecalho',l:'Tema',I:LayoutTemplate},{id:'marca',l:'Logótipo',I:ImagemIco},{id:'sugestao',l:'Estilos',I:Sparkles},{id:'cores',l:'Cores',I:Palette},
       {id:'fundo',l:'Fundo',I:Waves},{id:'tipo',l:'Letra',I:Type},{id:'info',l:'Conteúdo',I:LayoutList},{id:'galeria',l:'Fotos',I:Images},
     ]
     const abrir=id=>{setPainel(id);setGaveta(true)}
