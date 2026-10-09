@@ -212,6 +212,18 @@ export default function PrimeirosPassos() {
     copiarLink();
   };
 
+  /*
+   * NO TELEMOVEL E UMA PASTILHA, nao um cartao.
+   *
+   * O cartao ocupava metade do ecra por cima da agenda — e a agenda e o que
+   * ele veio ver. A pastilha flutua por cima da barra de baixo, diz quanto
+   * falta, e so abre a lista quando ele tocar. E a mesma ideia que a
+   * concorrencia usa, e pela mesma razao: lembrar sem estorvar.
+   */
+  const [aberta, setAberta] = useState(false);
+  const telemovel = typeof window !== 'undefined'
+    && window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
+
   if (!pronto || escondido) return null;
 
   /*
@@ -254,6 +266,27 @@ export default function PrimeirosPassos() {
     );
   }
 
+  if (telemovel && !aberta) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        {festa && (
+          <div className="pp-festa" key={festa.n} role="status">
+            <div className="pp-festa-caixa">
+              <Check size={18} strokeWidth={3} />
+              {festa.falta === 1 ? 'Falta só um passo.' : `Faltam ${festa.falta} passos.`}
+            </div>
+          </div>
+        )}
+        <button type="button" className="pp-pastilha" onClick={() => setAberta(true)}>
+          <span>Estás quase! <ChevronRight size={15} /></span>
+          <b>{prontos}/{total}</b>
+          <i><u style={{ width: `${Math.round((prontos / total) * 100)}%` }} /></i>
+        </button>
+      </>
+    );
+  }
+
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
@@ -278,7 +311,9 @@ export default function PrimeirosPassos() {
             <span>{prontos} de {total}</span>
             <div className="pp-barra"><i style={{ width: `${(prontos / total) * 100}%` }} /></div>
           </div>
-          <button type="button" className="pp-fechar" onClick={esconder} aria-label="Esconder os primeiros passos">
+          <button type="button" className="pp-fechar"
+            onClick={() => (telemovel ? setAberta(false) : esconder())}
+            aria-label={telemovel ? 'Fechar' : 'Esconder os primeiros passos'}>
             <X size={16} />
           </button>
         </header>
@@ -365,6 +400,38 @@ const CSS = `
 .pp-lista li.feito .pp-a { display: none; }
 .pp-seta { color: var(--text-ter); display: grid; place-items: center; }
 .pp-lista li.feito .pp-seta { opacity: 0; }
+
+/* ── A pastilha (telemovel) ───────────────────────────────────────────────
+   Flutua por cima da barra de baixo. Nao tapa a agenda: ocupa a altura de um
+   botao e sai do caminho assim que estiver tudo feito. */
+.pp-pastilha {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(74px + env(safe-area-inset-bottom, 0px)); z-index: 80;
+  display: flex; align-items: center; gap: 14px;
+  min-height: 44px; padding: 9px 18px 13px; border-radius: 999px;
+  border: 0; cursor: pointer; font: inherit;
+  background: var(--gold); color: #100E0B;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .22);
+  overflow: hidden;
+}
+.pp-pastilha > span {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 15px; font-weight: 700; white-space: nowrap;
+}
+.pp-pastilha > b { font-size: 14.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+/* A barra do progresso vive dentro da pastilha, em baixo: o carril e o que
+   ja esta feito. */
+.pp-pastilha > i {
+  position: absolute; left: 18px; right: 18px; bottom: 7px;
+  height: 3px; border-radius: 999px; background: rgba(0, 0, 0, .25);
+}
+.pp-pastilha > u {
+  display: none;
+}
+.pp-pastilha i > u {
+  display: block; height: 100%; border-radius: 999px; background: #100E0B;
+  transition: width .35s ease;
+}
 
 /* ── Quando se tica um passo ──────────────────────────────────────────────
    Por cima de tudo, no meio do ecra, dois segundos. Nao prende nada: nao

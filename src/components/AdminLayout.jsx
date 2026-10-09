@@ -221,7 +221,9 @@ const PASSOS_BARBEIRO = [
     texto: 'Cada coluna é um barbeiro. Agora falta uma coisa só: partilhar o teu link. Sem isso a agenda fica bonita e vazia.' },
 ];
 
-function gruposPara(demo, profissional) {
+/* Exportada: a pagina «Mais» desenha o menu inteiro e tem de ser o MESMO
+   menu. Duas listas escritas a mao divergem sempre. */
+export function gruposPara(demo, profissional) {
   let gs = GROUPS;
   if (profissional) {
     // O barbeiro ve so o que pode abrir; a conta dele ganha um nome que diz o que e.
@@ -259,7 +261,7 @@ const BAIXO = [
   { to: '/admin/financeiro/caixa', label: 'Dinheiro', icon: Wallet },
 ];
 
-function BarraDeBaixo({ onMais, aberto }) {
+function BarraDeBaixo({ aberto }) {
   const location = useLocation();
   /* Activo pelo inicio do endereco: dentro da Agenda ha Marcacoes, Encaixes
      e Bloqueios, e todos continuam a ser «Hoje». */
@@ -272,10 +274,14 @@ function BarraDeBaixo({ onMais, aberto }) {
           <span>{b.label}</span>
         </Link>
       ))}
-      <button type="button" className="bnav-item" onClick={onMais} aria-label="Abrir o menu">
+      {/* «Mais» e um ecra, nao uma gaveta. Uma gaveta sobre a pagina esconde
+          onde ele estava e fecha-se por engano ao tocar fora; um ecra tem
+          endereco proprio, o botao «voltar» do telemovel funciona, e cabe
+          tudo o que a casa tem sem ficar espremido. */}
+      <Link to="/admin/mais" className={`bnav-item${activo('/admin/mais') ? ' activo' : ''}`}>
         <MoreHorizontal size={21} />
         <span>Mais</span>
-      </button>
+      </Link>
     </nav>
   );
 }
@@ -483,7 +489,7 @@ export default function AdminLayout({ children }) {
     <div className={`admin-layout ${collapsed ? 'sidebar-collapsed' : ''}`}>
       <aside className={`admin-sidebar ${open ? 'open' : ''} ${collapsed ? 'collapsed' : ''}`}>{sidebar}</aside>
       {open && <div onClick={() => setOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:99 }} />}
-      <BarraDeBaixo onMais={() => setOpen(true)} aberto={open} />
+      <BarraDeBaixo aberto={open} />
       <Modal open={supportOpen} onClose={() => setSupportOpen(false)} title="Apoio ao cliente">
         <div className="support-contact-list">
           <a href="tel:+351914874725" className="support-contact"><Phone size={17} /> <span><strong>Ligar</strong><small>914 874 725</small></span></a>
