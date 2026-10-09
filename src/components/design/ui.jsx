@@ -8,8 +8,28 @@
 import React from 'react'
 
 // ── Cores ──────────────────────────────────────────────────────────────────
+/*
+ * ESTAS CORES SAO AS DO PAINEL, NAO AS DO SUPER ADMIN.
+ *
+ * Este ficheiro veio do super admin, que e escuro e so escuro — e trazia os
+ * neutros escritos a mao: W='#16130F', BG='#0A0807', T='#EDE8DF'. Dentro do
+ * painel do barbeiro, que e claro, isso dava uma barra de separadores preta
+ * e uma caixa do link preta no meio de uma pagina branca. Nao era um
+ * desacerto de gosto: eram duas paletas no mesmo ecra.
+ *
+ * Agora os neutros sao as variaveis do painel. Em modo claro ficam claros,
+ * em modo escuro escuros, e o barbeiro ve UMA aplicacao.
+ *
+ * O amarelo fica em hexadecimal de proposito: ha sitios que lhe colam dois
+ * digitos de transparencia (`${Y}33`), e isso nao funciona com var().
+ */
 export const Y='#F5D66B',YD='#C9A227',TY='#100E0B'
-export const W='#16130F',W2='#1C1915',BG='#0A0807',BD='rgba(201,162,39,.15)',T='#EDE8DF',T2='#8A8272',T3='#5E584B'
+/* O amarelo PARA TEXTO. O Y e claro — nasceu para se ler sobre preto — e em
+   cima de branco desaparece. Onde a cor serve de tinta usa-se este, que o
+   painel ja escolhe conforme o tema. */
+export const YT='var(--gold-tinta)'
+export const W='var(--surface)',W2='var(--elevated)',BG='var(--bg)',
+  BD='var(--border)',T='var(--text)',T2='var(--text-sec)',T3='var(--text-ter)'
 export const G='#22C55E',R='#EF4444',O='#F59E0B'
 // Azul dos estados "em curso" e das informações. Já era usado à mão em vários
 // sítios do painel ('#3B82F6'); aqui ganha nome.

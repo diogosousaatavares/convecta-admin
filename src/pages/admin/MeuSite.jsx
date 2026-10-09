@@ -4,7 +4,7 @@ import TourDemo from '@/components/admin/TourDemo';
 import { useStore } from '@/hooks/useStore';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
-  Y, YD, TY, W, W2, BG, BD, T, T2, T3, G, R, O, Spin, Btn, Inp, Sel, Lbl, Card,
+  Y, YD, YT, TY, W, W2, BG, BD, T, T2, T3, G, R, O, Spin, Btn, Inp, Sel, Lbl, Card,
 } from '@/components/design/ui';
 import {
   DOMINIO_BASE, LIMITE_GALERIA,
@@ -389,7 +389,7 @@ function EditorDePeca({peca,tema,onMudar,onRepor,onFechar,onNome,nomeDeSistema})
           {campos.map(c=>(
             <button key={c.k} onClick={()=>setCampo(c.k)}
               style={{flex:1,padding:'8px 6px',borderRadius:9,cursor:'pointer',fontFamily:'inherit',fontSize:12.5,fontWeight:700,
-                border:`1px solid ${campo===c.k?Y:BD}`,background:campo===c.k?`${Y}22`:'transparent',color:campo===c.k?Y:T2,
+                border:`1px solid ${campo===c.k?Y:BD}`,background:campo===c.k?`${Y}22`:'transparent',color:campo===c.k?YT:T2,
                 display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
               <span style={{width:12,height:12,borderRadius:'50%',background:valor(c.k),border:'1px solid rgba(255,255,255,.3)'}}/>
               {c.l}
@@ -924,7 +924,7 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
           <div style={{fontSize:14,color:T2,fontWeight:600,marginBottom:10}}>Link para dar ao cliente</div>
           <div style={{display:'flex',gap:10,alignItems:'center'}}>
             <div style={{flex:1,padding:'10px 13px',borderRadius:10,background:W2,border:`1px solid ${BD}`,
-              fontFamily:'monospace',fontSize:14,color:Y,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+              fontFamily:'monospace',fontSize:14,color:T,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
               https://{endereco}
             </div>
             <Btn v="secondary" onClick={copiar} style={{flexShrink:0}}>{copiado?'Copiado':'Copiar'}</Btn>
@@ -944,7 +944,7 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
                 borderRadius:9,border:'none',cursor:'pointer',fontFamily:'inherit',
                 fontSize:14,fontWeight:painel===pn.id?700:600,
                 background:painel===pn.id?`linear-gradient(100deg,${YD}33,${Y}18)`:'transparent',
-                color:painel===pn.id?Y:T2,transition:'background .15s,color .15s'}}>{pn.l}</button>
+                color:painel===pn.id?YT:T2,transition:'background .15s,color .15s'}}>{pn.l}</button>
           ))}
         </div>
 
@@ -1284,7 +1284,7 @@ function PainelGaleria({biz}){
       <div style={{fontSize:14,color:T3,marginBottom:12,lineHeight:1.5}}>
         Aparecem no site da barbearia, na secção de galeria. As horizontais ficam melhor.
         São reduzidas automaticamente antes de subir, por isso não te preocupes com o tamanho.
-        {fotos?.length>0&&<> · <b style={{color:fotos.length>=LIMITE_GALERIA?Y:T2}}>{fotos.length} de {LIMITE_GALERIA}</b></>}
+        {fotos?.length>0&&<> · <b style={{color:fotos.length>=LIMITE_GALERIA?YT:T2}}>{fotos.length} de {LIMITE_GALERIA}</b></>}
       </div>
 
       <Largar onFicheiros={enviar} multiplas aEnviar={aEnviar} titulo="Larga as fotos aqui"
@@ -1419,7 +1419,6 @@ export default function MeuSite() {
     <AdminLayout>
       <div className="page-head">
         <h1>O Meu Site</h1>
-        <p>Escolhe as cores, a capa, a tipografia e o que aparece aos teus clientes. Vês tudo num telemóvel antes de publicares.</p>
       </div>
       {/* O DesignTab guarda e mantem o seu proprio estado; nao ha nada para
           recarregar aqui. Fica a funcao porque e o contrato do componente. */}

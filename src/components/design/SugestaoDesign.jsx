@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Y, YD, W2, BD, T, T2, T3, G, R, Spin, Btn, Card } from '@/components/design/ui';
+import { Y, YD, YT, W2, BD, T, T2, T3, G, R, Spin, Btn, Card } from '@/components/design/ui';
 import { coresDoLogotipo, propostasDeTema } from '@/lib/sugestaoTema';
 
 /*
@@ -121,7 +121,7 @@ export default function SugestaoDesign({ biz, logo, endereco, onExperimentar, ir
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                   <span style={{ fontWeight: 700, fontSize: 15, color: T }}>{p.nome}</span>
                   {p.recomendada && <span style={{ fontSize: 13, padding: '2px 8px', borderRadius: 20,
-                    background: `${YD}26`, color: Y, fontWeight: 700 }}>Recomendada</span>}
+                    background: `${YD}26`, color: YT, fontWeight: 700 }}>Recomendada</span>}
                 </div>
                 <div style={{ display: 'flex', gap: 5 }}>
                   {['bg', 'surface', 'gold', 'text'].map(k => (
