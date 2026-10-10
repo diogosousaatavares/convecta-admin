@@ -60,6 +60,9 @@ export default function Services() {
   // tiver categoria (ou tiver uma que ja nao existe) cai em "Outros", no fim
   // — e a mesma arrumacao que o cliente ve na marcacao.
   const categorias = data.business?.serviceCategories || [];
+  // Fotos dos serviços só nos salões, estúdios e estética (10/10/2026): é
+  // onde se escolhe pelo que se vê. Numa barbearia era um campo a mais.
+  const comFotos = (data.business?.tipoNegocio || 'barbearia') !== 'barbearia';
   const grupos = useMemo(() => {
     const porNome = new Map(categorias.map(c => [c, []]));
     const outros = [];
@@ -137,7 +140,7 @@ export default function Services() {
             <Card key={s.id} className="card-pad card-hover" onClick={() => openEdit(s)} style={{ cursor: 'pointer' }}>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-8" style={{ minWidth: 0 }}>
-                  {s.fotoUrl && <span style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: `center/cover no-repeat url('${s.fotoUrl}')` }} />}
+                  {comFotos && s.fotoUrl && <span style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: `center/cover no-repeat url('${s.fotoUrl}')` }} />}
                   <h3 style={{ fontSize: 18 }}>{s.name}</h3>
                   {s.isPopular && <Badge variant="gold">Popular</Badge>}
                   {!s.isActive && <Badge variant="default">Inativo</Badge>}
@@ -185,7 +188,7 @@ export default function Services() {
               <Card key={s.id} className="card-pad card-hover" onClick={() => openEdit(s)} style={{ cursor: 'pointer' }}>
                 <div className="flex justify-between items-center" style={{ gap: 12 }}>
                   <div className="flex items-center gap-8" style={{ minWidth: 0 }}>
-                    {s.fotoUrl && <span style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: `center/cover no-repeat url('${s.fotoUrl}')` }} />}
+                    {comFotos && s.fotoUrl && <span style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: `center/cover no-repeat url('${s.fotoUrl}')` }} />}
                     <h3 style={{ fontSize: 17 }}>{s.name}</h3>
                     {!s.isActive && <Badge variant="default">Inativo</Badge>}
                   </div>
@@ -205,7 +208,7 @@ export default function Services() {
         footer={<>{editing && editing !== 'new' && <Button variant="ghost" className="so-telemovel" onClick={() => { const alvo = data.services.find(x => x.id === editing); close(); if (alvo) setDeleteTarget(alvo); }}><Trash2 size={14} /></Button>}<Button variant="ghost" onClick={close}>Cancelar</Button><Button variant="primary" onClick={save}>Guardar</Button></>}>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
         <div className="field"><label className="label">Descrição</label><textarea className="textarea" rows={2} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
-        <FotoDoServico valor={form.fotoUrl || ''} onMudar={url => setForm(f => ({ ...f, fotoUrl: url }))} />
+        {comFotos && <FotoDoServico valor={form.fotoUrl || ''} onMudar={url => setForm(f => ({ ...f, fotoUrl: url }))} />}
         {/*
           * COMO SE MARCA (10/10/2026). Eram duas caixas pequenas, lado a lado,
           * com um parágrafo cada — não se percebia que eram duas escolhas, nem
