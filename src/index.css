@@ -2805,8 +2805,13 @@ body { font-variant-numeric: lining-nums; }
 .tipo-opcao:hover { border-color: rgba(var(--gold-rgb), 0.5); }
 .tipo-opcao.on { border-color: var(--gold); background: rgba(var(--gold-rgb), 0.10); color: var(--gold-tinta, var(--gold)); }
 .tipo-opcao:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-@media (max-width: 380px) {
-  .tipo-opcoes { grid-template-columns: 1fr; }
-  .tipo-opcao { min-height: 0; flex-direction: row; align-items: center; gap: 10px; }
-  .tipo-opcao svg { margin: 0; }
+/* No telemóvel, três cartões lado a lado partiam «Sob orçamento» a meio da
+   palavra. Passam a linhas: ícone, nome, e a explicação curta à direita. */
+.tipo-opcao-t { word-break: normal; overflow-wrap: normal; hyphens: manual; }
+@media (max-width: 560px) {
+  .tipo-opcoes:not(.duas) { grid-template-columns: 1fr; gap: 8px; }
+  .tipo-opcoes:not(.duas) .tipo-opcao { min-height: 0; flex-direction: row; align-items: center; gap: 12px; padding: 13px 14px; }
+  .tipo-opcoes:not(.duas) .tipo-opcao svg { margin: 0; flex-shrink: 0; }
+  .tipo-opcoes:not(.duas) .tipo-opcao-d { margin-left: auto; text-align: right; }
+  .tipo-opcoes.duas .tipo-opcao { min-height: 0; }
 }
