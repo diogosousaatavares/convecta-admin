@@ -76,13 +76,11 @@ export default function Notifications() {
    * correio. Quem liga isto esta a trocar marcacoes por certeza de contacto
    * — e uma escolha legitima, mas tem de ser feita de olhos abertos.
    */
-  const [exigirEmail, setExigirEmail] = useState(data.business?._settings?.exigirEmailConfirmado === true);
 
   useEffect(() => {
     const r = data.business?._settings?.reminders || {};
     setLembreteAtivo(r.ativo === true);
     setHorasAntes(Number(r.horasAntes) || 24);
-    setExigirEmail(data.business?._settings?.exigirEmailConfirmado === true);
   }, [data.business?._settings?.reminders, data.business?._settings?.exigirEmailConfirmado]);
 
   const guardarLembretes = async () => {
@@ -90,7 +88,7 @@ export default function Notifications() {
     try {
       await dataService.updateBusiness({
         reminders: { ativo: lembreteAtivo, horasAntes: Math.max(1, Math.min(72, Number(horasAntes) || 24)) },
-        exigirEmailConfirmado: exigirEmail,
+        exigirEmailConfirmado: false,
       });
       toast.success(lembreteAtivo ? 'Lembretes ligados' : 'Lembretes desligados', lembreteAtivo
         ? `Cada cliente é avisado ${horasAntes}h antes — por notificação, ou por email se não tiver notificações.`
@@ -134,16 +132,8 @@ export default function Notifications() {
           </div>
         )}
 
-        <hr style={{ border: 0, borderTop: '1px solid var(--border)', margin: '18px 0' }} />
-
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 14, cursor: 'pointer' }}>
-          <input type="checkbox" checked={exigirEmail} onChange={e => setExigirEmail(e.target.checked)}
-            style={{ width: 18, height: 18, marginTop: 2, accentColor: 'var(--gold)', flexShrink: 0 }} />
-          <span>
-            <span className="fw-600" style={{ display: 'block' }}>Só aceitar marcações de quem confirmou o email</span>
-          </span>
-        </label>
-
+        {/* «Só aceitar marcações de quem confirmou o email» saiu a 10/10/2026:
+            o cliente nunca mais tem de confirmar o email. */}
 
         <div style={{ marginTop: 16 }}>
           <Button variant="primary" onClick={guardarLembretes} disabled={aGuardar}>
