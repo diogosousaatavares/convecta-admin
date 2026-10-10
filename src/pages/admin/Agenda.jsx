@@ -324,6 +324,9 @@ export default function Agenda() {
       endTime: toTime(toMin(quick.startTime) + svc.durationMinutes),
       status: 'confirmed',
       usaPack: quick.usaPack && saldoPackEncaixe > 0,
+      // Extras (10/10/2026): só os ids. O preço e o nome põe-nos a base de
+      // dados (zzz_marcacao_com_extras), como na app do cliente.
+      extras: Object.keys(quick.extras || {}).map(id => ({ id, qtd: 1 })),
     });
     if (dia !== date) setDate(dia);
     toast.success('Marcação criada', quick.usaPack && saldoPackEncaixe > 0
@@ -661,6 +664,33 @@ export default function Agenda() {
             <label className="label">Hora de início</label>
             <input type="time" className="input" value={quick.startTime} onChange={e => { setQuick(f => ({ ...f, startTime: e.target.value })); setAvisoPassado(false); }} />
           </div>
+          {(() => {
+            /* Os extras também ao marcar no painel (10/10/2026): os
+               serviços «Extra» e os produtos «Vender na app». Tocar junta,
+               tocar outra vez tira. O resto junta-se no checkout. */
+            const extrasSvc = data.services.filter(s => s.isActive && s.extra);
+            const extrasProd = (data.products || []).filter(p => p.isActive !== false && p.vendaOnline && Number(p.stock) > 0);
+            if (!extrasSvc.length && !extrasProd.length) return null;
+            const sel = quick.extras || {};
+            const mudar = id => setQuick(f => { const n = { ...(f.extras || {}) }; if (n[id]) delete n[id]; else n[id] = 1; return { ...f, extras: n }; });
+            const total = [...extrasSvc, ...extrasProd].reduce((t, x) => t + (sel[x.id] ? Number(x.price) || 0 : 0), 0);
+            return (
+              <div className="field">
+                <label className="label">Extras {total > 0 && <span style={{ color: 'var(--gold-tinta)' }}>· +{formatPrice(total)}</span>}</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {[...extrasSvc, ...extrasProd].map(x => (
+                    <button key={x.id} type="button" onClick={() => mudar(x.id)} aria-pressed={!!sel[x.id]}
+                      className={`chip ${sel[x.id] ? 'active' : ''}`}
+                      style={{ padding: '8px 12px', borderRadius: 999, cursor: 'pointer', font: 'inherit', fontSize: 14,
+                        border: `1px solid ${sel[x.id] ? 'var(--gold)' : 'var(--border)'}`,
+                        background: sel[x.id] ? 'rgba(var(--gold-rgb),0.14)' : 'transparent', color: 'var(--text)' }}>
+                      {sel[x.id] ? '✓ ' : '+ '}{x.name} · {formatPrice(Number(x.price) || 0)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           {saldoPackEncaixe > 0 && (
             <label className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px' }}>
               <input type="checkbox" checked={quick.usaPack} onChange={e => setQuick(f => ({ ...f, usaPack: e.target.checked }))} />
