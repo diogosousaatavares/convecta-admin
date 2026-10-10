@@ -75,7 +75,7 @@ export default function AgendaFitIns() {
         <div className="field"><label className="label">Cliente</label>
           <EscolherCliente clientes={data.customers} value={form.customerId} onChange={id => setForm(f => ({ ...f, customerId: id }))} /></div>
         <div className="field"><label className="label">Serviço</label>
-          <select className="select" value={form.serviceId} onChange={e => setForm(f => ({ ...f, serviceId: e.target.value }))}><option value="">Selecionar…</option>{data.services.filter(s => s.isActive).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+          <select className="select" value={form.serviceId} onChange={e => setForm(f => ({ ...f, serviceId: e.target.value }))}><option value="">Selecionar…</option>{data.services.filter(s => s.isActive && !s.extra).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
         <div className="grid-2">
           <div className="field"><label className="label">Profissional</label>
             <select className="select" value={form.professionalId} onChange={e => setForm(f => ({ ...f, professionalId: e.target.value }))}><option value="any">Qualquer (auto)</option>{data.professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>

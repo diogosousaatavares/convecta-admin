@@ -398,6 +398,9 @@ function bizFromRow(row) {
     // O plano e o limite sao colunas da tabela, escritas pelo Super Admin.
     // Vem para aqui so para serem lidos: este painel nunca lhes toca.
     plan: row.plan || null,
+    // Programa Founders: escrito so pelo super admin (UPSELLS_E_FOUNDERS_2026-10-10.sql).
+    founder: row.founder === true,
+    founderDesde: row.founder_desde || null,
     billingPeriod: row.billing_period || 'mensal',
     professionalLimit: row.professional_limit ?? null,
     logoUrl: row.logo_url || s.logoUrl || '',
@@ -487,6 +490,9 @@ function svcFromRow(row) {
     orcamento: m.orcamento === true,
     // A foto do servico (09/10/2026): vive no metadata, como o resto.
     fotoUrl: m.fotoUrl || '',
+    // Extra (10/10/2026): nao ocupa tempo na agenda, soma-se ao preco da
+    // marcacao. Ver supabase/UPSELLS_E_FOUNDERS_2026-10-10.sql.
+    extra: m.extra === true,
     /*
      * O METADATA COMO ESTA NA BASE DE DADOS.
      *
@@ -581,6 +587,12 @@ function apptFromRow(row) {
     usaPack: m.usaPack === true,
     pacoteId: m.pacoteId || null,
     packDevolvido: m.packDevolvido === true,
+    // Extras juntos a marcacao (servicos que nao ocupam tempo e produtos).
+    // O preco deles ja esta no price_snapshot; precoProdutos e a parte que,
+    // no checkout, sai como venda de produtos.
+    extras: Array.isArray(m.extras) ? m.extras : [],
+    precoExtras: Number(m.precoExtras) || 0,
+    precoProdutos: Number(m.precoProdutos) || 0,
     // Pago por MB WAY e confirmado pelo barbeiro (MBWAY.sql). Quem o escreve
     // e a base de dados, em mbway_confirmar.
     mbway: m.mbway || null,
@@ -625,6 +637,11 @@ function apptToRow(a) {
       usaPack: a.usaPack ? true : undefined,
       pacoteId: a.pacoteId || undefined,
       packDevolvido: a.packDevolvido ? true : undefined,
+      // Os extras viajam sempre: sem isto, a primeira gravacao do painel
+      // apagava o que o cliente juntou.
+      extras: a.extras?.length ? a.extras : undefined,
+      precoExtras: a.extras?.length ? a.precoExtras : undefined,
+      precoProdutos: a.extras?.length ? a.precoProdutos : undefined,
       // Sem isto, a primeira gravacao do painel depois de confirmar o MB WAY
       // apagava o «pago» da marcacao.
       mbway: a.mbway || undefined,
@@ -659,6 +676,8 @@ function prodFromRow(row) {
     cost: m.cost || 0, price: Number(row.price) || 0,
     supplier: m.supplier || '',
     supplierId: m.supplierId || null,
+    // A venda na app (10/10/2026): o cliente ve-o ao marcar e junta-o.
+    vendaOnline: m.vendaOnline === true,
     isActive: row.is_active !== false,
   };
 }
@@ -668,7 +687,7 @@ function prodToRow(p) {
     business_id: BUSINESS_ID, name,
     stock_quantity: stock || 0, min_stock: minStock || 0,
     price: price || 0, is_active: isActive !== false,
-    metadata: { category: meta.category, unit: meta.unit, cost: meta.cost, supplier: meta.supplier, supplierId: meta.supplierId || null },
+    metadata: { category: meta.category, unit: meta.unit, cost: meta.cost, supplier: meta.supplier, supplierId: meta.supplierId || null, vendaOnline: meta.vendaOnline === true },
   };
 }
 
@@ -1643,6 +1662,33 @@ const dataService = {
   // Usar o pack do cliente numa marcação que foi feita sem ele (ao balcão,
   // no telefone). A base de dados escolhe o pack que acaba primeiro, gasta um
   // corte e põe a marcação a 0 € — o dinheiro já contou na venda do pack.
+  /*
+   * Juntar ou tirar extras a uma marcacao (10/10/2026). `extras` e a lista
+   * COMPLETA que deve ficar: [{ id, qtd }]. A base de dados confere cada
+   * um e faz a conta — ver supabase/UPSELLS_E_FOUNDERS_2026-10-10.sql.
+   */
+  async juntarExtras(apptId, extras) {
+    const { data: r, error } = await supabase.rpc('juntar_extras_marcacao', {
+      p_appointment_id: apptId, p_extras: extras || [],
+    });
+    if (error) {
+      const m = String(error.message || '');
+      if (/EXTRAS:/.test(m)) throw new Error(m.replace(/^.*EXTRAS:\s*/, ''));
+      if (/juntar_extras_marcacao/.test(m) || /schema cache/i.test(m)) {
+        throw new Error('Falta correr o SQL UPSELLS_E_FOUNDERS_2026-10-10.sql no Supabase.');
+      }
+      throw traduzirErro(error);
+    }
+    const a = state.appointments.find(x => x.id === apptId);
+    if (a && r) {
+      a.unitPriceSnapshot = Number(r.price_snapshot) || 0;
+      a.extras = Array.isArray(r.extras) ? r.extras : [];
+      a.precoExtras = Number(r.precoExtras) || 0;
+      a.precoProdutos = Number(r.precoProdutos) || 0;
+    }
+    notify();
+    return a;
+  },
   async usarPackNaMarcacao(apptId) {
     const { data: pacoteId, error } = await supabase.rpc('usar_pack_na_marcacao', { p_appointment_id: apptId });
     if (error) {
@@ -1652,7 +1698,7 @@ const dataService = {
       throw traduzirErro(error);
     }
     const a = state.appointments.find(x => x.id === apptId);
-    if (a) { a.usaPack = true; a.pacoteId = pacoteId; a.unitPriceSnapshot = 0; }
+    if (a) { a.usaPack = true; a.pacoteId = pacoteId; a.unitPriceSnapshot = Number(a.precoExtras) || 0; }
     try { await dataService.recarregarVendasPacks(); } catch { /* o ecrã acompanha ao recarregar */ }
     notify();
     return pacoteId;

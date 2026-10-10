@@ -11,7 +11,7 @@ import { formatPrice } from '@/lib/format';
 import { uploadBusinessAsset } from '@/lib/designService';
 import { ImagePlus, X } from 'lucide-react';
 
-const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: '', isActive: true, isPopular: false, orcamento: false, fotoUrl: '' };
+const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: '', isActive: true, isPopular: false, orcamento: false, extra: false, fotoUrl: '' };
 
 /*
  * A FOTO DO SERVICO (09/10/2026).
@@ -129,6 +129,7 @@ export default function Services() {
                   {s.fotoUrl && <span style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: `center/cover no-repeat url('${s.fotoUrl}')` }} />}
                   <h3 style={{ fontSize: 18 }}>{s.name}</h3>
                   {s.isPopular && <Badge variant="gold">Popular</Badge>}
+                  {s.extra && <Badge variant="default">Extra</Badge>}
                   {!s.isActive && <Badge variant="default">Inativo</Badge>}
                 </div>
                 <span style={{ fontFamily: 'var(--font-head)', fontSize: s.orcamento ? 15 : 22, color: 'var(--gold-tinta)' }}>
@@ -137,7 +138,7 @@ export default function Services() {
               <p className="text-sec text-sm mt-8 so-pc">{s.description}</p>
               <div className="flex items-center justify-between mt-16 so-pc">
                 <div className="flex gap-12 text-sec text-xs">
-                  <span>{s.orcamento ? 'tempo a combinar' : `${s.durationMinutes} min`}</span>{s.category ? <><span>·</span><span>{s.category}</span></> : null}
+                  <span>{s.orcamento ? 'tempo a combinar' : s.extra ? 'não ocupa tempo' : `${s.durationMinutes} min`}</span>{s.category ? <><span>·</span><span>{s.category}</span></> : null}
                 </div>
                 <div className="flex gap-8">
                   <Button size="sm" variant="secondary" aria-label="Editar serviço" title="Editar serviço" onClick={e => { e.stopPropagation(); openEdit(s); }}><Pencil size={14} /></Button>
@@ -172,7 +173,7 @@ export default function Services() {
             */}
           <label className="text-sm" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '4px 0 14px', cursor: 'pointer' }}>
             <input type="checkbox" checked={!!form.orcamento} style={{ marginTop: 3 }}
-              onChange={e => setForm({ ...form, orcamento: e.target.checked })} />
+              onChange={e => setForm({ ...form, orcamento: e.target.checked, extra: e.target.checked ? false : form.extra })} />
             <span>
               <b>Sob orçamento</b> — o preço e a duração são combinados contigo
               <div className="text-sec text-xs mt-4">
@@ -182,8 +183,28 @@ export default function Services() {
             </span>
           </label>
 
+          {/*
+            * EXTRA (10/10/2026). Uma lavagem, um desenho, as sobrancelhas no
+            * fim do corte: não ocupa vaga na agenda, só soma ao preço. O
+            * cliente não o marca sozinho — aparece-lhe como «Queres juntar?»
+            * antes de confirmar, e em «As minhas marcações».
+            */}
+          {!form.orcamento && (
+            <label className="text-sm" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '0 0 14px', cursor: 'pointer' }}>
+              <input type="checkbox" checked={!!form.extra} style={{ marginTop: 3 }}
+                onChange={e => setForm({ ...form, extra: e.target.checked })} />
+              <span>
+                <b>É um extra</b> — não ocupa tempo, junta-se a outro serviço
+                <div className="text-sec text-xs mt-4">
+                  O cliente vê-o ao marcar, em «Queres juntar?», e o preço soma ao total.
+                  A duração da marcação não muda.
+                </div>
+              </span>
+            </label>
+          )}
+
           {!form.orcamento && (<>
-            <div className="field"><label className="label">Duração (min)</label><input className="input" type="number" value={form.durationMinutes} onChange={e => setForm({ ...form, durationMinutes: parseInt(e.target.value) || 0 })} /></div>
+            {!form.extra && <div className="field"><label className="label">Duração (min)</label><input className="input" type="number" value={form.durationMinutes} onChange={e => setForm({ ...form, durationMinutes: parseInt(e.target.value) || 0 })} /></div>}
             <div className="field"><label className="label">Preço (€)</label><input className="input" type="number" value={form.price} onChange={e => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} /></div>
           </>)}
         </div>

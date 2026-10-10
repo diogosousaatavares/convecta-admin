@@ -96,7 +96,7 @@ export default function AgendaWaitlist() {
           <EscolherCliente clientes={data.customers} value={form.customerId} onChange={id => setForm(f => ({ ...f, customerId: id }))} /></div>
         <div className="field"><label className="label">Serviço</label>
           <select className="select" value={form.serviceId} onChange={e => setForm(f => ({ ...f, serviceId: e.target.value }))}>
-            <option value="">Selecionar…</option>{data.services.filter(s => s.isActive).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            <option value="">Selecionar…</option>{data.services.filter(s => s.isActive && !s.extra).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select></div>
         <div className="grid-2">
           <div className="field"><label className="label">Profissional</label>

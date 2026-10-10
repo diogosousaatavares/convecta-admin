@@ -44,7 +44,12 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
   useEffect(() => {
     if (open) {
       setMethod(mbway?.estado === 'pago' ? 'MB WAY' : 'Dinheiro'); setDiscountType('%'); setDiscountValue(''); setDiscountReason('');
-      setTip(''); setVoucherCode(''); setAmountPaid(''); setError(''); setAGravar(false); setPacks([]); setProdutos([]); setProdSel('');
+      setTip(''); setVoucherCode(''); setAmountPaid(''); setError(''); setAGravar(false); setPacks([]); setProdSel('');
+      // Os produtos que o cliente juntou na app já vêm na conta. Só os que
+      // ainda existem: um produto apagado não tem stock para descer.
+      setProdutos((appointment?.extras || [])
+        .filter(x => x.tipo === 'produto' && (data.products || []).some(p => p.id === x.id))
+        .map(x => ({ productId: x.id, name: x.nome, unitPrice: Number(x.preco) || 0, qty: Number(x.qtd) || 1 })));
     }
   }, [open, appointment?.id]);
 
@@ -265,6 +270,9 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
 
         <div style={{ padding: '14px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, marginTop: 16 }}>
           <div className="flex justify-between text-sm"><span className="text-sec">{service?.name || 'Serviço'}</span><span>{formatPrice(base)}</span></div>
+          {(appointment?.extras || []).filter(x => x.tipo === 'servico').map(x => (
+            <div key={x.id} className="text-xs text-sec mt-4">inclui {x.nome} (+{formatPrice(Number(x.preco) || 0)})</div>
+          ))}
           {produtos.map(i => <div key={i.productId} className="flex justify-between text-sm mt-8"><span className="text-sec">{i.qty}× {i.name}</span><span>{formatPrice(i.unitPrice * i.qty)}</span></div>)}
           {discountAmount > 0 && <div className="flex justify-between text-sm mt-8"><span className="text-sec">Desconto</span><span style={{ color: 'var(--success)' }}>-{formatPrice(discountAmount)}</span></div>}
           {tipVal > 0 && <div className="flex justify-between text-sm mt-8"><span className="text-sec">Gorjeta</span><span>+{formatPrice(tipVal)}</span></div>}

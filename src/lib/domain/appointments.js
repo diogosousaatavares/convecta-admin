@@ -88,13 +88,20 @@ export function appointmentDuration(state, a) {
 //     mudado de preco entretanto. O que foi combinado com o cliente e o que
 //     estava na altura em que ele marcou
 //   • nao ha -> o preco actual do servico
+//
+// EXTRAS (10/10/2026). O preco guardado ja traz os extras. Daqui sai o que
+// se cobra como SERVICO: os servicos extra contam (pagam-se sempre, mesmo
+// num corte do pack ou gratis); os produtos nao — no checkout saem a parte,
+// como venda de produtos, para o stock descer.
 export function precoDaMarcacao(a, servico) {
-  if (a?.usaRecompensa) return 0;
+  const produtos = Number(a?.precoProdutos) || 0;
+  const extrasServico = Math.max(0, (Number(a?.precoExtras) || 0) - produtos);
+  if (a?.usaRecompensa) return extrasServico;
   // Corte de um pack: pago quando o pack foi vendido.
-  if (a?.usaPack) return 0;
+  if (a?.usaPack) return extrasServico;
   const guardado = a?.unitPriceSnapshot;
-  if (guardado != null) return Number(guardado) || 0;
-  return Number(servico?.price || 0);
+  if (guardado != null) return Math.max(0, (Number(guardado) || 0) - produtos);
+  return Number(servico?.price || 0) + extrasServico;
 }
 
 export { toMinutes, toTime };

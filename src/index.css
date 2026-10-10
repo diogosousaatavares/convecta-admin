@@ -2778,3 +2778,13 @@ body { font-variant-numeric: lining-nums; }
    tem dentro — uma linha que nao parte (um link, um email) alargava a pagina
    toda e cortava a direita. */
 .admin-content > * { min-width: 0; }
+
+/* Programa Founders (10/10/2026): o selo ao lado do nome, no topo do painel. */
+.founder-selo {
+  display: inline-flex; align-items: center; flex-shrink: 0;
+  padding: 3px 9px; border-radius: 999px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--gold-tinta, var(--gold)); background: rgba(var(--gold-rgb), 0.12);
+  border: 1px solid rgba(var(--gold-rgb), 0.45);
+}
+@media (max-width: 420px) { .founder-selo { padding: 2px 7px; font-size: 9.5px; } }

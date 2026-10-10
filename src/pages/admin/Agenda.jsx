@@ -23,6 +23,7 @@ import EscolherCliente from '@/components/admin/EscolherCliente';
 import { pedidosPendentes } from '@/lib/orcamentosService';
 import { proporNovaHora } from '@/lib/propostasService';
 import { n as nicho } from '@/lib/nicho';
+import JuntarExtras from '@/components/admin/JuntarExtras';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
@@ -590,6 +591,7 @@ export default function Agenda() {
                     </div>
                   );
                 })()}
+                <JuntarExtras appointment={selAppt} toast={toast} />
                 {selAppt.usaPack && (
                   <div className="ag-detail-row">
                     <span className="l">Pagamento</span>
@@ -640,7 +642,7 @@ export default function Agenda() {
             <label className="label">Serviço</label>
             <select className="select" value={quick.serviceId} onChange={e => { setQuick(f => ({ ...f, serviceId: e.target.value })); setQuickError(''); }}>
               <option value="">Selecionar…</option>
-              {data.services.filter(s => s.isActive).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {data.services.filter(s => s.isActive && !s.extra).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
             {quickError && <div className="text-sm mt-8" style={{ color: 'var(--error)' }}>{quickError}</div>}
           </div>

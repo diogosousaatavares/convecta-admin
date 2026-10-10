@@ -19,7 +19,7 @@ export default function Inventory() {
   const [editModal, setEditModal] = useState(false);
   const [adjModal, setAdjModal] = useState(false);
   const [delId, setDelId] = useState(null);
-  const [form, setForm] = useState({ name: '', category: '', unit: 'un', stock: 0, minStock: 5, cost: 0, price: 0, supplier: '', supplierId: '' });
+  const [form, setForm] = useState({ name: '', category: '', unit: 'un', stock: 0, minStock: 5, cost: 0, price: 0, supplier: '', supplierId: '', vendaOnline: false });
   const fornecedores = data.suppliers || [];
   const [editingId, setEditingId] = useState(null);
   const [novaCategoria, setNovaCategoria] = useState(false);
@@ -35,8 +35,8 @@ export default function Inventory() {
   const esgotados = produtosEsgotados(data.products);
   const stockValue = data.products.reduce((sum, p) => sum + p.stock * (p.cost || 0), 0);
 
-  const openNew = () => { setEditingId(null); setNovaCategoria(false); setForm({ name: '', category: categoriasProduto[0] || '', unit: 'un', stock: 0, minStock: 5, cost: 0, price: 0, supplier: '', supplierId: '' }); setEditModal(true); };
-  const openEdit = (p) => { setEditingId(p.id); setNovaCategoria(false); setForm({ name: p.name, category: p.category, unit: p.unit, stock: p.stock, minStock: p.minStock, cost: p.cost, price: p.price || 0, supplier: p.supplier || '', supplierId: p.supplierId || (fornecedores.find(f => f.name === p.supplier)?.id || '') }); setEditModal(true); };
+  const openNew = () => { setEditingId(null); setNovaCategoria(false); setForm({ name: '', category: categoriasProduto[0] || '', unit: 'un', stock: 0, minStock: 5, cost: 0, price: 0, supplier: '', supplierId: '', vendaOnline: false }); setEditModal(true); };
+  const openEdit = (p) => { setEditingId(p.id); setNovaCategoria(false); setForm({ name: p.name, category: p.category, unit: p.unit, stock: p.stock, minStock: p.minStock, cost: p.cost, price: p.price || 0, supplier: p.supplier || '', supplierId: p.supplierId || (fornecedores.find(f => f.name === p.supplier)?.id || ''), vendaOnline: !!p.vendaOnline }); setEditModal(true); };
   const openAdj = (p) => { setAdj({ id: p.id, delta: '', reason: MOTIVOS_ENTRADA[0], custo: '', comoDespesa: true, method: 'Transferência' }); setAdjModal(true); };
 
   const [avisoPreco, setAvisoPreco] = useState(false);
@@ -121,7 +121,7 @@ export default function Inventory() {
             <tbody>
               {products.map(p => (
                 <tr key={p.id}>
-                  <td className="fw-600">{p.name}</td>
+                  <td className="fw-600">{p.name}{p.vendaOnline && <> <Badge variant="gold">Na app</Badge></>}</td>
                   <td className="text-sec">{p.category}</td>
                   <td>{p.stock} <span className="text-sec text-xs">{p.unit}</span> {estadoStock(p) === 'esgotado' ? <Badge variant="danger">Esgotado</Badge> : estadoStock(p) === 'baixo' ? <Badge variant="warning">Baixo</Badge> : null}</td>
                   <td className="text-sec">{p.minStock}</td>
@@ -174,6 +174,16 @@ export default function Inventory() {
           <div className="field"><label className="label">Custo (€)</label><input type="number" min="0" step="0.01" className="input" value={form.cost} onChange={e => setForm(f => ({ ...f, cost: e.target.value }))} /></div>
           <div className="field"><label className="label">Preço de venda (€)</label><input type="number" className="input" min="0" step="0.01" value={form.price} onChange={e => { setForm(f => ({ ...f, price: e.target.value })); setAvisoPreco(false); }} /></div>
         </div>
+        {/* Vender na app (10/10/2026): o cliente vê-o ao marcar, em «Queres
+            juntar?», e leva-o na hora. Esgotado deixa de aparecer sozinho. */}
+        <label className="text-sm" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '2px 0 14px', cursor: 'pointer' }}>
+          <input type="checkbox" checked={!!form.vendaOnline} style={{ marginTop: 3 }}
+            onChange={e => setForm(f => ({ ...f, vendaOnline: e.target.checked }))} />
+          <span>
+            <b>Vender na app</b> — o cliente pode juntá-lo à marcação
+            <div className="text-sec text-xs mt-4">Paga na hora, com o resto. O stock desce quando cobrares.</div>
+          </span>
+        </label>
         <div className="grid-2">
           <div className="field">
             <label className="label">Fornecedor</label>

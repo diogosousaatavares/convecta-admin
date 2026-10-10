@@ -600,6 +600,9 @@ export default function AdminLayout({ children }) {
               ? <img className="admin-topbar-logo" src={data.business.logo} alt={data.business.name} style={{ height: 30, width: 'auto', maxWidth: 140, objectFit: 'contain' }} />
               : <span className="fw-600">{data.business?.name || 'Convecta'}</span>
             }
+            {data.business?.founder && (
+              <span className="founder-selo" title="Fazes parte do Programa Founders da Convecta">Founder</span>
+            )}
             <div className="admin-search-wrap" ref={searchRef}>
               <Search className="admin-search-icon" size={16} />
               {/* Escape fecha a lista, e uma segunda vez limpa o que esta
