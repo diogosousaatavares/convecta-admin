@@ -9,6 +9,7 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice } from '@/lib/format';
 import { uploadBusinessAsset } from '@/lib/designService';
+import { n as nicho } from '@/lib/nicho';
 import { ImagePlus, X, Clock, MessageSquare, PlusCircle } from 'lucide-react';
 
 const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: '', isActive: true, isPopular: false, orcamento: false, extra: false, fotoUrl: '' };
@@ -120,7 +121,7 @@ export default function Services() {
               links={['Agenda', 'Marcações', 'Categorias', 'Relatórios', 'Comandas']}
             />
           </div>
-          <p>{data.services.length} serviços configurados.</p>
+          <p>{data.services.filter(s => !s.extra).length} serviços{extras.length ? ` e ${extras.length} ${extras.length === 1 ? 'extra' : 'extras'}` : ''}.</p>
         </div>
         <Button variant="primary" onClick={() => openNew()}><Plus size={16} /> Novo serviço</Button>
       </div>
@@ -179,7 +180,7 @@ export default function Services() {
         {extras.length === 0 ? (
           <Card className="card-pad">
             <p className="text-sec text-sm" style={{ margin: 0, lineHeight: 1.6 }}>
-              Ainda não tens extras. Uma lavagem, um pezinho, uma cera — o que se junta a um corte sem ocupar mais tempo.
+              Ainda não tens extras. Uma lavagem, um pezinho, uma cera — o que se junta a {nicho().umUn} sem ocupar mais tempo.
             </p>
           </Card>
         ) : (
