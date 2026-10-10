@@ -9,7 +9,7 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice } from '@/lib/format';
 import { uploadBusinessAsset } from '@/lib/designService';
-import { ImagePlus, X } from 'lucide-react';
+import { ImagePlus, X, Clock, MessageSquare, PlusCircle } from 'lucide-react';
 
 const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: '', isActive: true, isPopular: false, orcamento: false, extra: false, fotoUrl: '' };
 
@@ -157,52 +157,39 @@ export default function Services() {
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
         <div className="field"><label className="label">Descrição</label><textarea className="textarea" rows={2} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
         <FotoDoServico valor={form.fotoUrl || ''} onMudar={url => setForm(f => ({ ...f, fotoUrl: url }))} />
+        {/*
+          * COMO SE MARCA (10/10/2026). Eram duas caixas pequenas, lado a lado,
+          * com um parágrafo cada — não se percebia que eram duas escolhas, nem
+          * que não se podem ter as duas. Agora é uma escolha só, em três
+          * cartões:
+          *   · Normal — o cliente escolhe a hora.
+          *   · Sob orçamento — pedido pela Rasta Village: rastas não têm preço
+          *     nem tempo antes de se falar. O cliente pede, o barbeiro liga.
+          *   · Extra — uma lavagem, um pezinho: não ocupa tempo, soma ao preço
+          *     e aparece em «Queres juntar?» ao marcar.
+          */}
+        <div className="field">
+          <label className="label">Como se marca</label>
+          <div className="tipo-opcoes" role="radiogroup" aria-label="Como se marca">
+            {[
+              { v: 'normal', t: 'Normal', d: 'Com hora', I: Clock },
+              { v: 'orcamento', t: 'Sob orçamento', d: 'Faz um pedido', I: MessageSquare },
+              { v: 'extra', t: 'Extra', d: 'Junta-se a outro', I: PlusCircle },
+            ].map(o => {
+              const actual = form.orcamento ? 'orcamento' : form.extra ? 'extra' : 'normal';
+              return (
+                <button key={o.v} type="button" role="radio" aria-checked={actual === o.v}
+                  className={`tipo-opcao ${actual === o.v ? 'on' : ''}`}
+                  onClick={() => setForm({ ...form, orcamento: o.v === 'orcamento', extra: o.v === 'extra' })}>
+                  <o.I size={20} />
+                  <span className="tipo-opcao-t">{o.t}</span>
+                  <span className="tipo-opcao-d">{o.d}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <div className="grid-2">
-          {/*
-            * SOB ORCAMENTO.
-            *
-            * Pedido pela Rasta Village: umas rastas nao tem preco nem duracao
-            * antes de se falar com o cliente — nem ele sabe quantas sao. Sem
-            * duracao nao ha vaga, e o servico nao cabe no «escolhe a hora,
-            * paga X».
-            *
-            * Marcado assim, o cliente deixa de ver horas e passa a pedir. O
-            * barbeiro fala com ele, decide o tempo e o preco, e encaixa a
-            * marcacao onde quiser — e ai as vagas ficam ocupadas sozinhas,
-            * porque e uma marcacao normal.
-            */}
-          <label className="text-sm" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '4px 0 14px', cursor: 'pointer' }}>
-            <input type="checkbox" checked={!!form.orcamento} style={{ marginTop: 3 }}
-              onChange={e => setForm({ ...form, orcamento: e.target.checked, extra: e.target.checked ? false : form.extra })} />
-            <span>
-              <b>Sob orçamento</b> — o preço e a duração são combinados contigo
-              <div className="text-sec text-xs mt-4">
-                O cliente não escolhe hora: faz um pedido e tu ligas-lhe. Para cortes
-                especiais, como rastas, em que o tempo depende do trabalho.
-              </div>
-            </span>
-          </label>
-
-          {/*
-            * EXTRA (10/10/2026). Uma lavagem, um desenho, as sobrancelhas no
-            * fim do corte: não ocupa vaga na agenda, só soma ao preço. O
-            * cliente não o marca sozinho — aparece-lhe como «Queres juntar?»
-            * antes de confirmar, e em «As minhas marcações».
-            */}
-          {!form.orcamento && (
-            <label className="text-sm" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '0 0 14px', cursor: 'pointer' }}>
-              <input type="checkbox" checked={!!form.extra} style={{ marginTop: 3 }}
-                onChange={e => setForm({ ...form, extra: e.target.checked })} />
-              <span>
-                <b>É um extra</b> — não ocupa tempo, junta-se a outro serviço
-                <div className="text-sec text-xs mt-4">
-                  O cliente vê-o ao marcar, em «Queres juntar?», e o preço soma ao total.
-                  A duração da marcação não muda.
-                </div>
-              </span>
-            </label>
-          )}
-
           {!form.orcamento && (<>
             {!form.extra && <div className="field"><label className="label">Duração (min)</label><input className="input" type="number" value={form.durationMinutes} onChange={e => setForm({ ...form, durationMinutes: parseInt(e.target.value) || 0 })} /></div>}
             <div className="field"><label className="label">Preço (€)</label><input className="input" type="number" value={form.price} onChange={e => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} /></div>

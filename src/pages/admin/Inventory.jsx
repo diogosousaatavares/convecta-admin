@@ -176,14 +176,22 @@ export default function Inventory() {
         </div>
         {/* Vender na app (10/10/2026): o cliente vê-o ao marcar, em «Queres
             juntar?», e leva-o na hora. Esgotado deixa de aparecer sozinho. */}
-        <label className="text-sm" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '2px 0 14px', cursor: 'pointer' }}>
-          <input type="checkbox" checked={!!form.vendaOnline} style={{ marginTop: 3 }}
-            onChange={e => setForm(f => ({ ...f, vendaOnline: e.target.checked }))} />
-          <span>
-            <b>Vender na app</b> — o cliente pode juntá-lo à marcação
-            <div className="text-sec text-xs mt-4">Paga na hora, com o resto. O stock desce quando cobrares.</div>
-          </span>
-        </label>
+        <div className="field">
+          <label className="label">Na app do cliente</label>
+          <div className="tipo-opcoes duas" role="radiogroup" aria-label="Na app do cliente">
+            {[
+              { v: false, t: 'Só na loja', d: 'Vendes ao balcão' },
+              { v: true, t: 'Vender na app', d: 'Juntam à marcação' },
+            ].map(o => (
+              <button key={String(o.v)} type="button" role="radio" aria-checked={!!form.vendaOnline === o.v}
+                className={`tipo-opcao ${!!form.vendaOnline === o.v ? 'on' : ''}`}
+                onClick={() => setForm(f => ({ ...f, vendaOnline: o.v }))}>
+                <span className="tipo-opcao-t">{o.t}</span>
+                <span className="tipo-opcao-d">{o.d}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="grid-2">
           <div className="field">
             <label className="label">Fornecedor</label>
