@@ -63,7 +63,7 @@ export default function Services() {
   const grupos = useMemo(() => {
     const porNome = new Map(categorias.map(c => [c, []]));
     const outros = [];
-    (data.services || []).forEach(s => {
+    (data.services || []).filter(s => !s.extra).forEach(s => {
       const c = s.category && porNome.has(s.category) ? s.category : null;
       (c ? porNome.get(c) : outros).push(s);
     });
@@ -72,7 +72,18 @@ export default function Services() {
     return lista.filter(g => g.servicos.length);
   }, [data.services, categorias]);
 
-  const openNew = () => { setForm({ ...empty, category: categorias[0] || '' }); setEditing('new'); };
+  /*
+   * EXTRAS NUMA LISTA À PARTE (10/10/2026). Continuam a ser serviços — a
+   * mesma tabela, a mesma conta — mas vivem na sua secção, com o seu botão.
+   * O cartão «Extra» no formulário fica: dá para passar um serviço a extra
+   * e vice-versa sem o apagar.
+   */
+  const extras = (data.services || []).filter(s => s.extra);
+  const openNew = (extra = false) => {
+    const eExtra = extra === true;
+    setForm({ ...empty, extra: eExtra, category: eExtra ? '' : (categorias[0] || ''), price: eExtra ? 3 : empty.price });
+    setEditing('new');
+  };
   const openEdit = (s) => { setForm({ ...s }); setEditing(s.id); };
   const close = () => setEditing(null);
 
@@ -80,10 +91,10 @@ export default function Services() {
     if (!form.name) { toast.error('Nome obrigatório'); return; }
     if (editing === 'new') {
       await dataService.createService(form);
-      toast.success('Serviço criado');
+      toast.success(form.extra ? 'Extra criado' : 'Serviço criado');
     } else {
       await dataService.updateService(editing, form);
-      toast.success('Serviço atualizado');
+      toast.success(form.extra ? 'Extra atualizado' : 'Serviço atualizado');
     }
     close();
   };
@@ -108,12 +119,12 @@ export default function Services() {
           </div>
           <p>{data.services.length} serviços configurados.</p>
         </div>
-        <Button variant="primary" onClick={openNew}><Plus size={16} /> Novo serviço</Button>
+        <Button variant="primary" onClick={() => openNew()}><Plus size={16} /> Novo serviço</Button>
       </div>
       <PageInfo page="servicos" />
 
-      {data.services.length === 0 ? (
-        <Card className="card-pad"><EmptyState icon={() => <Scissors />} title="Sem serviços" action={<Button variant="primary" onClick={openNew}>Criar serviço</Button>} /></Card>
+      {data.services.filter(s => !s.extra).length === 0 ? (
+        <Card className="card-pad"><EmptyState icon={() => <Scissors />} title="Sem serviços" action={<Button variant="primary" onClick={() => openNew()}>Criar serviço</Button>} /></Card>
       ) : (
         grupos.map(g => (
         <div key={g.nome} style={{ marginBottom: 26 }} data-tour={g === grupos[0] ? 'servicos-lista' : undefined}>
@@ -129,7 +140,6 @@ export default function Services() {
                   {s.fotoUrl && <span style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: `center/cover no-repeat url('${s.fotoUrl}')` }} />}
                   <h3 style={{ fontSize: 18 }}>{s.name}</h3>
                   {s.isPopular && <Badge variant="gold">Popular</Badge>}
-                  {s.extra && <Badge variant="default">Extra</Badge>}
                   {!s.isActive && <Badge variant="default">Inativo</Badge>}
                 </div>
                 <span style={{ fontFamily: 'var(--font-head)', fontSize: s.orcamento ? 15 : 22, color: 'var(--gold-tinta)' }}>
@@ -152,7 +162,46 @@ export default function Services() {
         ))
       )}
 
-      <Modal open={!!editing} onClose={close} title={editing === 'new' ? 'Novo serviço' : 'Editar serviço'}
+      <div style={{ marginTop: 34 }}>
+        <div className="flex justify-between items-center" style={{ marginBottom: 12, gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <div className="flex items-center gap-8">
+              <h2 style={{ fontSize: 15, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-sec)', margin: 0 }}>Extras</h2>
+              <span className="text-sec text-xs">{extras.length}</span>
+            </div>
+            <p className="text-sec text-sm" style={{ margin: '4px 0 0' }}>Não ocupam tempo. O cliente junta-os ao marcar.</p>
+          </div>
+          <Button variant="secondary" onClick={() => openNew(true)}><Plus size={16} /> Novo extra</Button>
+        </div>
+        {extras.length === 0 ? (
+          <Card className="card-pad">
+            <p className="text-sec text-sm" style={{ margin: 0, lineHeight: 1.6 }}>
+              Ainda não tens extras. Uma lavagem, um pezinho, uma cera — o que se junta a um corte sem ocupar mais tempo.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid-2">
+            {extras.map(s => (
+              <Card key={s.id} className="card-pad card-hover" onClick={() => openEdit(s)} style={{ cursor: 'pointer' }}>
+                <div className="flex justify-between items-center" style={{ gap: 12 }}>
+                  <div className="flex items-center gap-8" style={{ minWidth: 0 }}>
+                    {s.fotoUrl && <span style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: `center/cover no-repeat url('${s.fotoUrl}')` }} />}
+                    <h3 style={{ fontSize: 17 }}>{s.name}</h3>
+                    {!s.isActive && <Badge variant="default">Inativo</Badge>}
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-head)', fontSize: 20, color: 'var(--gold-tinta)', whiteSpace: 'nowrap' }}>+{formatPrice(s.price)}</span>
+                </div>
+                <div className="flex justify-end gap-8 mt-16 so-pc">
+                  <Button size="sm" variant="secondary" aria-label="Editar extra" title="Editar extra" onClick={e => { e.stopPropagation(); openEdit(s); }}><Pencil size={14} /></Button>
+                  <Button size="sm" variant="ghost" aria-label="Eliminar extra" title="Eliminar extra" onClick={e => { e.stopPropagation(); setDeleteTarget(s); }}><Trash2 size={14} /></Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Modal open={!!editing} onClose={close} title={editing === 'new' ? (form.extra ? 'Novo extra' : 'Novo serviço') : (form.extra ? 'Editar extra' : 'Editar serviço')}
         footer={<>{editing && editing !== 'new' && <Button variant="ghost" className="so-telemovel" onClick={() => { const alvo = data.services.find(x => x.id === editing); close(); if (alvo) setDeleteTarget(alvo); }}><Trash2 size={14} /></Button>}<Button variant="ghost" onClick={close}>Cancelar</Button><Button variant="primary" onClick={save}>Guardar</Button></>}>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
         <div className="field"><label className="label">Descrição</label><textarea className="textarea" rows={2} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></div>
@@ -195,7 +244,7 @@ export default function Services() {
             <div className="field"><label className="label">Preço (€)</label><input className="input" type="number" value={form.price} onChange={e => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} /></div>
           </>)}
         </div>
-        <div className="field">
+        {!form.extra && <div className="field">
           <label className="label">Categoria</label>
           {categorias.length === 0 ? (
             <p className="text-sec text-sm" style={{ margin: '4px 0 0', lineHeight: 1.6 }}>
@@ -207,7 +256,7 @@ export default function Services() {
               {categorias.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           )}
-        </div>
+        </div>}
         <div className="flex gap-24 mt-16">
           <label className="flex items-center gap-8 text-sm"><input type="checkbox" checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked })} /> Ativo</label>
           <label className="flex items-center gap-8 text-sm"><input type="checkbox" checked={form.isPopular} onChange={e => setForm({ ...form, isPopular: e.target.checked })} /> Popular</label>
