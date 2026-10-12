@@ -55,6 +55,9 @@ const NOMES_DOS_PLANOS = { essencial: 'Essencial', profissional: 'Profissional',
 
 const euros = (centimos) =>
   (Number(centimos || 0) / 100).toFixed(2).replace('.', ',') + ' €';
+// Espaço misto (dois tipos na mesma loja): o plano mais metade pelo segundo tipo.
+const ADICIONAL_SEGUNDO_NICHO = 0.5;
+const comSegundoNicho = (centimos, misto) => (misto ? Math.round(Number(centimos || 0) * (1 + ADICIONAL_SEGUNDO_NICHO)) : Number(centimos || 0));
 
 const dataCurta = (iso) => {
   if (!iso) return null;
@@ -530,7 +533,7 @@ export default function Subscricao() {
             )}
             {precoDaCasa && (
               <div className="sub-plano-linha">
-                Plano {nomeDoPlano} · {euros(precoDaCasa.centimos)}{periodo === 'anual' ? '/ano' : '/mês'} · <button type="button" onClick={() => setVerPlanos(v => !v)}>{verPlanos ? 'fechar' : 'mudar'}</button>
+                Plano {nomeDoPlano} · {euros(comSegundoNicho(precoDaCasa.centimos, negocio?.tipoNegocio === 'misto'))}{periodo === 'anual' ? '/ano' : '/mês'}{negocio?.tipoNegocio === 'misto' ? ' · inclui o segundo tipo (+50 %)' : ''} · <button type="button" onClick={() => setVerPlanos(v => !v)}>{verPlanos ? 'fechar' : 'mudar'}</button>
               </div>
             )}
             {/* Quem entrega o cartão quer saber a quem o está a entregar. O
@@ -575,8 +578,9 @@ export default function Subscricao() {
                         <div className="fw-600" style={{ fontSize: 17 }}>{plano.nome}</div>
                         {plano.descricao && <div style={{ fontSize: 15, marginTop: 6, lineHeight: 1.5 }}>{plano.descricao}</div>}
                         <div style={{ margin: '14px 0 12px' }}>
-                          <span className="fw-600" style={{ fontSize: 28 }}>{euros(preco.centimos)}</span>
+                          <span className="fw-600" style={{ fontSize: 28 }}>{euros(comSegundoNicho(preco.centimos, negocio?.tipoNegocio === 'misto'))}</span>
                           <span className="text-sec" style={{ fontSize: 15 }}>{ehAnual ? ' /ano' : ' /mês'}</span>
+                          {negocio?.tipoNegocio === 'misto' && <div className="text-sec" style={{ fontSize: 13, marginTop: 2 }}>{euros(preco.centimos)} do plano + metade pelo segundo tipo</div>}
                         </div>
                         {plano.caracteristicas?.length > 0 && (
                           <div style={{ margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
