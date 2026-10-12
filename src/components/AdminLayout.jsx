@@ -527,6 +527,17 @@ export default function AdminLayout({ children }) {
     </>
   );
 
+  // Espaço misto: a loja é uma, a gestão é por lado. O lado aberto decide
+  // os serviços, os profissionais, a agenda e as palavras.
+  const seletorDeLado = (
+    <div className="lado-seletor" role="tablist" aria-label="Lado do espaço">
+      {lados().map(l => (
+        <button key={l} type="button" role="tab" aria-selected={ladoActual() === l}
+          className={ladoActual() === l ? 'on' : ''} onClick={() => dataService.mudarLado(l)}>{nomeDoLado(l)}</button>
+      ))}
+    </div>
+  );
+
   return (
     <div className={`admin-layout ${collapsed ? 'sidebar-collapsed' : ''}`}>
       <aside className={`admin-sidebar ${open ? 'open' : ''} ${collapsed ? 'collapsed' : ''}`}>{sidebar}</aside>
@@ -596,23 +607,20 @@ export default function AdminLayout({ children }) {
                 <Menu size={20} />
               </button>
             )}
-            {data.business?.logo
+            {/* O nome (ou logo) só no computador: no telemóvel ocupava a barra
+                e o dono já sabe onde está (pedido do Diogo, 12/10/2026). */}
+            {noComputador && (data.business?.logo
               ? <img className="admin-topbar-logo" src={data.business.logo} alt={data.business.name} style={{ height: 30, width: 'auto', maxWidth: 140, objectFit: 'contain' }} />
-              : <span className="fw-600">{data.business?.name || 'Convecta'}</span>
-            }
+              : <span className="fw-600 admin-topbar-nome">{data.business?.name || 'Convecta'}</span>
+            )}
             {data.business?.founder && (
               <span className="founder-selo" title="Fazes parte do Programa Founders da Convecta">Founder</span>
             )}
             {/* Espaço misto: a loja é uma, a gestão é por lado. O lado aberto
                 decide os serviços, os profissionais, a agenda e as palavras. */}
-            {eMisto() && (
-              <div className="lado-seletor" role="tablist" aria-label="Lado do espaço">
-                {lados().map(l => (
-                  <button key={l} type="button" role="tab" aria-selected={ladoActual() === l}
-                    className={ladoActual() === l ? 'on' : ''} onClick={() => dataService.mudarLado(l)}>{nomeDoLado(l)}</button>
-                ))}
-              </div>
-            )}
+            {/* No telemovel não cabe ao lado do nome (espremia-o letra a
+                letra): vai para uma faixa própria, por baixo da barra. */}
+            {eMisto() && noComputador && seletorDeLado}
             <div className="admin-search-wrap" ref={searchRef}>
               <Search className="admin-search-icon" size={16} />
               {/* Escape fecha a lista, e uma segunda vez limpa o que esta
@@ -647,6 +655,7 @@ export default function AdminLayout({ children }) {
           </div>
         </div>
         )}
+        {eMisto() && !noComputador && <div className="lado-faixa">{seletorDeLado}</div>}
         {/* A FAIXA DO LINK vive no «O meu site», e so la.
             Esteve em todas as paginas, e a razao era boa: e a coisa que ele
             mais partilha e no Dashboard ninguem a encontrava. Mas uma faixa

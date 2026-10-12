@@ -2794,6 +2794,12 @@ body { font-variant-numeric: lining-nums; }
 .lado-seletor button { padding: 5px 12px; border-radius: 999px; border: 0; background: transparent; color: var(--text-sec); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .lado-seletor button.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.18); }
 @media (max-width: 560px) { .lado-seletor button { padding: 4px 9px; font-size: 12px; } }
+/* Telemovel: o seletor vai numa faixa propria, por baixo da barra de cima,
+   a toda a largura (ao lado do nome espremia-o letra a letra — 12/10/2026). */
+.lado-faixa { display: flex; margin: -6px 0 16px; }
+.lado-faixa .lado-seletor { width: 100%; }
+.lado-faixa .lado-seletor button { flex: 1; padding: 8px 10px; font-size: 14px; }
+.admin-topbar-nome { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* O lado de um serviço ou profissional, no formulário. */
 .lado-opcoes { display: flex; flex-wrap: wrap; gap: 8px; }
 .lado-opcoes button { padding: 8px 12px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 14px; border: 1px solid var(--border); background: transparent; color: var(--text); }
