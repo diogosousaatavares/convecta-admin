@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useStore'
 import { supabase, sessaoPersistente, aplicarPreferenciaSessao } from '@/lib/supabase'
 import FormularioDemo, { jaPediuDemo } from '@/components/admin/FormularioDemo'
+import { useEntrarCom, entrarCom, IconeApple } from '@/lib/entrarCom'
 
 const GOLD = '#C9A227'
 
@@ -151,6 +152,16 @@ export default function LoginPage() {
 
   const closeForgot = () => { setForgotOpen(false); setForgotSent(false); setForgotEmail(''); setForgotError('') }
 
+  // Apple (12/10/2026): só aparece quando está ligado no Supabase.
+  const fornecedores = useEntrarCom()
+  const [loadingApple, setLoadingApple] = useState(false)
+  async function loginWithApple() {
+    setLoadingApple(true)
+    setError('')
+    try { await entrarCom('apple', window.location.origin + '/admin') }
+    catch (err) { setError(err.message); setLoadingApple(false) }
+  }
+
   async function loginWithGoogle() {
     setLoadingGoogle(true)
     setError('')
@@ -273,6 +284,20 @@ export default function LoginPage() {
                 : <><GoogleIcon size={18}/> Entrar com Google</>
               }
             </button>
+
+            {fornecedores.apple && (
+              <button type="button" onClick={loginWithApple} disabled={loadingApple || loading}
+                className="cv-entrar"
+                style={{
+                  width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:10,
+                  padding:'13px 16px', borderRadius:11, marginTop:-8, marginBottom:18,
+                  border:'1px solid #000', background:'#000', color:'#fff',
+                  fontSize:14.5, fontWeight:600, cursor: loadingApple ? 'wait' : 'pointer',
+                  opacity: loadingApple ? .65 : 1,
+                }}>
+                {loadingApple ? 'A redirecionar…' : <><IconeApple size={18}/> Entrar com Apple</>}
+              </button>
+            )}
 
             <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24 }}>
               <span style={{ flex:1, height:1, background:'#E2E2E7' }}/>

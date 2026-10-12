@@ -47,5 +47,37 @@ export async function mudarDeNegocio(id) {
   window.location.href = '/admin';
 }
 
+/*
+ * A PÁGINA DE ENTRADA (12/10/2026): { principal, foto, titulo, pergunta,
+ * botoes } — principal é o negócio cujo link abre a porta (escolhido pelo
+ * dono; a subscrição não muda). null sem negócios ligados ou sem o SQL
+ * PORTA_DO_ESPACO_2026-10-12.sql corrido.
+ */
+let _porta = null;
+let _portaValor;
+function lerPorta() {
+  if (!_porta) {
+    _porta = supabase.rpc('porta_do_grupo')
+      .then(({ data, error }) => { _portaValor = error ? null : (data || null); return _portaValor; })
+      .catch(() => { _portaValor = null; return null; });
+  }
+  return _porta;
+}
+export function usePorta() {
+  const [porta, setPorta] = useState(_portaValor ?? null);
+  useEffect(() => {
+    let vivo = true;
+    lerPorta().then(p => { if (vivo) setPorta(p); });
+    return () => { vivo = false; };
+  }, []);
+  const mudar = p => { _portaValor = p; _porta = Promise.resolve(p); setPorta(p); };
+  return [porta, mudar];
+}
+export async function guardarPorta(p) {
+  const { data, error } = await supabase.rpc('guardar_porta', { p });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 /** O endereço público de um negócio do grupo. */
 export const enderecoDe = n => (n?.slug ? `${n.slug}.${DOMINIO_BASE}` : '');

@@ -60,6 +60,17 @@ export default function Mais() {
     if (actual.linhas.length) seccoes.push(actual);
   }
 
+  /* «O meu site» logo a seguir ao «Hoje» (12/10/2026, pedido do Diogo): é o
+     que ele mais mostra. Sai da secção da casa para não aparecer duas vezes. */
+  const SITE = '/admin/o-meu-site';
+  const linhaSite = seccoes.flatMap(s => s.linhas).find(l => l.to === SITE);
+  if (linhaSite) {
+    for (const s of seccoes) s.linhas = s.linhas.filter(l => l.to !== SITE);
+    const iHoje = seccoes.findIndex(s => s.titulo === 'Hoje');
+    seccoes.splice(iHoje + 1, 0, { titulo: null, linhas: [linhaSite] });
+    for (let i = seccoes.length - 1; i >= 0; i--) if (!seccoes[i].linhas.length) seccoes.splice(i, 1);
+  }
+
   const nome = data.business?.name || nicho().Casa;
 
   return (

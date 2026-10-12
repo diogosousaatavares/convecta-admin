@@ -3,7 +3,7 @@ import { Copy, Check, ExternalLink, Share2 } from 'lucide-react';
 import dataService from '@/lib/dataService';
 import { DOMINIO_BASE } from '@/lib/designService';
 import { eMisto, lados, nomeDoLado } from '@/lib/nicho';
-import { useGrupo, enderecoDe } from '@/lib/grupo';
+import { useGrupo, usePorta, enderecoDe } from '@/lib/grupo';
 
 /*
  * O ENDEREÇO DA BARBEARIA, EM TODAS AS PÁGINAS.
@@ -24,6 +24,7 @@ export default function LinkDaBarbearia() {
   const [copiado, setCopiado] = useState(false);
   const [copiadoLado, setCopiadoLado] = useState('');
   const grupo = useGrupo();
+  const [porta] = usePorta();
 
   useEffect(() => {
     let vivo = true;
@@ -38,7 +39,9 @@ export default function LinkDaBarbearia() {
 
   // Dois negócios ligados: o link a partilhar é o do principal — abre a
   // porta com um botão para cada um —, mesmo com o outro aberto no painel.
-  const enderecoPartilhado = grupo.ligado && grupo.principal ? enderecoDe(grupo.principal) : endereco;
+  // O principal é o que o dono escolheu na página de entrada (se escolheu).
+  const principal = grupo.lista.find(n => n.id === porta?.principal) || grupo.principal;
+  const enderecoPartilhado = grupo.ligado && principal ? enderecoDe(principal) : endereco;
   const url = `https://${enderecoPartilhado}`;
   const podePartilhar = typeof navigator !== 'undefined' && !!navigator.share;
 
@@ -55,7 +58,7 @@ export default function LinkDaBarbearia() {
 
   // Espaço misto: o link de cada lado abre já nessa frente (…/?lado=…).
   // Ligados: o principal abre directo com ?lado=; o outro é o link dele.
-  const linkDireto = g => (g.principal ? `${url}/?lado=${g.tipo}` : `https://${enderecoDe(g)}`);
+  const linkDireto = g => (g.id === principal?.id ? `${url}/?lado=${g.tipo}` : `https://${enderecoDe(g)}`);
   const copiarLado = async l => {
     try {
       const g = grupo.ligado ? grupo.lista.find(x => x.id === l) : null;

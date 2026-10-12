@@ -14,6 +14,7 @@ import {
   listGallery, addGalleryPhoto, updateGalleryPhoto, deleteGalleryPhoto, moveGalleryPhoto,
 } from '@/lib/designService';
 import SugestaoDesign from '@/components/design/SugestaoDesign';
+import PaginaDeEntrada from '@/components/admin/PaginaDeEntrada';
 import { prepararLogotipo } from '@/lib/prepararLogotipo';
 import { useConfirmar } from '@/components/ui/Confirmar';
 import { n as nicho } from '@/lib/nicho';
@@ -1669,6 +1670,8 @@ export default function MeuSite() {
       </div>
       {/* O DesignTab guarda e mantem o seu proprio estado; nao ha nada para
           recarregar aqui. Fica a funcao porque e o contrato do componente. */}
+      {/* Negócios ligados: a página que o link abre e qual é o principal. */}
+      <PaginaDeEntrada biz={biz} />
       <div data-tour="meu-site"><DesignTab biz={biz} onGuardado={() => {}} /></div>
     </AdminLayout>
   );
