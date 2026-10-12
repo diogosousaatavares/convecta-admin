@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Copy, Check, ExternalLink, Share2 } from 'lucide-react';
 import dataService from '@/lib/dataService';
 import { DOMINIO_BASE } from '@/lib/designService';
+import { eMisto, lados, nomeDoLado } from '@/lib/nicho';
 
 /*
  * O ENDEREÇO DA BARBEARIA, EM TODAS AS PÁGINAS.
@@ -20,6 +21,7 @@ import { DOMINIO_BASE } from '@/lib/designService';
 export default function LinkDaBarbearia() {
   const [endereco, setEndereco] = useState('');
   const [copiado, setCopiado] = useState(false);
+  const [copiadoLado, setCopiadoLado] = useState('');
 
   useEffect(() => {
     let vivo = true;
@@ -46,11 +48,21 @@ export default function LinkDaBarbearia() {
     }
   };
 
+  // Espaço misto: o link de cada lado abre já nessa frente (…/?lado=…).
+  const copiarLado = async l => {
+    try {
+      await navigator.clipboard.writeText(`${url}/?lado=${l}`);
+      setCopiadoLado(l);
+      setTimeout(() => setCopiadoLado(''), 1800);
+    } catch { /* sem clipboard: o endereço está à vista para copiar à mão */ }
+  };
+
   const partilhar = async () => {
     try { await navigator.share({ title: 'Marca a tua hora', url }); } catch { /* cancelou */ }
   };
 
   return (
+    <>
     <div className="link-faixa" data-tour="link-barbearia">
       <span className="link-faixa-rotulo">O teu link</span>
       <span id="link-da-barbearia" className="link-faixa-endereco">{endereco}</span>
@@ -68,5 +80,24 @@ export default function LinkDaBarbearia() {
         <ExternalLink size={15} />
       </a>
     </div>
+    {/* O link principal pergunta qual dos lados; estes abrem já num deles.
+        Para a bio de um Instagram só do salão, por exemplo (12/10/2026). */}
+    {eMisto() && (
+      <div style={{ display: 'grid', gap: 6, margin: '8px 0 4px' }}>
+        <div className="text-sec" style={{ fontSize: 13 }}>Link de cada lado (abre já nessa frente):</div>
+        {lados().map(l => (
+          <div key={l} className="link-faixa" style={{ margin: 0 }}>
+            <span className="link-faixa-rotulo">{nomeDoLado(l)}</span>
+            <span className="link-faixa-endereco">{endereco}/?lado={l}</span>
+            <button type="button" className="link-faixa-btn" onClick={() => copiarLado(l)}
+              aria-label={copiadoLado === l ? 'Link copiado' : `Copiar o link de ${nomeDoLado(l)}`}>
+              {copiadoLado === l ? <Check size={15} /> : <Copy size={15} />}
+              <span>{copiadoLado === l ? 'Copiado' : 'Copiar'}</span>
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+    </>
   );
 }
