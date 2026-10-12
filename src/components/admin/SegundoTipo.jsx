@@ -46,7 +46,7 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
   if (!atual || atual === 'misto' || grupo.ligado) return null;
   const opcoes = LISTA_TIPOS.filter(t => t !== atual);
   const extra = centimos ? Math.round(Number(centimos) / 2) : null;
-  const porPeriodo = periodo === 'anual' ? '/ano' : '/mês';
+  const porPeriodo = periodo === 'anual' ? '/ano' : periodo === 'quinzenal' ? '/15 dias' : '/mês';
   const precoTexto = gratis
     ? 'Sem custo: a tua conta não paga mensalidade.'
     : extra ? `+${euros(extra)}${porPeriodo}, metade do teu plano.` : 'Metade do teu plano.';

@@ -59,6 +59,8 @@ const euros = (centimos) =>
   (Number(centimos || 0) / 100).toFixed(2).replace('.', ',') + ' €';
 // Espaço misto (dois tipos na mesma loja): o plano mais metade pelo segundo tipo.
 const ADICIONAL_SEGUNDO_NICHO = 0.5;
+// O que se escreve depois do preço, por período.
+const SUFIXO = { mensal: '/mês', anual: '/ano', quinzenal: '/15 dias' };
 const comSegundoNicho = (centimos, misto) => (misto ? Math.round(Number(centimos || 0) * (1 + ADICIONAL_SEGUNDO_NICHO)) : Number(centimos || 0));
 
 const dataCurta = (iso) => {
@@ -249,6 +251,9 @@ export default function Subscricao() {
   const [verPlanos, setVerPlanos] = useState(false);
   const [pagamentos, setPagamentos] = useState(null);
   const grupo = useGrupo();
+  // Dois tipos no mesmo espaço: o «misto» antigo ou dois negócios ligados.
+  // Nos dois casos o preço mostrado já leva o segundo tipo (+50 %).
+  const doisTipos = negocio?.tipoNegocio === 'misto' || grupo.ligado;
 
   /*
    * O barbeiro volta do Stripe para aqui. Mas o estado quem o escreve é o
@@ -322,7 +327,17 @@ export default function Subscricao() {
   // Só se mostra o interruptor mensal/anual se houver mesmo preços anuais no
   // Stripe. Um botão «Anual» que não faz nada é pior do que não existir.
   const haAnual = useMemo(() => (planos || []).some(p => p.precos?.anual), [planos]);
-  useEffect(() => { if (!haAnual && periodo === 'anual') setPeriodo('mensal'); }, [haAnual, periodo]);
+  // De 15 em 15 dias (12/10/2026): só aparece se o preço existir no Stripe.
+  const haQuinzenal = useMemo(() => (planos || []).some(p => p.precos?.quinzenal), [planos]);
+  const periodos = ['quinzenal', 'mensal', 'anual'].filter(p => p === 'mensal' || (p === 'anual' ? haAnual : haQuinzenal));
+  useEffect(() => {
+    if (!haAnual && periodo === 'anual') setPeriodo('mensal');
+    if (!haQuinzenal && periodo === 'quinzenal') setPeriodo('mensal');
+  }, [haAnual, haQuinzenal, periodo]);
+  // Vem escolhido o que ele escolheu no site (/comecar).
+  useEffect(() => {
+    if (['quinzenal', 'anual'].includes(sub?.periodo) && planos?.length) setPeriodo(sub.periodo);
+  }, [sub?.periodo, planos]);
 
   // O plano que ele escolheu no site (ou o que lhe foi atribuído pelo número
   // de barbeiros). É a escolha por omissão: o botão grande vai directo a ele.
@@ -507,8 +522,8 @@ export default function Subscricao() {
       {/* ── Juntar outro tipo de negócio (12/10/2026) ───────────────────── */}
       {!precisaDeCartao && !sub.cancelaNoFim && (
         <JuntarSegundoTipo
-          centimos={(planos || []).find(p => p.id === sub.plano)?.precos?.[sub.periodo === 'anual' ? 'anual' : 'mensal']?.centimos}
-          periodo={sub.periodo === 'anual' ? 'anual' : 'mensal'}
+          centimos={(planos || []).find(p => p.id === sub.plano)?.precos?.[['anual', 'quinzenal'].includes(sub.periodo) ? sub.periodo : 'mensal']?.centimos}
+          periodo={['anual', 'quinzenal'].includes(sub.periodo) ? sub.periodo : 'mensal'}
           lugares={sub.limiteProfissionais} />
       )}
 
@@ -573,7 +588,7 @@ export default function Subscricao() {
             )}
             {precoDaCasa && (
               <div className="sub-plano-linha">
-                Plano {nomeDoPlano} · {euros(comSegundoNicho(precoDaCasa.centimos, negocio?.tipoNegocio === 'misto'))}{periodo === 'anual' ? '/ano' : '/mês'}{negocio?.tipoNegocio === 'misto' ? ' · inclui o segundo tipo (+50 %)' : ''} · <button type="button" onClick={() => setVerPlanos(v => !v)}>{verPlanos ? 'fechar' : 'mudar'}</button>
+                Plano {nomeDoPlano} · {euros(comSegundoNicho(precoDaCasa.centimos, doisTipos))}{SUFIXO[periodo] || '/mês'}{doisTipos ? ' · inclui o segundo tipo (+50 %)' : ''} · <button type="button" onClick={() => setVerPlanos(v => !v)}>{verPlanos ? 'fechar' : 'mudar'}</button>
               </div>
             )}
             {/* Quem entrega o cartão quer saber a quem o está a entregar. O
@@ -588,15 +603,15 @@ export default function Subscricao() {
           {/* 6. Os planos, só quando ele pede. */}
           {verPlanos && (
             <section id="planos">
-              {haAnual && (
-                <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-                  {['mensal', 'anual'].map(p => (
+              {periodos.length > 1 && (
+                <div style={{ display: 'flex', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                  {periodos.map(p => (
                     <button key={p} onClick={() => setPeriodo(p)} className="fw-600" style={{
                       padding: '8px 16px', borderRadius: 999, fontSize: 15, cursor: 'pointer',
                       border: `1px solid ${periodo === p ? 'var(--gold)' : 'var(--border)'}`,
                       background: periodo === p ? 'var(--gold)' : 'transparent',
                       color: periodo === p ? '#111' : 'var(--text-sec)',
-                    }}>{p === 'mensal' ? 'Mensal' : 'Anual (mais barato)'}</button>
+                    }}>{p === 'mensal' ? 'Mensal' : p === 'quinzenal' ? 'De 15 em 15 dias' : 'Anual (mais barato)'}</button>
                   ))}
                 </div>
               )}
@@ -609,7 +624,7 @@ export default function Subscricao() {
                   {planos.map(plano => {
                     const preco = plano.precos?.[periodo] || plano.precos?.mensal;
                     if (!preco) return null;
-                    const ehAnual = !!plano.precos?.[periodo] && periodo === 'anual';
+                    const sufixo = plano.precos?.[periodo] ? (SUFIXO[periodo] || '/mês') : '/mês';
                     const teu = plano.id === planoDaCasa?.id;
                     const id = preco.lookupKey || preco.precoId;
                     return (
@@ -618,9 +633,9 @@ export default function Subscricao() {
                         <div className="fw-600" style={{ fontSize: 17 }}>{plano.nome}</div>
                         {plano.descricao && <div style={{ fontSize: 15, marginTop: 6, lineHeight: 1.5 }}>{plano.descricao}</div>}
                         <div style={{ margin: '14px 0 12px' }}>
-                          <span className="fw-600" style={{ fontSize: 28 }}>{euros(comSegundoNicho(preco.centimos, negocio?.tipoNegocio === 'misto'))}</span>
-                          <span className="text-sec" style={{ fontSize: 15 }}>{ehAnual ? ' /ano' : ' /mês'}</span>
-                          {negocio?.tipoNegocio === 'misto' && <div className="text-sec" style={{ fontSize: 13, marginTop: 2 }}>{euros(preco.centimos)} do plano + metade pelo segundo tipo</div>}
+                          <span className="fw-600" style={{ fontSize: 28 }}>{euros(comSegundoNicho(preco.centimos, doisTipos))}</span>
+                          <span className="text-sec" style={{ fontSize: 15 }}> {sufixo}</span>
+                          {doisTipos && <div className="text-sec" style={{ fontSize: 13, marginTop: 2 }}>{euros(preco.centimos)} do plano + metade pelo segundo tipo</div>}
                         </div>
                         {plano.caracteristicas?.length > 0 && (
                           <div style={{ margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
