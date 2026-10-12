@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fazOServico } from '@/lib/quemFaz';
 import { Zap, Plus } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import PageInfo from '@/components/admin/PageInfo';
@@ -78,7 +79,7 @@ export default function AgendaFitIns() {
           <select className="select" value={form.serviceId} onChange={e => setForm(f => ({ ...f, serviceId: e.target.value }))}><option value="">Selecionar…</option>{data.services.filter(s => s.isActive && !s.extra).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
         <div className="grid-2">
           <div className="field"><label className="label">Profissional</label>
-            <select className="select" value={form.professionalId} onChange={e => setForm(f => ({ ...f, professionalId: e.target.value }))}><option value="any">Qualquer (auto)</option>{data.professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+            <select className="select" value={form.professionalId} onChange={e => setForm(f => ({ ...f, professionalId: e.target.value }))}><option value="any">Qualquer (auto)</option>{data.professionals.filter(p => fazOServico(data.services.find(s => s.id === form.serviceId), p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
           <div className="field"><label className="label">Hora de início</label><input type="time" className="input" value={form.startTime} onChange={e => { setForm(f => ({ ...f, startTime: e.target.value })); setAvisoPassado(false); }} /></div>
         </div>
         {avisoPassado && <div className="text-sm" style={{ color: 'var(--error)', margin: '0 0 12px' }}>Essa hora já passou. Se for {nicho().umUn} que já foi feit{nicho().un === 'sessão' ? 'a' : 'o'}, toca outra vez.</div>}

@@ -10,9 +10,10 @@ import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice } from '@/lib/format';
 import { uploadBusinessAsset } from '@/lib/designService';
 import { n as nicho } from '@/lib/nicho';
+import { nomeSemRepetir } from '@/lib/nomes';
 import { ImagePlus, X, Clock, MessageSquare, PlusCircle } from 'lucide-react';
 
-const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: '', isActive: true, isPopular: false, orcamento: false, extra: false, fotoUrl: '' };
+const empty = { name: '', description: '', durationMinutes: 30, price: 15, category: '', isActive: true, isPopular: false, orcamento: false, extra: false, fotoUrl: '', profissionais: [] };
 
 /*
  * A FOTO DO SERVICO (09/10/2026).
@@ -261,6 +262,41 @@ export default function Services() {
             </select>
           )}
         </div>}
+        {/*
+          * QUEM FAZ ESTE SERVICO (12/10/2026). Num salao a Rita faz coloracao
+          * e a Ana nao. Sem ninguem escolhido e toda a gente — e assim que
+          * nascem todos os servicos, e e assim que uma barbearia que nunca
+          * mexeu nisto fica igual. So aparece com mais do que um profissional.
+          */}
+        {!form.extra && data.professionals.filter(p => p.isActive !== false).length > 1 && (
+          <div className="field">
+            <label className="label">Quem faz este serviço</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {(() => {
+                const activos = data.professionals.filter(p => p.isActive !== false);
+                const sel = form.profissionais || [];
+                const todos = sel.length === 0;
+                const chip = (on, label, onClick, key) => (
+                  <button key={key} type="button" onClick={onClick} aria-pressed={on}
+                    style={{ padding: '8px 12px', borderRadius: 999, cursor: 'pointer', font: 'inherit', fontSize: 14,
+                      border: `1px solid ${on ? 'var(--gold)' : 'var(--border)'}`,
+                      background: on ? 'rgba(var(--gold-rgb),0.14)' : 'transparent', color: 'var(--text)' }}>
+                    {on ? '✓ ' : ''}{label}
+                  </button>
+                );
+                return [
+                  chip(todos, 'Toda a gente', () => setForm(f => ({ ...f, profissionais: [] })), 'todos'),
+                  ...activos.map(p => chip(!todos && sel.includes(p.id), nomeSemRepetir(activos, p, p.role || ''), () => setForm(f => {
+                    const atual = f.profissionais || [];
+                    const nova = atual.includes(p.id) ? atual.filter(x => x !== p.id) : [...atual, p.id];
+                    // Escolher toda a gente um a um e o mesmo que nao escolher ninguem.
+                    return { ...f, profissionais: nova.length === activos.length ? [] : nova };
+                  }), p.id)),
+                ];
+              })()}
+            </div>
+          </div>
+        )}
         <div className="flex gap-24 mt-16">
           <label className="flex items-center gap-8 text-sm"><input type="checkbox" checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked })} /> Ativo</label>
           <label className="flex items-center gap-8 text-sm"><input type="checkbox" checked={form.isPopular} onChange={e => setForm({ ...form, isPopular: e.target.checked })} /> Popular</label>

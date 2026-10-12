@@ -493,6 +493,8 @@ function svcFromRow(row) {
     // Extra (10/10/2026): nao ocupa tempo na agenda, soma-se ao preco da
     // marcacao. Ver supabase/UPSELLS_E_FOUNDERS_2026-10-10.sql.
     extra: m.extra === true,
+    // Quem faz este servico (12/10/2026): ids de profissionais; [] = todos.
+    profissionais: Array.isArray(m.profissionais) ? m.profissionais : [],
     /*
      * O METADATA COMO ESTA NA BASE DE DADOS.
      *

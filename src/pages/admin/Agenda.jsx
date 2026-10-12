@@ -24,6 +24,7 @@ import { pedidosPendentes } from '@/lib/orcamentosService';
 import { proporNovaHora } from '@/lib/propostasService';
 import { n as nicho } from '@/lib/nicho';
 import JuntarExtras from '@/components/admin/JuntarExtras';
+import { fazOServico } from '@/lib/quemFaz';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
@@ -653,7 +654,7 @@ export default function Agenda() {
             <label className="label">{nicho().Pro}</label>
             <select className="select" value={quick.professionalId} disabled={!!so} onChange={e => setQuick(f => ({ ...f, professionalId: e.target.value }))}>
               <option value="">Selecionar…</option>
-              {data.professionals.filter(p => !so || p.id === so).map(p => <option key={p.id} value={p.id}>{nomeSemRepetir(data.professionals, p, p.role || p.email)}</option>)}
+              {data.professionals.filter(p => (!so || p.id === so) && fazOServico(data.services.find(s => s.id === quick.serviceId), p.id)).map(p => <option key={p.id} value={p.id}>{nomeSemRepetir(data.professionals, p, p.role || p.email)}</option>)}
             </select>
           </div>
           <div className="field">
