@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/ToastContext';
 import AdminLayout from '@/components/AdminLayout';
 import { Card, Avatar, Button } from '@/components/ui';
 import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
+import { SugestaoSegundoTipo } from '@/components/admin/SegundoTipo';
 
 // O que cada tipo de pessoa vê no painel. É o espelho das regras da base de
 // dados (ACESSO_PROFISSIONAL.sql) e de modulos.js — mudar num sítio é mudar nos três.
@@ -83,6 +84,8 @@ export default function Equipa() {
       <div className="page-head">
         <h1 className="so-pc" style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Users size={22} /> Equipa</h1>
       </div>
+
+      <SugestaoSegundoTipo />
 
       {/* Uma linha por pessoa, e mais nada.
 

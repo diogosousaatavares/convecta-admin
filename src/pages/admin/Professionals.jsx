@@ -10,6 +10,7 @@ import dataService, { uploadProfessionalPhoto } from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import FotoPerfil from '@/components/admin/FotoPerfil';
 import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
+import { SugestaoSegundoTipo } from '@/components/admin/SegundoTipo';
 import { n as nicho, eMisto, lados, ladoActual, nomeDoLado } from '@/lib/nicho';
 
 const empty = { name: '', get role() { return nicho().Pro; }, email: '', phone: '', bio: '', specialties: [], commission: 30 };
@@ -152,6 +153,8 @@ export default function Professionals() {
           <Plus size={16} /> Novo profissional
         </Button>
       </div>
+
+      <SugestaoSegundoTipo />
 
       {(lugares.cheio || lugares.acima) && (
         <Card className="card-pad mb-24" style={{ borderColor: 'var(--gold)' }}>

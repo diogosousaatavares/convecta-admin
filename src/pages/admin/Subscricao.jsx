@@ -11,6 +11,7 @@ import { Card, Button, Spinner } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { n as nicho } from '@/lib/nicho';
+import { JuntarSegundoTipo } from '@/components/admin/SegundoTipo';
 
 /*
  * A subscrição da barbearia na Convecta.
@@ -294,7 +295,7 @@ export default function Subscricao() {
   // nada que escolher aqui, muda no portal do Stripe.
   useEffect(() => {
     if (aCarregar) return;
-    if (sub && sub.estado !== 'sem_cartao' && sub.estado !== 'cancelada') return;
+    if (sub?.estado === 'gratis') return;
     if (planos) return;
     (async () => {
       try {
@@ -323,6 +324,13 @@ export default function Subscricao() {
 
   // O plano que ele escolheu no site (ou o que lhe foi atribuído pelo número
   // de barbeiros). É a escolha por omissão: o botão grande vai directo a ele.
+  // Vindo do aviso da Equipa (#segundo-tipo): descer até ao cartão.
+  useEffect(() => {
+    if (aCarregar || location.hash !== '#segundo-tipo') return;
+    const t = setTimeout(() => document.getElementById('segundo-tipo')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    return () => clearTimeout(t);
+  }, [aCarregar, location.hash, planos]);
+
   const planoDaCasa = useMemo(() => {
     if (!planos?.length) return null;
     return planos.find(p => p.id === sub?.plano) || planos[0];
@@ -376,6 +384,7 @@ export default function Subscricao() {
           </div>
           <p style={{ fontSize: 16, margin: '12px 0 0' }}>Sem mensalidade. Não precisas de cartão.</p>
         </Card>
+        <div style={{ marginTop: 16 }}><JuntarSegundoTipo gratis lugares={sub?.limiteProfissionais} /></div>
       </AdminPage>
     );
   }
@@ -470,6 +479,14 @@ export default function Subscricao() {
             <p className="sub-frase">A subscrição é tratada connosco directamente.</p>
           )}
         </Card>
+      )}
+
+      {/* ── Juntar outro tipo de negócio (12/10/2026) ───────────────────── */}
+      {!precisaDeCartao && !sub.cancelaNoFim && (
+        <JuntarSegundoTipo
+          centimos={(planos || []).find(p => p.id === sub.plano)?.precos?.[sub.periodo === 'anual' ? 'anual' : 'mensal']?.centimos}
+          periodo={sub.periodo === 'anual' ? 'anual' : 'mensal'}
+          lugares={sub.limiteProfissionais} />
       )}
 
       {/* ── Os pagamentos, quando já há subscrição ──────────────────────── */}
@@ -617,6 +634,9 @@ export default function Subscricao() {
               <li><i>3</i><div><b>Primeiro pagamento só a {diaDaCobranca}</b></div></li>
             </ul>
           </section>
+
+          {/* Juntar outro tipo: o checkout já cobra as duas linhas. */}
+          <JuntarSegundoTipo centimos={precoDaCasa?.centimos} periodo={periodo} />
 
           {/* 4. Dúvidas. */}
           <section className="sub-card">

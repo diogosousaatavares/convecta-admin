@@ -2540,6 +2540,22 @@ const dataService = {
    * nosso continuava a cobrar a quem ja cancelou — e isso nao e um cliente
    * perdido, e uma queixa no banco.
    */
+  /*
+   * Junta um segundo tipo de negócio (espaço misto). A edge function trata
+   * do Stripe (acrescenta o item «segundo tipo» à subscrição) e da ficha.
+   * Ver convecta-superadmin/supabase/functions/adicionar-segundo-tipo.
+   */
+  async adicionarSegundoTipo(tipo) {
+    const { data, error } = await supabase.functions.invoke('adicionar-segundo-tipo', { body: { tipo } });
+    if (error) {
+      let motivo = '';
+      try { motivo = (await error.context?.json())?.erro || ''; } catch { motivo = ''; }
+      throw new Error(motivo || error.message || 'Não foi possível juntar o segundo tipo.');
+    }
+    if (data?.erro) throw new Error(data.erro);
+    return data;
+  },
+
   async abrirPortal() {
     const { data, error } = await supabase.functions.invoke('abrir-portal', { body: {} });
     if (error) {
