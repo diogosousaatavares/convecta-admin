@@ -10,7 +10,7 @@ import dataService, { uploadProfessionalPhoto } from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import FotoPerfil from '@/components/admin/FotoPerfil';
 import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
-import { n as nicho } from '@/lib/nicho';
+import { n as nicho, eMisto, lados, ladoActual, nomeDoLado } from '@/lib/nicho';
 
 const empty = { name: '', get role() { return nicho().Pro; }, email: '', phone: '', bio: '', specialties: [], commission: 30 };
 
@@ -48,7 +48,7 @@ export default function Professionals() {
   // render porque a lista muda debaixo dos pes (criar, apagar, desativar).
   const lugares = dataService.lugaresDeProfissionais();
 
-  const openNew = () => { setForm(empty); setSpecs(''); setEditing('new'); };
+  const openNew = () => { setForm({ ...empty, role: empty.role, lado: ladoActual() || '' }); setSpecs(''); setEditing('new'); };
   const openEdit = (p) => { setForm({ ...p, commission: p.commission ?? 30 }); setSpecs((p.specialties || []).join(', ')); setEditing(p.id); };
   const close = () => setEditing(null);
   const [aEnviarFoto, setAEnviarFoto] = useState(false);
@@ -288,6 +288,18 @@ export default function Professionals() {
           <FotoPerfil valor={form.photoUrl} nome={form.name} aEnviar={aEnviarFoto} onEscolher={handlePhotoChange} />
         </div>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+        {/* Espaço misto: de que lado trabalha. «Dos dois» para quem faz tudo. */}
+        {eMisto() && (
+          <div className="field">
+            <label className="label">De que lado é</label>
+            <div className="lado-opcoes">
+              {[...lados().map(l => ({ v: l, l: nomeDoLado(l) })), { v: '', l: 'Dos dois' }].map(o => (
+                <button key={o.v || 'ambos'} type="button" aria-pressed={(form.lado || '') === o.v}
+                  onClick={() => setForm(f => ({ ...f, lado: o.v }))}>{o.l}</button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="grid-2" style={{ gap: 12 }}>
           <div className="field"><label className="label">Função *</label><input className="input" list="funcoes-pro" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} placeholder={nicho().Pro} /><datalist id="funcoes-pro"><option value={nicho().Pro} /><option value={`${nicho().Pro} sénior`} /><option value="Gerente" /><option value="Rececionista" /><option value="Aprendiz" /></datalist></div>
           <div className="field"><label className="label">Email *</label><input className="input" type="email" value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="o email dele" /></div>

@@ -196,6 +196,11 @@ export default function Arranque() {
 
         <section className="arr-caixa">
           <h2 className="arr-h2">O que é o teu negócio</h2>
+          {/* Um espaço misto (dois tipos na mesma loja) é definido pela Convecta
+              ou nas Definições; aqui não se desfaz. */}
+          {tipo === 'misto' ? (
+            <p className="text-sec">{TIPOS.misto.nome}: {(negocio?.lados || []).map(l => TIPOS[l]?.curto).filter(Boolean).join(' e ') || 'os dois lados definem-se nas Definições'}.</p>
+          ) : (
           <div className="arr-tipos">
             {LISTA_TIPOS.map(t => (
               <button key={t} type="button" aria-pressed={tipo === t}
@@ -203,6 +208,7 @@ export default function Arranque() {
                 onClick={() => escolherTipo(t)}>{TIPOS[t].nome}</button>
             ))}
           </div>
+          )}
         </section>
 
         <section className="arr-caixa">

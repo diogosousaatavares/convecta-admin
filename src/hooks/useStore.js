@@ -2,6 +2,7 @@
 import { useEffect, useReducer, useState } from 'react';
 import dataService from '@/lib/dataService';
 import authService from '@/lib/authService';
+import { eMisto, ladoActual, doLado } from '@/lib/nicho';
 
 export function useStore() {
   const [, force] = useReducer(x => x + 1, 0);
@@ -52,7 +53,31 @@ export function useStore() {
 
   // Quem está a usar o painel: o dono, ou um barbeiro com acesso próprio.
   // Vive na sessão (authService), não nos dados — as páginas leem-no daqui.
-  return { ...dataService.getState(), loading, isProfissional: authService.isProfissional(), meuProfissionalId: authService.meuProfissionalId(), permissoes: authService.permissoes() };
+  return { ...vistaDoLado(dataService.getState()), loading, isProfissional: authService.isProfissional(), meuProfissionalId: authService.meuProfissionalId(), permissoes: authService.permissoes() };
+}
+
+/*
+ * O ESPAÇO MISTO VISTO DE UM LADO (12/10/2026). Uma barbearia com estética
+ * na mesma loja tem dois lados, e o painel abre um de cada vez (seletor no
+ * topo). Em vez de cada página filtrar por sua conta, filtra-se aqui, uma
+ * vez: os serviços e os profissionais do lado aberto (os sem lado são dos
+ * dois), e as marcações desses profissionais. O resto — clientes, caixa,
+ * produtos — é da loja, e a loja é uma.
+ */
+function vistaDoLado(st) {
+  const lado = ladoActual();
+  if (!eMisto() || !lado || !st.business) return st;
+  const professionals = (st.professionals || []).filter(p => doLado(p, lado));
+  const ids = new Set(professionals.map(p => p.id));
+  return {
+    ...st,
+    services: (st.services || []).filter(s => doLado(s, lado)),
+    professionals,
+    appointments: (st.appointments || []).filter(a => !a.professionalId || ids.has(a.professionalId)),
+    // Para quem precisar da loja inteira (o limite do plano conta toda a gente).
+    todosOsProfissionais: st.professionals,
+    todosOsServicos: st.services,
+  };
 }
 
 export function useAuth() {

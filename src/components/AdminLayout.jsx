@@ -47,7 +47,7 @@ import DiasDeTeste from '@/components/admin/DiasDeTeste';
 import LancarAApp from '@/components/admin/LancarAApp';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 import PrimeirosPassos from '@/components/PrimeirosPassos';
-import { n as nicho } from '@/lib/nicho';
+import { n as nicho, eMisto, lados, ladoActual, nomeDoLado } from '@/lib/nicho';
 
 const GROUPS_TODOS = [
   /*
@@ -602,6 +602,16 @@ export default function AdminLayout({ children }) {
             }
             {data.business?.founder && (
               <span className="founder-selo" title="Fazes parte do Programa Founders da Convecta">Founder</span>
+            )}
+            {/* Espaço misto: a loja é uma, a gestão é por lado. O lado aberto
+                decide os serviços, os profissionais, a agenda e as palavras. */}
+            {eMisto() && (
+              <div className="lado-seletor" role="tablist" aria-label="Lado do espaço">
+                {lados().map(l => (
+                  <button key={l} type="button" role="tab" aria-selected={ladoActual() === l}
+                    className={ladoActual() === l ? 'on' : ''} onClick={() => dataService.mudarLado(l)}>{nomeDoLado(l)}</button>
+                ))}
+              </div>
             )}
             <div className="admin-search-wrap" ref={searchRef}>
               <Search className="admin-search-icon" size={16} />

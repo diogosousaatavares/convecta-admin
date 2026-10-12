@@ -9,7 +9,7 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice } from '@/lib/format';
 import { uploadBusinessAsset } from '@/lib/designService';
-import { n as nicho } from '@/lib/nicho';
+import { n as nicho, eMisto, lados, ladoActual, nomeDoLado } from '@/lib/nicho';
 import { nomeSemRepetir } from '@/lib/nomes';
 import { ImagePlus, X, Clock, MessageSquare, PlusCircle } from 'lucide-react';
 
@@ -64,7 +64,8 @@ export default function Services() {
   const categorias = data.business?.serviceCategories || [];
   // Fotos dos serviços só nos salões, estúdios e estética (10/10/2026): é
   // onde se escolhe pelo que se vê. Numa barbearia era um campo a mais.
-  const comFotos = (data.business?.tipoNegocio || 'barbearia') !== 'barbearia';
+  // Fotos nos serviços fora das barbearias — num espaço misto, segue o lado aberto.
+  const comFotos = nicho().id !== 'barbearia';
   const grupos = useMemo(() => {
     const porNome = new Map(categorias.map(c => [c, []]));
     const outros = [];
@@ -86,7 +87,7 @@ export default function Services() {
   const extras = (data.services || []).filter(s => s.extra);
   const openNew = (extra = false) => {
     const eExtra = extra === true;
-    setForm({ ...empty, extra: eExtra, category: eExtra ? '' : (categorias[0] || ''), price: eExtra ? 3 : empty.price });
+    setForm({ ...empty, extra: eExtra, category: eExtra ? '' : (categorias[0] || ''), price: eExtra ? 3 : empty.price, lado: ladoActual() || '' });
     setEditing('new');
   };
   const openEdit = (s) => { setForm({ ...s }); setEditing(s.id); };
@@ -222,6 +223,18 @@ export default function Services() {
           *   · Extra — uma lavagem, um pezinho: não ocupa tempo, soma ao preço
           *     e aparece em «Queres juntar?» ao marcar.
           */}
+        {/* Espaço misto: de que lado é este serviço. Nasce no lado aberto. */}
+        {eMisto() && (
+          <div className="field">
+            <label className="label">De que lado é</label>
+            <div className="lado-opcoes">
+              {[...lados().map(l => ({ v: l, l: nomeDoLado(l) })), { v: '', l: 'Dos dois' }].map(o => (
+                <button key={o.v || 'ambos'} type="button" aria-pressed={(form.lado || '') === o.v}
+                  onClick={() => setForm(f => ({ ...f, lado: o.v }))}>{o.l}</button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="field">
           <label className="label">Como se marca</label>
           <div className="tipo-opcoes" role="radiogroup" aria-label="Como se marca">

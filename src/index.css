@@ -2789,6 +2789,16 @@ body { font-variant-numeric: lining-nums; }
 }
 @media (max-width: 420px) { .founder-selo { padding: 2px 7px; font-size: 9.5px; } }
 
+/* O seletor do lado, num espaço misto (barbearia | estética). */
+.lado-seletor { display: inline-flex; flex-shrink: 0; padding: 3px; border-radius: 999px; background: var(--elevated); border: 1px solid var(--border); }
+.lado-seletor button { padding: 5px 12px; border-radius: 999px; border: 0; background: transparent; color: var(--text-sec); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.lado-seletor button.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+@media (max-width: 560px) { .lado-seletor button { padding: 4px 9px; font-size: 12px; } }
+/* O lado de um serviço ou profissional, no formulário. */
+.lado-opcoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.lado-opcoes button { padding: 8px 12px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 14px; border: 1px solid var(--border); background: transparent; color: var(--text); }
+.lado-opcoes button[aria-pressed="true"] { border-color: var(--gold); background: rgba(var(--gold-rgb), 0.14); }
+
 /* Escolhas em cartões (10/10/2026): «Como se marca» nos Serviços, «Na app
    do cliente» nos Produtos. Uma escolha, opções grandes e lado a lado. */
 .tipo-opcoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }

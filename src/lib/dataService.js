@@ -108,7 +108,7 @@ import { getCustomerStats, valorDoCortePack, resumoCliente } from '@/lib/domain/
 import { round2 } from '@/lib/domain/money';
 import { localDateStr } from '@/lib/domain/dates';
 import { diaLocal } from '@/lib/format';
-import { n as nicho, definirNicho } from '@/lib/nicho';
+import { n as nicho, definirNicho, definirLado, ladoActual, lados as ladosDoNicho } from '@/lib/nicho';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
@@ -391,10 +391,19 @@ function bizFromRow(row) {
   if (!row) return null;
   const s = row.settings || {};
   // As palavras do painel (barbearia, salão, estúdio) seguem o tipo da conta.
-  definirNicho(s.tipoNegocio);
+  // Num espaço misto, o lado aberto fica guardado no telemóvel: quem fechou
+  // o painel na Estética volta a abri-lo na Estética.
+  definirNicho(s.tipoNegocio, s.lados);
+  if (ladosDoNicho().length && !ladoActual()) {
+    let guardado = null;
+    try { guardado = localStorage.getItem('convecta.lado'); } catch { /* sem armazenamento */ }
+    definirLado(ladosDoNicho().includes(guardado) ? guardado : ladosDoNicho()[0]);
+  }
   return {
     id: row.id, name: row.name, slug: row.slug,
     tipoNegocio: s.tipoNegocio || 'barbearia',
+    // Os lados de um espaço misto (ids de tipos), ex.: ['barbearia', 'estetica'].
+    lados: Array.isArray(s.lados) ? s.lados : [],
     // O plano e o limite sao colunas da tabela, escritas pelo Super Admin.
     // Vem para aqui so para serem lidos: este painel nunca lhes toca.
     plan: row.plan || null,
@@ -459,6 +468,9 @@ function proFromRow(row) {
     role: m.role || '', bio: m.bio || '', photoUrl: m.photoUrl || '',
     rating: m.rating || 0, reviewCount: m.reviewCount || 0,
     specialties: m.specialties || [],
+    // De que lado do espaço misto é (12/10/2026): 'barbearia', 'estetica'
+    // ou '' = dos dois. Num negócio que não é misto não quer dizer nada.
+    lado: m.lado || '',
     commission: row.commission_value ?? m.commission ?? 30,
     schedule: m.schedule || null,
     isActive: row.is_active !== false,
@@ -495,6 +507,8 @@ function svcFromRow(row) {
     extra: m.extra === true,
     // Quem faz este servico (12/10/2026): ids de profissionais; [] = todos.
     profissionais: Array.isArray(m.profissionais) ? m.profissionais : [],
+    // De que lado do espaço misto é: 'barbearia', 'estetica' ou '' = dos dois.
+    lado: m.lado || '',
     /*
      * O METADATA COMO ESTA NA BASE DE DADOS.
      *
@@ -1205,6 +1219,12 @@ const dataService = {
 
   // ── BUSINESS ──
   getBusiness() { return Promise.resolve(state.business); },
+  /** Espaço misto: abrir o outro lado. Tudo o que lê o store muda com ele. */
+  mudarLado(lado) {
+    definirLado(lado);
+    try { localStorage.setItem('convecta.lado', lado); } catch { /* sem armazenamento */ }
+    notify();
+  },
   async updateBusiness(updates) {
     // Parte-se do que esta AGORA na base de dados, nao do que este separador
     // leu ao abrir. O Meu Site, o Super Admin e as definicoes gravam no mesmo
