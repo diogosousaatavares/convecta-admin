@@ -278,6 +278,13 @@ function PreviaReal({endereco,tema,info,logoUrl,editar,onEditar}){
     if(!pronto)return
     ref.current?.contentWindow?.postMessage({tipo:'convecta-modo',editar},origem)
   },[editar,pronto,origem])
+  // Subiu ou apagou-se uma foto (PainelGaleria): a previa vai buscar a
+  // galeria de novo, em vez de so a mostrar depois de recarregar.
+  useEffect(()=>{
+    const f=()=>ref.current?.contentWindow?.postMessage({tipo:'convecta-galeria'},origem)
+    window.addEventListener('convecta-galeria',f)
+    return()=>window.removeEventListener('convecta-galeria',f)
+  },[origem])
   return(
     <div style={{position:'relative',width:TLM_L,height:TLM_A,background:tema?.colors?.bg||'#000'}}>
       <iframe ref={ref} src={`${origem}/?previa=1`} title="O teu site, como o cliente o vê"
@@ -1483,7 +1490,7 @@ function PainelGaleria({biz}){
   const[legenda,setLegenda]=useState({})
 
   async function recarregar(){
-    try{ setFotos(await listGallery(biz.id)); setErro('') }
+    try{ setFotos(await listGallery(biz.id)); setErro(''); window.dispatchEvent(new Event('convecta-galeria')) }
     catch(e){ setErro(/relation .* does not exist/i.test(e.message)
       ? 'A tabela da galeria ainda não existe — falta correr o GALERIA_SETUP.sql no Supabase.'
       : e.message); setFotos([]) }
