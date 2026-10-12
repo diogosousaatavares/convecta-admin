@@ -83,19 +83,18 @@ export default function LinkDaBarbearia() {
     {/* O link principal pergunta qual dos lados; estes abrem já num deles.
         Para a bio de um Instagram só do salão, por exemplo (12/10/2026). */}
     {eMisto() && (
-      <div style={{ display: 'grid', gap: 6, margin: '8px 0 4px' }}>
-        <div className="text-sec" style={{ fontSize: 13 }}>Link de cada lado (abre já nessa frente):</div>
-        {lados().map(l => (
-          <div key={l} className="link-faixa" style={{ margin: 0 }}>
-            <span className="link-faixa-rotulo">{nomeDoLado(l)}</span>
-            <span className="link-faixa-endereco">{endereco}/?lado={l}</span>
-            <button type="button" className="link-faixa-btn" onClick={() => copiarLado(l)}
-              aria-label={copiadoLado === l ? 'Link copiado' : `Copiar o link de ${nomeDoLado(l)}`}>
-              {copiadoLado === l ? <Check size={15} /> : <Copy size={15} />}
-              <span>{copiadoLado === l ? 'Copiado' : 'Copiar'}</span>
+      <div style={{ margin: '10px 0 4px' }}>
+        <div className="text-sec" style={{ fontSize: 13, marginBottom: 8, textAlign: 'center' }}>O link acima pergunta qual. Para abrir já num lado:</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {lados().map(l => (
+            <button key={l} type="button" onClick={() => copiarLado(l)}
+              aria-label={`Copiar o link de ${nomeDoLado(l)}`}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minWidth: 0, padding: '11px 10px', borderRadius: 12, cursor: 'pointer', font: 'inherit', fontSize: 14, fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}>
+              {copiadoLado === l ? <Check size={15} style={{ flexShrink: 0 }} /> : <Copy size={15} style={{ flexShrink: 0 }} />}
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{copiadoLado === l ? 'Copiado' : nomeDoLado(l)}</span>
             </button>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     )}
     </>
