@@ -198,9 +198,11 @@ const CSS = `
 .sub-plano.teu { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
 .sub-plano-etq { position: absolute; top: -11px; left: 16px; padding: 3px 10px; border-radius: 999px; background: var(--gold); color: #111; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 
-@media (max-width: 480px) {
+@media (max-width: 719px) {
   .sub-card { padding: 18px 16px; }
-  .sub-cartoes { width: 160px; height: 100px; top: 124px; right: -12px; }
+  /* No telemovel os cartoes ficavam em cima da lista («Em menos de 2
+     minutos»). Nao ha largura para um desenho ao lado do texto: sai. */
+  .sub-cartoes { display: none; }
   .sub-hero-sub { max-width: 24ch; }
   .sub-ajuda { flex-wrap: wrap; }
   .sub-ajuda a { margin-left: 58px; }
