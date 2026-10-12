@@ -170,7 +170,7 @@ export default function LoginPage() {
         provider: 'google',
         options: { redirectTo: window.location.origin + '/admin' },
       })
-      if (error) setError(error.message || 'Erro ao entrar com Google.')
+      if (error) { setError(error.message || 'Erro ao entrar com Google.'); setLoadingGoogle(false) }
     } catch (err) {
       setError(err.message || 'Erro ao entrar com Google.')
       setLoadingGoogle(false)

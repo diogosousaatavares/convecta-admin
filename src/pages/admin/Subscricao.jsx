@@ -588,7 +588,7 @@ export default function Subscricao() {
             )}
             {precoDaCasa && (
               <div className="sub-plano-linha">
-                Plano {nomeDoPlano} · {euros(comSegundoNicho(precoDaCasa.centimos, doisTipos))}{SUFIXO[periodo] || '/mês'}{doisTipos ? ' · inclui o segundo tipo (+50 %)' : ''} · <button type="button" onClick={() => setVerPlanos(v => !v)}>{verPlanos ? 'fechar' : 'mudar'}</button>
+                Plano {nomeDoPlano} · {euros(comSegundoNicho(precoDaCasa.centimos, doisTipos))}{planoDaCasa?.precos?.[periodo] ? (SUFIXO[periodo] || '/mês') : '/mês'}{doisTipos ? ' · inclui o segundo tipo (+50 %)' : ''} · <button type="button" onClick={() => setVerPlanos(v => !v)}>{verPlanos ? 'fechar' : 'mudar'}</button>
               </div>
             )}
             {/* Quem entrega o cartão quer saber a quem o está a entregar. O
