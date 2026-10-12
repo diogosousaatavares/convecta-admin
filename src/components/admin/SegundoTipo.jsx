@@ -17,6 +17,7 @@ import { Button, Card } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { TIPOS, LISTA_TIPOS, tipoActual } from '@/lib/nicho';
+import { useGrupo } from '@/lib/grupo';
 
 const euros = c => (Number(c || 0) / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
 
@@ -32,16 +33,17 @@ const SUGESTAO = {
  * @param centimos   o preço do plano (mensal ou anual), para mostrar metade
  * @param periodo    'mensal' | 'anual'
  * @param gratis     conta sem mensalidade (parceiro)
- * @param lugares    lugares do plano hoje (ficam o dobro)
+ * @param lugares    lugares do plano (cada negócio tem os seus)
  */
 export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false, lugares }) {
   const toast = useToast();
   const atual = tipoActual();
+  const grupo = useGrupo();
   const [tipo, setTipo] = useState('');
   const [aConfirmar, setAConfirmar] = useState(false);
   const [aGravar, setAGravar] = useState(false);
 
-  if (!atual || atual === 'misto') return null;
+  if (!atual || atual === 'misto' || grupo.ligado) return null;
   const opcoes = LISTA_TIPOS.filter(t => t !== atual);
   const extra = centimos ? Math.round(Number(centimos) / 2) : null;
   const porPeriodo = periodo === 'anual' ? '/ano' : '/mês';
@@ -54,9 +56,9 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
     setAGravar(true);
     try {
       await dataService.adicionarSegundoTipo(tipo);
-      toast.success('Feito', `${TIPOS[tipo].curto} junta-se ao teu espaço.`);
-      // Recarrega o painel inteiro: o tipo, os lados e os lugares mudaram.
-      setTimeout(() => { window.location.href = '/admin/servicos'; }, 900);
+      toast.success('Feito', `${TIPOS[tipo].curto} já está criado. Trocas entre os dois no topo do painel.`);
+      // Recarrega o painel: o seletor dos dois negócios aparece no topo.
+      setTimeout(() => { window.location.href = '/admin'; }, 1200);
     } catch (e) {
       toast.error('Não foi possível juntar', e.message);
       setAGravar(false);
@@ -68,7 +70,7 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
     <div id="segundo-tipo" style={{ maxWidth: 720, marginBottom: 16, scrollMarginTop: 80 }}><Card className="card-pad">
       <div className="fw-600" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 17 }}><Sparkles size={18} style={{ color: 'var(--gold-tinta)' }} /> Juntar outro tipo de negócio</div>
       <p style={{ fontSize: 15, lineHeight: 1.5, margin: '8px 0 14px' }}>
-        {TIPOS[atual].curto} e outro tipo no mesmo espaço: uma só app para os teus clientes, dois lados no painel, a mesma conta.
+        {TIPOS[atual].curto} e outro tipo no mesmo espaço: duas apps numa só. Cada um tem o seu site, clientes, serviços e horários; tu trocas entre os dois no topo do painel, com o mesmo email.
       </p>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -90,8 +92,8 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
 
       <ul style={{ margin: '14px 0 16px', padding: 0, listStyle: 'none', display: 'grid', gap: 6, fontSize: 14.5 }}>
         <li><b>{precoTexto}</b></li>
-        {lugares ? <li className="text-sec">Os lugares do plano ficam a dobrar: {lugares} de cada lado.</li> : null}
-        <li className="text-sec">Cada lado tem os seus serviços e a sua equipa. Os clientes escolhem o lado ao marcar.</li>
+        {lugares ? <li className="text-sec">Cada um tem os {lugares} {lugares === 1 ? 'lugar' : 'lugares'} do teu plano para a sua equipa.</li> : null}
+        <li className="text-sec">O teu link passa a abrir com a foto do espaço e um botão para cada um.</li>
       </ul>
 
       <Button block onClick={juntar} disabled={!tipo || aGravar}>
@@ -114,10 +116,11 @@ const FECHADO = 'convecta.promo.segundoTipo';
 /** O aviso pequeno na Equipa. */
 export function SugestaoSegundoTipo() {
   const atual = tipoActual();
+  const grupo = useGrupo();
   const [fechado, setFechado] = useState(() => {
     try { return localStorage.getItem(FECHADO) === '1'; } catch { return false; }
   });
-  if (fechado || !atual || atual === 'misto' || !SUGESTAO[atual]) return null;
+  if (fechado || !atual || atual === 'misto' || grupo.ligado || !SUGESTAO[atual]) return null;
   const fechar = () => {
     try { localStorage.setItem(FECHADO, '1'); } catch { /* sem armazenamento */ }
     setFechado(true);

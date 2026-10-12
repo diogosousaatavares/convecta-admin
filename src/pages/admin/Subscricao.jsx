@@ -12,6 +12,7 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { n as nicho } from '@/lib/nicho';
 import { JuntarSegundoTipo } from '@/components/admin/SegundoTipo';
+import { useGrupo, mudarDeNegocio } from '@/lib/grupo';
 
 /*
  * A subscrição da barbearia na Convecta.
@@ -247,6 +248,7 @@ export default function Subscricao() {
   const [erro, setErro] = useState('');
   const [verPlanos, setVerPlanos] = useState(false);
   const [pagamentos, setPagamentos] = useState(null);
+  const grupo = useGrupo();
 
   /*
    * O barbeiro volta do Stripe para aqui. Mas o estado quem o escreve é o
@@ -374,6 +376,27 @@ export default function Subscricao() {
    * admin). Nao ha nada a vender aqui nem nada a resolver: diz-se isso, e
    * mais nada. Mostrar-lhe os planos era convida-lo a pagar o que nao deve.
    */
+  /*
+   * Negócio ligado (o segundo tipo de um espaço): paga-se tudo na subscrição
+   * do principal, com o «+50 %». Aqui não há nada para vender nem cartão a
+   * pedir — diz-se onde está, e um botão leva lá.
+   */
+  if (grupo.ligado && grupo.actual && !grupo.actual.principal && grupo.principal) {
+    return (
+      <AdminPage title="Subscrição" subtitle="O teu plano na Convecta.">
+        <Card className="card-pad" style={{ maxWidth: 720 }}>
+          <div className="fw-600" style={{ fontSize: 18 }}>A subscrição está em {grupo.principal.name}</div>
+          <p style={{ fontSize: 15, margin: '8px 0 16px', lineHeight: 1.5 }}>
+            Os dois negócios do teu espaço pagam juntos: o plano e metade pelo segundo tipo, numa só subscrição.
+          </p>
+          <Button onClick={() => mudarDeNegocio(grupo.principal.id).catch(e => toast.error('Não foi possível trocar', e.message))}>
+            Abrir {grupo.principal.name}
+          </Button>
+        </Card>
+      </AdminPage>
+    );
+  }
+
   if (sub?.estado === 'gratis') {
     return (
       <AdminPage title="Subscrição" subtitle="O teu plano na Convecta.">

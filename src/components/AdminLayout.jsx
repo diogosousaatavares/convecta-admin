@@ -48,6 +48,7 @@ import LancarAApp from '@/components/admin/LancarAApp';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 import PrimeirosPassos from '@/components/PrimeirosPassos';
 import { n as nicho, eMisto, lados, ladoActual, nomeDoLado } from '@/lib/nicho';
+import { useGrupo, mudarDeNegocio } from '@/lib/grupo';
 
 const GROUPS_TODOS = [
   /*
@@ -352,6 +353,8 @@ export default function AdminLayout({ children }) {
    * browser muda a largura, e uma leitura feita so a entrada ficava errada
    * para o resto da sessao.
    */
+  const grupo = useGrupo();
+  const [aTrocar, setATrocar] = useState(false);
   const [noComputador, setNoComputador] = useState(
     () => typeof window === 'undefined' || window.innerWidth >= 768,
   );
@@ -529,14 +532,31 @@ export default function AdminLayout({ children }) {
 
   // Espaço misto: a loja é uma, a gestão é por lado. O lado aberto decide
   // os serviços, os profissionais, a agenda e as palavras.
-  const seletorDeLado = (
+  //
+  // Desde 12/10/2026 um espaço com dois tipos são DOIS NEGÓCIOS LIGADOS:
+  // o seletor troca de negócio (o painel recarrega já no outro, com o site,
+  // os clientes e os serviços dele). O «misto» antigo, de um negócio com
+  // dois lados, continua a funcionar para quem o tem.
+  const seletorDeLado = grupo.ligado ? (
+    <div className="lado-seletor" role="tablist" aria-label="Negócio aberto">
+      {grupo.lista.map(g => (
+        <button key={g.id} type="button" role="tab" aria-selected={g.actual}
+          className={g.actual ? 'on' : ''} disabled={aTrocar}
+          onClick={async () => {
+            if (g.actual) return;
+            setATrocar(true);
+            try { await mudarDeNegocio(g.id); } catch (e) { setATrocar(false); alert('Não foi possível trocar: ' + e.message); }
+          }}>{nomeDoLado(g.tipo) || g.name}</button>
+      ))}
+    </div>
+  ) : eMisto() ? (
     <div className="lado-seletor" role="tablist" aria-label="Lado do espaço">
       {lados().map(l => (
         <button key={l} type="button" role="tab" aria-selected={ladoActual() === l}
           className={ladoActual() === l ? 'on' : ''} onClick={() => dataService.mudarLado(l)}>{nomeDoLado(l)}</button>
       ))}
     </div>
-  );
+  ) : null;
 
   return (
     <div className={`admin-layout ${collapsed ? 'sidebar-collapsed' : ''}`}>
@@ -620,7 +640,7 @@ export default function AdminLayout({ children }) {
                 decide os serviços, os profissionais, a agenda e as palavras. */}
             {/* No telemovel não cabe ao lado do nome (espremia-o letra a
                 letra): vai para uma faixa própria, por baixo da barra. */}
-            {eMisto() && noComputador && seletorDeLado}
+            {noComputador && seletorDeLado}
             <div className="admin-search-wrap" ref={searchRef}>
               <Search className="admin-search-icon" size={16} />
               {/* Escape fecha a lista, e uma segunda vez limpa o que esta
@@ -655,7 +675,7 @@ export default function AdminLayout({ children }) {
           </div>
         </div>
         )}
-        {eMisto() && !noComputador && <div className="lado-faixa">{seletorDeLado}</div>}
+        {!noComputador && seletorDeLado && <div className="lado-faixa">{seletorDeLado}</div>}
         {/* A FAIXA DO LINK vive no «O meu site», e so la.
             Esteve em todas as paginas, e a razao era boa: e a coisa que ele
             mais partilha e no Dashboard ninguem a encontrava. Mas uma faixa

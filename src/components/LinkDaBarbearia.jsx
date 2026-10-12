@@ -3,6 +3,7 @@ import { Copy, Check, ExternalLink, Share2 } from 'lucide-react';
 import dataService from '@/lib/dataService';
 import { DOMINIO_BASE } from '@/lib/designService';
 import { eMisto, lados, nomeDoLado } from '@/lib/nicho';
+import { useGrupo, enderecoDe } from '@/lib/grupo';
 
 /*
  * O ENDEREÇO DA BARBEARIA, EM TODAS AS PÁGINAS.
@@ -22,6 +23,7 @@ export default function LinkDaBarbearia() {
   const [endereco, setEndereco] = useState('');
   const [copiado, setCopiado] = useState(false);
   const [copiadoLado, setCopiadoLado] = useState('');
+  const grupo = useGrupo();
 
   useEffect(() => {
     let vivo = true;
@@ -34,7 +36,10 @@ export default function LinkDaBarbearia() {
 
   if (!endereco) return null;
 
-  const url = `https://${endereco}`;
+  // Dois negócios ligados: o link a partilhar é o do principal — abre a
+  // porta com um botão para cada um —, mesmo com o outro aberto no painel.
+  const enderecoPartilhado = grupo.ligado && grupo.principal ? enderecoDe(grupo.principal) : endereco;
+  const url = `https://${enderecoPartilhado}`;
   const podePartilhar = typeof navigator !== 'undefined' && !!navigator.share;
 
   const copiar = async () => {
@@ -49,9 +54,12 @@ export default function LinkDaBarbearia() {
   };
 
   // Espaço misto: o link de cada lado abre já nessa frente (…/?lado=…).
+  // Ligados: o principal abre directo com ?lado=; o outro é o link dele.
+  const linkDireto = g => (g.principal ? `${url}/?lado=${g.tipo}` : `https://${enderecoDe(g)}`);
   const copiarLado = async l => {
     try {
-      await navigator.clipboard.writeText(`${url}/?lado=${l}`);
+      const g = grupo.ligado ? grupo.lista.find(x => x.id === l) : null;
+      await navigator.clipboard.writeText(g ? linkDireto(g) : `${url}/?lado=${l}`);
       setCopiadoLado(l);
       setTimeout(() => setCopiadoLado(''), 1800);
     } catch { /* sem clipboard: o endereço está à vista para copiar à mão */ }
@@ -65,7 +73,7 @@ export default function LinkDaBarbearia() {
     <>
     <div className="link-faixa" data-tour="link-barbearia">
       <span className="link-faixa-rotulo">O teu link</span>
-      <span id="link-da-barbearia" className="link-faixa-endereco">{endereco}</span>
+      <span id="link-da-barbearia" className="link-faixa-endereco">{enderecoPartilhado}</span>
       <button type="button" className="link-faixa-btn" onClick={copiar}
         aria-label={copiado ? 'Link copiado' : 'Copiar o link'}>
         {copiado ? <Check size={15} /> : <Copy size={15} />}
@@ -82,16 +90,16 @@ export default function LinkDaBarbearia() {
     </div>
     {/* O link principal pergunta qual dos lados; estes abrem já num deles.
         Para a bio de um Instagram só do salão, por exemplo (12/10/2026). */}
-    {eMisto() && (
+    {(grupo.ligado || eMisto()) && (
       <div style={{ margin: '10px 0 4px' }}>
         <div className="text-sec" style={{ fontSize: 13, marginBottom: 8, textAlign: 'center' }}>O link acima pergunta qual. Para abrir já num lado:</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          {lados().map(l => (
+          {(grupo.ligado ? grupo.lista.map(g => ({ id: g.id, nome: nomeDoLado(g.tipo) || g.name })) : lados().map(l => ({ id: l, nome: nomeDoLado(l) }))).map(({ id: l, nome }) => (
             <button key={l} type="button" onClick={() => copiarLado(l)}
-              aria-label={`Copiar o link de ${nomeDoLado(l)}`}
+              aria-label={`Copiar o link de ${nome}`}
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minWidth: 0, padding: '11px 10px', borderRadius: 12, cursor: 'pointer', font: 'inherit', fontSize: 14, fontWeight: 600, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}>
               {copiadoLado === l ? <Check size={15} style={{ flexShrink: 0 }} /> : <Copy size={15} style={{ flexShrink: 0 }} />}
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{copiadoLado === l ? 'Copiado' : nomeDoLado(l)}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{copiadoLado === l ? 'Copiado' : nome}</span>
             </button>
           ))}
         </div>
