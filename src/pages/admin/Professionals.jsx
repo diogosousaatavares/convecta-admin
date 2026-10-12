@@ -144,7 +144,7 @@ export default function Professionals() {
           <p>
             {lugares.limite == null
               ? <>{data.professionals.length} {data.professionals.length === 1 ? 'profissional' : 'profissionais'}.</>
-              : <>{lugares.ativos} de {lugares.limite} {lugares.limite === 1 ? 'lugar' : 'lugares'} do plano{lugares.plano ? ` ${nomeDoPlano(lugares.plano)}` : ''}.</>}
+              : <>{lugares.ativos} de {lugares.limite} {lugares.limite === 1 ? 'lugar' : 'lugares'} do plano{lugares.plano ? ` ${nomeDoPlano(lugares.plano)}` : ''}{eMisto() ? ` (${Math.floor(lugares.limite / 2)} por área)` : ''}.</>}
           </p>
         </div>
         <Button variant="primary" onClick={openNew} disabled={lugares.cheio}
