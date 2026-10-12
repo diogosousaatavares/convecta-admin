@@ -1258,6 +1258,30 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
                         background:`${G}12`,border:`1px solid ${G}35`,fontSize:14,color:T2}}>
                         {iconeEncolhido}
                       </div>}
+                    {/*
+                      * O FUNDO DO LOGOTIPO (decisao do Diogo, 12/10/2026).
+                      * O site recorta o fundo e poe o desenho solto sobre o
+                      * tema — fica bem na maioria, mas ha logotipos que
+                      * ficam a boiar. Quem nao quiser escolhe «Num circulo»:
+                      * a imagem inteira, como a mandou, dentro de um circulo.
+                      */}
+                    {(logoUrl||tema.favicon)&&!iconeAEnviar&&(
+                      <div style={{display:'flex',gap:8,marginTop:10}}>
+                        {[{v:'transparente',l:'Fundo transparente',s:'O desenho solto, sobre o site'},{v:'circulo',l:'Num círculo',s:'A imagem inteira, como está'}].map(o=>{
+                          const on=(tema.logoFundo||'transparente')===o.v
+                          return(
+                            <button key={o.v} type="button" onClick={()=>raiz('logoFundo',o.v)} aria-pressed={on}
+                              style={{flex:1,display:'flex',alignItems:'center',gap:10,padding:'9px 11px',borderRadius:12,cursor:'pointer',font:'inherit',textAlign:'left',
+                                border:`1px solid ${on?G:BD}`,background:on?`${G}14`:'transparent',color:T}}>
+                              <span style={{width:36,height:36,flexShrink:0,borderRadius:o.v==='circulo'?999:8,overflow:'hidden',display:'grid',placeItems:'center',
+                                background:o.v==='circulo'?'#fff':'transparent',border:o.v==='circulo'?`1px solid ${BD}`:0}}>
+                                <img src={logoUrl||tema.favicon} alt="" style={{width:o.v==='circulo'?'80%':'100%',height:o.v==='circulo'?'80%':'100%',objectFit:'contain'}}/>
+                              </span>
+                              <span style={{display:'grid',gap:1}}><b style={{fontSize:14,fontWeight:600}}>{o.l}</b><span style={{fontSize:13,color:T3}}>{o.s}</span></span>
+                            </button>
+                          )})}
+                      </div>
+                    )}
                     <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:10}}>
                       {logoOriginal&&!iconeAEnviar&&
                         <Btn v="ghost" style={{padding:'7px 10px',fontSize:14}}
