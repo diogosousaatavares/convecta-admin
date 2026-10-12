@@ -285,12 +285,6 @@ function PreviaReal({endereco,tema,info,logoUrl,editar,onEditar}){
     window.addEventListener('convecta-galeria',f)
     return()=>window.removeEventListener('convecta-galeria',f)
   },[origem])
-  // «Ver» a abertura escolhida: a previa corre-a por cima do site.
-  useEffect(()=>{
-    const f=e=>ref.current?.contentWindow?.postMessage({tipo:'convecta-entrada',entrada:e.detail},origem)
-    window.addEventListener('convecta-entrada',f)
-    return()=>window.removeEventListener('convecta-entrada',f)
-  },[origem])
   return(
     <div style={{position:'relative',width:TLM_L,height:TLM_A,background:tema?.colors?.bg||'#000'}}>
       <iframe ref={ref} src={`${origem}/?previa=1`} title="O teu site, como o cliente o vê"
@@ -703,41 +697,6 @@ function MiniTopo({id}){
   return d[id]||null
 }
 
-/*
- * A ABERTURA DA APP (12/10/2026): o ecra de entrada que o cliente ve ao
- * abrir o site. Cada tipo tem a sua; o dono troca aqui. «Ver» corre-a na
- * previa ao lado. Vive em theme.entrada; a app le-a em public/entrada.js.
- */
-const ENTRADA_POR_TIPO={barbearia:'barbearia',cabeleireiro:'cabeleireiro',unhas:'unhas',estetica:'estetica'}
-const ABERTURAS=[
-  {id:'barbearia',l:'Tesoura',s:'Corta o ecrã ao meio'},
-  {id:'cabeleireiro',l:'Cabelo',s:'Cai, balança e varre-se'},
-  {id:'unhas',l:'Olhar',s:'Pestanas, sobrancelha, abre'},
-  {id:'estetica',l:'Gota',s:'Cai e abre em ondas'},
-  {id:'nenhuma',l:'Sem abertura',s:'Entra direto'},
-]
-function EscolherAbertura({valor,onEscolher}){
-  const ver=id=>{try{window.dispatchEvent(new CustomEvent('convecta-entrada',{detail:id}))}catch{}}
-  return(
-    <div style={{marginTop:22,paddingTop:18,borderTop:`1px solid ${BD}`}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',gap:10,marginBottom:10}}>
-        <span style={{fontSize:13,fontWeight:600,color:T2}}>Abertura</span>
-        <button type="button" onClick={()=>ver(valor)} style={{background:'none',border:0,padding:0,color:G,font:'inherit',fontSize:13.5,fontWeight:600,cursor:'pointer',textDecoration:'underline'}}>Ver no telemóvel</button>
-      </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(118px, 1fr))',gap:8}}>
-        {ABERTURAS.map(a=>{const on=valor===a.id;return(
-          <button key={a.id} type="button" aria-pressed={on} onClick={()=>{onEscolher(a.id);ver(a.id)}}
-            style={{textAlign:'left',padding:'10px 11px',borderRadius:12,cursor:'pointer',font:'inherit',
-              border:`1px solid ${on?G:BD}`,background:on?`${G}14`:'transparent',color:T}}>
-            <div style={{fontSize:14,fontWeight:600}}>{a.l}</div>
-            <div style={{fontSize:12,color:T3,marginTop:2,lineHeight:1.35}}>{a.s}</div>
-          </button>)})}
-      </div>
-      <div style={{fontSize:12.5,color:T3,marginTop:8,lineHeight:1.5}}>O cliente vê-a uma vez por visita, ao abrir o site. Dura segundo e meio.</div>
-    </div>
-  )
-}
-
 function EscolherCabecalho({valor,onEscolher}){
   return(
     <div className="mt-grelha">
@@ -1103,12 +1062,10 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
 
   const paineis=(
     <>
-        {painel==='cabecalho'&&(<>
+        {painel==='cabecalho'&&(
           <EscolherCabecalho valor={tema.cabecalho||'classico'}
             onEscolher={id=>{setTema(t=>({...t,cabecalho:id}));setSucesso(false)}}/>
-          <EscolherAbertura valor={tema.entrada||ENTRADA_POR_TIPO[biz?.settings?.tipoNegocio==='misto'?(biz?.settings?.lados||[])[0]:biz?.settings?.tipoNegocio]||'barbearia'}
-            onEscolher={id=>{setTema(t=>({...t,entrada:id}));setSucesso(false)}}/>
-        </>)}
+        )}
 
         {painel==='sugestao'&&(
           <SugestaoDesign biz={bizVisto} logo={logoUrl||tema.favicon} endereco={endereco}
