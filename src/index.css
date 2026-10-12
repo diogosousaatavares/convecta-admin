@@ -2799,7 +2799,7 @@ body { font-variant-numeric: lining-nums; }
 .lado-faixa { display: flex; margin: -6px 0 16px; }
 .lado-faixa .lado-seletor { width: 100%; }
 .lado-faixa .lado-seletor button { flex: 1; padding: 8px 10px; font-size: 14px; }
-.admin-topbar-nome { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-topbar-nome { min-width: 0; flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* O lado de um serviço ou profissional, no formulário. */
 .lado-opcoes { display: flex; flex-wrap: wrap; gap: 8px; }
 .lado-opcoes button { padding: 8px 12px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 14px; border: 1px solid var(--border); background: transparent; color: var(--text); }

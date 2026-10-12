@@ -607,9 +607,9 @@ export default function AdminLayout({ children }) {
                 <Menu size={20} />
               </button>
             )}
-            {/* O nome (ou logo) só no computador: no telemóvel ocupava a barra
-                e o dono já sabe onde está (pedido do Diogo, 12/10/2026). */}
-            {noComputador && (data.business?.logo
+            {/* O nome (ou logo). Com o seletor de lado na faixa de baixo, no
+                telemóvel há espaço: um nome comprido corta-se com «…». */}
+            {(data.business?.logo
               ? <img className="admin-topbar-logo" src={data.business.logo} alt={data.business.name} style={{ height: 30, width: 'auto', maxWidth: 140, objectFit: 'contain' }} />
               : <span className="fw-600 admin-topbar-nome">{data.business?.name || 'Convecta'}</span>
             )}
