@@ -1259,7 +1259,10 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
                       <span style={{fontSize:14,color:T3}}>ícone</span>
                     </div>
                   )}
-                  <div style={{flex:1,minWidth:180}}>
+                  {/* Ocupa a linha inteira, por baixo do logótipo: ao lado, num
+                      ecrã mais estreito (iPad), as escolhas saíam da caixa e
+                      ficavam por baixo do telemóvel da prévia (12/10/2026). */}
+                  <div style={{flex:'1 1 100%',minWidth:0}}>
                     {iconeEncolhido&&
                       <div style={{marginTop:10,padding:'9px 11px',borderRadius:9,lineHeight:1.5,
                         background:`${G}12`,border:`1px solid ${G}35`,fontSize:14,color:T2}}>
@@ -1273,18 +1276,18 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
                       * a imagem inteira, como a mandou, dentro de um circulo.
                       */}
                     {(logoUrl||tema.favicon)&&!iconeAEnviar&&(
-                      <div style={{display:'flex',gap:8,marginTop:10}}>
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(190px, 1fr))',gap:8,marginTop:10}}>
                         {[{v:'transparente',l:'Fundo transparente',s:'O desenho solto, sobre o site'},{v:'circulo',l:'Num círculo',s:'A imagem inteira, como está'}].map(o=>{
                           const on=(tema.logoFundo||'transparente')===o.v
                           return(
                             <button key={o.v} type="button" onClick={()=>raiz('logoFundo',o.v)} aria-pressed={on}
-                              style={{flex:1,display:'flex',alignItems:'center',gap:10,padding:'9px 11px',borderRadius:12,cursor:'pointer',font:'inherit',textAlign:'left',
+                              style={{minWidth:0,display:'flex',alignItems:'center',gap:10,padding:'9px 11px',borderRadius:12,cursor:'pointer',font:'inherit',textAlign:'left',
                                 border:`1px solid ${on?G:BD}`,background:on?`${G}14`:'transparent',color:T}}>
                               <span style={{width:36,height:36,flexShrink:0,borderRadius:o.v==='circulo'?999:8,overflow:'hidden',display:'grid',placeItems:'center',
                                 background:o.v==='circulo'?'#fff':'transparent',border:o.v==='circulo'?`1px solid ${BD}`:0}}>
                                 <img src={logoUrl||tema.favicon} alt="" style={{width:o.v==='circulo'?'80%':'100%',height:o.v==='circulo'?'80%':'100%',objectFit:'contain'}}/>
                               </span>
-                              <span style={{display:'grid',gap:1}}><b style={{fontSize:14,fontWeight:600}}>{o.l}</b><span style={{fontSize:13,color:T3}}>{o.s}</span></span>
+                              <span style={{display:'grid',gap:1,minWidth:0}}><b style={{fontSize:14,fontWeight:600}}>{o.l}</b><span style={{fontSize:13,color:T3}}>{o.s}</span></span>
                             </button>
                           )})}
                       </div>
@@ -1294,7 +1297,7 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
                         <Btn v="ghost" style={{padding:'7px 10px',fontSize:14}}
                           onClick={()=>enviarIcone([logoOriginal],true)}>Usar a imagem como está</Btn>}
                       {(logoUrl||tema.favicon)&&
-                        <Btn v="secondary" style={{padding:'7px 12px',fontSize:14}}
+                        <Btn v="secondary" style={{padding:'7px 12px',fontSize:14,whiteSpace:'normal',textAlign:'left',maxWidth:'100%'}}
                           onClick={()=>setPainel('sugestao')}>Ver design de acordo com este logótipo</Btn>}
                     </div>
                   </div>
