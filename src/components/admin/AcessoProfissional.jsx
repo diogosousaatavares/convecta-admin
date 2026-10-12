@@ -35,8 +35,8 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
   // A ficha é a do próprio dono: ele entra com a conta dele, não precisa de convite.
   if (!isProfissional && meuProfissionalId && profissional?.id === meuProfissionalId) {
     return (
-      <div style={destaque ? { marginTop: 16, padding: '12px 14px', borderRadius: 10, background: 'rgba(var(--gold-rgb),0.10)', border: '1px solid rgba(var(--gold-rgb),0.45)' } : { marginTop: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15 }}>
+      <div style={destaque ? { marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)' } : { marginTop: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
           <Crown size={16} style={{ color: 'var(--gold-tinta)' }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* A frase que aqui estava explicava o obvio e mandava-o a
@@ -84,7 +84,10 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
   }
 
   const [pedir, Confirmacao] = useConfirmar();
-  const caixa = { marginTop: 16, padding: '12px 14px', borderRadius: 10, background: acesso ? 'rgba(34,197,94,0.08)' : 'rgba(var(--gold-rgb),0.08)', border: `1px solid ${acesso ? 'rgba(34,197,94,0.35)' : 'rgba(var(--gold-rgb),0.35)'}` };
+  // No cartão do profissional: uma linha discreta, separada por um traço,
+  // em vez de uma caixa colorida (a caixa espremia o texto palavra a palavra
+  // ao lado do botão — 12/10/2026).
+  const caixa = { marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border)' };
   if (acesso) {
     const perm = { agenda_toda: true, ...(acesso.permissoes || {}) };
     const mudar = async (chave, valor) => {
@@ -97,9 +100,9 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
     return (
       <div style={destaque ? caixa : { marginTop: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 15 }}>
-          <ShieldCheck size={16} style={{ color: 'var(--success)' }} />
+          <ShieldCheck size={16} style={{ color: 'var(--success)', flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="fw-600">Acesso ao painel: ligado</div>
+            <div className="fw-600" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Com acesso ao painel</div>
             {/* O email fica: e a unica coisa desta linha que ele nao sabe
                 de cor. O resto dizia por palavras o que o titulo ja diz. */}
             <div className="text-sec text-xs" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{acesso.email}</div>
@@ -117,12 +120,13 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, dest
   if (!aberto) {
     return (
       <div style={destaque ? caixa : { marginTop: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 15 }}>
-          <ShieldOff size={16} style={{ color: 'var(--text-sec)' }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="fw-600">Acesso ao painel: sem acesso</div>
-          </div>
-          <Button size="sm" variant="primary" onClick={() => setAberto(true)}><KeyRound size={14} /> Dar acesso</Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+          <ShieldOff size={15} style={{ color: 'var(--text-ter)', flexShrink: 0 }} />
+          <span className="text-sec" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Sem acesso ao painel</span>
+          <button type="button" onClick={() => setAberto(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0, background: 'none', border: 0, padding: '4px 2px', cursor: 'pointer', font: 'inherit', fontSize: 14, fontWeight: 600, color: 'var(--gold-tinta)' }}>
+            <KeyRound size={14} /> Dar acesso
+          </button>
         </div>
       </div>
     );
