@@ -412,6 +412,11 @@ function bizFromRow(row) {
     // Pagamentos online (PAGAMENTOS_ONLINE_2026-10-13.sql): só a edge function os escreve.
     pagamentosAtivos: row.pagamentos_ativos === true,
     temContaStripe: !!row.stripe_connect_id,
+    // Os extras pagos (EXTRAS_2026-10-13.sql) e quem não paga: para saber o
+    // que o negócio pode usar. Só o servidor os escreve.
+    extras: row.extras || {},
+    isenta: row.isenta === true,
+    isTest: row.is_test === true,
     founderDesde: row.founder_desde || null,
     billingPeriod: row.billing_period || 'mensal',
     professionalLimit: row.professional_limit ?? null,
@@ -454,7 +459,7 @@ function bizToRow(biz) {
   // eram copiados para dentro do settings a cada gravacao.
   // `demo` tambem: no painel e um sim/nao, mas no settings e { ativo, ... }
   // escrito pelo Super Admin — gravar o sim/nao por cima estragava-o.
-  const { id, name, slug, logoUrl, _settings, plan, billingPeriod, professionalLimit, demo, pagamentosAtivos, temContaStripe, ...rest } = biz;
+  const { id, name, slug, logoUrl, _settings, plan, billingPeriod, professionalLimit, demo, pagamentosAtivos, temContaStripe, extras, isenta, isTest, ...rest } = biz;
   return { name, slug, logo_url: logoUrl, settings: { ...(_settings || {}), ...rest } };
 }
 

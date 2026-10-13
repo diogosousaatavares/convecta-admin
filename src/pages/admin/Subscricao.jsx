@@ -12,6 +12,7 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { n as nicho } from '@/lib/nicho';
 import { JuntarSegundoTipo } from '@/components/admin/SegundoTipo';
+import ExtrasSubscricao from '@/components/admin/ExtrasSubscricao';
 import { useGrupo, mudarDeNegocio } from '@/lib/grupo';
 
 /*
@@ -425,6 +426,7 @@ export default function Subscricao() {
           <p style={{ fontSize: 16, margin: '12px 0 0' }}>Sem mensalidade. Não precisas de cartão.</p>
         </Card>
         <div style={{ marginTop: 16 }}><JuntarSegundoTipo gratis lugares={sub?.limiteProfissionais} /></div>
+        <div style={{ marginTop: 16 }}><ExtrasSubscricao gratis /></div>
       </AdminPage>
     );
   }
@@ -527,6 +529,11 @@ export default function Subscricao() {
           centimos={(planos || []).find(p => p.id === sub.plano)?.precos?.[['anual', 'quinzenal'].includes(sub.periodo) ? sub.periodo : 'mensal']?.centimos}
           periodo={['anual', 'quinzenal'].includes(sub.periodo) ? sub.periodo : 'mensal'}
           lugares={sub.limiteProfissionais} />
+      )}
+
+      {/* ── Extras pagos (13/10/2026): pagamentos online, faturas… ──────── */}
+      {!precisaDeCartao && !sub.cancelaNoFim && (
+        <ExtrasSubscricao periodo={['anual', 'quinzenal'].includes(sub.periodo) ? sub.periodo : 'mensal'} />
       )}
 
       {/* ── Os pagamentos, quando já há subscrição ──────────────────────── */}

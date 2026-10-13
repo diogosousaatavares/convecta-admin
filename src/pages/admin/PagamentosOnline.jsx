@@ -7,6 +7,8 @@ import { useToast } from '@/components/ui/ToastContext';
 import { supabase } from '@/lib/supabase';
 import dataService from '@/lib/dataService';
 import { formatPrice } from '@/lib/format';
+import { Link } from 'react-router-dom';
+import { extraAtivo, extraDe, mudarExtra, sufixoPeriodo } from '@/lib/extras';
 
 /*
  * PAGAMENTOS ONLINE (13/10/2026, decisão do Diogo).
@@ -75,6 +77,38 @@ export default function PagamentosOnline() {
   };
 
   const ativo = !!estado?.ativo;
+
+  /* É um extra pago (13/10/2026): sem ele, a página mostra o convite. */
+  const [aJuntar, setAJuntar] = useState(false);
+  if (data.business && !extraAtivo(data.business, 'pagamentos')) {
+    const e = extraDe('pagamentos');
+    const p = ['anual', 'quinzenal'].includes(data.business.billingPeriod) ? data.business.billingPeriod : 'mensal';
+    const juntar = async () => {
+      setAJuntar(true);
+      try { await mudarExtra('pagamentos', true); toast.success('Pagamentos online ligados'); setTimeout(() => window.location.reload(), 700); }
+      catch (err) { toast.error('Não foi possível', err.message); setAJuntar(false); }
+    };
+    return (
+      <AdminPage title="Pagamentos online">
+        <Card className="card-pad" style={{ maxWidth: 640 }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <CreditCard size={24} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <div className="fw-600" style={{ fontSize: 18 }}>Acaba com as faltas</div>
+              <p className="text-sec" style={{ margin: '6px 0 0', lineHeight: 1.6 }}>{e.texto} O dinheiro cai na tua conta; a Convecta não fica com nada.</p>
+              <p style={{ margin: '12px 0 0', fontSize: 15 }}>
+                <b>+{formatPrice(e.precos[p])}{sufixoPeriodo(p)}</b> na tua subscrição. <span className="text-sec">Incluído nos planos Profissional e Business.</span>
+              </p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+                <Button onClick={juntar} disabled={aJuntar}>{aJuntar ? 'A ligar…' : 'Juntar à subscrição'}</Button>
+                <Link className="btn btn-secondary" to="/admin/subscricao">Ver os planos</Link>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </AdminPage>
+    );
+  }
   const opcao = (v, titulo, texto) => (
     <label key={v} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
       <input type="radio" name="modo" checked={modo === v} onChange={() => setModo(v)} style={{ marginTop: 4, accentColor: 'var(--gold)' }} />
