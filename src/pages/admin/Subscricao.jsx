@@ -244,7 +244,8 @@ export default function Subscricao() {
   const [sub, setSub] = useState(null);
   const [negocio, setNegocio] = useState(null);
   const [planos, setPlanos] = useState(null);
-  const [periodo, setPeriodo] = useState('mensal');
+  // Abre nos 15 dias, como o site (13/10/2026); sem esse preço no Stripe cai para o mensal.
+  const [periodo, setPeriodo] = useState('quinzenal');
   const [aCarregar, setACarregar] = useState(true);
   const [aAbrir, setAAbrir] = useState('');
   const [erro, setErro] = useState('');
@@ -331,9 +332,10 @@ export default function Subscricao() {
   const haQuinzenal = useMemo(() => (planos || []).some(p => p.precos?.quinzenal), [planos]);
   const periodos = ['quinzenal', 'mensal', 'anual'].filter(p => p === 'mensal' || (p === 'anual' ? haAnual : haQuinzenal));
   useEffect(() => {
+    if (!planos) return; // ainda a carregar: não se troca nada antes de saber
     if (!haAnual && periodo === 'anual') setPeriodo('mensal');
     if (!haQuinzenal && periodo === 'quinzenal') setPeriodo('mensal');
-  }, [haAnual, haQuinzenal, periodo]);
+  }, [planos, haAnual, haQuinzenal, periodo]);
   // Vem escolhido o que ele escolheu no site (/comecar).
   useEffect(() => {
     if (['quinzenal', 'anual'].includes(sub?.periodo) && planos?.length) setPeriodo(sub.periodo);
