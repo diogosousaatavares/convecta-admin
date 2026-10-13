@@ -409,6 +409,9 @@ function bizFromRow(row) {
     plan: row.plan || null,
     // Programa Founders: escrito so pelo super admin (UPSELLS_E_FOUNDERS_2026-10-10.sql).
     founder: row.founder === true,
+    // Pagamentos online (PAGAMENTOS_ONLINE_2026-10-13.sql): só a edge function os escreve.
+    pagamentosAtivos: row.pagamentos_ativos === true,
+    temContaStripe: !!row.stripe_connect_id,
     founderDesde: row.founder_desde || null,
     billingPeriod: row.billing_period || 'mensal',
     professionalLimit: row.professional_limit ?? null,
@@ -426,6 +429,8 @@ function bizFromRow(row) {
     packs: s.packs || {},
     // MB WAY (menu MB WAY): { ativo, numero, titular, limiteMes }.
     mbway: s.mbway || {},
+    // Pagamentos online: { modo: 'nada' | 'sinal' | 'total', sinal: € }.
+    pagamentosOnline: s.pagamentosOnline || {},
     // As categorias dos servicos, pela ordem que o barbeiro escolheu. Vivem
     // no settings da barbearia (o site do cliente le-as de la); antes eram
     // uma lista em memoria que desaparecia ao recarregar a pagina.
@@ -449,7 +454,7 @@ function bizToRow(biz) {
   // eram copiados para dentro do settings a cada gravacao.
   // `demo` tambem: no painel e um sim/nao, mas no settings e { ativo, ... }
   // escrito pelo Super Admin — gravar o sim/nao por cima estragava-o.
-  const { id, name, slug, logoUrl, _settings, plan, billingPeriod, professionalLimit, demo, ...rest } = biz;
+  const { id, name, slug, logoUrl, _settings, plan, billingPeriod, professionalLimit, demo, pagamentosAtivos, temContaStripe, ...rest } = biz;
   return { name, slug, logo_url: logoUrl, settings: { ...(_settings || {}), ...rest } };
 }
 
@@ -612,6 +617,8 @@ function apptFromRow(row) {
     // Pago por MB WAY e confirmado pelo barbeiro (MBWAY.sql). Quem o escreve
     // e a base de dados, em mbway_confirmar.
     mbway: m.mbway || null,
+    // Pago online ao marcar (Stripe, na conta do negócio). Só o webhook escreve.
+    pagoOnline: row.pago_online_em ? { valor: (Number(row.pago_online_cents) || 0) / 100, em: row.pago_online_em } : null,
     blocked: m.blocked || false,
     createdAt: row.created_at,
     confirmedAt: m.confirmedAt, completedAt: m.completedAt,

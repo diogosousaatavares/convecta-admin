@@ -112,6 +112,8 @@ const GROUPS_TODOS = [
        na pagina do Financeiro, que ja e um indice com separadores. */
     { titulo: 'Dinheiro' },
     { to: '/admin/financeiro/caixa', label: 'Caixa e pagamentos' },
+    // O cliente paga ao marcar (13/10/2026).
+    { to: '/admin/pagamentos-online', label: 'Pagamentos online' },
     { to: '/admin/comandas', label: 'Comandas' },
     { to: '/admin/financeiro/entradas', label: 'Entradas' },
     { to: '/admin/financeiro/saidas', label: 'Saídas' },

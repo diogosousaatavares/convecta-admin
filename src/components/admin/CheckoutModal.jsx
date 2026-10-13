@@ -160,6 +160,11 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
             {mbway?.estado === 'pago' && <div className="text-xs fw-600" style={{ color: 'var(--success)' }}>Já pago por MB WAY</div>}
           </div>
         </div>
+        {appointment?.pagoOnline && (
+          <div className="text-sm mb-16" style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.35)' }}>
+            O cliente já pagou {formatPrice(appointment.pagoOnline.valor)} online ao marcar. Cobra só o que falta.
+          </div>
+        )}
         {mbway?.estado === 'pago' && (
           <div className="text-sm mb-16" style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.35)' }}>
             O cliente já pagou {formatPrice(mbway.valor)} por MB WAY. Não cobres outra vez — só fechas para ficar registado na caixa.

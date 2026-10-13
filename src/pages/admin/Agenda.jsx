@@ -371,7 +371,7 @@ export default function Agenda() {
                               <Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(a)}</Badge>
                               {a.usaRecompensa && <Badge variant="gold" style={{ marginLeft: 6 }}>🎁 Grátis</Badge>}
                               {a.usaPack && <Badge variant="gold" style={{ marginLeft: 6 }}>Pack mensal</Badge>}
-                              {(() => { const mb = dataService.mbwayDe?.(a.id); return mb ? <Badge variant={mb.estado === 'pago' ? 'success' : 'warning'} style={{ marginLeft: 6 }}>{mb.estado === 'pago' ? 'Pago MB WAY' : 'MB WAY por confirmar'}</Badge> : null; })()}
+                              {a.pagoOnline && <Badge variant="success">Pago online</Badge>}{(() => { const mb = dataService.mbwayDe?.(a.id); return mb ? <Badge variant={mb.estado === 'pago' ? 'success' : 'warning'} style={{ marginLeft: 6 }}>{mb.estado === 'pago' ? 'Pago MB WAY' : 'MB WAY por confirmar'}</Badge> : null; })()}
                             </td>
                             <td>{podeMexer(a) && a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)}>Confirmar</Button>}{podeMexer(a) && a.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(a.id)}>Presença</Button>}</td>
                           </tr>
@@ -573,6 +573,12 @@ export default function Agenda() {
                   <div className="ag-detail-row">
                     <span className="l">Pagamento</span>
                     <span className="v"><Badge variant="gold">🎁 {nicho().premio} do cartão</Badge></span>
+                  </div>
+                )}
+                {selAppt.pagoOnline && (
+                  <div className="ag-detail-row">
+                    <span className="l">Pago online</span>
+                    <span className="v"><Badge variant="success">Pago · {formatPrice(selAppt.pagoOnline.valor)}</Badge></span>
                   </div>
                 )}
                 {(() => {
