@@ -1729,7 +1729,7 @@ const CSS_MS=`
 .ms-palco > div:first-child { position: relative; }
 .ms-tocar { display: inline-flex; align-items: center; gap: 10px; font-size: 14.5px; color: var(--text); font-weight: 600; }
 .ms-barra {
-  position: fixed; left: 0; right: 0; bottom: 0; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important; z-index: 70;
+  position: fixed; left: 0; right: 0; bottom: 0; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)) !important; z-index: 70; transform: translate3d(0,0,0); -webkit-transform: translate3d(0,0,0); will-change: transform;
   display: flex; gap: 2px; padding: 6px 8px; overflow-x: auto; scrollbar-width: none;
   background: var(--surface); border-top: 1px solid var(--border);
 }
