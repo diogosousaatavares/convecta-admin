@@ -19,7 +19,7 @@ export default function Seccao() {
   return (
     <AdminPage title={g.label} subtitle={g.d}>
       <style dangerouslySetInnerHTML={{ __html: CSS_CAIXAS }} />
-      <div style={{ maxWidth: 900 }}><Caixas itens={g.items} /></div>
+      <div style={{ maxWidth: 900 }}><Caixas itens={g.items} lista /></div>
     </AdminPage>
   );
 }
