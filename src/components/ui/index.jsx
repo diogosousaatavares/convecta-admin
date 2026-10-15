@@ -1,8 +1,9 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 
-export function Button({ variant = 'primary', size, block, icon, children, ...props }) {
+export function Button({ variant = 'primary', size, block, icon, children, className, ...props }) {
   const cls = ['btn', `btn-${variant}`];
+  if (className) cls.push(className);
   if (size === 'sm') cls.push('btn-sm');
   if (block) cls.push('btn-block');
   if (icon && !children) cls.push('btn-icon');

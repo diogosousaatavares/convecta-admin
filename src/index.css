@@ -2910,3 +2910,36 @@ body { font-variant-numeric: lining-nums; }
   .prod-topo .btn { justify-content: center; }
   .prod-lista { margin-left: -4px; margin-right: -4px; }
 }
+
+/* ── Agenda em lista, à Fresha (15/10/2026) ─────────────────────────── */
+.ag-lista { display: flex; flex-direction: column; margin: -4px; }
+.ag-lista-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 10px; background: none; border: 0; border-bottom: 1px solid var(--border); text-align: left; cursor: pointer; font: inherit; color: var(--text); }
+.ag-lista-row:last-child { border-bottom: 0; }
+.ag-lista-row:hover { background: var(--elevated); }
+.ag-lista-hora { font-weight: 700; color: var(--gold-tinta, var(--gold)); font-variant-numeric: tabular-nums; width: 48px; flex-shrink: 0; }
+.ag-lista-txt { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.ag-lista-txt b { font-weight: 600; font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ag-lista-txt span { font-size: 13.5px; color: var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ag-lista-estado { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; flex-shrink: 0; max-width: 46%; }
+.ag-lista-seta { color: var(--text-ter); flex-shrink: 0; }
+@media (max-width: 767px) { .ag-lista-estado { max-width: 38%; } }
+
+/* A hora livre: duas escolhas grandes. */
+.ag-escolha { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ag-escolha-btn { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 22px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font: inherit; }
+.ag-escolha-btn b { font-size: 15px; font-weight: 600; }
+.ag-escolha-btn:hover, .ag-escolha-btn:active { border-color: var(--gold); background: rgba(var(--gold-rgb), .10); }
+
+/* Caixa: por cobrar. */
+.cobrar-row { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 12px; padding: 12px 14px; background: var(--elevated); border-radius: 12px; border: 1px solid var(--border); }
+.cobrar-hora { font-weight: 700; color: var(--gold-tinta, var(--gold)); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cobrar-txt { min-width: 0; display: grid; gap: 2px; }
+.cobrar-txt b { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cobrar-txt span { font-size: 13px; color: var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cobrar-preco { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 767px) {
+  .cobrar-row { grid-template-columns: auto 1fr auto; }
+  .cobrar-btn { grid-column: 1 / -1; width: 100%; justify-content: center; }
+  .vs-head { flex-direction: column; align-items: stretch; gap: 10px; }
+  .vs-botoes > .btn { flex: 1; justify-content: center; }
+}

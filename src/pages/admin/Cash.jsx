@@ -159,11 +159,11 @@ export default function Cash() {
                   const cust = data.customers.find(c => c.id === a.customerId);
                   const pro = data.professionals.find(p => p.id === a.professionalId);
                   return (
-                    <div key={a.id} className="flex items-center gap-12" style={{ padding: '12px 14px', background: 'var(--elevated)', borderRadius: 10, border: '1px solid var(--border)' }}>
-                      <div className="fw-600 text-gold" style={{ width: 46 }}>{a.startTime}</div>
-                      <div className="flex-1"><div className="fw-600 text-sm">{cust?.name}</div><div className="text-sec text-xs">{svc?.name} · {pro?.name}</div></div>
-                      <span className="fw-600">{formatPrice(svc?.price || 0)}</span>
-                      <Button size="sm" variant="primary" onClick={() => setCharge(a.id)}>Cobrar</Button>
+                    <div key={a.id} className="cobrar-row">
+                      <span className="cobrar-hora">{a.startTime}</span>
+                      <span className="cobrar-txt"><b>{cust?.name}</b><span>{svc?.name} · {pro?.name}</span></span>
+                      <span className="cobrar-preco">{formatPrice(svc?.price || 0)}</span>
+                      <Button size="sm" variant="primary" className="cobrar-btn" onClick={() => setCharge(a.id)}>Cobrar</Button>
                     </div>
                   );
                 })}
@@ -173,9 +173,9 @@ export default function Cash() {
 
           <div className="dash-grid mt-24">
             <Card className="card-pad">
-              <div className="flex justify-between items-center mb-16">
+              <div className="flex justify-between items-center mb-16 vs-head">
                 <h3 style={{ fontSize: 18 }}>Vendas da sessão</h3>
-                <div className="flex gap-8">
+                <div className="flex gap-8 vs-botoes">
                   <Button size="sm" variant="secondary" onClick={() => setExpModal(true)}><Plus size={15} /> Despesa</Button>
                   <Button size="sm" variant="danger" onClick={() => setCloseModal(true)}><Lock size={15} /> Fechar caixa</Button>
                 </div>

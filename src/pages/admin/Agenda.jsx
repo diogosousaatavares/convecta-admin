@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag, Lock } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import TutorialAgenda, { jaViuTutorialAgenda } from '@/components/admin/TutorialAgenda';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -281,6 +281,7 @@ export default function Agenda() {
   // bloquear. O botão Encaixe (sem hora) vai direto à marcação.
   const [escolha, setEscolha] = useState(null);   // {professionalId, startTime}
   const [bloqMotivo, setBloqMotivo] = useState('');
+  const [aBloquear, setABloquear] = useState(false);
   const [avisoPassado, setAvisoPassado] = useState(false);
   const jaPassou = (dia, hora) => `${dia} ${hora}` < `${todayStr()} ${new Date().toTimeString().slice(0, 5)}`;
   const [bloqDur, setBloqDur] = useState('30');
@@ -356,31 +357,33 @@ export default function Agenda() {
                 {sortedList.length === 0 ? (
                   <EmptyState icon={() => <Clock />} title="Sem marcações" />
                 ) : (
-                  <table className="table">
-                    <thead><tr><th>Hora</th><th>Cliente</th><th>Serviço</th><th>{nicho().Pro}</th><th>Estado</th><th></th></tr></thead>
-                    <tbody>
-                      {sortedList.map(a => {
-                        const svc = data.services.find(s => s.id === a.serviceId);
-                        const cust = data.customers.find(c => c.id === a.customerId);
-                        const pro = data.professionals.find(p => p.id === a.professionalId);
-                        return (
-                          <tr key={a.id}>
-                            <td className="fw-600 text-gold">{a.startTime}</td>
-                            <td><div className="flex items-center gap-8"><Avatar name={cust?.name} /><div><div className="fw-600 text-sm">{cust?.name}</div><div className="text-sec text-xs">{a.bookingRef}</div></div></div></td>
-                            <td>{svc?.name}</td>
-                            <td>{pro?.name}</td>
-                            <td>
-                              <Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(a)}</Badge>
-                              {a.usaRecompensa && <Badge variant="gold" style={{ marginLeft: 6 }}>🎁 Grátis</Badge>}
-                              {a.usaPack && <Badge variant="gold" style={{ marginLeft: 6 }}>Pack mensal</Badge>}
-                              {a.pagoOnline && <Badge variant="success">Pago online</Badge>}{(() => { const mb = dataService.mbwayDe?.(a.id); return mb ? <Badge variant={mb.estado === 'pago' ? 'success' : 'warning'} style={{ marginLeft: 6 }}>{mb.estado === 'pago' ? 'Pago MB WAY' : 'MB WAY por confirmar'}</Badge> : null; })()}
-                            </td>
-                            <td>{podeMexer(a) && a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)}>Confirmar</Button>}{podeMexer(a) && a.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(a.id)}>Presença</Button>}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                  <div className="ag-lista">
+                    {/* Uma linha por marcação, à Fresha: hora, cliente, serviço e
+                        quem faz, estado. Tocar abre o detalhe, onde estão os botões. */}
+                    {sortedList.map(a => {
+                      const svc = data.services.find(s => s.id === a.serviceId);
+                      const cust = data.customers.find(c => c.id === a.customerId);
+                      const pro = data.professionals.find(p => p.id === a.professionalId);
+                      const mb = dataService.mbwayDe?.(a.id);
+                      return (
+                        <button key={a.id} type="button" className="ag-lista-row" onClick={() => setSelected(a.id)}>
+                          <span className="ag-lista-hora">{a.startTime}</span>
+                          <span className="ag-lista-txt">
+                            <b>{cust?.name}</b>
+                            <span>{svc?.name}{pro ? ` · ${pro.name}` : ''}</span>
+                          </span>
+                          <span className="ag-lista-estado">
+                            <Badge variant={a.status === 'pending' ? 'warning' : a.status === 'cancelled' ? 'danger' : 'success'}>{rotuloEstado(a)}</Badge>
+                            {a.usaRecompensa && <Badge variant="gold">🎁 Grátis</Badge>}
+                            {a.usaPack && <Badge variant="gold">Pack</Badge>}
+                            {a.pagoOnline && <Badge variant="success">Pago online</Badge>}
+                            {mb && <Badge variant={mb.estado === 'pago' ? 'success' : 'warning'}>{mb.estado === 'pago' ? 'Pago MB WAY' : 'MB WAY por confirmar'}</Badge>}
+                          </span>
+                          <ChevronRight size={18} className="ag-lista-seta" />
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </Card>
             )}
@@ -626,21 +629,27 @@ export default function Agenda() {
       </Modal>
 
       {/* Clicou numa hora: marcar ou bloquear? */}
-      <Modal open={!!escolha} onClose={() => setEscolha(null)} title={escolha ? `${escolha.startTime} · ${data.professionals.find(p => p.id === escolha.professionalId)?.name || ''}` : ''}>
+      <Modal open={!!escolha} onClose={() => { setEscolha(null); setABloquear(false); }} title={escolha ? `${escolha.startTime} · ${data.professionals.find(p => p.id === escolha.professionalId)?.name || ''}` : ''}>
         {escolha && (
           <div className="ag-detail">
-            <div className="text-sec text-sm mb-16">{formatDate(date)}. O que queres fazer com esta hora?</div>
-            <Button variant="primary" block onClick={() => { const e = escolha; setEscolha(null); abrirMarcacao(e.professionalId, e.startTime); }}><Plus size={15} /> Nova marcação</Button>
-            <div className="mt-16" style={{ padding: '12px 14px', background: 'var(--elevated)', borderRadius: 10 }}>
-              <div className="fw-600 text-sm mb-8">Bloquear este horário</div>
-              <div className="flex gap-8">
-                <input className="input" placeholder="Motivo (opcional): almoço, fornecedor…" value={bloqMotivo} onChange={e => setBloqMotivo(e.target.value)} />
-                <select className="select" style={{ width: 'auto' }} value={bloqDur} onChange={e => setBloqDur(e.target.value)}>
-                  {[['30', '30 min'], ['60', '1 h'], ['90', '1 h 30'], ['120', '2 h'], ['180', '3 h'], ['240', '4 h']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
+            {/* Duas escolhas e mais nada (15/10/2026, à Fresha). Os campos do
+                bloqueio só aparecem depois de escolher «Bloquear». */}
+            {!aBloquear ? (
+              <div className="ag-escolha">
+                <button type="button" className="ag-escolha-btn" onClick={() => { const e = escolha; setEscolha(null); abrirMarcacao(e.professionalId, e.startTime); }}><Plus size={20} /><b>Nova marcação</b></button>
+                <button type="button" className="ag-escolha-btn" onClick={() => setABloquear(true)}><Lock size={20} /><b>Bloquear horário</b></button>
               </div>
-              <Button variant="secondary" block style={{ marginTop: 10 }} onClick={async () => { const e = escolha; setEscolha(null); await handleBlock(e.professionalId, e.startTime, bloqMotivo.trim(), bloqDur); setBloqMotivo(''); }}>Bloquear</Button>
-            </div>
+            ) : (
+              <>
+                <div className="field"><label className="label">Motivo</label><input className="input" placeholder="Almoço, fornecedor…" value={bloqMotivo} onChange={e => setBloqMotivo(e.target.value)} /></div>
+                <div className="field"><label className="label">Duração</label>
+                  <select className="select" value={bloqDur} onChange={e => setBloqDur(e.target.value)}>
+                    {[['30', '30 min'], ['60', '1 h'], ['90', '1 h 30'], ['120', '2 h'], ['180', '3 h'], ['240', '4 h']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+                </div>
+                <Button variant="primary" block onClick={async () => { const e = escolha; setEscolha(null); await handleBlock(e.professionalId, e.startTime, bloqMotivo.trim(), bloqDur); setBloqMotivo(''); }}>Bloquear</Button>
+              </>
+            )}
           </div>
         )}
       </Modal>

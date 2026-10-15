@@ -70,40 +70,45 @@ export default function FidelizacaoPrograma() {
     <AdminPage title="Cartão de fidelidade" subtitle={`A cada X ${nicho().uns}, ${nicho().un === 'sessão' ? 'a seguinte' : 'o seguinte'} é grátis. O que decides aqui é o que o cliente vê no telemóvel.`}>
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start', maxWidth: 900 }}>
         <Card className="card-pad" style={{ flex: '1 1 320px', maxWidth: 460 }}>
-          <label className="loyalty-toggle-row" style={{ cursor: 'pointer' }}>
-            <div>
-              <div className="fw-600" style={{ fontSize: 16 }}>Cartão de fidelidade ativo</div>
-            </div>
-            <input type="checkbox" checked={ativo} onChange={e => setAtivo(e.target.checked)} />
+          {/* Arrumado a 15/10/2026: um interruptor em cima, os campos a largura
+              toda, os dois números lado a lado, o botão a largura toda. */}
+          <label className="loyalty-toggle-row" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 14, marginBottom: 16, borderBottom: '1px solid var(--border)' }}>
+            <div className="fw-600" style={{ fontSize: 16 }}>Cartão de fidelidade</div>
+            <input type="checkbox" checked={ativo} onChange={e => setAtivo(e.target.checked)} style={{ width: 20, height: 20 }} />
           </label>
 
           <div style={{ opacity: ativo ? 1 : 0.5, transition: 'opacity .2s' }}>
-            <div className="field">
-              <label className="label">{nicho().Uns} para ganhar o prémio</label>
-              <input type="number" className="input" min="3" max="20" value={carimbos} disabled={!ativo}
-                onChange={e => setCarimbos(e.target.value)} style={{ maxWidth: 120 }} />
-            </div>
             <div className="field">
               <label className="label">Prémio</label>
               <input className="input" value={premio} disabled={!ativo}
                 onChange={e => setPremio(e.target.value)} placeholder={`Ex: ${nicho().premio}`} />
             </div>
-            <div className="field">
-              <label className="label">Aspeto do cartão</label>
-              <div className="flex gap-8">
-                <Button variant={claro ? 'secondary' : 'primary'} size="sm" disabled={!ativo} onClick={() => setClaro(false)}>Escuro</Button>
-                <Button variant={claro ? 'primary' : 'secondary'} size="sm" disabled={!ativo} onClick={() => setClaro(true)}>Claro</Button>
+            <div className="grid-2">
+              <div className="field">
+                <label className="label">{nicho().Uns} até ao prémio</label>
+                <input type="number" className="input" min="3" max="20" value={carimbos} disabled={!ativo}
+                  onChange={e => setCarimbos(e.target.value)} />
+              </div>
+              <div className="field">
+                <label className="label">Validade (meses)</label>
+                <input type="number" className="input" min="0" max="24" value={validade} disabled={!ativo}
+                  onChange={e => setValidade(e.target.value)} />
               </div>
             </div>
-
             <div className="field">
-              <label className="label">Validade do cartão (meses)</label>
-              <input type="number" className="input" min="0" max="24" value={validade} disabled={!ativo}
-                onChange={e => setValidade(e.target.value)} style={{ maxWidth: 120 }} />
+              <label className="label">Aspeto do cartão</label>
+              <div className="tipo-opcoes duas" role="radiogroup" aria-label="Aspeto do cartão">
+                {[[false, 'Escuro'], [true, 'Claro']].map(([v, t]) => (
+                  <button key={t} type="button" role="radio" aria-checked={claro === v} disabled={!ativo}
+                    className={`tipo-opcao ${claro === v ? 'on' : ''}`} onClick={() => setClaro(v)}>
+                    <span className="tipo-opcao-t">{t}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          <Button variant="primary" onClick={save} disabled={aGuardar}>
+          <Button variant="primary" block onClick={save} disabled={aGuardar}>
             <Save size={16} /> {aGuardar ? 'A guardar…' : 'Guardar'}
           </Button>
         </Card>
