@@ -6,6 +6,8 @@ import { useStore } from '@/hooks/useStore';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
 import { paidAppointments, resumoCliente } from '@/lib/domain/finance';
 import { round2 } from '@/lib/domain/money';
+import ListaPessoas, { Periodo } from '@/components/admin/ListaPessoas';
+import Ajuda from '@/components/admin/Ajuda';
 
 // Ativo no período = teve uma visita paga no período.
 // Recorrente = cliente ativo que já tem 2 ou mais visitas pagas (no total).
@@ -26,28 +28,24 @@ export default function RepClients() {
 
   return (
     <AdminPage title="Relatório de Clientes" subtitle="Novos, ativos, recorrentes e gastos.">
-      <div className="flex gap-8 mb-24" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
-        <input type="date" className="input" style={{ width: 'auto' }} value={from} onChange={e => setFrom(e.target.value)} />
-        <input type="date" className="input" style={{ width: 'auto' }} value={to} onChange={e => setTo(e.target.value)} />
-      </div>
+      <Periodo from={from} to={to} setFrom={setFrom} setTo={setTo} />
       <div className="kpi-grid">
         <Card className="kpi"><Users className="icon" size={22} /><div className="label">Total clientes</div><div className="value">{data.customers.length}</div></Card>
         <Card className="kpi"><UserPlus className="icon" size={22} /><div className="label">Novos (período)</div><div className="value">{newClients.length}</div></Card>
         <Card className="kpi"><Repeat className="icon" size={22} /><div className="label">Recorrentes (2+ visitas)</div><div className="value">{recorrentes.length}</div></Card>
         <Card className="kpi"><div className="label">Total gasto (acumulado)</div><div className="value gold">{formatPrice(totalGasto)}</div></Card>
       </div>
-      <Card className="card-pad mt-16">
-        <h3 style={{ fontSize: 18, marginBottom: 16 }}>Clientes com visita paga no período ({ativos.length})</h3>
-        {ativos.length === 0 ? <EmptyState title="Sem clientes ativos" /> : (
-          <div className="flex-col gap-8">{ativos.map(({ c, r }) => (
-            <div key={c.id} className="flex justify-between text-sm" style={{ gap: 12 }}>
-              <span>{c.name}</span>
-              <span className="text-sec">{r.visitas} {r.visitas === 1 ? 'visita' : 'visitas'} · {formatPrice(r.totalGasto)}{r.produtos > 0 ? ` (produtos ${formatPrice(r.produtos)})` : ''}</span>
-            </div>
-          ))}</div>
-        )}
-        <p className="text-sec text-xs mt-16">Total gasto: serviços (sem gorjetas) + produtos + packs.</p>
-      </Card>
+      {/* Uma linha por cliente (15/10/2026): nome, visitas por baixo, o gasto
+          à direita; tocar abre o detalhe. */}
+      <div className="nt-titulo">Vieram neste período ({ativos.length}) <Ajuda titulo="Quem vieram" texto={<p>Clientes com pelo menos uma visita paga entre as duas datas. O gasto é tudo o que já pagaram: serviços (sem gorjetas), produtos e packs.</p>} /></div>
+      {ativos.length === 0 ? <Card className="card-pad"><EmptyState title="Ninguém veio neste período" /></Card> : (
+        <ListaPessoas linhas={ativos.map(({ c, r }) => ({
+          id: c.id, nome: c.name,
+          sub: `${r.visitas} ${r.visitas === 1 ? 'visita' : 'visitas'}`,
+          valor: formatPrice(r.totalGasto),
+          detalhe: [['Visitas', r.visitas], ['Serviços', formatPrice(r.servicos || 0)], ['Produtos', formatPrice(r.produtos || 0)], ['Packs', formatPrice(r.packs || 0)], ['Total', formatPrice(r.totalGasto)]],
+        }))} />
+      )}
     </AdminPage>
   );
 }

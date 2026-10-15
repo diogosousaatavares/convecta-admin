@@ -94,34 +94,30 @@ export default function PackMarcacoes() {
             title={verPassadas ? `Ainda não houve ${nicho().uns} de pack` : `Nenhum${nicho().un === 'sessão' ? 'a' : ''} ${nicho().un} de pack marcad${nicho().un === 'sessão' ? 'a' : 'o'}`} />
         </Card>
       ) : (
-        <Card className="card-pad mb-24" style={{ overflowX: 'auto' }}>
-          <table className="table">
-            <thead><tr><th>Dia</th><th>Hora</th><th>Cliente</th><th>Serviço</th><th>{nicho().Pro}</th><th>{nicho().Un}</th><th>Estado</th></tr></thead>
-            <tbody>
-              {lista.map(a => {
-                const est = ESTADO[a.status] || { texto: a.status, variante: 'default' };
-                return (
-                  <tr key={a.id} style={{ cursor: 'pointer' }} onClick={() => {
-                    // A agenda abre no dia desta marcação.
-                    try { sessionStorage.setItem('convecta_agenda_dia', a.date); } catch { /* abre em hoje */ }
-                    navigate('/admin/agenda');
-                  }}>
-                    <td className="text-sm fw-600" style={{ whiteSpace: 'nowrap' }}>{formatDateShortNum(a.date)}</td>
-                    <td className="text-sm text-gold fw-600">{a.startTime}</td>
-                    <td><div className="flex items-center gap-8"><Avatar name={nome(a.customerId)} /><span className="text-sm fw-600">{nome(a.customerId)}</span></div></td>
-                    <td className="text-sm">{servico(a.serviceId)}</td>
-                    <td className="text-sm">{barbeiro(a.professionalId)}</td>
-                    <td className="text-sm" style={{ whiteSpace: 'nowrap' }}>{qualCorte(a)}</td>
-                    <td><Badge variant={est.variante}>{est.texto}</Badge></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </Card>
+        <div className="ag-lista-card mb-24">
+          <div className="ag-lista">
+            {lista.map(a => {
+              const est = ESTADO[a.status] || { texto: a.status, variante: 'default' };
+              return (
+                <button key={a.id} type="button" className="ag-lista-row" onClick={() => {
+                  // A agenda abre no dia desta marcação.
+                  try { sessionStorage.setItem('convecta_agenda_dia', a.date); } catch { /* abre em hoje */ }
+                  navigate('/admin/agenda');
+                }}>
+                  <span className="ag-lista-hora" style={{ width: 'auto' }}>{formatDateShortNum(a.date)}<br /><span className="text-sec" style={{ fontWeight: 500 }}>{a.startTime}</span></span>
+                  <span className="ag-lista-txt">
+                    <b>{nome(a.customerId)}</b>
+                    <span>{servico(a.serviceId)} · {barbeiro(a.professionalId)} · {qualCorte(a)}</span>
+                  </span>
+                  <span className="ag-lista-estado"><Badge variant={est.variante}>{est.texto}</Badge></span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       )}
 
-      <h3 className="text-sm fw-600" style={{ margin: '0 0 10px' }}>Cartões dos clientes com pack</h3>
+      <div className="nt-titulo">Clientes com pack</div>
       {ativos.length === 0 ? (
         <Card className="card-pad"><p className="text-sec text-sm" style={{ margin: 0 }}>Ninguém tem um pack a decorrer.</p></Card>
       ) : (

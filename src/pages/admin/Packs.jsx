@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Package, Plus, Edit, Trash2, ShoppingBag, Users, Inbox, Check, X, Clock } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
+import Ajuda from '@/components/admin/Ajuda';
+import Toggle from '@/components/admin/Toggle';
 import { Card, Button, EmptyState, Modal, Badge, Avatar } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { useToast } from '@/components/ui/ToastContext';
@@ -548,6 +550,9 @@ export default function Packs() {
       </div>
 
       <Modal open={packModal} onClose={() => setPackModal(false)} title={pack.id ? 'Editar pack' : 'Novo pack'}>
+        {/* A ficha do pack em blocos (15/10/2026): o pack, as regras, a app,
+            os serviços. Sem texto a explicar — o (i) de cada bloco explica. */}
+        <div className="prod-sec">O pack</div>
         <div className="field">
           <label className="label">Nome</label>
           <input className="input" value={pack.nome} onChange={e => setPack(f => ({ ...f, nome: e.target.value }))} placeholder="Pack mensal" />
@@ -559,90 +564,87 @@ export default function Packs() {
               onChange={e => setPack(f => ({ ...f, cortes: e.target.value }))} />
           </div>
           <div className="field">
-            <label className="label">Preço do pack (€)</label>
+            <label className="label">Preço (€)</label>
             <input type="number" min={0} step="0.01" className="input" value={pack.preco}
               onChange={e => setPack(f => ({ ...f, preco: e.target.value }))} placeholder="40" />
           </div>
         </div>
+
+        <div className="prod-sec">Regras <Ajuda titulo="Regras do pack" texto={<>
+          <p><b>Validade</b> — até quando o cliente pode usar {nicho().uns === 'sessões' ? 'as sessões' : 'os cortes'}. «Fim do mês» é o mês de calendário em que comprou; «Dias» conta a partir do pagamento.</p>
+          <p><b>{nicho().Uns} que sobram</b> — se não usar todos no mês, passam (ou não) para o seguinte.</p>
+          <p><b>Dias entre {nicho().uns}</b> — evita que gaste o pack todo na mesma semana: a app esconde os dias perto de outro {nicho().umUn.split(' ')[0]} dele. Quem corta num sábado e no outro à sexta precisa de 6.</p>
+          <p>Vendido hoje, este pack vale até <b>{formatDateShortNum(validadeSeVendidoHoje(pack))}</b>.</p>
+        </>} /></div>
+        <div className="grid-2">
+          <div className="field">
+            <label className="label">Validade</label>
+            <select className="select" value={pack.validadeTipo}
+              onChange={e => setPack(f => ({ ...f, validadeTipo: e.target.value }))}>
+              <option value="mes">Fim do mês</option>
+              <option value="dias">Dias</option>
+            </select>
+          </div>
+          {pack.validadeTipo === 'dias' ? (
+            <div className="field">
+              <label className="label">Quantos dias</label>
+              <input type="number" min={1} max={366} className="input" value={pack.validadeDias}
+                onChange={e => setPack(f => ({ ...f, validadeDias: e.target.value }))} />
+            </div>
+          ) : (
+            <div className="field">
+              <label className="label">{nicho().Uns} que sobram</label>
+              <select className="select" value={pack.transitaMeses}
+                onChange={e => setPack(f => ({ ...f, transitaMeses: Number(e.target.value) }))}>
+                <option value={0}>Perdem-se</option>
+                <option value={1}>Passam 1 mês</option>
+                <option value={2}>Passam 2 meses</option>
+                <option value={3}>Passam 3 meses</option>
+              </select>
+            </div>
+          )}
+        </div>
         <div className="field">
-          <label className="label">Validade</label>
-          <select className="select" value={pack.validadeTipo}
-            onChange={e => setPack(f => ({ ...f, validadeTipo: e.target.value }))}>
-            <option value="mes">Mês de calendário (até ao fim do mês)</option>
-            <option value="dias">Um número de dias a contar do pagamento</option>
+          <label className="label">Dias entre {nicho().uns}</label>
+          <select className="select" value={String(pack.intervaloDias || 0)}
+            onChange={e => setPack(f => ({ ...f, intervaloDias: Number(e.target.value) }))}>
+            {[0, 3, 5, 6, 7, 10, 14].concat([0, 3, 5, 6, 7, 10, 14].includes(Number(pack.intervaloDias || 0)) ? [] : [Number(pack.intervaloDias)]).sort((x, y) => x - y).map(d => (
+              <option key={d} value={String(d)}>{d === 0 ? 'Sem mínimo' : `${d} dias`}</option>
+            ))}
           </select>
         </div>
-        {pack.validadeTipo === 'dias' ? (
-          <div className="field">
-            <label className="label">Dias de validade</label>
-            <input type="number" min={1} max={366} className="input" value={pack.validadeDias}
-              onChange={e => setPack(f => ({ ...f, validadeDias: e.target.value }))} />
-            <div className="text-sec text-xs mt-8">
-              Vendido hoje, vale até {formatDateShortNum(validadeSeVendidoHoje(pack))}. Os cortes que sobrarem perdem-se.
-            </div>
-          </div>
-        ) : (
-          <div className="field">
-            <label className="label">{nicho().un === 'sessão' ? 'As' : 'Os'} {nicho().uns} que sobram</label>
-            <select className="select" value={pack.transitaMeses}
-              onChange={e => setPack(f => ({ ...f, transitaMeses: Number(e.target.value) }))}>
-              <option value={0}>Perdem-se no fim do mês</option>
-              <option value={1}>Passam para o mês seguinte (recomendado)</option>
-              <option value={2}>Passam mais 2 meses</option>
-              <option value={3}>Passam mais 3 meses</option>
-            </select>
-            <div className="text-sec text-xs mt-8">
-              Vendido hoje, vale até {formatDateShortNum(validadeSeVendidoHoje(pack))}.
-            </div>
-          </div>
-        )}
-        <div className="field">
-          <label className="label">Espaço entre {nicho().uns}</label>
-          {/* Era uma lista de cinco opções: 0, 5, 7, 10, 14. Quem corta num
-              sábado e no outro à sexta tem seis dias de intervalo — e seis
-              não estava lá. A vida não vem em números redondos. */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input type="number" className="input" min={0} max={60} style={{ width: 92 }}
-              value={pack.intervaloDias}
-              onChange={e => setPack(f => ({ ...f, intervaloDias: Number(e.target.value) }))} />
-            <span className="text-sec text-sm">
-              {pack.intervaloDias > 0
-                ? `dias, no mínimo, entre ${nicho().un === 'sessão' ? 'duas' : 'dois'} ${nicho().uns}`
-                : 'dias — sem limite, pode marcar quando quiser'}
-            </span>
-          </div>
-          <div className="text-sec text-xs mt-8">
-            Evita que o cliente gaste o pack todo na mesma semana. A app apaga os dias perto de
-            outro corte dele. Se tens clientes que cortam numa semana ao sábado e na outra à
-            sexta, põe <b>6</b> — com 7 a sexta fica apagada.
-          </div>
+
+        <div className="prod-sec">Na app <Ajuda titulo="O pack na app" texto={<>
+          <p>Ligado, o cliente vê o pack na app e pode pedi-lo. Tu recebes o pedido em «Pedidos de pack» e confirmas quando ele pagar — só aí o pack fica ativo.</p>
+          <p>O texto aparece ao cliente junto ao pack.</p>
+        </>} /></div>
+        <div className="nt-row" style={{ padding: '10px 0' }}>
+          <span className="nt-txt"><b>Cliente pode pedir na app</b></span>
+          <Toggle checked={!!pack.pedidoNaApp} onChange={x => setPack(f => ({ ...f, pedidoNaApp: x }))} />
         </div>
-        <div className="field">
-          <label className="label">Texto para o cliente (opcional)</label>
+        <div className="field" style={{ marginTop: 10 }}>
+          <label className="label">Texto para o cliente</label>
           <textarea className="textarea" rows={2} maxLength={240} value={pack.descricao}
             onChange={e => setPack(f => ({ ...f, descricao: e.target.value }))}
-            placeholder={`Ex.: 4 ${nicho().uns} por mês, ${nicho().umUn.split(' ')[0]} por semana. Marca tod${nicho().un === 'sessão' ? 'as' : 'os'} de uma vez e não pagas mais nada.`} />
+            placeholder={`Ex.: 4 ${nicho().uns} por mês.`} />
         </div>
-        <label className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 12px' }}>
-          <input type="checkbox" checked={pack.pedidoNaApp} onChange={e => setPack(f => ({ ...f, pedidoNaApp: e.target.checked }))} />
-          O cliente pode pedir este pack na app (tu confirmas quando ele pagar)
-        </label>
-        <div className="field">
-          <label className="label">Serviços que o pack cobre</label>
-          <div style={{ display: 'grid', gap: 6 }}>
-            {servicosActivos.map(s => (
-              <label key={s.id} className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input type="checkbox" checked={pack.servicos.includes(s.id)} onChange={() => alternarServico(s.id)} />
-                {s.name} <span className="text-sec">· {formatPrice(s.price)}</span>
-              </label>
-            ))}
-          </div>
+
+        <div className="prod-sec">Serviços incluídos</div>
+        <div className="escolha-lista">
+          {servicosActivos.map(s => (
+            <label key={s.id} className="escolha-row">
+              <input type="checkbox" checked={pack.servicos.includes(s.id)} onChange={() => alternarServico(s.id)} />
+              <span className="escolha-nome">{s.name}</span>
+              <span className="escolha-preco">{formatPrice(s.price)}</span>
+            </label>
+          ))}
         </div>
-        <label className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 16px' }}>
-          <input type="checkbox" checked={pack.ativo} onChange={e => setPack(f => ({ ...f, ativo: e.target.checked }))} />
-          À venda
-        </label>
-        <div className="flex gap-12" style={{ justifyContent: 'flex-end' }}>
+
+        <div className="nt-row" style={{ padding: '14px 0 4px', borderBottom: 0 }}>
+          <span className="nt-txt"><b>À venda</b></span>
+          <Toggle checked={!!pack.ativo} onChange={x => setPack(f => ({ ...f, ativo: x }))} />
+        </div>
+        <div className="flex gap-12" style={{ justifyContent: 'flex-end', marginTop: 12 }}>
           <Button variant="secondary" onClick={() => setPackModal(false)}>Cancelar</Button>
           <Button variant="primary" onClick={gravarPack} disabled={aGravar}>{pack.id ? 'Guardar' : 'Criar pack'}</Button>
         </div>

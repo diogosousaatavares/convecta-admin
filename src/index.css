@@ -2992,3 +2992,27 @@ body { font-variant-numeric: lining-nums; }
 .cobrar-row { cursor: pointer; }
 /* Cartão de fidelidade no telemóvel: primeiro o cartão como o cliente o vê, depois os campos. */
 @media (max-width: 767px) { .fid-preview { order: -1; margin-bottom: 18px; } .fid-form { max-width: none; } }
+
+/* ── O (i) de ajuda e listas de escolha (15/10/2026) ───────────────────── */
+.ajuda-btn { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 0; background: none; color: var(--text-ter); cursor: pointer; vertical-align: middle; margin-left: 4px; }
+.ajuda-btn:hover { color: var(--gold-tinta, var(--gold)); background: rgba(var(--gold-rgb), .12); }
+.ajuda-texto { font-size: 15px; line-height: 1.5; color: var(--text); }
+.ajuda-texto p { margin: 0 0 12px; }
+.ajuda-texto p:last-child { margin-bottom: 0; }
+.prod-sec { display: flex; align-items: center; gap: 2px; }
+.escolha-lista { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; max-height: 280px; overflow-y: auto; }
+.escolha-row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 15px; }
+.escolha-row:last-child { border-bottom: 0; }
+.escolha-row input { width: 18px; height: 18px; accent-color: var(--gold); flex-shrink: 0; margin: 0; }
+.escolha-nome { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.escolha-preco { color: var(--text-sec); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ag-lista-card { border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); padding: 4px; }
+.ag-lista-card .ag-lista { margin: 0; }
+.ag-lista-hora { font-size: 13.5px; line-height: 1.25; }
+/* Produtos no telemóvel: pesquisa e «+» na mesma linha. */
+@media (max-width: 767px) {
+  .prod-topo { flex-direction: row; align-items: center; }
+  .prod-topo .btn { flex: 0 0 auto; width: 48px; height: 48px; padding: 0; border-radius: 12px; font-size: 0; }
+  .prod-topo .btn svg { width: 22px; height: 22px; }
+  .prod-topo .input { height: 48px; font-size: 16px; }
+}

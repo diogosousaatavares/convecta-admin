@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Users, ShieldCheck, ShieldOff, Eye, EyeOff, Pencil, Crown } from 'lucide-react';
+import { Users, ShieldCheck, ShieldOff, Eye, EyeOff, Pencil, Crown, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useStore, useAuth } from '@/hooks/useStore';
 import { supabase } from '@/lib/supabase';
 import authService from '@/lib/authService';
 import { useToast } from '@/components/ui/ToastContext';
 import AdminLayout from '@/components/AdminLayout';
-import { Card, Avatar, Button } from '@/components/ui';
+import { Card, Avatar, Button, Modal } from '@/components/ui';
 import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
 import { SugestaoSegundoTipo } from '@/components/admin/SegundoTipo';
 
@@ -93,35 +93,28 @@ export default function Equipa() {
           cortas? Ligado a ficha X», o no «Dono · ve tudo» da Distribuicao, e
           depois a mesma pessoa outra vez na lista com «Es tu». O que se quer
           saber aqui e quem tem acesso ao painel — e isso le-se na lista. */}
-      <div style={{ display: 'grid', gap: 8, marginBottom: 16 }}>
+      <div className="lin-lista" style={{ marginBottom: 16 }}>
         {/* O dono so aparece a parte quando nao esta ligado a ficha nenhuma.
             Se estiver, ja esta na lista, com a coroa. */}
         {!minhaFicha && (
-          <div style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--surface)', border: '2px solid var(--gold)', display: 'flex', alignItems: 'center', gap: 11 }}>
-            <Crown size={18} style={{ color: 'var(--gold-tinta)', flexShrink: 0 }} />
-            <div style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
-              <div className="fw-600">{dono.name || 'Dono'}</div>
-              <div className="text-sec text-sm">Não corta</div>
-            </div>
-            <span className="text-sm" style={{ color: 'var(--gold-tinta)', fontWeight: 600, whiteSpace: 'nowrap' }}>Vê tudo</span>
+          <div className="lin" style={{ cursor: 'default' }}>
+            <Avatar name={dono.name || 'Dono'} />
+            <span className="lin-txt"><b>{dono.name || 'Dono'}</b><span>Dono · não corta</span></span>
+            <span className="lin-valor" style={{ color: 'var(--gold-tinta)', display: 'flex', alignItems: 'center', gap: 5 }}><Crown size={14} /> Vê tudo</span>
           </div>
         )}
 
         {pros.map(p => {
           const a = acessos.de(p.id);
-          const ativo = selecionado === p.id;
           const euMesmo = p.id === meuProfissionalId;
           return (
-            <button key={p.id} type="button" onClick={() => setSelecionado(ativo ? null : p.id)}
-              style={{ padding: '10px 12px', borderRadius: 12, textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'inherit', background: 'var(--surface)', border: `2px solid ${ativo ? 'var(--gold)' : euMesmo ? 'var(--gold)' : a ? 'var(--success)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', gap: 11 }}>
+            <button key={p.id} type="button" className="lin" onClick={() => setSelecionado(p.id)}>
               <Avatar name={p.name} src={p.photoUrl} />
-              <div style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
-                <div className="fw-600">{p.name}</div>
-                <div className="text-sec text-sm">{p.role || 'Profissional'}</div>
-              </div>
-              <span className="text-sm" style={{ display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold-tinta)' : a ? 'var(--success)' : 'var(--text-sec)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              <span className="lin-txt"><b>{p.name}</b><span>{p.role || 'Profissional'}</span></span>
+              <span className="lin-valor" style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 5, color: euMesmo ? 'var(--gold-tinta)' : a ? 'var(--success)' : 'var(--text-sec)' }}>
                 {euMesmo ? <><Crown size={14} /> És tu</> : a ? <><ShieldCheck size={14} /> Com acesso</> : <><ShieldOff size={14} /> Sem acesso</>}
               </span>
+              <ChevronRight size={18} className="lin-seta" />
             </button>
           );
         })}
@@ -131,36 +124,38 @@ export default function Equipa() {
           ligada — depois disso a pergunta nao faz sentido, e desligar e uma
           coisa que se faz na ficha, nao no topo da pagina. */}
       {!minhaFicha && pros.some(p => !acessos.de(p.id)) && (
-        <div className="linha-opcao" style={{ cursor: 'default', flexWrap: 'wrap' }}>
+        <div className="nt-row" style={{ marginBottom: 16, flexWrap: 'wrap' }}>
           <Crown size={17} style={{ flexShrink: 0, color: 'var(--gold-tinta)' }} />
-          <span className="rotulo" style={{ flex: '1 1 160px' }}>Também cortas?</span>
+          <span className="nt-txt"><b>Também cortas?</b></span>
           <select className="select" value={escolhaDono} onChange={e => setEscolhaDono(e.target.value)} style={{ width: 'auto' }}>
-            <option value="">Qual é a tua ficha</option>
+            <option value="">A tua ficha</option>
             {pros.filter(p => !acessos.de(p.id)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
           <Button variant="primary" size="sm" disabled={!escolhaDono || aLigar} onClick={() => ligarDono(escolhaDono)}>Ligar</Button>
         </div>
       )}
 
-      {pro && (
-        <Card className="mb-24">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-            <Avatar name={pro.name} src={pro.photoUrl} />
-            <div style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
-              <div className="fw-600">{pro.name}</div>
-              <div className="text-sec text-sm">{pro.role || 'Profissional'}{pro.email ? ` · ${pro.email}` : ' · sem email na ficha'}</div>
+      {/* A ficha de acesso abre numa janela (15/10/2026): nome, função e
+          email em cima, as linhas do acesso, e os botões em baixo. */}
+      <Modal open={!!pro} onClose={() => setSelecionado(null)} title={pro?.name || ''}>
+        {pro && (
+          <>
+            <div className="nt-lista">
+              <div className="nt-row">
+                <Avatar name={pro.name} src={pro.photoUrl} />
+                <span className="nt-txt"><b>{pro.role || 'Profissional'}</b><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pro.email || 'Sem email na ficha'}</span></span>
+              </div>
+              <AcessoProfissional profissional={pro} acesso={acessos.de(pro.id)} onMudou={acessos.recarregar} />
             </div>
-            <Link to="/admin/profissionais"><Button size="sm" variant="ghost">Editar ficha</Button></Link>
-          </div>
-          {pro.id === meuProfissionalId && (
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 11, flexWrap: 'wrap' }}>
-              <span style={{ flex: 1, minWidth: 180 }}>És tu. A tua conta de dono está ligada a esta ficha.</span>
-              <Button variant="ghost" size="sm" disabled={aLigar} onClick={() => ligarDono(null)}>Desligar</Button>
+            <div className="botoes-iguais" style={{ marginTop: 18 }}>
+              <Link to="/admin/profissionais" className="btn btn-secondary">Editar ficha</Link>
+              {pro.id === meuProfissionalId
+                ? <Button variant="ghost" disabled={aLigar} onClick={() => ligarDono(null)}>Desligar da minha conta</Button>
+                : <Button variant="primary" onClick={() => setSelecionado(null)}>Fechar</Button>}
             </div>
-          )}
-          <AcessoProfissional profissional={pro} acesso={acessos.de(pro.id)} onMudou={acessos.recarregar} destaque />
-        </Card>
-      )}
+          </>
+        )}
+      </Modal>
 
       {/* No telemovel esta tabela de referencia era o terco de baixo do ecra
           em letra miuda, e nao se faz nada com ela. Fica no computador. */}
