@@ -62,6 +62,7 @@ export default function TutorialAgenda({ aoTerminar }) {
   return createPortal(
     <div className="tt" role="dialog" aria-modal="true" aria-label="Como usar a agenda">
       <style>{CSS}</style>
+      <div className="tt-caixa">
       <button type="button" className="tt-saltar" onClick={terminar}>Saltar</button>
       <Cena passo={p.id} key={p.id} />
       <div className="tt-texto">
@@ -72,15 +73,20 @@ export default function TutorialAgenda({ aoTerminar }) {
           {ultimo ? 'Concluído' : 'Seguinte'}
         </button>
       </div>
+      </div>
     </div>,
     document.body,
   );
 }
 
 const CSS = `
-.tt { position: fixed; inset: 0; z-index: 1000; background: #141414; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; }
+/* No telemóvel ocupa o ecrã; no computador é uma caixa no meio, com a
+   agenda a sério escurecida por trás. */
+.tt { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.55); color: #fff; display: flex; align-items: center; justify-content: center; padding: 0; box-sizing: border-box; }
+.tt-caixa { position: relative; width: 100%; height: 100%; background: #141414; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; }
+@media (min-width: 768px) { .tt-caixa { width: 440px; height: auto; border-radius: 22px; padding: 56px 28px 32px; box-shadow: 0 30px 80px rgba(0,0,0,.6); } }
 .tt-saltar { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 16px; background: none; border: 0; color: #bbb; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; padding: 8px; }
-.tt-cena { position: relative; width: min(100%, 340px); height: 300px; border-radius: 16px; background: #1f1f1f; overflow: hidden; border: 1px solid #2c2c2c; }
+.tt-cena { position: relative; width: 340px; max-width: 100%; height: 300px; flex-shrink: 0; border-radius: 16px; background: #1f1f1f; overflow: hidden; border: 1px solid #2c2c2c; }
 .tt-dias { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 10px 10px 6px; }
 .tt-dias span { font-size: 11px; color: #999; text-align: center; padding: 6px 0; border-radius: 8px; }
 .tt-dias span.on { background: #FEE96D; color: #1a1a1a; font-weight: 700; }
@@ -92,7 +98,7 @@ const CSS = `
 .tt-laranja { background: #F6B26B; height: 72px; }
 .tt-azul { background: #9FD6F2; height: 30px; opacity: 0; }
 .tt-cinza { background: #d9d9d9; height: 72px; }
-.tt-mao { position: absolute; left: 150px; top: 150px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
+.tt-mao { position: absolute; left: 44%; top: 50%; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
 .tt-texto { width: min(100%, 360px); text-align: center; margin-top: 26px; }
 .tt-pontos { display: flex; justify-content: center; gap: 6px; margin-bottom: 14px; }
 .tt-pontos span { width: 6px; height: 6px; border-radius: 6px; background: #444; } .tt-pontos span.on { background: #fff; width: 18px; }
@@ -100,16 +106,16 @@ const CSS = `
 .tt-texto p { font-size: 15px; line-height: 1.5; color: #cfcfcf; margin: 0 0 22px; }
 .tt-btn { min-width: 140px; padding: 13px 28px; border-radius: 999px; border: 0; background: #fff; color: #1a1a1a; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
 /* 1. tocar numa hora livre: a mão desce, toca, aparece a marcação azul */
-.tt-tocar .tt-mao { animation: tt-toca 2.6s ease-in-out infinite; left: 150px; top: 150px; }
+.tt-tocar .tt-mao { animation: tt-toca 2.6s ease-in-out infinite; left: 44%; top: 50%; }
 .tt-tocar .tt-nova { animation: tt-aparece 2.6s ease-in-out infinite; }
 @keyframes tt-toca { 0%,15% { transform: translateY(40px) scale(1); opacity: 0 } 30% { transform: translateY(0) scale(1); opacity: 1 } 40% { transform: translateY(0) scale(.85) } 50% { transform: translateY(0) scale(1) } 85% { opacity: 1 } 100% { opacity: 0 } }
 @keyframes tt-aparece { 0%,42% { opacity: 0; transform: scale(.9) } 50%,100% { opacity: 1; transform: scale(1) } }
 /* 2. abrir uma marcação: toca no cartão laranja, que pisca */
-.tt-abrir .tt-mao { animation: tt-toca 2.6s ease-in-out infinite; left: 140px; top: 62px; }
+.tt-abrir .tt-mao { animation: tt-toca 2.6s ease-in-out infinite; left: 42%; top: 21%; }
 .tt-abrir .tt-laranja { animation: tt-pisca 2.6s ease-in-out infinite; }
 @keyframes tt-pisca { 0%,40% { box-shadow: none } 48% { box-shadow: 0 0 0 3px #fff } 60%,100% { box-shadow: none } }
 /* 3. mudar de dia: toca na quinta e a faixa muda */
-.tt-dia .tt-mao { animation: tt-toca 2.6s ease-in-out infinite; left: 218px; top: 8px; }
+.tt-dia .tt-mao { animation: tt-toca 2.6s ease-in-out infinite; left: 60%; top: 3%; }
 .tt-dia .tt-dias span:nth-child(3) { animation: tt-sai 2.6s ease-in-out infinite; }
 .tt-dia .tt-dias span:nth-child(4) { animation: tt-entra 2.6s ease-in-out infinite; }
 @keyframes tt-sai { 0%,45% { background: #FEE96D; color: #1a1a1a } 55%,100% { background: transparent; color: #999 } }
