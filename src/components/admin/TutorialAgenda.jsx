@@ -19,6 +19,8 @@ const PASSOS = [
     texto: <><b>Toca numa marcação</b> para confirmar, ver o cliente ou fechar a conta.</> },
   { id: 'dia', titulo: 'Mudar de dia',
     texto: <><b>Toca nos dias</b> da faixa de cima, ou nas setas, para ver outro dia.</> },
+  { id: 'defs', titulo: 'A tua agenda, à tua maneira',
+    texto: <><b>Toca na engrenagem</b> para escolher se as horas abrem certas (09:00, 10:00) ou encostadas umas às outras, e até quando o cliente pode marcar.</> },
 ];
 
 function Mao({ className }) {
@@ -32,6 +34,7 @@ function Mao({ className }) {
 function Cena({ passo }) {
   return (
     <div className={`tt-cena tt-${passo}`} aria-hidden="true">
+      <div className="tt-topo"><span className="tt-eng" aria-hidden="true">⚙</span></div>
       <div className="tt-dias">
         {['seg 13', 'ter 14', 'qua 15', 'qui 16', 'sex 17'].map((d, i) => (
           <span key={d} className={i === 2 ? 'on' : ''}>{d}</span>
@@ -120,5 +123,10 @@ const CSS = `
 .tt-dia .tt-dias span:nth-child(4) { animation: tt-entra 2.6s ease-in-out infinite; }
 @keyframes tt-sai { 0%,45% { background: #FEE96D; color: #1a1a1a } 55%,100% { background: transparent; color: #999 } }
 @keyframes tt-entra { 0%,45% { background: transparent; color: #999 } 55%,100% { background: #FEE96D; color: #1a1a1a; font-weight: 700 } }
+.tt-topo { display: flex; justify-content: flex-end; padding: 8px 10px 0; }
+.tt-eng { width: 26px; height: 26px; border-radius: 8px; border: 1px solid #ccc; display: grid; place-items: center; font-size: 15px; color: #444; background: #fff; }
+/* 4. a engrenagem: toca nela e ela pisca */
+.tt-defs .tt-mao { animation: tt-toca 2.6s ease-in-out infinite; left: 78%; top: -2%; }
+.tt-defs .tt-eng { animation: tt-pisca 2.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .tt * { animation: none !important } .tt-azul { opacity: 1 } }
 `;

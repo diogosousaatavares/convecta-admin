@@ -3,8 +3,7 @@ import IndicadoresCliente from '@/components/admin/IndicadoresCliente';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ChevronLeft, ChevronRight, ChevronDown, Users, Info,
-  CheckCircle2, CalendarCheck, Clock3, Lock, Check,
-} from 'lucide-react';
+  CheckCircle2, CalendarCheck, Clock3, Lock, Check, Settings } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 import { todayStr } from '@/lib/format';
@@ -95,6 +94,8 @@ export default function AgendaTelemovel({
   onNovaNaHora,
   proInicial,
   children,
+  onDefinicoes,
+  vistaMes,
 }) {
   const data = useStore();
   const [proId, setProId] = useState(() => proInicial || professionals[0]?.id || '');
@@ -142,6 +143,7 @@ export default function AgendaTelemovel({
           <p className="agm-mes">{MESES[mes - 1]} {ano}</p>
         </div>
         <div className="agm-nav">
+          {onDefinicoes && <button type="button" className="agm-seta" onClick={onDefinicoes} aria-label="Definições da agenda" data-tour="agenda-definicoes"><Settings size={19} /></button>}
           <button type="button" className="agm-hoje" onClick={() => setDate(todayStr())}>Hoje</button>
           <button type="button" className="agm-seta" onClick={() => shift(-1)} aria-label="Dia anterior"><ChevronLeft size={20} /></button>
           <button type="button" className="agm-seta" onClick={() => shift(1)} aria-label="Dia seguinte"><ChevronRight size={20} /></button>
@@ -174,11 +176,12 @@ export default function AgendaTelemovel({
       {/* ---- Dia / Lista / Espera ---- */}
       <div className="agm-vistas">
         <button type="button" className={mode === 'grid' ? 'ativa' : ''} onClick={() => setMode('grid')}>Dia</button>
+        {vistaMes && <button type="button" className={mode === 'mes' ? 'ativa' : ''} onClick={() => setMode('mes')}>Mês</button>}
         <button type="button" className={mode === 'list' ? 'ativa' : ''} onClick={() => setMode('list')}>Lista</button>
         <button type="button" className={mode === 'waitlist' ? 'ativa' : ''} onClick={() => setMode('waitlist')}>Espera</button>
       </div>
 
-      {mode === 'grid' ? (
+      {mode === 'mes' ? vistaMes : mode === 'grid' ? (
         <>
           {/* ---- Profissional + legenda ---- */}
           <div className="agm-filtros">

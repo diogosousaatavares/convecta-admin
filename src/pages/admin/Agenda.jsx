@@ -1,13 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag, Lock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag, Lock, Settings } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import TutorialAgenda, { jaViuTutorialAgenda } from '@/components/admin/TutorialAgenda';
 import { useIsMobile } from '@/hooks/use-mobile';
 import AdminLayout from '@/components/AdminLayout';
 import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import PageInfo from '@/components/admin/PageInfo';
-import AgendaCalendar from '@/components/admin/AgendaCalendar';
+import AgendaCalendar, { rotuloDia } from '@/components/admin/AgendaCalendar';
+import AgendaMes from '@/components/admin/AgendaMes';
+import DefinicoesDaAgenda from '@/components/admin/DefinicoesDaAgenda';
 import AgendaSidebar from '@/components/admin/AgendaSidebar';
 import FaixaDias from '@/components/admin/FaixaDias';
 import AgendaTelemovel from '@/components/admin/AgendaTelemovel';
@@ -113,6 +115,16 @@ export default function Agenda() {
   }, [search]);
 
   const [mode, setMode] = useState('grid');
+  /*
+   * VISTAS E FILTRO (15/10/2026, à Fresha).
+   * vista: 'dia' (uma coluna por profissional) · '3dias' · 'semana' (uma
+   * coluna por dia, do profissional escolhido) · 'mes'. filtroPro: '' é
+   * todos; em 3 dias e semana há sempre um escolhido.
+   */
+  const [vista, setVista] = useState(() => { try { return localStorage.getItem('convecta_agenda_vista') || 'dia'; } catch { return 'dia'; } });
+  const mudarVista = (v) => { setVista(v); setMode('grid'); try { localStorage.setItem('convecta_agenda_vista', v); } catch { /* nada */ } };
+  const [filtroPro, setFiltroPro] = useState('');
+  const [defsAbertas, setDefsAbertas] = useState(false);
   const [blockMode, setBlockMode] = useState(false);
   const [selected, setSelected] = useState(null);
   const [quickOpen, setQuickOpen] = useState(() => {
@@ -153,15 +165,39 @@ export default function Agenda() {
 
   const shift = (n) => {
     const d = new Date(date + 'T00:00:00');
-    d.setDate(d.getDate() + n);
+    if (mode === 'mes' || (mode === 'grid' && vista === 'mes')) d.setMonth(d.getMonth() + n);
+    else d.setDate(d.getDate() + n * (mode !== 'grid' ? 1 : vista === 'semana' ? 7 : vista === '3dias' ? 3 : 1));
     setDate(dateToStr(d));
   };
+
+  // Os dias e as colunas de cada vista.
+  const diasDaVista = useMemo(() => {
+    const d0 = new Date(date + 'T00:00:00');
+    if (vista === 'semana') d0.setDate(d0.getDate() - ((d0.getDay() + 6) % 7));
+    const n = vista === 'semana' ? 7 : vista === '3dias' ? 3 : 1;
+    return Array.from({ length: n }, (_, i) => { const d = new Date(d0); d.setDate(d0.getDate() + i); return dateToStr(d); });
+  }, [date, vista]);
+  const proDaVista = filtroPro || so || prosVisiveis[0]?.id || '';
+  const prosDaGrelha = filtroPro ? prosVisiveis.filter(p => p.id === filtroPro) : prosVisiveis;
+  const colunasDaVista = vista === 'dia'
+    ? null
+    : diasDaVista.map(ds => ({ key: ds, label: rotuloDia(ds), date: ds, professionalId: proDaVista }));
+  const tituloDaVista = vista === 'mes'
+    ? new Date(date + 'T00:00:00').toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' })
+    : vista === 'dia' ? formatDate(date)
+    : `${formatDate(diasDaVista[0])} – ${formatDate(diasDaVista[diasDaVista.length - 1])}`;
 
   // As canceladas continuam na lista de baixo, com a etiqueta a dizer quem
   // desmarcou, mas saem da grelha das horas: o lugar esta livre e tem de se
   // ver que esta livre.
   const dayAppts = data.appointments.filter(a => a.date === date);
   const dayAppstNaGrelha = dayAppts.filter(a => a.status !== 'cancelled' && (!so || !data.permissoes || data.permissoes.agenda_toda !== false || a.professionalId === so));
+  const apptsDaVista = useMemo(() => {
+    const set = new Set(diasDaVista);
+    return data.appointments.filter(a => set.has(a.date) && a.status !== 'cancelled' && (!so || !data.permissoes || data.permissoes.agenda_toda !== false || a.professionalId === so));
+  }, [data.appointments, diasDaVista, so, data.permissoes]);
+  const mesDaVista = date.slice(0, 7);
+  const apptsDoMes = useMemo(() => data.appointments.filter(a => (a.date || '').startsWith(mesDaVista)), [data.appointments, mesDaVista]);
   const vendasDoDia = useMemo(
     () => (data.sales || []).filter(v => (v.date || (v.soldAt || '').slice(0, 10)) === date)
       .sort((x, y) => (x.soldAt || '').localeCompare(y.soldAt || '')),
@@ -250,7 +286,7 @@ export default function Agenda() {
     finally { setAReagendar(false); }
   };
 
-  const handleBlock = async (proId, startTime, motivo, duracao) => { try {
+  const handleBlock = async (proId, startTime, motivo, duracao, dia) => { try {
     if (so && proId !== so) { soATua(); return; }
     /*
      * Aqui estava um window.prompt. Um prompt nativo trava o browser todo
@@ -265,7 +301,7 @@ export default function Agenda() {
       blocked: true,
       label,
       professionalId: proId,
-      date,
+      date: dia || date,
       startTime,
       endTime: toTime(toMin(startTime) + dur),
       status: 'blocked'
@@ -285,16 +321,16 @@ export default function Agenda() {
   const [avisoPassado, setAvisoPassado] = useState(false);
   const jaPassou = (dia, hora) => `${dia} ${hora}` < `${todayStr()} ${new Date().toTimeString().slice(0, 5)}`;
   const [bloqDur, setBloqDur] = useState('30');
-  const abrirMarcacao = (professionalId, startTime) => {
+  const abrirMarcacao = (professionalId, startTime, dia) => {
     setQuickError('');
-    setQuick(f => ({ customerId: f.customerId || '', serviceId: '', professionalId: so || professionalId, data: date, startTime, usaPack: false }));
+    setQuick(f => ({ customerId: f.customerId || '', serviceId: '', professionalId: so || professionalId, data: dia || date, startTime, usaPack: false }));
     setAvisoPassado(false);
     setQuickOpen(true);
   };
-  const novaNaHora = (professionalId, startTime) => {
+  const novaNaHora = (professionalId, startTime, dia) => {
     if (so && professionalId && professionalId !== so) { soATua(); return; }
-    if (professionalId && startTime) { setBloqMotivo(''); setBloqDur('30'); setEscolha({ professionalId, startTime }); return; }
-    abrirMarcacao(professionalId, startTime);
+    if (professionalId && startTime) { setBloqMotivo(''); setBloqDur('30'); setEscolha({ professionalId, startTime, dia: dia || date }); return; }
+    abrirMarcacao(professionalId, startTime, dia);
   };
 
   const submitQuick = async () => { try {
@@ -418,6 +454,8 @@ export default function Agenda() {
           mode={mode}
           setMode={setMode}
           onNovaMarcacao={() => novaNaHora('', '')}
+          onDefinicoes={() => setDefsAbertas(true)}
+          vistaMes={<AgendaMes date={date} appts={apptsDoMes} customers={data.customers} professionals={prosVisiveis} filtroPro={so || ''} onDia={(ds) => { setDate(ds); setMode('grid'); }} />}
         >
           {corpoLista}
         </AgendaTelemovel>
@@ -479,16 +517,19 @@ export default function Agenda() {
             </Button>
           </div>
         </div>
-        <h2 className="ag-date">{formatDate(date)}</h2>
+        <h2 className="ag-date">{mode === 'grid' ? tituloDaVista : formatDate(date)}</h2>
         <div className="ag-tb-right">
           {/* Eram "Dia / Semana / Mes", com dois botoes que so diziam "em breve".
               Um botao que nao faz nada e pior do que nao existir — sobretudo
               numa demonstracao. Passam a ser as tres vistas que existem mesmo. */}
           <div className="ag-viewseg" data-tour="agenda-vistas">
-            <button className={mode === 'grid' ? 'active' : ''} onClick={() => setMode('grid')}>Dia</button>
+            {[['dia', 'Dia'], ['3dias', '3 dias'], ['semana', 'Semana'], ['mes', 'Mês']].map(([v, l]) => (
+              <button key={v} className={mode === 'grid' && vista === v ? 'active' : ''} onClick={() => mudarVista(v)}>{l}</button>
+            ))}
             <button className={mode === 'list' ? 'active' : ''} onClick={() => setMode('list')}>Lista</button>
             <button className={mode === 'waitlist' ? 'active' : ''} onClick={() => setMode('waitlist')}>Espera</button>
           </div>
+          <button className="ag-ico-btn" aria-label="Definições da agenda" onClick={() => setDefsAbertas(true)} title="Definições da agenda" data-tour="agenda-definicoes"><Settings size={16} /></button>
           <button className="ag-ico-btn ag-so-desktop" aria-label="Imprimir agenda" onClick={() => window.print()} title="Imprimir agenda"><Printer size={16} /></button>
         </div>
       </div>
@@ -498,13 +539,28 @@ export default function Agenda() {
 
       {/* O tutorial dos três gestos, uma vez, na primeira abertura (15/10/2026). */}
       {tutorial && <TutorialAgenda aoTerminar={() => setTutorial(false)} />}
+      {/* O filtro: quem se vê. Em Dia, «Todos» dá uma coluna por pessoa; em
+          3 dias e Semana há sempre uma pessoa escolhida. */}
+      {mode === 'grid' && prosVisiveis.length > 1 && (
+        <div className="ag-filtro" data-tour="agenda-filtro">
+          {vista === 'dia' || vista === 'mes' ? <button type="button" className={`chip${!filtroPro ? ' active' : ''}`} onClick={() => setFiltroPro('')}>Todos</button> : null}
+          {prosVisiveis.map(p => (
+            <button key={p.id} type="button" className={`chip${(filtroPro || (vista === 'dia' || vista === 'mes' ? '' : proDaVista)) === p.id ? ' active' : ''}`} onClick={() => setFiltroPro(p.id)}>{p.name.split(' ')[0]}</button>
+          ))}
+        </div>
+      )}
       <div className="agenda-wrap" data-tour="agenda">
         <div>
-          {mode === 'grid' && (
+          {mode === 'grid' && vista === 'mes' && (
+            <AgendaMes date={date} appts={apptsDoMes} customers={data.customers} professionals={prosVisiveis} filtroPro={filtroPro}
+              onDia={(ds) => { setDate(ds); mudarVista('dia'); }} />
+          )}
+          {mode === 'grid' && vista !== 'mes' && (
             <AgendaCalendar
               date={date}
-              appts={dayAppstNaGrelha}
-              professionals={prosVisiveis}
+              appts={vista === 'dia' ? dayAppstNaGrelha : apptsDaVista}
+              professionals={prosDaGrelha}
+              colunas={colunasDaVista}
               services={data.services}
               customers={data.customers}
               blockMode={blockMode}
@@ -553,6 +609,11 @@ export default function Agenda() {
       </div>
         </>
       )}
+
+      {/* As definições da agenda, aqui mesmo (15/10/2026): como se dividem
+          as horas, até quando se pode marcar, dias diferentes. Cada bloco
+          tem o seu (i). A mesma coisa que está em Definições › Agenda. */}
+      <DefinicoesDaAgenda aberta={defsAbertas} fechar={() => setDefsAbertas(false)} />
 
       {/* Detail modal */}
       <Modal open={!!selAppt} onClose={() => setSelected(null)} title={selAppt?.blocked ? 'Horário bloqueado' : 'Detalhe da marcação'}>
@@ -635,7 +696,7 @@ export default function Agenda() {
                 bloqueio só aparecem depois de escolher «Bloquear». */}
             {!aBloquear ? (
               <div className="ag-escolha">
-                <button type="button" className="ag-escolha-btn" onClick={() => { const e = escolha; setEscolha(null); abrirMarcacao(e.professionalId, e.startTime); }}><Plus size={20} /><b>Nova marcação</b></button>
+                <button type="button" className="ag-escolha-btn" onClick={() => { const e = escolha; setEscolha(null); abrirMarcacao(e.professionalId, e.startTime, e.dia); }}><Plus size={20} /><b>Nova marcação</b></button>
                 <button type="button" className="ag-escolha-btn" onClick={() => setABloquear(true)}><Lock size={20} /><b>Bloquear horário</b></button>
               </div>
             ) : (
@@ -646,7 +707,7 @@ export default function Agenda() {
                     {[['30', '30 min'], ['60', '1 h'], ['90', '1 h 30'], ['120', '2 h'], ['180', '3 h'], ['240', '4 h']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
-                <Button variant="primary" block onClick={async () => { const e = escolha; setEscolha(null); await handleBlock(e.professionalId, e.startTime, bloqMotivo.trim(), bloqDur); setBloqMotivo(''); }}>Bloquear</Button>
+                <Button variant="primary" block onClick={async () => { const e = escolha; setEscolha(null); await handleBlock(e.professionalId, e.startTime, bloqMotivo.trim(), bloqDur, e.dia); setBloqMotivo(''); }}>Bloquear</Button>
               </>
             )}
           </div>

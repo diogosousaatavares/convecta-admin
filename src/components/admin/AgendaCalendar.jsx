@@ -25,12 +25,35 @@ const DAY_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
 
-export default function AgendaCalendar({ date, appts, professionals, services, customers, blockMode, onBlock, onSelect, onNovaNaHora }) {
-  const data = useStore();
-  const dow = new Date(date + 'T00:00:00').getDay();
-  const hours = data.business.openingHours.find(h => h.day === DAY_NAMES[dow]);
+/*
+ * VISTAS (15/10/2026, à Fresha).
+ *
+ * A grelha deixou de ser «um dia, uma coluna por profissional» e passou a
+ * ser «colunas»: cada coluna tem um dia e um profissional. A vista Dia dá
+ * uma coluna por profissional no mesmo dia; 3 dias e Semana dão uma coluna
+ * por dia para o profissional escolhido. O resto — horas, blocos, pausas,
+ * a linha do agora — é o mesmo código.
+ *
+ *   colunas: [{ key, label, sub, date, professionalId }]
+ * Sem `colunas`, comporta-se como antes (Dia, todos os profissionais).
+ */
+function horasDe(business, dateStr) {
+  const dow = new Date(dateStr + 'T00:00:00').getDay();
+  return (business.openingHours || []).find(h => h.day === DAY_NAMES[dow]);
+}
+const DIAS_CURTOS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+export function rotuloDia(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${DIAS_CURTOS[d.getDay()]} ${d.getDate()}`;
+}
 
-  if (!hours || !hours.isOpen) {
+export default function AgendaCalendar({ date, appts, professionals, services, customers, blockMode, onBlock, onSelect, onNovaNaHora, colunas }) {
+  const data = useStore();
+  const cols = colunas || professionals.map(p => ({ key: p.id, label: p.name.split(' ')[0], date, professionalId: p.id }));
+  const multiDia = cols.some(c => c.date !== date);
+  const hours = horasDe(data.business, date);
+
+  if (!multiDia && (!hours || !hours.isOpen)) {
     /*
      * Isto dizia so "Encerrado neste dia. Nao ha horario de funcionamento
      * definido." e acabava ali — um beco sem saida, e logo no ecra onde o
@@ -58,15 +81,19 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
   }
 
   const { STEP, SLOT_H } = grelhaDe(data.business, date);
-  const openMin = toMin(hours.open);
-  const closeMin = toMin(hours.close);
+  const abertas = cols.map(c => horasDe(data.business, c.date)).filter(h => h && h.isOpen);
+  if (abertas.length === 0) {
+    return <div className="ag-grid"><div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--text-sec)' }}>Fechado nestes dias.</div></div>;
+  }
+  const openMin = Math.min(...abertas.map(h => toMin(h.open)));
+  const closeMin = Math.max(...abertas.map(h => toMin(h.close)));
   const slotCount = Math.round((closeMin - openMin) / STEP);
   const times = Array.from({ length: slotCount }, (_, i) => toTime(openMin + i * STEP));
 
   const now = new Date();
-  const isToday = date === todayStr();
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const nowTop = isToday && nowMin >= openMin && nowMin <= closeMin ? ((nowMin - openMin) / STEP) * SLOT_H : null;
+  const hoje = todayStr();
+  const nowTop = !multiDia && date === hoje && nowMin >= openMin && nowMin <= closeMin ? ((nowMin - openMin) / STEP) * SLOT_H : null;
 
   const visibleAppts = appts.filter(a => a.blocked || a.status !== 'cancelled');
 
@@ -74,8 +101,8 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
     <div className="ag-grid">
       <div className="ag-head">
         <div className="ag-head-time" />
-        {professionals.map(p => (
-          <div className="ag-head-pro" key={p.id}>{p.name.split(' ')[0]}</div>
+        {cols.map(c => (
+          <div className={`ag-head-pro${c.date === hoje && multiDia ? ' hoje' : ''}`} key={c.key}>{c.label}{c.sub && <span className="ag-head-sub">{c.sub}</span>}</div>
         ))}
       </div>
       <div className="ag-body">
@@ -85,22 +112,31 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
           ))}
         </div>
         <div className="ag-cols">
-          {professionals.map(p => {
-            const colAppts = visibleAppts.filter(a => a.professionalId === p.id);
+          {cols.map(c => {
+            const p = { id: c.professionalId };
+            const colAppts = visibleAppts.filter(a => a.professionalId === c.professionalId && a.date === c.date);
+            const hc = horasDe(data.business, c.date);
+            const fechada = !hc || !hc.isOpen;
+            const cOpen = fechada ? openMin : toMin(hc.open);
+            const cClose = fechada ? openMin : toMin(hc.close);
             return (
-              <div className="ag-col" key={p.id} style={{ position: 'relative' }}>
-                {times.map((t, i) => (
+              <div className={`ag-col${fechada ? ' fechada' : ''}`} key={c.key} style={{ position: 'relative' }}>
+                {times.map((t, i) => {
+                  const tm = openMin + i * STEP;
+                  const fora = fechada || tm < cOpen || tm >= cClose;
                   // Clicar numa hora livre abre a nova marcação já com o
                   // barbeiro e a hora preenchidos. Em modo bloquear, bloqueia.
-                  <div
-                    key={i}
-                    data-hora={t}
-                    className={`ag-slotline ${blockMode ? 'blockable' : (onNovaNaHora ? 'livre' : '')}`}
-                    title={blockMode ? `Bloquear ${t}` : (onNovaNaHora ? `Nova marcação às ${t}` : undefined)}
-                    onClick={blockMode ? () => onBlock(p.id, t) : (onNovaNaHora ? () => onNovaNaHora(p.id, t) : undefined)}
-                  />
-                ))}
-                {(hours.breaks || []).map((b, bi) => {
+                  return (
+                    <div
+                      key={i}
+                      data-hora={t}
+                      className={`ag-slotline ${fora ? 'fora' : blockMode ? 'blockable' : (onNovaNaHora ? 'livre' : '')}`}
+                      title={fora ? undefined : blockMode ? `Bloquear ${t}` : (onNovaNaHora ? `Nova marcação às ${t}` : undefined)}
+                      onClick={fora ? undefined : blockMode ? () => onBlock(p.id, t, '', undefined, c.date) : (onNovaNaHora ? () => onNovaNaHora(p.id, t, c.date) : undefined)}
+                    />
+                  );
+                })}
+                {!fechada && (hc.breaks || []).map((b, bi) => {
                   const bStart = toMin(b.start);
                   const bEnd = toMin(b.end);
                   if (bStart == null || bEnd == null || bEnd <= openMin || bStart >= closeMin) return null;

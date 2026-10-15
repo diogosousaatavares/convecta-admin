@@ -1,3 +1,4 @@
+import Ajuda from '@/components/admin/Ajuda';
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Settings2, Calendar, UserCog, CreditCard, Users, FileText, Shield, Lock, Save } from 'lucide-react';
@@ -150,12 +151,16 @@ const PASSOS_HORA = [
   { v: 30, l: '30 min' }, { v: 45, l: '45 min' }, { v: 60, l: '1 hora' },
 ];
 
-function HorasQueAbrem({ cfg, onGuardar }) {
+export function HorasQueAbrem({ cfg, onGuardar }) {
   const encostado = cfg.slotMode === 'encostado';
   const passo = Number(cfg.slotMinutes) > 0 ? Number(cfg.slotMinutes) : 30;
   return (
     <Card className="card-pad def-ag-caixa">
-      <h3>Horas</h3>
+      <h3>Como abrem as horas <Ajuda titulo="Como abrem as horas" texto={<>
+        <p><b>Horas certas</b> — a agenda abre vagas sempre às mesmas horas. De 30 em 30: 09:00, 09:30, 10:00. De hora em hora: 09:00, 10:00, 11:00. É fácil de decorar, mas um corte de 45 min deixa 15 min a sobrar.</p>
+        <p><b>Encostado</b> — a vaga seguinte começa onde a anterior acabou. Um corte de 45 min às 09:00 abre a seguinte às 09:45. Não sobram bocados, mas as horas ficam «tortas».</p>
+        <p>Isto é o que o cliente vê na app quando escolhe a hora, e o que tu vês aqui na grelha.</p>
+      </>} /></h3>
       <div className="def-ag-seg">
         <button type="button" className={!encostado ? 'on' : ''} onClick={() => onGuardar({ slotMode: 'grelha' })}>Horas certas</button>
         <button type="button" className={encostado ? 'on' : ''} onClick={() => onGuardar({ slotMode: 'encostado' })}>Encostado</button>
@@ -184,11 +189,14 @@ const HORIZONTES = [
   { v: 60, l: '2 meses' }, { v: 90, l: '3 meses' },
 ];
 
-function AteQuandoSePodeMarcar({ cfg, onGuardar }) {
+export function AteQuandoSePodeMarcar({ cfg, onGuardar }) {
   const dias = Number(cfg.horizonDays) > 0 ? Number(cfg.horizonDays) : 60;
   return (
     <Card className="card-pad def-ag-caixa">
-      <h3>Até quando o cliente pode marcar</h3>
+      <h3>Até quando o cliente pode marcar <Ajuda titulo="Até quando o cliente pode marcar" texto={<>
+        <p>Quantos dias para a frente o cliente vê na app. Com «2 meses», hoje consegue marcar até daqui a dois meses; mais longe, não aparece.</p>
+        <p>Pouco tempo deixa de fora quem marca o corte do mês seguinte; muito tempo enche a agenda de marcações distantes que depois mudam.</p>
+      </>} /></h3>
       <div className="def-ag-chips">
         {HORIZONTES.map(h => (
           <button key={h.v} type="button" className={`chip${dias === h.v ? ' active' : ''}`} onClick={() => onGuardar({ horizonDays: h.v })}>{h.l}</button>
@@ -219,7 +227,7 @@ const DIAS_DA_SEMANA = [
   { v: 'sunday',    l: 'Domingo' },
 ];
 
-function DiasQueFogemARegra({ cfg, onGuardar }) {
+export function DiasQueFogemARegra({ cfg, onGuardar }) {
   const porDia = cfg.porDia || {};
   const base = cfg.slotMode === 'encostado'
     ? 'encostado'
@@ -246,7 +254,9 @@ function DiasQueFogemARegra({ cfg, onGuardar }) {
   return (
     <Card className="card-pad def-ag-caixa">
       <button type="button" className="def-ag-abrir" onClick={() => setAberto(v => !v)} aria-expanded={aberto}>
-        <h3>Dias diferentes{comExcecao ? ` · ${comExcecao}` : ''}</h3>
+        <h3>Dias diferentes{comExcecao ? ` · ${comExcecao}` : ''} <Ajuda titulo="Dias diferentes" texto={<>
+          <p>Um dia da semana com outro ritmo. Segunda é calma e queres de hora em hora; sábado está cheio e queres de 30 em 30. Os dias que não mexeres seguem a regra de cima.</p>
+        </>} /></h3>
         <span>{aberto ? '−' : '+'}</span>
       </button>
       {aberto && (
@@ -272,7 +282,7 @@ function DiasQueFogemARegra({ cfg, onGuardar }) {
   );
 }
 
-const CSS_DEF_AG = `
+export const CSS_DEF_AG = `
 .def-ag { display: flex; flex-direction: column; gap: 12px; max-width: 560px; }
 .def-ag-caixa h3 { font-size: 18px; margin: 0 0 12px; }
 .def-ag-seg { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; gap: 4px; border-radius: 12px; background: var(--elevated); border: 1px solid var(--border); }

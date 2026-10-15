@@ -3018,3 +3018,27 @@ body { font-variant-numeric: lining-nums; }
 }
 .h1-com-ajuda { display: flex; align-items: center; gap: 6px; }
 .page-head h1 + .ajuda-btn, .h1-com-ajuda .ajuda-btn { margin-left: 2px; }
+
+/* ── Agenda: vistas, filtro e mês (15/10/2026, à Fresha) ──────────────── */
+.ag-filtro { display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 14px; }
+.ag-head-pro.hoje { color: var(--gold-tinta, var(--gold)); }
+.ag-head-sub { display: block; font-size: 12px; font-weight: 500; color: var(--text-sec); }
+.ag-col.fechada { background: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(120,120,120,.06) 6px, rgba(120,120,120,.06) 12px); }
+.ag-slotline.fora { background: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(120,120,120,.06) 6px, rgba(120,120,120,.06) 12px); cursor: default; }
+.ag-mes { border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); overflow: hidden; }
+.ag-mes-cab { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--elevated); border-bottom: 1px solid var(--border); }
+.ag-mes-cab div { padding: 10px 8px; font-size: 13px; font-weight: 700; color: var(--text-sec); text-transform: uppercase; letter-spacing: .04em; text-align: center; }
+.ag-mes-grelha { display: grid; grid-template-columns: repeat(7, 1fr); }
+.ag-mes-dia { min-height: 108px; padding: 8px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: none; border-top: 0; border-left: 0; text-align: left; cursor: pointer; font: inherit; color: var(--text); display: flex; flex-direction: column; gap: 3px; align-items: stretch; min-width: 0; }
+.ag-mes-dia:nth-child(7n) { border-right: 0; }
+.ag-mes-dia:hover { background: var(--elevated); }
+.ag-mes-dia.fora { opacity: .4; }
+.ag-mes-dia.sel { background: rgba(var(--gold-rgb), .08); }
+.ag-mes-n { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+.ag-mes-dia.hoje .ag-mes-n { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: var(--on-gold, #111); }
+.ag-mes-m { font-size: 12px; padding: 2px 6px; border-radius: 5px; background: rgba(var(--gold-rgb), .14); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ag-mes-m.pending { background: rgba(245, 158, 11, .18); }
+.ag-mes-mais { font-size: 12px; color: var(--text-sec); font-weight: 600; }
+@media (max-width: 767px) { .ag-mes-dia { min-height: 64px; padding: 5px; } .ag-mes-m { display: none; } .ag-mes-mais { display: block; } }
+.ag-mes-conta { display: none; }
+@media (max-width: 767px) { .ag-mes-mais { display: none; } .ag-mes-conta { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: rgba(var(--gold-rgb), .18); font-size: 12px; font-weight: 700; } }
