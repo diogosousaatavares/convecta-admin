@@ -1,3 +1,4 @@
+import { FormDefinicoesAgenda } from '@/components/admin/DefinicoesDaAgenda';
 import Ajuda from '@/components/admin/Ajuda';
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -61,11 +62,9 @@ export default function Definicoes() {
         antes — uma definicao que nao faz nada e pior do que nao existir.
       */}
       {section === 'agenda' && (
-        <div className="def-ag">
-          <style dangerouslySetInnerHTML={{ __html: CSS_DEF_AG }} />
-          <HorasQueAbrem cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
-          <AteQuandoSePodeMarcar cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
-          <DiasQueFogemARegra cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
+        <div style={{ maxWidth: 560 }}>
+          {/* O mesmo formulário da engrenagem da agenda (15/10/2026). */}
+          <FormDefinicoesAgenda cfg={cfg.agenda || {}} onGuardar={saveAgenda} />
         </div>
       )}
 

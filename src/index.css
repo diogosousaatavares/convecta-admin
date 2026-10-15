@@ -3042,3 +3042,10 @@ body { font-variant-numeric: lining-nums; }
 @media (max-width: 767px) { .ag-mes-dia { min-height: 64px; padding: 5px; } .ag-mes-m { display: none; } .ag-mes-mais { display: block; } }
 .ag-mes-conta { display: none; }
 @media (max-width: 767px) { .ag-mes-mais { display: none; } .ag-mes-conta { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: rgba(var(--gold-rgb), .18); font-size: 12px; font-weight: 700; } }
+/* Definições da agenda: linhas, mosaicos, selects à direita. */
+.dfa .prod-sec { margin-top: 22px; }
+.dfa .prod-sec:first-child { margin-top: 0; }
+.dfa .tipo-opcoes { margin-bottom: 4px; }
+.dfa .nt-row { padding: 12px 0; }
+.dfa-sel { width: auto; min-width: 150px; max-width: 55%; }
+.dfa-dia { padding: 8px 0 !important; border-bottom: 0 !important; }
