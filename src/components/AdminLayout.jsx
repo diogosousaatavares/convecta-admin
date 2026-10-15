@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import MbIcon from '@/components/MbIcon';
 /* Os icones dos oito grupos antigos sairam com eles: com cinco entradas, os
    icones usados sao cinco. */
-import { ArrowLeft, MoreHorizontal, LayoutDashboard, CalendarDays, Users, Star, Menu, LogOut, ChevronDown, Search, HelpCircle, Phone, Mail, Send,
+import { Bell, ArrowLeft, MoreHorizontal, LayoutDashboard, CalendarDays, Users, Star, Menu, LogOut, ChevronDown, Search, HelpCircle, Phone, Mail, Send,
   ListChecks, FileText, Clock, PlusSquare, Ban, Receipt, Wallet, ClipboardList, CreditCard, ArrowDownCircle, ArrowUpCircle, Percent, PiggyBank,
   Cake, Package, Scissors, Tags, Layers, Repeat, Boxes, ArrowLeftRight, Truck, Megaphone, Globe, Heart, Ticket, Instagram, UserCog, UsersRound,
   CalendarRange, Palmtree, TrendingUp, BarChart3, Settings, Gem } from 'lucide-react';
