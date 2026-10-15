@@ -94,6 +94,15 @@ export const TIPOS = {
     oPro: 'o salão', OPro: 'O salão', doPro: 'do salão', aoPro: 'ao salão',
     ...SESSAO,
   },
+  // Clínicas (15/10/2026): o primeiro foi uma clínica de próteses capilares
+  // (Diogo, Founder). Só se escolhe no super admin — não aparece no site.
+  clinica: {
+    id: 'clinica', nome: 'Clínica', curto: 'Clínica',
+    ...fem('clínica', 'Clínica'),
+    pro: 'especialista', pros: 'especialistas', Pro: 'Especialista', Pros: 'Especialistas',
+    oPro: 'a clínica', OPro: 'A clínica', doPro: 'da clínica', aoPro: 'à clínica',
+    ...SESSAO,
+  },
   // Dois tipos no mesmo espaço. As palavras neutras, para quando ainda não
   // se escolheu um lado (o resumo, as definições, a subscrição).
   misto: {
@@ -108,7 +117,7 @@ export const TIPOS = {
 /** Os tipos puros — os que podem ser um lado de um espaço misto. */
 export const LISTA_TIPOS = ['barbearia', 'cabeleireiro', 'unhas', 'estetica']
 /** Os tipos todos, para escolher (super admin, /comecar, definições). */
-export const LISTA_TIPOS_TODOS = [...LISTA_TIPOS, 'misto']
+export const LISTA_TIPOS_TODOS = [...LISTA_TIPOS, 'clinica', 'misto']
 
 let _tipo = 'barbearia'
 let _lados = []

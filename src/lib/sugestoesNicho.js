@@ -31,6 +31,12 @@ export const SERVICOS_SUGERIDOS = {
     { name: 'Design de sobrancelhas', durationMinutes: 20, price: 8 },
     { name: 'Extensão de pestanas', durationMinutes: 90, price: 45 },
   ],
+  clinica: [
+    { name: 'Avaliação gratuita · presencial', durationMinutes: 30, price: 0 },
+    { name: 'Avaliação gratuita · videochamada', durationMinutes: 30, price: 0 },
+    { name: 'Aplicação de prótese capilar', durationMinutes: 120, price: 390 },
+    { name: 'Manutenção de prótese', durationMinutes: 60, price: 30 },
+  ],
   estetica: [
     { name: 'Limpeza de pele', durationMinutes: 60, price: 35 },
     { name: 'Tratamento facial', durationMinutes: 60, price: 45 },
@@ -50,6 +56,8 @@ export const CORES_SUGERIDAS = {
     text: '#2A211C', textSec: '#6E625A', border: '#E7DED7' },
   unhas: { bg: '#FDF7F8', surface: '#FFFFFF', elevated: '#F7EBEE', gold: '#B4486D',
     text: '#2B1E23', textSec: '#75636A', border: '#EED9DF' },
+  clinica: { bg: '#F6F8FA', surface: '#FFFFFF', elevated: '#EBF0F4', gold: '#2F6F8F',
+    text: '#1B2530', textSec: '#5B6875', border: '#DCE3EA' },
   estetica: { bg: '#F7F8F6', surface: '#FFFFFF', elevated: '#ECEFEA', gold: '#5E7D66',
     text: '#1F2621', textSec: '#5E6A61', border: '#DDE3DC' },
 }
