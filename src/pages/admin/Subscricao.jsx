@@ -369,6 +369,24 @@ export default function Subscricao() {
     }
   };
 
+  /*
+   * A PRIMEIRA ENTRADA ABRE O STRIPE SOZINHA (15/10/2026, pedido do Diogo).
+   * Quem acabou de criar a conta no site não tem de carregar em nada: a
+   * página abre e, um segundo depois, vai para o pagamento. Só uma vez — a
+   * marca apaga-se antes de ir, para quem volte do Stripe sem acabar não
+   * ficar a andar à roda.
+   */
+  useEffect(() => {
+    const semCartao = !sub || sub.estado === 'sem_cartao' || sub.estado === 'cancelada';
+    if (aCarregar || !semCartao || !precoDaCasa || aAbrir) return;
+    let primeira = false;
+    try { primeira = sessionStorage.getItem('convecta_primeira_entrada') === '1'; sessionStorage.removeItem('convecta_primeira_entrada'); } catch { /* nada */ }
+    if (!primeira) return;
+    const t = setTimeout(() => assinar(precoDaCasa, true), 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aCarregar, sub, precoDaCasa]);
+
   const abrirPortal = async () => {
     setAAbrir('portal');
     try {
@@ -590,7 +608,7 @@ export default function Subscricao() {
               <div className="sub-pill"><Gift size={13} style={{ color: 'var(--gold-tinta)' }} /> 14 dias grátis</div>
             </div>
             <h2 className="sub-hero-h1">{sub?.estado === 'cancelada' ? 'Reactiva a tua conta' : 'Activa a tua conta'}</h2>
-            <p className="sub-hero-sub">Adiciona o teu cartão para começares a receber marcações.</p>
+            <p className="sub-hero-sub">Pedimos o cartão para a conta ser de uma pessoa real. Hoje não pagas nada e cancelas quando quiseres.</p>
             <Cartoes />
             <div className="sub-linhas">
               <div className="sub-linha"><i><Zap size={18} /></i><b>Em menos de 2 minutos</b></div>

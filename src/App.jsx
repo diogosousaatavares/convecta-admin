@@ -117,9 +117,11 @@ function AdminRoute({ children }) {
    * para a subscrição, que é onde isso se resolve. Mandá-lo outra vez para o
    * guia era pô-lo a andar à roda.
    */
+  /* 15/10/2026, pedido do Diogo: sem cartão vai-se direto à subscrição,
+     que abre o Stripe sozinha. O Arranque continua a existir (/admin/arranque)
+     mas deixa de ser a porta de entrada. */
   if (portao === 'fechado' && !abertaSemCartao(location.pathname)) {
-    const jaFezOArranque = store?.business?.arranque?.feito === true;
-    return <Navigate to={jaFezOArranque ? '/admin/subscricao' : '/admin/arranque'} replace />;
+    return <Navigate to="/admin/subscricao" replace />;
   }
   // Tirar do menu nao chega: um atalho guardado ou um endereco escrito a mao
   // continuava a abrir o modulo. A lista esta em lib/modulos.js.

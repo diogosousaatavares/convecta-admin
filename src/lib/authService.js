@@ -42,7 +42,11 @@ async function _nascerSePreciso(user) {
     console.error('[auth] registar-barbearia:', motivo || error.message);
     return motivo || `Não foi possível criar ${nicho().tua}. Tenta outra vez daqui a um minuto.`;
   }
-  if (data?.business_id) console.info('[auth] barbearia criada à primeira entrada:', data.slug);
+  if (data?.business_id) {
+    console.info('[auth] barbearia criada à primeira entrada:', data.slug);
+    // A subscrição lê isto UMA vez e abre o Stripe sozinha (15/10/2026).
+    try { sessionStorage.setItem('convecta_primeira_entrada', '1'); } catch { /* sem memória */ }
+  }
   return '';
 }
 
