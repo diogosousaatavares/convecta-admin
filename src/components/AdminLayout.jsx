@@ -353,7 +353,9 @@ function Trilho({ grupos, isActive, onApoio, onSair }) {
       {g && (
         <div className="trilho-lista" role="menu" aria-label={g.label}>
           <div className="trilho-lista-h">{g.label}</div>
-          {g.to && <Link to={g.to} className={`trilho-item${location.pathname === g.to ? ' on' : ''}`}>Ver tudo</Link>}
+          {/* «Ver tudo» só quando a secção tem página própria que não é já
+              um dos itens (senão ficavam duas linhas acesas: Clientes e Clientes). */}
+          {g.to && !g.items.some(it => it.to === g.to) && <Link to={g.to} className={`trilho-item${location.pathname === g.to ? ' on' : ''}`}>Ver tudo</Link>}
           {g.items.map(it => (
             <Link key={it.to} to={it.to} className={`trilho-item${isActive(it) ? ' on' : ''}`} role="menuitem">{it.label}</Link>
           ))}
