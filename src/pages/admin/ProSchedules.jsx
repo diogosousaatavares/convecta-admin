@@ -56,7 +56,6 @@ export default function ProSchedules() {
               {h.isOpen && breaks.length > 0 && <div style={{ marginTop: 10, paddingLeft: 126, display: 'flex', flexDirection: 'column', gap: 6 }}>{breaks.map((b, idx) => <div key={idx} className="flex items-center gap-8"><span className="text-sec text-xs" style={{ width: 80 }}>{idx === 0 ? 'Pausa almoço' : `Pausa ${idx + 1}`}</span><input className="input" type="time" disabled={!isCustom} value={b.start} onChange={e => updateBreak(day, idx, 'start', e.target.value)} style={{ width: 100 }} /><span className="text-sec">—</span><input className="input" type="time" disabled={!isCustom} value={b.end} onChange={e => updateBreak(day, idx, 'end', e.target.value)} style={{ width: 100 }} />{isCustom && <button onClick={() => removeBreak(day, idx)} aria-label="Remover pausa" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--error)', display: 'flex', padding: 4 }}><X size={13} /></button>}</div>)}</div>}
             </div>;
           })}
-          <div className="mt-16 text-sec text-sm flex items-center gap-8"><Clock size={14} /> Cada alteração fica gravada logo.</div>
         </Card>
       </>}
     </AdminPage>

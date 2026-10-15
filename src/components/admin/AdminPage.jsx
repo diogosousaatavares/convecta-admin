@@ -25,7 +25,7 @@ export default function AdminPage({ title, subtitle, actions, children, info, pa
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <h1>{title}</h1>
-              {info && <PageInfo {...info} />}
+              <PageInfo />
             </div>
             {/*
                 O subtitulo deixou de se desenhar a 28/09/2026.
@@ -42,7 +42,6 @@ export default function AdminPage({ title, subtitle, actions, children, info, pa
           </div>
         </div>
       </div>
-      <PageInfo page={page || PAGE_BY_TITLE[title]} />
       {/* As paginas irmas desta area, quando as ha. Ver o componente. */}
       <SeparadoresDaFamilia />
       {children}

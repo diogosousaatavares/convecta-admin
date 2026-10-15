@@ -23,9 +23,8 @@ export default function Settings() {
     <AdminLayout>
       <SeparadoresDaFamilia />
       <div className="page-head">
-        <h1>Definições gerais</h1>
+        <div className="h1-com-ajuda"><h1>Definições</h1><PageInfo /></div>
       </div>
-      <PageInfo page="definicoesNegocio" />
 
       <Card className="card-pad mb-24">
         <h3 style={{ fontSize: 18, marginBottom: 20 }}>Identidade</h3>

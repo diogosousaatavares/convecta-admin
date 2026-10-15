@@ -140,7 +140,7 @@ export default function AdminAppointments() {
       <div className="page-head">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h1>Marcações</h1>
+            <div className="h1-com-ajuda"><h1>Marcações</h1><PageInfo /></div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <BotaoAtualizar />
@@ -150,7 +150,6 @@ export default function AdminAppointments() {
       </div>
 
       <InterruptorAutomatico />
-      <PageInfo page="marcacoes" />
 
       <div className="chip-row">
         {SCOPES.map(s => (

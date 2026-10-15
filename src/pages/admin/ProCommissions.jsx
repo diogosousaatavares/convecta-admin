@@ -17,7 +17,6 @@ export default function ProCommissions() {
         </div>
         <p>Comissões por profissional (mesmo cálculo do Financeiro).</p>
       </div>
-      <PageInfo page="comissoesPro" />
       <Comissoes />
     </AdminLayout>
   );

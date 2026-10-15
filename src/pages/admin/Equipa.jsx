@@ -1,3 +1,4 @@
+import PageInfo from '@/components/admin/PageInfo';
 import React, { useMemo, useState } from 'react';
 import { Users, ShieldCheck, ShieldOff, Eye, EyeOff, Pencil, Crown, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -82,7 +83,7 @@ export default function Equipa() {
   return (
     <AdminLayout>
       <div className="page-head">
-        <h1 className="so-pc" style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Users size={22} /> Equipa</h1>
+        <div className="h1-com-ajuda"><h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>Acessos</h1><PageInfo /></div>
       </div>
 
       <SugestaoSegundoTipo />

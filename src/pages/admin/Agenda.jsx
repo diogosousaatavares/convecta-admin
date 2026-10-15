@@ -435,7 +435,6 @@ export default function Agenda() {
         </div>
         <p>Gere marcações, disponibilidade e encaixes.</p>
       </div>
-      <PageInfo page="agenda" />
 
       {/* Antes da agenda, de propósito: um pedido de orçamento é uma pessoa
           à espera de uma chamada, e isso vem antes de arrumar o dia. */}

@@ -123,11 +123,10 @@ export default function Cash() {
     <AdminLayout>
       <div className="page-head" data-tour="caixa">
         <div className="flex justify-between items-center" style={{ flexWrap: 'wrap', gap: 12 }}>
-          <div><h1>Caixa e pagamentos</h1></div>
+          <div className="h1-com-ajuda"><h1>Caixa e pagamentos</h1><PageInfo /></div>
           {session && <Badge variant="success">Caixa aberta · {new Date(session.openedAt).toLocaleTimeString('pt-PT').slice(0, 5)}</Badge>}
         </div>
       </div>
-      <PageInfo page="caixa" />
 
       {!session ? (
         <Card className="card-pad">

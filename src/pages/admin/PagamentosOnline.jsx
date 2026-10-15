@@ -1,3 +1,4 @@
+import Ajuda from '@/components/admin/Ajuda';
 import React, { useEffect, useState } from 'react';
 import { CreditCard, Check, ExternalLink } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
@@ -162,9 +163,7 @@ export default function PagamentosOnline() {
               )}
             </div>
             {estado?.ligado && (
-              <div className="text-sec text-xs" style={{ marginTop: 10, lineHeight: 1.55 }}>
-                Para aceitar MB WAY: no teu Stripe, Definições › Métodos de pagamento › ligar o MB WAY.
-              </div>
+              <div style={{ marginTop: 8 }}><span className="text-sec text-sm">MB WAY</span> <Ajuda titulo="Aceitar MB WAY" texto={<p>No teu Stripe: Definições › Métodos de pagamento › ligar o MB WAY. A partir daí o cliente também vê MB WAY ao pagar.</p>} /></div>
             )}
           </div>
         </div>
@@ -172,7 +171,6 @@ export default function PagamentosOnline() {
 
       <Card className="card-pad" style={{ marginBottom: 16, opacity: ativo ? 1 : 0.55 }}>
         <div className="fw-600" style={{ fontSize: 16, marginBottom: 4 }}>{ativo ? 'O que o cliente paga ao marcar' : '2. O que o cliente paga ao marcar'}</div>
-        {!ativo && <div className="text-sec text-sm" style={{ marginBottom: 6 }}>Fica disponível quando os pagamentos estiverem ligados.</div>}
         <div style={{ pointerEvents: ativo ? 'auto' : 'none' }}>
           {opcao('nada', 'Nada', 'O cliente paga na loja, como hoje.')}
           {opcao('metade', 'Metade', 'Paga metade ao marcar e o resto na loja. Acaba com as faltas.')}
@@ -180,7 +178,6 @@ export default function PagamentosOnline() {
           {modo !== 'nada' && servicosPagaveis.length > 0 && (
             <div style={{ marginTop: 16 }}>
               <div className="fw-600" style={{ marginBottom: 2 }}>Em que serviços?</div>
-              <div className="text-sec text-sm" style={{ marginBottom: 6 }}>Os que não marcares pagam-se na loja.</div>
               {servicosPagaveis.map(s => (
                 <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderTop: '1px solid var(--border)', cursor: 'pointer' }}>
                   <input type="checkbox" checked={marcado(s.id)} onChange={() => alternar(s.id)} style={{ width: 18, height: 18, accentColor: 'var(--gold)' }} />

@@ -133,7 +133,6 @@ export default function Inventory() {
         </div>
         <p>Gestão de produtos e consumíveis</p>
       </div>
-      <PageInfo page="produtos" />
 
       <div className="kpi-grid so-pc">
         <Card className="kpi"><Package className="icon" size={22} /><div className="label">Produtos</div><div className="value">{data.products.length}</div></Card>

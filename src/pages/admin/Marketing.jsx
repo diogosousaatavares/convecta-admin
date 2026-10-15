@@ -47,9 +47,8 @@ export default function Marketing() {
     <AdminLayout>
       <SeparadoresDaFamilia />
       <div className="page-head">
-        <h1>Marketing &amp; Promoções</h1>
+        <div className="h1-com-ajuda"><h1>Promoções</h1><PageInfo /></div>
       </div>
-      <PageInfo page="promocoes" />
 
       <div className="kpi-grid">
         <Card className="kpi"><Megaphone className="icon" size={22} /><div className="label">Campanhas ativas</div><div className="value">{data.promotions.filter(p => p.active).length}</div></Card>

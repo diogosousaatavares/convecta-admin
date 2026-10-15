@@ -1,3 +1,4 @@
+import PageInfo from '@/components/admin/PageInfo';
 import React, { useEffect, useState } from 'react';
 import { Clock, Plus, X } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
@@ -69,7 +70,7 @@ export default function Hours() {
   return (
     <AdminLayout>
       <div className="page-head" data-tour="horarios">
-        <h1>Horário de funcionamento</h1>
+        <div className="h1-com-ajuda"><h1>Horário</h1><PageInfo /></div>
       </div>
 
       <Card className="card-pad" data-tour="horarios-lista">

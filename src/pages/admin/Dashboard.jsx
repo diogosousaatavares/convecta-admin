@@ -194,7 +194,7 @@ export default function Dashboard() {
           {/* Saiu a saudacao («Ola, Diogo») e a linha das datas por baixo do
               titulo: a saudacao nao e informacao, e as datas ja estao nos
               botoes Hoje/Semana/Mes que estao ao lado. */}
-          <h1 style={{ margin: 0 }}>Resumo</h1>
+          <div className="h1-com-ajuda"><h1 style={{ margin: 0 }}>Início</h1><PageInfo /></div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <BotaoAtualizar />
           <div className="period-tabs">

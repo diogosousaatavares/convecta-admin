@@ -1,3 +1,4 @@
+import PageInfo from '@/components/admin/PageInfo';
 import React, { useState, useMemo } from 'react';
 import { Star, Trash2, Eye, EyeOff, MessageSquare } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
@@ -41,7 +42,7 @@ export default function Reviews() {
   return (
     <AdminLayout>
       <div className="page-head">
-        <h1>Avaliações</h1>
+        <div className="h1-com-ajuda"><h1>Avaliações</h1><PageInfo /></div>
       </div>
 
       <div className="kpi-grid">

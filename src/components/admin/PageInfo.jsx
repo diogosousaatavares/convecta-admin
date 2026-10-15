@@ -1,21 +1,22 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
+import Ajuda from '@/components/admin/Ajuda';
+import { ajudaDe } from '@/lib/ajudaPaginas';
 
 /*
- * As caixas amarelas de explicacao — tiradas a 28/09/2026, a pedido do Diogo.
+ * O (i) DA PÁGINA (15/10/2026).
  *
- * Apareciam no topo de quase todas as paginas, com tres linhas a explicar
- * para que servia aquele ecra e um "Ligado a: ..." com os modulos
- * relacionados. Eram texto escrito para quem construiu o painel, nao para
- * quem o usa: um barbeiro que abre a Caixa quer abrir a caixa, nao ler um
- * paragrafo sobre fundo de maneio.
+ * As caixas amarelas de explicação saíram a 28/09 — eram texto para quem
+ * construiu o painel. Isto é o contrário: um (i) ao lado do título que abre,
+ * numa janela, três frases escritas para o barbeiro (src/lib/ajudaPaginas.js).
+ * Sem texto na página; a ajuda está a um toque para quem a quiser.
  *
- * O componente fica — com o nome e a assinatura de sempre — porque e
- * chamado em dezenas de paginas. Passa a nao desenhar nada. Assim nao ha
- * dezenas de ficheiros a mexer nem imports a partir, e se um dia se quiser
- * uma ajuda a serio (uma so frase, atras de um "?"), e aqui que se faz.
- *
- * O texto antigo esta no historico do git, no commit que o tirou.
+ * As props antigas (description, impact, links, page) são aceites e
+ * ignoradas: o texto vem sempre do endereço.
  */
 export default function PageInfo() {
-  return null;
+  const { pathname } = useLocation();
+  const a = ajudaDe(pathname);
+  if (!a) return null;
+  return <Ajuda titulo={a.titulo} texto={a.texto.split('\n\n').map((p, i) => <p key={i}>{p}</p>)} />;
 }

@@ -136,7 +136,6 @@ export default function Reports() {
           <button key={p.key} className={`chip ${period === p.key ? 'active' : ''}`} onClick={() => setPeriod(p.key)}>{p.label}</button>
         ))}
       </div>
-      <PageInfo page="relatorios" />
 
       <div style={{ marginBottom: 20 }}>
         <RelatorioContabilista />

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
+import Ajuda from '@/components/admin/Ajuda';
 import { Card, Badge, Button, EmptyState, Modal } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
@@ -127,7 +128,6 @@ export default function Services() {
         </div>
         <Button variant="primary" onClick={() => openNew()}><Plus size={16} /> Novo serviço</Button>
       </div>
-      <PageInfo page="servicos" />
 
       {data.services.filter(s => !s.extra).length === 0 ? (
         <Card className="card-pad"><EmptyState icon={() => <Scissors />} title="Sem serviços" action={<Button variant="primary" onClick={() => openNew()}>Criar serviço</Button>} /></Card>
@@ -174,16 +174,14 @@ export default function Services() {
             <div className="flex items-center gap-8">
               <h2 style={{ fontSize: 15, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--text-sec)', margin: 0 }}>Extras</h2>
               <span className="text-sec text-xs">{extras.length}</span>
+              <Ajuda titulo="Extras" texto={<><p>Coisas que se juntam a um serviço sem ocupar mais tempo na agenda: uma lavagem, um pezinho, uma cera.</p><p>O cliente vê-os ao marcar, em «Queres juntar?», e o preço soma-se ao serviço.</p></>} />
             </div>
-            <p className="text-sec text-sm" style={{ margin: '4px 0 0' }}>Não ocupam tempo. O cliente junta-os ao marcar.</p>
           </div>
           <Button variant="secondary" onClick={() => openNew(true)}><Plus size={16} /> Novo extra</Button>
         </div>
         {extras.length === 0 ? (
           <Card className="card-pad">
-            <p className="text-sec text-sm" style={{ margin: 0, lineHeight: 1.6 }}>
-              Ainda não tens extras. Uma lavagem, um pezinho, uma cera — o que se junta a {nicho().umUn} sem ocupar mais tempo.
-            </p>
+            <p className="text-sec" style={{ margin: 0 }}>Sem extras.</p>
           </Card>
         ) : (
           <div className="grid-2">

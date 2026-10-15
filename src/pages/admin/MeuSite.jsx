@@ -1,3 +1,4 @@
+import PageInfo from '@/components/admin/PageInfo';
 import React, { useState, useEffect, useRef } from 'react';
 import { Image as ImagemIco, Sparkles, Palette, Waves, Type, LayoutList, Images, LayoutTemplate } from 'lucide-react';
 import AdminLayout from '@/components/AdminLayout';
@@ -1704,7 +1705,7 @@ export default function MeuSite() {
   return (
     <AdminLayout>
       <div className="page-head">
-        <h1>O Meu Site</h1>
+        <div className="h1-com-ajuda"><h1>O meu site</h1><PageInfo /></div>
       </div>
       {/* O DesignTab guarda e mantem o seu proprio estado; nao ha nada para
           recarregar aqui. Fica a funcao porque e o contrato do componente. */}
