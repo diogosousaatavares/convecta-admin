@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
+import TutorialAgenda, { jaViuTutorialAgenda } from '@/components/admin/TutorialAgenda';
 import { useIsMobile } from '@/hooks/use-mobile';
 import AdminLayout from '@/components/AdminLayout';
 import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
@@ -55,6 +56,7 @@ function rotuloEstado(a) {
 // Dois clientes (ou barbeiros) com o mesmo nome apareciam iguais na lista.
 // Quando o nome se repete, junta-se o telefone/email (ou a função).
 export default function Agenda() {
+  const [tutorial, setTutorial] = useState(() => !jaViuTutorialAgenda());
   const data = useStore();
   const telemovel = useIsMobile();
   const toast = useToast();
@@ -492,6 +494,8 @@ export default function Agenda() {
       {/* So no telemovel: o calendario do mes fica escondido e entra a faixa. */}
       <FaixaDias date={date} setDate={setDate} apptsByDate={apptsByDate} blockMode={blockMode} setBlockMode={setBlockMode} />
 
+      {/* O tutorial dos três gestos, uma vez, na primeira abertura (15/10/2026). */}
+      {tutorial && <TutorialAgenda aoTerminar={() => setTutorial(false)} />}
       <div className="agenda-wrap" data-tour="agenda">
         <div>
           {mode === 'grid' && (

@@ -4,7 +4,10 @@ import { createPortal } from 'react-dom';
 import MbIcon from '@/components/MbIcon';
 /* Os icones dos oito grupos antigos sairam com eles: com cinco entradas, os
    icones usados sao cinco. */
-import { ArrowLeft, MoreHorizontal, LayoutDashboard, CalendarDays, Users, Star, Menu, LogOut, ChevronDown, Search, HelpCircle, Phone, Mail, Send } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, LayoutDashboard, CalendarDays, Users, Star, Menu, LogOut, ChevronDown, Search, HelpCircle, Phone, Mail, Send,
+  ListChecks, FileText, Clock, PlusSquare, Ban, Receipt, Wallet, ClipboardList, CreditCard, ArrowDownCircle, ArrowUpCircle, Percent, PiggyBank,
+  Cake, Package, Scissors, Tags, Layers, Repeat, Boxes, ArrowLeftRight, Truck, Megaphone, Globe, Heart, Ticket, Instagram, UserCog, UsersRound,
+  CalendarRange, Palmtree, TrendingUp, BarChart3, Settings, Gem } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
@@ -53,101 +56,82 @@ import { useGrupo, mudarDeNegocio } from '@/lib/grupo';
 
 const GROUPS_TODOS = [
   /*
-   * CINCO ENTRADAS. Eram oito; antes disso, treze com 63 destinos por baixo.
+   * O MENU (15/10/2026, à Fresha).
    *
-   * O menu passa a ter a mesma forma nos dois sitios: no telemovel e a barra
-   * de baixo, no computador e a barra do lado, e as entradas sao as mesmas.
-   * Quatro sao o trabalho de todos os dias; a quinta e a gaveta.
+   * Oito secções, as mesmas no telemóvel e no computador. Cada secção é
+   * uma caixa com um ícone e duas palavras; dentro, as páginas dela, cada
+   * uma com o seu ícone e UMA frase curta. Nada de textos pequenos a
+   * explicar: o título diz o que é.
    *
-   * Nada foi apagado: todas as paginas existem e todos os enderecos
-   * funcionam. O que mudou foi a arrumacao — e sobretudo quantas decisoes
-   * ele tem de tomar antes de chegar ao que quer.
-   *
-   * Dentro de um grupo, uma linha com `titulo` e um cabecalho e nao se
-   * carrega nela. E o que permite que o «Mais» seja uma gaveta arrumada por
-   * assunto, em vez de vinte e quatro linhas despejadas.
+   * `to` numa secção é a página que abre ao tocar-lhe (a agenda, os
+   * clientes). Sem `to`, abre a página da secção, com as caixas das páginas
+   * dela (/admin/seccao/<id>).
    */
+  { type: 'item', to: '/admin/dashboard', label: 'Início', icon: LayoutDashboard, d: 'Como vai o negócio.' },
 
-  // 1. O dia de trabalho. E aqui que ele vive, e e a porta de entrada.
-  { type: 'group', label: 'Hoje', icon: CalendarDays, items: [
-    { to: '/admin/agenda', label: 'Agenda', exact: true },
-    { to: '/admin/agenda/marcacoes', label: 'Marcações' },
-    // Os servicos sem preco fixo nao passam pela agenda: chegam como pedido.
-    // E trabalho do dia como qualquer outro, e e para aqui que abre o aviso
-    // que lhe toca no telemovel.
-    { to: '/admin/orcamentos', label: 'Orçamentos' },
-    { to: '/admin/agenda/lista-espera', label: 'Lista de espera' },
-    { to: '/admin/agenda/encaixes', label: 'Encaixes' },
-    { to: '/admin/agenda/bloqueios', label: 'Bloqueios' }
+  { type: 'group', id: 'agenda', to: '/admin/agenda', label: 'Agenda', icon: CalendarDays, d: 'As marcações de cada dia.', items: [
+    { to: '/admin/agenda', label: 'Agenda', exact: true, icon: CalendarDays, d: 'O dia, por profissional.' },
+    { to: '/admin/agenda/marcacoes', label: 'Marcações', icon: ListChecks, d: 'Por confirmar e confirmadas.' },
+    { to: '/admin/orcamentos', label: 'Orçamentos', icon: FileText, d: 'Pedidos sem preço fixo.' },
+    { to: '/admin/agenda/lista-espera', label: 'Lista de espera', icon: Clock, d: 'Quem espera por uma vaga.' },
+    { to: '/admin/agenda/encaixes', label: 'Encaixes', icon: PlusSquare, d: 'Marcar entre marcações.' },
+    { to: '/admin/agenda/bloqueios', label: 'Bloqueios', icon: Ban, d: 'Almoço, folgas, ausências.' },
   ]},
 
-  // 2. Como vai o negocio, num ecra so.
-  { type: 'item', to: '/admin/dashboard', label: 'Resumo', icon: LayoutDashboard },
-
-  // 3. Quem paga as contas.
-  { type: 'group', label: 'Clientes', icon: Users, items: [
-    { to: '/admin/clientes', label: 'Clientes', exact: true },
-    { to: '/admin/clientes/aniversarios', label: 'Aniversários' }
+  { type: 'group', id: 'vendas', label: 'Vendas', icon: Receipt, d: 'Caixa, pagamentos e contas.', items: [
+    { to: '/admin/financeiro/caixa', label: 'Caixa e pagamentos', icon: Wallet, d: 'Abrir, fechar e cobrar.' },
+    { to: '/admin/comandas', label: 'Comandas', icon: ClipboardList, d: 'Contas em aberto.' },
+    { to: '/admin/pagamentos-online', label: 'Pagamentos online', icon: CreditCard, d: 'O cliente paga ao marcar.' },
+    { to: '/admin/financeiro/entradas', label: 'Entradas', icon: ArrowDownCircle, d: 'O que entrou.' },
+    { to: '/admin/financeiro/saidas', label: 'Saídas', icon: ArrowUpCircle, d: 'O que saiu.' },
+    { to: '/admin/financeiro/comissoes', label: 'Comissões', icon: Percent, d: 'O que cada um ganhou.' },
+    { to: '/admin/financeiro', label: 'Financeiro', icon: PiggyBank, d: 'Contas e fluxo de caixa.' },
   ]},
 
-  // 4. A nota no Google e o que traz clientes novos: entrada propria.
-  { type: 'item', to: '/admin/avaliacoes', label: 'Avaliações', icon: Star },
+  { type: 'group', id: 'clientes', to: '/admin/clientes', label: 'Clientes', icon: Users, d: 'Quem vem cá.', items: [
+    { to: '/admin/clientes', label: 'Clientes', exact: true, icon: Users, d: 'Fichas e histórico.' },
+    { to: '/admin/clientes/aniversarios', label: 'Aniversários', icon: Cake, d: 'Quem faz anos.' },
+    { to: '/admin/avaliacoes', label: 'Avaliações', icon: Star, d: 'O que dizem de ti.' },
+  ]},
 
-  /*
-   * 5. A GAVETA.
-   *
-   * Tudo o que nao se abre todos os dias — a equipa, o que se vende, a
-   * fidelizacao, o site, as definicoes. Montam-se uma vez e depois mexe-se
-   * neles de mes a mes; nao tem lugar numa barra que serve para trabalhar.
-   */
-  { type: 'group', label: 'Mais', icon: MoreHorizontal, items: [
-    /* «A barbearia» vem primeiro: e a casa dele, e o site e o que ele anda a
-       mostrar e a partilhar. A equipa e o stock vem depois. */
-    { get titulo() { return nicho().A; } },
-    { to: '/admin/o-meu-site', label: 'O meu site' },
-    { to: '/admin/redes-sociais', label: 'Redes sociais' },
-    { to: '/admin/relatorios', label: 'Relatórios' },
-    { to: '/admin/definicoes', label: 'Definições' },
+  { type: 'group', id: 'catalogo', label: 'Catálogo', icon: Package, d: 'O que vendes.', items: [
+    { to: '/admin/servicos', label: 'Serviços', icon: Scissors, d: 'Preços e durações.' },
+    { to: '/admin/servicos/categorias', label: 'Categorias', icon: Tags, d: 'Como se agrupam.' },
+    { to: '/admin/packs', label: 'Packs', icon: Layers, d: 'Vários serviços à cabeça.' },
+    { to: '/admin/agenda/pack', label: 'Pack mensal', icon: Repeat, d: 'Quem vem todos os meses.' },
+    { to: '/admin/produtos', label: 'Produtos', icon: Boxes, d: 'O que está à venda.' },
+    { to: '/admin/produtos/stock', label: 'Stock', icon: Package, d: 'Quanto há de cada um.' },
+    { to: '/admin/produtos/movimentos', label: 'Entradas e saídas', icon: ArrowLeftRight, d: 'Movimentos de stock.' },
+    { to: '/admin/produtos/fornecedores', label: 'Fornecedores', icon: Truck, d: 'A quem compras.' },
+  ]},
 
-    /* O dinheiro do dia-a-dia. As contas, os fluxos e os historicos vivem
-       na pagina do Financeiro, que ja e um indice com separadores. */
-    { titulo: 'Dinheiro' },
-    { to: '/admin/financeiro/caixa', label: 'Caixa e pagamentos' },
-    // O cliente paga ao marcar (13/10/2026).
-    { to: '/admin/pagamentos-online', label: 'Pagamentos online' },
-    { to: '/admin/comandas', label: 'Comandas' },
-    { to: '/admin/financeiro/entradas', label: 'Entradas' },
-    { to: '/admin/financeiro/saidas', label: 'Saídas' },
-    { to: '/admin/financeiro/comissoes', label: 'Comissões' },
-    { to: '/admin/financeiro', label: 'Financeiro' },
+  { type: 'group', id: 'marketing', label: 'Marketing', icon: Megaphone, d: 'Trazer e manter clientes.', items: [
+    { to: '/admin/o-meu-site', label: 'O meu site', icon: Globe, d: 'A tua página de marcações.' },
+    { to: '/admin/fidelizacao', label: 'Cartão de fidelidade', icon: Heart, d: 'Carimbos e prémio.' },
+    { to: '/admin/promocoes', label: 'Promoções e cupões', icon: Ticket, d: 'Descontos com prazo.' },
+    { to: '/admin/redes-sociais', label: 'Redes sociais', icon: Instagram, d: 'Posts e vídeos prontos.' },
+  ]},
 
-    { titulo: 'A equipa' },
-    { to: '/admin/profissionais', label: 'Profissionais' },
-    { to: '/admin/profissionais/equipa', label: 'Equipa' },
-    { to: '/admin/horarios', label: 'Horário' },
-    { to: '/admin/profissionais/horarios', label: 'Horários da equipa' },
-    { to: '/admin/profissionais/ferias', label: 'Férias' },
-    { to: '/admin/profissionais/comissoes', label: 'Comissões' },
-    { to: '/admin/profissionais/desempenho', label: 'Desempenho' },
+  { type: 'group', id: 'equipa', label: 'Equipa', icon: UserCog, d: 'Quem trabalha contigo.', items: [
+    { to: '/admin/profissionais', label: 'Profissionais', icon: UsersRound, d: 'Fichas e fotos.' },
+    { to: '/admin/profissionais/equipa', label: 'Acessos', icon: UserCog, d: 'Quem entra no painel.' },
+    { to: '/admin/horarios', label: 'Horário', icon: Clock, d: 'A que horas abres.' },
+    { to: '/admin/profissionais/horarios', label: 'Horários da equipa', icon: CalendarRange, d: 'Cada um o seu.' },
+    { to: '/admin/profissionais/ferias', label: 'Férias', icon: Palmtree, d: 'Dias fora.' },
+    { to: '/admin/profissionais/comissoes', label: 'Comissões', icon: Percent, d: 'A percentagem de cada um.' },
+    { to: '/admin/profissionais/desempenho', label: 'Desempenho', icon: TrendingUp, d: 'Quem fez o quê.' },
+  ]},
 
-    { titulo: 'O que vendes' },
-    { to: '/admin/servicos', label: 'Serviços' },
-    { to: '/admin/servicos/categorias', label: 'Categorias' },
-    { to: '/admin/produtos', label: 'Produtos' },
-    { to: '/admin/produtos/stock', label: 'Stock' },
-    { to: '/admin/produtos/movimentos', label: 'Entradas e saídas' },
-    { to: '/admin/produtos/fornecedores', label: 'Fornecedores' },
+  { type: 'item', to: '/admin/relatorios', label: 'Relatórios', icon: BarChart3, d: 'Números por mês.' },
 
-    { titulo: 'Fidelizar e vender mais' },
-    { to: '/admin/fidelizacao', label: 'Cartão de fidelidade' },
-    { to: '/admin/packs', label: 'Packs' },
-    { to: '/admin/agenda/pack', label: 'Pack mensal' },
-    { to: '/admin/promocoes', label: 'Promoções e cupões' },
-
-    { titulo: 'A Convecta' },
-    { to: '/admin/subscricao', label: 'A minha subscrição' }
-  ]}
+  { type: 'group', id: 'definicoes', to: '/admin/definicoes', label: 'Definições', icon: Settings, d: 'A conta e o painel.', items: [
+    { to: '/admin/definicoes', label: 'Definições', exact: true, icon: Settings, d: 'Dados, notificações, acessos.' },
+    { to: '/admin/subscricao', label: 'A minha subscrição', icon: Gem, d: 'Plano, extras e faturas.' },
+  ]},
 ];
+
+/** A página de uma secção sem `to`: as caixas das páginas dela. */
+export const caminhoDaSeccao = g => g.to || `/admin/seccao/${g.id}`;
 
 // Os modulos que ainda nao guardam nada nao aparecem no menu. Um grupo que
 // fique sem nenhum item desaparece por inteiro — um cabecalho vazio no menu
@@ -272,6 +256,8 @@ export function gruposPara(demo, profissional) {
  * actual, para que /admin/servicos/categorias de «Serviços» e nao «Mais».
  */
 function tituloDaPagina(pathname) {
+  const sec = pathname.match(/^\/admin\/seccao\/([a-z]+)$/);
+  if (sec) return GROUPS_TODOS.find(g => g.id === sec[1])?.label || '';
   let melhor = null;
   const ve = (it) => {
     if (!it || !it.to) return;
@@ -283,10 +269,10 @@ function tituloDaPagina(pathname) {
 }
 
 const BAIXO = [
-  { to: '/admin/agenda', label: 'Hoje', icon: CalendarDays },
-  { to: '/admin/dashboard', label: 'Resumo', icon: LayoutDashboard },
+  { to: '/admin/agenda', label: 'Agenda', icon: CalendarDays },
+  { to: '/admin/seccao/vendas', label: 'Vendas', icon: Receipt },
   { to: '/admin/clientes', label: 'Clientes', icon: Users },
-  { to: '/admin/avaliacoes', label: 'Avaliações', icon: Star },
+  { to: '/admin/seccao/catalogo', label: 'Catálogo', icon: Package },
 ];
 
 function BarraDeBaixo({ aberto }) {
@@ -494,24 +480,18 @@ export default function AdminLayout({ children }) {
               </Link>
             );
           }
-          const isExp = !!expanded[i];
+          const isExp = !!expanded[i] || g.items.some(it => isActive(it));
           return (
             <div className="nav-group" key={g.label}>
-              <button
-                className={`nav-group-head ${isExp ? 'open' : ''}`}
-                onClick={() => toggle(i)}
-                aria-label={`${isExp ? 'Fechar' : 'Abrir'} menu ${g.label}`}
-                aria-expanded={isExp}
-              >
-                {g.icon ? <g.icon size={15} style={{ color: '#C9A227' }} /> : <span className="chev">»</span>}
+              <Link to={caminhoDaSeccao(g)} className={`nav-group-head ${isExp ? 'open' : ''}`}
+                onClick={() => { setOpen(false); if (!isExp) toggle(i); }} aria-expanded={isExp}>
+                {g.icon ? <g.icon size={17} /> : <span className="chev">»</span>}
                 {g.label}
                 <ChevronDown size={14} className="arrow" />
-              </button>
+              </Link>
               {isExp && (
                 <div className="nav-sub">
-                  {g.items.map(it => it.titulo ? (
-                    <div key={`t-${it.titulo}`} className="nav-sub-titulo">{it.titulo}</div>
-                  ) : (
+                  {g.items.map(it => (
                     <Link key={it.to} to={it.to} className={`nav-sub-item ${isActive(it) ? 'active' : ''}`} onClick={() => setOpen(false)}>
                       <span className="bullet" />
                       {it.label}

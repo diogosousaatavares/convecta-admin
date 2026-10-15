@@ -81,6 +81,7 @@ const TemaPersonalizacao = lazy(() => import('@/pages/admin/TemaPersonalizacao')
 const Arranque = lazy(() => import('@/pages/admin/Arranque'));
 const MeuSite = lazy(() => import('@/pages/admin/MeuSite'));
 const Mais = lazy(() => import('@/pages/admin/Mais'));
+const Seccao = lazy(() => import('@/pages/admin/Seccao'));
 
 const Spinner = () => (
   <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -248,6 +249,7 @@ function AppRoutes() {
         {/* O menu inteiro, num ecra. E a porta de tudo o que nao esta na barra
             de baixo do telemovel. */}
         <Route path="/admin/mais" element={<AdminRoute><Mais /></AdminRoute>} />
+        <Route path="/admin/seccao/:id" element={<AdminRoute><Seccao /></AdminRoute>} />
         <Route path="/admin/definicoes/tema" element={<AdminRoute><TemaPersonalizacao /></AdminRoute>} />
         <Route path="/admin/definicoes/notificacoes" element={<AdminRoute><Notifications /></AdminRoute>} />
         <Route path="/admin/definicoes/:tab" element={<AdminRoute><Definicoes /></AdminRoute>} />

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, HelpCircle, LogOut } from 'lucide-react';
-import AdminLayout, { gruposPara } from '@/components/AdminLayout';
+import AdminLayout, { gruposPara, caminhoDaSeccao } from '@/components/AdminLayout';
+import Caixas, { CSS_CAIXAS } from '@/components/admin/Caixas';
 import { useStore, useAuth } from '@/hooks/useStore';
 import { Avatar } from '@/components/ui';
 import LinkDaBarbearia from '@/components/LinkDaBarbearia';
@@ -37,45 +38,18 @@ export default function Mais() {
   const emDemo = data.business?._settings?.demo?.ativo === true;
   const grupos = gruposPara(emDemo, data.isProfissional);
 
-  /* Cada grupo do menu vira uma secção. Um `item` solto (o Resumo) vira uma
-     secção de uma linha só — ficaria estranho sozinho, por isso junta-se à
-     primeira que vier a seguir. */
-  const seccoes = [];
-  for (const g of grupos) {
-    if (g.type === 'item') {
-      seccoes.push({ titulo: null, linhas: [{ to: g.to, label: g.label }] });
-      continue;
-    }
-    /* Dentro do «Mais» já havia cabeçalhos por assunto: cada um deles vira
-       uma secção própria, em vez de uma lista de vinte e quatro linhas. */
-    let actual = { titulo: g.label, linhas: [] };
-    for (const it of g.items) {
-      if (it.titulo) {
-        if (actual.linhas.length) seccoes.push(actual);
-        actual = { titulo: it.titulo, linhas: [] };
-      } else {
-        actual.linhas.push(it);
-      }
-    }
-    if (actual.linhas.length) seccoes.push(actual);
-  }
-
-  /* «O meu site» logo a seguir ao «Hoje» (12/10/2026, pedido do Diogo): é o
-     que ele mais mostra. Sai da secção da casa para não aparecer duas vezes. */
-  const SITE = '/admin/o-meu-site';
-  const linhaSite = seccoes.flatMap(s => s.linhas).find(l => l.to === SITE);
-  if (linhaSite) {
-    for (const s of seccoes) s.linhas = s.linhas.filter(l => l.to !== SITE);
-    const iHoje = seccoes.findIndex(s => s.titulo === 'Hoje');
-    seccoes.splice(iHoje + 1, 0, { titulo: null, linhas: [linhaSite] });
-    for (let i = seccoes.length - 1; i >= 0; i--) if (!seccoes[i].linhas.length) seccoes.splice(i, 1);
-  }
+  /* As secções do menu, em caixas (15/10/2026, à Fresha). As que estão na
+     barra de baixo não se repetem aqui. */
+  const naBarra = new Set(['/admin/agenda', '/admin/seccao/vendas', '/admin/clientes', '/admin/seccao/catalogo']);
+  const caixas = grupos
+    .map(g => ({ to: g.type === 'group' ? caminhoDaSeccao(g) : g.to, label: g.label, icon: g.icon, d: g.d }))
+    .filter(c => !naBarra.has(c.to));
 
   const nome = data.business?.name || nicho().Casa;
 
   return (
     <AdminLayout>
-      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <style dangerouslySetInnerHTML={{ __html: CSS + CSS_CAIXAS }} />
       <div className="mais">
 
         <header className="mais-topo">
@@ -90,19 +64,7 @@ export default function Mais() {
           <div className="mais-link"><LinkDaBarbearia /></div>
         </header>
 
-        {seccoes.map((s, i) => (
-          <section key={s.titulo || `s${i}`} className="mais-bloco">
-            {s.titulo && <h2 className="mais-h">{s.titulo}</h2>}
-            <div className="mais-caixa">
-              {s.linhas.map(l => (
-                <Link key={l.to} to={l.to} className="mais-linha">
-                  <span>{l.label}</span>
-                  <ChevronRight size={18} />
-                </Link>
-              ))}
-            </div>
-          </section>
-        ))}
+        <section className="mais-bloco"><Caixas itens={caixas} colunas={2} /></section>
 
         <section className="mais-bloco">
           <h2 className="mais-h">Ajuda</h2>
