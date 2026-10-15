@@ -266,6 +266,14 @@ export default function Dashboard() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 2 }}>{n.title}</div>
                   <div style={{ fontSize: 14, color: 'var(--text-sec)', lineHeight: 1.5 }}>{n.body}</div>
+                  {/* Campanhas (15/10/2026): o aviso pode levar a uma página do painel. */}
+                  {n.url && String(n.url).startsWith('/admin') && (
+                    <button type="button" onClick={() => { handleDismissNotif(n.id); navigate(n.url); }}
+                      style={{ marginTop: 10, padding: '9px 16px', borderRadius: 999, border: 0, cursor: 'pointer', font: 'inherit', fontSize: 14, fontWeight: 700,
+                        background: 'var(--gold-tinta, var(--gold))', color: '#fff' }}>
+                      {n.botao || 'Ver'}
+                    </button>
+                  )}
                   <div style={{ fontSize: 13.5, color: 'var(--text-ter)', marginTop: 4 }}>{new Date(n.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} · Convecta</div>
                 </div>
                 <button onClick={() => handleDismissNotif(n.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-ter)', fontSize: 16, padding: '0 4px', lineHeight: 1, flexShrink: 0 }}>×</button>
