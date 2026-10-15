@@ -11,6 +11,8 @@ export const EXTRAS = [
   {
     id: 'pagamentos',
     nome: 'Pagamentos online',
+    curto: 'Recebe pagamentos através de cartão e carteiras digitais.',
+    rotaTexto: 'Configurar pagamentos',
     texto: 'O cliente paga o sinal ou o serviço ao marcar: cartão, Apple Pay, Google Pay ou MB WAY. Acabam as faltas.',
     precos: { mensal: 4.99, quinzenal: 2.49, anual: 50.90 },
     incluidoEm: ['profissional', 'business'],
@@ -19,6 +21,7 @@ export const EXTRAS = [
   {
     id: 'faturas',
     nome: 'Faturas',
+    curto: 'Emite e gere as tuas faturas.',
     texto: 'Emite a fatura com NIF ao fechar a conta, ligada ao teu programa de faturação certificado.',
     precos: { mensal: 4.99, quinzenal: 2.49, anual: 50.90 },
     incluidoEm: [],

@@ -383,7 +383,7 @@ export default function Subscricao() {
 
   if (aCarregar) {
     return (
-      <AdminPage title="Subscrição" subtitle="O teu plano na Convecta.">
+      <AdminPage title="Plano e faturação" subtitle="Gere o teu plano, extras e pagamentos.">
         <Spinner label="A confirmar o estado da subscrição…" />
       </AdminPage>
     );
@@ -401,7 +401,7 @@ export default function Subscricao() {
    */
   if (grupo.ligado && grupo.actual && !grupo.actual.principal && grupo.principal) {
     return (
-      <AdminPage title="Subscrição" subtitle="O teu plano na Convecta.">
+      <AdminPage title="Plano e faturação" subtitle="Gere o teu plano, extras e pagamentos.">
         <Card className="card-pad" style={{ maxWidth: 720 }}>
           <div className="fw-600" style={{ fontSize: 18 }}>A subscrição está em {grupo.principal.name}</div>
           <p style={{ fontSize: 15, margin: '8px 0 16px', lineHeight: 1.5 }}>
@@ -417,14 +417,23 @@ export default function Subscricao() {
 
   if (sub?.estado === 'gratis') {
     return (
-      <AdminPage title="Subscrição" subtitle="O teu plano na Convecta.">
-        <Card className="card-pad" style={{ maxWidth: 720 }}>
-          <div className="text-sec" style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: .8 }}>Estado</div>
-          <div className="fw-600" style={{ fontSize: 20, color: ESTADOS.gratis.cor, marginTop: 4 }}>
-            {ESTADOS.gratis.texto}
+      <AdminPage title="Plano e faturação" subtitle="Gere o teu plano, extras e pagamentos.">
+        <div style={{
+          maxWidth: 720, display: 'flex', gap: 16, alignItems: 'center', padding: '20px 18px', borderRadius: 18,
+          background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.22)',
+        }}>
+          <span style={{ width: 64, height: 64, borderRadius: '50%', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'rgba(34,197,94,0.16)' }}>
+            <span style={{ width: 34, height: 34, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'var(--success, #22C55E)', color: '#fff' }}><Check size={20} strokeWidth={3} /></span>
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div className="text-sec" style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: .8 }}>Estado do plano</div>
+              <span style={{ fontSize: 13, fontWeight: 600, padding: '4px 10px', borderRadius: 999, background: 'rgba(34,197,94,0.14)', color: 'var(--success, #16A34A)', whiteSpace: 'nowrap' }}>Plano ativo</span>
+            </div>
+            <div className="fw-600" style={{ fontSize: 21, color: 'var(--success, #16A34A)', marginTop: 2 }}>{ESTADOS.gratis.texto}</div>
+            <div style={{ fontSize: 15, marginTop: 4 }}>Sem mensalidade. Não precisas de cartão.</div>
           </div>
-          <p style={{ fontSize: 16, margin: '12px 0 0' }}>Sem mensalidade. Não precisas de cartão.</p>
-        </Card>
+        </div>
         <div style={{ marginTop: 16 }}><JuntarSegundoTipo gratis lugares={sub?.limiteProfissionais} /></div>
         <div style={{ marginTop: 16 }}><ExtrasSubscricao gratis /></div>
       </AdminPage>
@@ -708,5 +717,5 @@ export default function Subscricao() {
 
   return precisaDeCartao
     ? <AdminLayout><div className="sub">{conteudo}</div></AdminLayout>
-    : <AdminPage title="Subscrição" subtitle="O teu plano na Convecta. Sem fidelização — cancelas quando quiseres.">{conteudo}</AdminPage>;
+    : <AdminPage title="Plano e faturação" subtitle="Gere o teu plano, extras e pagamentos. Sem fidelização.">{conteudo}</AdminPage>;
 }

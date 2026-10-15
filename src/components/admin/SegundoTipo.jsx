@@ -12,7 +12,7 @@
  */
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, X, Check } from 'lucide-react';
+import { Sparkles, X, Check, Store, Scissors, Brush, Flower2, ChevronRight, Info, Plus } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
@@ -20,6 +20,9 @@ import { TIPOS, LISTA_TIPOS, tipoActual } from '@/lib/nicho';
 import { useGrupo } from '@/lib/grupo';
 
 const euros = c => (Number(c || 0) / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
+
+const TILE = { width: 52, height: 52, borderRadius: 14, flexShrink: 0, display: 'grid', placeItems: 'center', background: 'rgba(var(--gold-rgb),0.16)', color: 'var(--gold-tinta, var(--gold))' };
+const ICONE_TIPO = { barbearia: Scissors, cabeleireiro: Scissors, unhas: Brush, estetica: Flower2 };
 
 // O que faz sentido sugerir a quem já é de um tipo.
 const SUGESTAO = {
@@ -69,21 +72,31 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
 
   return (
     <div id="segundo-tipo" style={{ maxWidth: 720, marginBottom: 16, scrollMarginTop: 80 }}><Card className="card-pad">
-      <div className="fw-600" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 17 }}><Sparkles size={18} style={{ color: 'var(--gold-tinta)' }} /> Juntar outro tipo de negócio</div>
-      <p className="text-sec" style={{ fontSize: 15, lineHeight: 1.5, margin: '6px 0 14px' }}>Duas apps numa só, no mesmo espaço.</p>
+      <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+        <span style={TILE}><Store size={22} /></span>
+        <div style={{ minWidth: 0 }}>
+          <div className="fw-600" style={{ fontSize: 18 }}>Juntar outro tipo de negócio</div>
+          <div className="text-sec" style={{ fontSize: 14.5, marginTop: 2 }}>Duas apps numa só, no mesmo espaço.</div>
+        </div>
+      </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${opcoes.length}, minmax(0, 1fr))`, gap: 8, marginTop: 16 }} data-grelha>
         {opcoes.map(t => {
           const on = tipo === t;
+          const Ic = ICONE_TIPO[t] || Sparkles;
           return (
             <button key={t} type="button" aria-pressed={on} onClick={() => { setTipo(t); setAConfirmar(false); }}
               style={{
-                padding: '9px 14px', borderRadius: 999, fontSize: 15, fontWeight: 600, cursor: 'pointer', font: 'inherit',
-                border: `1px solid ${on ? 'var(--gold)' : 'var(--border)'}`,
-                background: on ? 'rgba(var(--gold-rgb),0.14)' : 'transparent', color: 'var(--text)',
-                display: 'inline-flex', alignItems: 'center', gap: 6,
+                display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 10, minWidth: 0,
+                padding: '14px 12px', borderRadius: 14, cursor: 'pointer', font: 'inherit', textAlign: 'left',
+                border: `1.5px solid ${on ? 'var(--gold)' : 'var(--border)'}`,
+                background: on ? 'rgba(var(--gold-rgb),0.10)' : 'var(--surface)', color: 'var(--text)',
               }}>
-              {on && <Check size={15} style={{ color: 'var(--gold-tinta)' }} />}{TIPOS[t].curto}
+              <span style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Ic size={24} strokeWidth={1.7} />
+                {on ? <Check size={18} style={{ color: 'var(--gold-tinta)' }} /> : <ChevronRight size={18} style={{ color: 'var(--text-sec)' }} />}
+              </span>
+              <span className="fw-600" style={{ fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{TIPOS[t].curto}</span>
             </button>
           );
         })}
@@ -102,18 +115,29 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
         </div>
       )}
 
-      <ul style={{ margin: '14px 0 16px', padding: 0, listStyle: 'none', display: 'grid', gap: 6, fontSize: 14.5 }}>
-        <li><b>{precoTexto}</b></li>
-        {lugares ? <li className="text-sec">Cada um tem os {lugares} {lugares === 1 ? 'lugar' : 'lugares'} do teu plano para a sua equipa.</li> : null}
-      </ul>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginTop: 14, padding: '14px 16px', borderRadius: 14, background: 'rgba(var(--gold-rgb),0.12)' }}>
+        <Info size={20} style={{ flexShrink: 0, marginTop: 1 }} />
+        <div style={{ fontSize: 14.5, lineHeight: 1.45 }}>
+          <div className="fw-600">{precoTexto}</div>
+          {lugares ? <div className="text-sec" style={{ marginTop: 2 }}>Cada um tem os {lugares} {lugares === 1 ? 'lugar' : 'lugares'} do teu plano para a sua equipa.</div> : null}
+        </div>
+      </div>
 
-      <Button block onClick={juntar} disabled={!tipo || nome.trim().length < 2 || aGravar}>
+      <button type="button" onClick={juntar} disabled={!tipo || nome.trim().length < 2 || aGravar}
+        style={{
+          width: '100%', marginTop: 14, padding: '14px 16px', borderRadius: 14, border: 0, font: 'inherit',
+          fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+          background: 'var(--gold-tinta, var(--gold))', color: '#fff',
+          cursor: (!tipo || nome.trim().length < 2 || aGravar) ? 'default' : 'pointer',
+          opacity: (!tipo || nome.trim().length < 2) && !aGravar ? 0.85 : 1,
+        }}>
+        {!aGravar && !aConfirmar && <Plus size={20} />}
         {aGravar ? 'A juntar…'
           : !tipo ? 'Escolhe o tipo a juntar'
           : nome.trim().length < 2 ? 'Escreve o nome'
           : aConfirmar ? `Confirmar${!gratis && extra ? ` · +${euros(extra)}${porPeriodo}` : ''}`
           : `Juntar ${TIPOS[tipo].curto}`}
-      </Button>
+      </button>
       {aConfirmar && !aGravar && (
         <p className="text-sec" style={{ fontSize: 13, margin: '8px 0 0', textAlign: 'center' }}>
           {gratis ? 'Fica já ativo.' : 'Na subscrição paga-se só a parte do mês que falta. Em experiência, nada até ao fim dela.'}
