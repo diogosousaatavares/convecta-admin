@@ -69,9 +69,7 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
   return (
     <div id="segundo-tipo" style={{ maxWidth: 720, marginBottom: 16, scrollMarginTop: 80 }}><Card className="card-pad">
       <div className="fw-600" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 17 }}><Sparkles size={18} style={{ color: 'var(--gold-tinta)' }} /> Juntar outro tipo de negócio</div>
-      <p style={{ fontSize: 15, lineHeight: 1.5, margin: '8px 0 14px' }}>
-        {TIPOS[atual].curto} e outro tipo no mesmo espaço: duas apps numa só. Cada um tem o seu site, clientes, serviços e horários; tu trocas entre os dois no topo do painel, com o mesmo email.
-      </p>
+      <p className="text-sec" style={{ fontSize: 15, lineHeight: 1.5, margin: '6px 0 14px' }}>Duas apps numa só, no mesmo espaço.</p>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {opcoes.map(t => {
@@ -93,7 +91,6 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
       <ul style={{ margin: '14px 0 16px', padding: 0, listStyle: 'none', display: 'grid', gap: 6, fontSize: 14.5 }}>
         <li><b>{precoTexto}</b></li>
         {lugares ? <li className="text-sec">Cada um tem os {lugares} {lugares === 1 ? 'lugar' : 'lugares'} do teu plano para a sua equipa.</li> : null}
-        <li className="text-sec">O teu link passa a abrir com a foto do espaço e um botão para cada um.</li>
       </ul>
 
       <Button block onClick={juntar} disabled={!tipo || aGravar}>

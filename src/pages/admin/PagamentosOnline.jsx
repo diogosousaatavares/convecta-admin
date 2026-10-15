@@ -9,6 +9,7 @@ import dataService from '@/lib/dataService';
 import { formatPrice } from '@/lib/format';
 import { Link } from 'react-router-dom';
 import { extraAtivo, extraDe, mudarExtra, sufixoPeriodo } from '@/lib/extras';
+import MetodosPagamento from '@/components/MetodosPagamento';
 
 /*
  * PAGAMENTOS ONLINE (13/10/2026, decisão do Diogo).
@@ -104,7 +105,8 @@ export default function PagamentosOnline() {
             <CreditCard size={24} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
             <div>
               <div className="fw-600" style={{ fontSize: 18 }}>Acaba com as faltas</div>
-              <p className="text-sec" style={{ margin: '6px 0 0', lineHeight: 1.6 }}>{e.texto} O dinheiro cai na tua conta; a Convecta não fica com nada.</p>
+              <p className="text-sec" style={{ margin: '6px 0 0', lineHeight: 1.6 }}>O cliente paga ao marcar. O dinheiro cai na tua conta.</p>
+              <MetodosPagamento altura={16} style={{ marginTop: 10 }} />
               <p style={{ margin: '12px 0 0', fontSize: 15 }}>
                 <b>+{formatPrice(e.precos[p])}{sufixoPeriodo(p)}</b> na tua subscrição. <span className="text-sec">Incluído nos planos Profissional e Business.</span>
               </p>
@@ -129,7 +131,8 @@ export default function PagamentosOnline() {
   );
 
   return (
-    <AdminPage title="Pagamentos online" subtitle="O cliente paga ao marcar, com cartão, Apple Pay, Google Pay ou MB WAY. O dinheiro cai na tua conta.">
+    <AdminPage title="Pagamentos online" subtitle="O cliente paga ao marcar. O dinheiro cai na tua conta.">
+      <MetodosPagamento altura={18} style={{ marginBottom: 16 }} />
       <Card className="card-pad" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <CreditCard size={22} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
