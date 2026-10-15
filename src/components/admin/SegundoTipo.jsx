@@ -40,6 +40,7 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
   const atual = tipoActual();
   const grupo = useGrupo();
   const [tipo, setTipo] = useState('');
+  const [nome, setNome] = useState('');   // é outra app: nome (e endereço) próprios
   const [aConfirmar, setAConfirmar] = useState(false);
   const [aGravar, setAGravar] = useState(false);
 
@@ -55,7 +56,7 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
     if (!aConfirmar) { setAConfirmar(true); return; }
     setAGravar(true);
     try {
-      await dataService.adicionarSegundoTipo(tipo);
+      await dataService.adicionarSegundoTipo(tipo, nome.trim());
       toast.success('Feito', `${TIPOS[tipo].curto} já está criado. Trocas entre os dois no topo do painel.`);
       // Recarrega o painel: o seletor dos dois negócios aparece no topo.
       setTimeout(() => { window.location.href = '/admin'; }, 1200);
@@ -88,14 +89,28 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
         })}
       </div>
 
+      {tipo && (
+        <div style={{ marginTop: 14 }}>
+          <label className="fw-600" htmlFor="nome-segundo" style={{ display: 'block', fontSize: 14.5, marginBottom: 6 }}>Nome do novo negócio</label>
+          <input id="nome-segundo" className="input" value={nome} maxLength={60} placeholder="Ex.: Adérito Barbershop"
+            onChange={e => { setNome(e.target.value); setAConfirmar(false); }} />
+          {nome.trim().length >= 2 && (
+            <div className="text-sec" style={{ fontSize: 13, marginTop: 6 }}>
+              O site fica em <b>{nome.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}.marcacoes.app</b>
+            </div>
+          )}
+        </div>
+      )}
+
       <ul style={{ margin: '14px 0 16px', padding: 0, listStyle: 'none', display: 'grid', gap: 6, fontSize: 14.5 }}>
         <li><b>{precoTexto}</b></li>
         {lugares ? <li className="text-sec">Cada um tem os {lugares} {lugares === 1 ? 'lugar' : 'lugares'} do teu plano para a sua equipa.</li> : null}
       </ul>
 
-      <Button block onClick={juntar} disabled={!tipo || aGravar}>
+      <Button block onClick={juntar} disabled={!tipo || nome.trim().length < 2 || aGravar}>
         {aGravar ? 'A juntar…'
           : !tipo ? 'Escolhe o tipo a juntar'
+          : nome.trim().length < 2 ? 'Escreve o nome'
           : aConfirmar ? `Confirmar${!gratis && extra ? ` · +${euros(extra)}${porPeriodo}` : ''}`
           : `Juntar ${TIPOS[tipo].curto}`}
       </Button>

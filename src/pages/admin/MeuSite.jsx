@@ -891,7 +891,23 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
   const bizVisto={...biz,logo_url:logoUrl}
   const alterado=guardadoTema&&(JSON.stringify(tema)!==JSON.stringify(guardadoTema)
     ||JSON.stringify(info)!==JSON.stringify(guardadoInfo)||logoUrl!==logoGravado)
-  const endereco=biz.domain||`${biz.slug||'barbearia'}.${DOMINIO_BASE}`
+  // O endereço (15/10/2026): cada negócio, ligado ou não, tem o seu.
+  const[slugAtual,setSlugAtual]=useState(biz.slug||'')
+  const[novoSlug,setNovoSlug]=useState(biz.slug||'')
+  const[aMudarEndereco,setAMudarEndereco]=useState(false)
+  const[erroEndereco,setErroEndereco]=useState('')
+  const endereco=biz.domain||`${slugAtual||'barbearia'}.${DOMINIO_BASE}`
+  const limparSlug=v=>v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9-]+/g,'-').replace(/-{2,}/g,'-').replace(/^-/,'').slice(0,40)
+  async function mudarEndereco(){
+    const s=novoSlug.replace(/-+$/,'')
+    setErroEndereco('')
+    if(!/^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/.test(s)){setErroEndereco('Usa 3 a 40 letras, números ou hífens.');return}
+    if(['www','admin','administrador','api','app','convecta','demo','site'].includes(s)){setErroEndereco('Esse endereço não está disponível.');return}
+    setAMudarEndereco(true)
+    try{await updateBusiness(biz.id,{slug:s});setSlugAtual(s);setNovoSlug(s)}
+    catch(e){setErroEndereco(/duplicate|unique|23505/i.test(e.message)?'Esse endereço já está ocupado. Experimenta outro.':'Não foi possível mudar: '+e.message)}
+    finally{setAMudarEndereco(false)}
+  }
 
   // Rodar o telemovel com a pre-visualizacao aberta muda o que cabe no ecra.
   useEffect(()=>{
@@ -995,9 +1011,13 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
       // As definicoes lidas de novo antes de gravar: o cartao de fidelidade,
       // os packs e o resto vivem noutras paginas e podem ter mudado desde que
       // esta abriu. Gravar a copia antiga apagava-os.
-      let base=settingsAtuais||{}
-      try{base=(await getBusiness())?.settings||base}catch{}
-      await updateBusiness(biz.id,{...(logoUrl!==logoGravado?{logo_url:logoUrl}:{}),settings:{...base,
+      let base=settingsAtuais||{},linha=null
+      try{linha=await getBusiness();base=linha?.settings||base}catch{}
+      // Num negócio ligado, o nome do site é também o nome do negócio (o que
+      // aparece no topo do painel para trocar entre os dois).
+      const ligado=linha?.grupo_id&&linha.grupo_id!==linha.id
+      const nomeNovo=(tema.appName||'').trim()
+      await updateBusiness(biz.id,{...(logoUrl!==logoGravado?{logo_url:logoUrl}:{}),...(ligado&&nomeNovo?{name:nomeNovo}:{}),settings:{...base,
         theme:tema, tagline:info.tagline, description:info.description,
         coverImageUrl:info.coverImageUrl, amenities:info.amenities,
         social:info.social}})
@@ -1235,6 +1255,24 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
                 <Inp value={tema.appName} onChange={e=>raiz('appName',e.target.value)}
                   placeholder={biz.name||`Nome ${nicho().da}`}/>
               </div>
+              {!biz.domain&&!demo&&(
+                <div>
+                  <Lbl>Endereço do site</Lbl>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    <Inp value={novoSlug} onChange={e=>{setNovoSlug(limparSlug(e.target.value));setErroEndereco('')}} style={{flex:1,minWidth:0}}/>
+                    <span style={{color:T2,fontSize:14,whiteSpace:'nowrap'}}>.{DOMINIO_BASE}</span>
+                  </div>
+                  {novoSlug.replace(/-+$/,'')!==slugAtual&&(
+                    <div style={{display:'flex',alignItems:'center',gap:10,marginTop:8,flexWrap:'wrap'}}>
+                      <button type="button" className="ms-publicar" disabled={aMudarEndereco} onClick={mudarEndereco}>
+                        {aMudarEndereco?'A mudar…':'Mudar endereço'}
+                      </button>
+                      <span style={{color:T2,fontSize:13}}>O link antigo deixa de funcionar.</span>
+                    </div>
+                  )}
+                  {erroEndereco&&<div style={{color:'#e5484d',fontSize:13,marginTop:6}}>{erroEndereco}</div>}
+                </div>
+              )}
               <div>
                 <Lbl>Logótipo</Lbl>
                 <div style={{display:'flex',gap:12,alignItems:'flex-start',flexWrap:'wrap'}}>

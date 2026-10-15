@@ -2557,8 +2557,8 @@ const dataService = {
    * do Stripe (acrescenta o item «segundo tipo» à subscrição) e da ficha.
    * Ver convecta-superadmin/supabase/functions/adicionar-segundo-tipo.
    */
-  async adicionarSegundoTipo(tipo) {
-    const { data, error } = await supabase.functions.invoke('adicionar-segundo-tipo', { body: { tipo } });
+  async adicionarSegundoTipo(tipo, nome) {
+    const { data, error } = await supabase.functions.invoke('adicionar-segundo-tipo', { body: { tipo, nome } });
     if (error) {
       let motivo = '';
       try { motivo = (await error.context?.json())?.erro || ''; } catch { motivo = ''; }
