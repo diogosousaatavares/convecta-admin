@@ -2837,3 +2837,32 @@ body { font-variant-numeric: lining-nums; }
   .tipo-opcoes:not(.duas) .tipo-opcao-d { margin-left: auto; text-align: right; }
   .tipo-opcoes.duas .tipo-opcao { min-height: 0; }
 }
+
+/* ── O TRILHO: o menu do computador (15/10/2026, à Fresha) ───────────────
+   Uma coluna de ícones. O nome aparece ao passar o rato; a lista das
+   páginas de uma secção abre ao lado quando se carrega. */
+.com-trilho .admin-content { margin-left: 72px; }
+.trilho { position: fixed; top: 0; left: 0; bottom: 0; width: 72px; z-index: 95; display: flex; flex-direction: column; align-items: center;
+  background: var(--surface); border-right: 1px solid var(--border); padding: 12px 0; }
+.trilho-marca { width: 44px; height: 44px; margin-bottom: 10px; display: grid; place-items: center; }
+.trilho-marca img { width: 36px; height: 36px; border-radius: 10px; }
+.trilho-nav { flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; scrollbar-width: none; width: 100%; align-items: center; padding: 4px 0; }
+.trilho-nav::-webkit-scrollbar { display: none; }
+.trilho-fundo { display: flex; flex-direction: column; gap: 4px; align-items: center; padding-top: 8px; border-top: 1px solid var(--border); width: 100%; }
+.trilho-btn { position: relative; width: 48px; height: 48px; border-radius: 12px; border: 0; background: transparent; color: var(--text-sec); cursor: pointer; display: grid; place-items: center; }
+.trilho-btn:hover { background: var(--elevated); color: var(--text); }
+.trilho-btn.on, .trilho-btn.aberto { background: var(--text); color: var(--surface); }
+.trilho-rot { position: absolute; left: 58px; top: 50%; transform: translateY(-50%); white-space: nowrap; padding: 6px 10px; border-radius: 8px;
+  background: var(--text); color: var(--surface); font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity 120ms; z-index: 2; }
+.trilho-btn:hover .trilho-rot { opacity: 1; }
+.trilho-btn.aberto .trilho-rot { display: none; }
+.trilho-lista { position: fixed; top: 0; bottom: 0; left: 72px; width: 260px; background: var(--surface); border-right: 1px solid var(--border);
+  box-shadow: 12px 0 30px rgba(0,0,0,.08); padding: 22px 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; animation: trilho-entra 140ms ease; }
+@keyframes trilho-entra { from { opacity: 0; transform: translateX(-8px) } to { opacity: 1; transform: none } }
+.trilho-lista-h { font-size: 20px; font-weight: 700; color: var(--text); padding: 4px 10px 14px; }
+.trilho-item { display: block; padding: 11px 10px; border-radius: 10px; color: var(--text); font-size: 15.5px; font-weight: 500; text-decoration: none; }
+.trilho-item:hover { background: var(--elevated); }
+.trilho-item.on { background: rgba(var(--gold-rgb), .16); font-weight: 700; }
+/* Os dias da experiência passam para a barra de cima no computador. */
+.dias-teste-topo .dias-teste { margin: 0; padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; font-size: 13.5px; gap: 8px; }
+@media (max-width: 767px) { .trilho, .trilho-lista, .dias-teste-topo { display: none; } }

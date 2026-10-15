@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import AdminLayout, { gruposPara } from '@/components/AdminLayout';
+import { gruposPara } from '@/components/AdminLayout';
 import AdminPage from '@/components/admin/AdminPage';
 import Caixas, { CSS_CAIXAS } from '@/components/admin/Caixas';
 import { useStore } from '@/hooks/useStore';
@@ -17,11 +17,9 @@ export default function Seccao() {
   const g = gruposPara(emDemo, data.isProfissional).find(x => x.type === 'group' && x.id === id);
   if (!g) return <Navigate to="/admin/mais" replace />;
   return (
-    <AdminLayout>
+    <AdminPage title={g.label} subtitle={g.d}>
       <style dangerouslySetInnerHTML={{ __html: CSS_CAIXAS }} />
-      <AdminPage title={g.label} subtitle={g.d}>
-        <div style={{ maxWidth: 760 }}><Caixas itens={g.items} /></div>
-      </AdminPage>
-    </AdminLayout>
+      <div style={{ maxWidth: 900 }}><Caixas itens={g.items} /></div>
+    </AdminPage>
   );
 }

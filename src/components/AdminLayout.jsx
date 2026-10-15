@@ -85,7 +85,7 @@ const GROUPS_TODOS = [
     { to: '/admin/financeiro/entradas', label: 'Entradas', icon: ArrowDownCircle, d: 'O que entrou.' },
     { to: '/admin/financeiro/saidas', label: 'Saídas', icon: ArrowUpCircle, d: 'O que saiu.' },
     { to: '/admin/financeiro/comissoes', label: 'Comissões', icon: Percent, d: 'O que cada um ganhou.' },
-    { to: '/admin/financeiro', label: 'Financeiro', icon: PiggyBank, d: 'Contas e fluxo de caixa.' },
+    { to: '/admin/financeiro', label: 'Financeiro', exact: true, icon: PiggyBank, d: 'Contas e fluxo de caixa.' },
   ]},
 
   { type: 'group', id: 'clientes', to: '/admin/clientes', label: 'Clientes', icon: Users, d: 'Quem vem cá.', items: [
@@ -95,11 +95,11 @@ const GROUPS_TODOS = [
   ]},
 
   { type: 'group', id: 'catalogo', label: 'Catálogo', icon: Package, d: 'O que vendes.', items: [
-    { to: '/admin/servicos', label: 'Serviços', icon: Scissors, d: 'Preços e durações.' },
+    { to: '/admin/servicos', label: 'Serviços', exact: true, icon: Scissors, d: 'Preços e durações.' },
     { to: '/admin/servicos/categorias', label: 'Categorias', icon: Tags, d: 'Como se agrupam.' },
     { to: '/admin/packs', label: 'Packs', icon: Layers, d: 'Vários serviços à cabeça.' },
     { to: '/admin/agenda/pack', label: 'Pack mensal', icon: Repeat, d: 'Quem vem todos os meses.' },
-    { to: '/admin/produtos', label: 'Produtos', icon: Boxes, d: 'O que está à venda.' },
+    { to: '/admin/produtos', label: 'Produtos', exact: true, icon: Boxes, d: 'O que está à venda.' },
     { to: '/admin/produtos/stock', label: 'Stock', icon: Package, d: 'Quanto há de cada um.' },
     { to: '/admin/produtos/movimentos', label: 'Entradas e saídas', icon: ArrowLeftRight, d: 'Movimentos de stock.' },
     { to: '/admin/produtos/fornecedores', label: 'Fornecedores', icon: Truck, d: 'A quem compras.' },
@@ -113,7 +113,7 @@ const GROUPS_TODOS = [
   ]},
 
   { type: 'group', id: 'equipa', label: 'Equipa', icon: UserCog, d: 'Quem trabalha contigo.', items: [
-    { to: '/admin/profissionais', label: 'Profissionais', icon: UsersRound, d: 'Fichas e fotos.' },
+    { to: '/admin/profissionais', label: 'Profissionais', exact: true, icon: UsersRound, d: 'Fichas e fotos.' },
     { to: '/admin/profissionais/equipa', label: 'Acessos', icon: UserCog, d: 'Quem entra no painel.' },
     { to: '/admin/horarios', label: 'Horário', icon: Clock, d: 'A que horas abres.' },
     { to: '/admin/profissionais/horarios', label: 'Horários da equipa', icon: CalendarRange, d: 'Cada um o seu.' },
@@ -301,6 +301,64 @@ function BarraDeBaixo({ aberto }) {
       </Link>
     </nav>,
     document.body,
+  );
+}
+
+/*
+ * O TRILHO (15/10/2026, à Fresha). No computador o menu é uma coluna de
+ * ícones. Passar o rato diz o nome; carregar numa secção abre, ao lado, a
+ * lista das páginas dela; carregar outra vez (ou fora) fecha. O menu fica
+ * sempre limpo: uma linha de ícones e mais nada.
+ */
+function Trilho({ grupos, isActive, onApoio, onSair }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [aberto, setAberto] = useState(null);   // id da secção com a lista aberta
+  const caixa = useRef(null);
+  useEffect(() => { setAberto(null); }, [location.pathname]);
+  useEffect(() => {
+    if (!aberto) return;
+    const fora = e => { if (caixa.current && !caixa.current.contains(e.target)) setAberto(null); };
+    document.addEventListener('mousedown', fora);
+    return () => document.removeEventListener('mousedown', fora);
+  }, [aberto]);
+  const g = grupos.find(x => x.id === aberto);
+  const activoNoGrupo = x => x.type === 'group' ? x.items.some(isActive) || location.pathname === caminhoDaSeccao(x) : isActive(x);
+  return (
+    <aside className="trilho" ref={caixa}>
+      <Link to="/admin" className="trilho-marca" aria-label="Início">
+        <img src="/admin-icon-192.png" alt="" />
+      </Link>
+      <nav className="trilho-nav">
+        {grupos.map(x => {
+          const Ic = x.icon;
+          const on = activoNoGrupo(x);
+          const ir = () => {
+            if (x.type !== 'group') { setAberto(null); navigate(x.to); return; }
+            setAberto(a => (a === x.id ? null : x.id));
+          };
+          return (
+            <button key={x.id || x.to} type="button" onClick={ir} className={`trilho-btn${on ? ' on' : ''}${aberto === x.id ? ' aberto' : ''}`} aria-label={x.label} aria-expanded={x.type === 'group' ? aberto === x.id : undefined}>
+              <Ic size={22} strokeWidth={1.8} />
+              <span className="trilho-rot">{x.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+      <div className="trilho-fundo">
+        <button type="button" className="trilho-btn" onClick={onApoio} aria-label="Apoio ao cliente"><HelpCircle size={22} strokeWidth={1.8} /><span className="trilho-rot">Apoio</span></button>
+        <button type="button" className="trilho-btn" onClick={onSair} aria-label="Terminar sessão"><LogOut size={22} strokeWidth={1.8} /><span className="trilho-rot">Sair</span></button>
+      </div>
+      {g && (
+        <div className="trilho-lista" role="menu" aria-label={g.label}>
+          <div className="trilho-lista-h">{g.label}</div>
+          {g.to && <Link to={g.to} className={`trilho-item${location.pathname === g.to ? ' on' : ''}`}>Ver tudo</Link>}
+          {g.items.map(it => (
+            <Link key={it.to} to={it.to} className={`trilho-item${isActive(it) ? ' on' : ''}`} role="menuitem">{it.label}</Link>
+          ))}
+        </div>
+      )}
+    </aside>
   );
 }
 
@@ -546,8 +604,10 @@ export default function AdminLayout({ children }) {
   ) : null;
 
   return (
-    <div className={`admin-layout ${collapsed ? 'sidebar-collapsed' : ''}`}>
-      <aside className={`admin-sidebar ${open ? 'open' : ''} ${collapsed ? 'collapsed' : ''}`}>{sidebar}</aside>
+    <div className={`admin-layout${noComputador ? ' com-trilho' : ''}`}>
+      {noComputador
+        ? <Trilho grupos={grupos} isActive={isActive} onApoio={() => setSupportOpen(true)} onSair={handleLogout} />
+        : <aside className={`admin-sidebar ${open ? 'open' : ''}`}>{sidebar}</aside>}
       {open && <div onClick={() => setOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:99 }} />}
       {/* No «O meu site» o menu de baixo e o do editor; volta-se pela seta. */}
       {location.pathname !== '/admin/o-meu-site' && <BarraDeBaixo aberto={open} />}
@@ -607,13 +667,7 @@ export default function AdminLayout({ children }) {
         ) : (
         <div className="admin-topbar">
           <div className="admin-topbar-left">
-            {noComputador && (
-              <button className="btn btn-ghost btn-icon admin-topbar-hamburger"
-                onClick={() => setCollapsed(value => !value)}
-                aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'} aria-expanded={!collapsed}>
-                <Menu size={20} />
-              </button>
-            )}
+
             {/* O nome (ou logo). Com o seletor de lado na faixa de baixo, no
                 telemóvel há espaço: um nome comprido corta-se com «…». */}
             {(data.business?.logo
@@ -628,6 +682,7 @@ export default function AdminLayout({ children }) {
             {/* No telemovel não cabe ao lado do nome (espremia-o letra a
                 letra): vai para uma faixa própria, por baixo da barra. */}
             {noComputador && seletorDeLado}
+            {noComputador && <div className="dias-teste-topo"><DiasDeTeste /></div>}
             <div className="admin-search-wrap" ref={searchRef}>
               <Search className="admin-search-icon" size={16} />
               {/* Escape fecha a lista, e uma segunda vez limpa o que esta
