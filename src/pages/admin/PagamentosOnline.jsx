@@ -19,7 +19,8 @@ import { extraAtivo, extraDe, mudarExtra, sufixoPeriodo } from '@/lib/extras';
  * taxas dele.
  *
  *   1. Ligar: cria a conta e abre o Stripe para ele pôr os dados e o IBAN.
- *   2. Escolher o que se paga (settings.pagamentosOnline).
+ *   2. Escolher o que se paga (settings.pagamentosOnline): nada, metade ou
+ *      tudo, e em que serviços (15/10/2026). servicos ausente = todos.
  *   3. Ver os últimos pagamentos.
  *
  * Precisa do PAGAMENTOS_ONLINE_2026-10-13.sql e das funções
@@ -45,12 +46,21 @@ export default function PagamentosOnline() {
   const [estado, setEstado] = useState(null);     // { ligado, ativo, dadosEntregues, falta }
   const [erro, setErro] = useState('');
   const [aAbrir, setAAbrir] = useState(false);
-  const [modo, setModo] = useState(cfg.modo || 'nada');
-  const [sinal, setSinal] = useState(cfg.sinal != null ? String(cfg.sinal) : '5');
+  // Os serviços que se podem pagar online: ativos e com preço.
+  const servicosPagaveis = (data.services || []).filter(s => s.isActive && !s.orcamento && Number(s.price) > 0);
+  const modoDe = m => (m === 'sinal' ? 'metade' : m || 'nada');   // o antigo «sinal» passa a «metade»
+  const [modo, setModo] = useState(modoDe(cfg.modo));
+  const [escolhidos, setEscolhidos] = useState(null);             // null = todos
   const [aGravar, setAGravar] = useState(false);
   const [lista, setLista] = useState([]);
 
-  useEffect(() => { setModo(cfg.modo || 'nada'); setSinal(cfg.sinal != null ? String(cfg.sinal) : '5'); }, [cfg.modo, cfg.sinal]);
+  useEffect(() => { setModo(modoDe(cfg.modo)); setEscolhidos(Array.isArray(cfg.servicos) ? cfg.servicos : null); }, [cfg.modo, cfg.servicos]);
+  const marcado = id => escolhidos == null || escolhidos.includes(id);
+  const alternar = id => {
+    const atual = escolhidos == null ? servicosPagaveis.map(s => s.id) : escolhidos;
+    const novo = atual.includes(id) ? atual.filter(x => x !== id) : [...atual, id];
+    setEscolhidos(servicosPagaveis.every(s => novo.includes(s.id)) ? null : novo);
+  };
 
   useEffect(() => {
     invocar({ acao: 'estado' }).then(setEstado).catch(e => { setErro(e.message); setEstado({ ligado: false, ativo: false }); });
@@ -66,11 +76,10 @@ export default function PagamentosOnline() {
   };
 
   const guardar = async () => {
-    const valorSinal = Math.round(Number(String(sinal).replace(',', '.')) * 100) / 100;
-    if (modo === 'sinal' && !(valorSinal >= 1)) { toast.error('O sinal tem de ser pelo menos 1 €'); return; }
+    if (modo !== 'nada' && escolhidos != null && escolhidos.length === 0) { toast.error('Escolhe pelo menos um serviço'); return; }
     setAGravar(true);
     try {
-      await dataService.updateBusiness({ pagamentosOnline: { modo, sinal: modo === 'sinal' ? valorSinal : (cfg.sinal ?? 5) } });
+      await dataService.updateBusiness({ pagamentosOnline: { modo, servicos: modo === 'nada' ? null : escolhidos } });
       toast.success('Guardado');
     } catch (e) { toast.error('Não foi possível guardar', e.message); }
     finally { setAGravar(false); }
@@ -115,12 +124,6 @@ export default function PagamentosOnline() {
       <span style={{ flex: 1 }}>
         <span className="fw-600" style={{ display: 'block' }}>{titulo}</span>
         <span className="text-sec text-sm">{texto}</span>
-        {v === 'sinal' && modo === 'sinal' && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-            <input className="input" inputMode="decimal" value={sinal} onChange={e => setSinal(e.target.value)} style={{ width: 100 }} />
-            <span className="text-sec">€ por marcação</span>
-          </span>
-        )}
       </span>
     </label>
   );
@@ -168,8 +171,23 @@ export default function PagamentosOnline() {
         {!ativo && <div className="text-sec text-sm" style={{ marginBottom: 6 }}>Fica disponível quando os pagamentos estiverem ligados.</div>}
         <div style={{ pointerEvents: ativo ? 'auto' : 'none' }}>
           {opcao('nada', 'Nada', 'O cliente paga na loja, como hoje.')}
-          {opcao('sinal', 'Um sinal', 'Paga uma parte ao marcar e o resto na loja. Bom para quem falta às marcações.')}
-          {opcao('total', 'O serviço todo', 'Paga tudo ao marcar.')}
+          {opcao('metade', 'Metade', 'Paga metade ao marcar e o resto na loja. Acaba com as faltas.')}
+          {opcao('total', 'Tudo', 'Paga o serviço todo ao marcar.')}
+          {modo !== 'nada' && servicosPagaveis.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <div className="fw-600" style={{ marginBottom: 2 }}>Em que serviços?</div>
+              <div className="text-sec text-sm" style={{ marginBottom: 6 }}>Os que não marcares pagam-se na loja.</div>
+              {servicosPagaveis.map(s => (
+                <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderTop: '1px solid var(--border)', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={marcado(s.id)} onChange={() => alternar(s.id)} style={{ width: 18, height: 18, accentColor: 'var(--gold)' }} />
+                  <span style={{ flex: 1, minWidth: 0 }}>{s.name}</span>
+                  <span className="text-sec text-sm" style={{ whiteSpace: 'nowrap' }}>
+                    {marcado(s.id) ? `paga ${formatPrice(modo === 'metade' ? Math.round(s.price * 50) / 100 : s.price)} ao marcar` : 'na loja'}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
         </div>
         <Button onClick={guardar} disabled={!ativo || aGravar} style={{ marginTop: 14 }}>{aGravar ? 'A guardar…' : 'Guardar'}</Button>
       </Card>
@@ -183,7 +201,7 @@ export default function PagamentosOnline() {
               <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderTop: '1px solid var(--border)' }}>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span className="fw-600">{formatPrice(p.valor_cents / 100)}</span>
-                  <span className="text-sec text-sm"> · {p.tipo === 'total' ? 'serviço' : 'sinal'} · {new Date(p.pago_em || p.criado_em).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="text-sec text-sm"> · {p.tipo === 'total' ? 'serviço' : 'metade'} · {new Date(p.pago_em || p.criado_em).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
                 </span>
                 <Badge variant={v}>{l}</Badge>
               </div>
