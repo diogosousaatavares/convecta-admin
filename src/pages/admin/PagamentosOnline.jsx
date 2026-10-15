@@ -132,7 +132,6 @@ export default function PagamentosOnline() {
 
   return (
     <AdminPage title="Pagamentos online" subtitle="O cliente paga ao marcar. O dinheiro cai na tua conta.">
-      <MetodosPagamento altura={18} style={{ marginBottom: 16 }} />
       <Card className="card-pad" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <CreditCard size={22} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
@@ -148,6 +147,7 @@ export default function PagamentosOnline() {
                   ? 'A conta está criada, mas o Stripe ainda precisa de alguns dados teus (identificação e IBAN) para poderes receber.'
                   : 'Crias a tua conta no Stripe em 5 minutos: os teus dados e o IBAN para onde vai o dinheiro. A Convecta não toca no dinheiro.'}
             </div>
+            <MetodosPagamento altura={14} style={{ marginTop: 12 }} />
             {erro && <div className="text-sm" style={{ color: 'var(--error)', marginTop: 8 }}>{erro}</div>}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
               {!ativo && estado && (
