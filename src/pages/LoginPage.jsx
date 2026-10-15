@@ -56,8 +56,14 @@ function Feature({ Icon, titulo, sub }) {
 
 /* ── Página ──────────────────────────────────────────────────────────────── */
 export default function LoginPage() {
-  const { login } = useAuth()
+  const { login, isAuthenticated, isAdmin, isAuthLoading } = useAuth()
   const navigate = useNavigate()
+  /* Já com sessão (15/10/2026): quem vem do registo no site, ou do link do
+     email, chega aqui já autenticado — a sessão vem no endereço e o
+     supabase-js guarda-a sozinho. Não se pede a palavra-passe outra vez. */
+  useEffect(() => {
+    if (!isAuthLoading && isAuthenticated && isAdmin) navigate('/admin', { replace: true })
+  }, [isAuthLoading, isAuthenticated, isAdmin])
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
