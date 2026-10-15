@@ -2866,3 +2866,16 @@ body { font-variant-numeric: lining-nums; }
 /* Os dias da experiência passam para a barra de cima no computador. */
 .dias-teste-topo .dias-teste { margin: 0; padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; font-size: 13.5px; gap: 8px; }
 @media (max-width: 767px) { .trilho, .trilho-lista, .dias-teste-topo { display: none; } }
+
+/* ── No telemóvel, dentro de uma página (15/10/2026) ─────────────────────
+   O «Atualizar» sai (puxar para baixo faz o mesmo, e o sino já diz o que
+   entrou). Os botões da página, se os houver, ocupam a linha toda, em vez
+   de ficarem encostados à direita por cima de um buraco. */
+@media (max-width: 767px) {
+  .admin-content.dentro .page-head [data-tour="atualizar"] { display: none; }
+  .admin-content.dentro .page-head > div { flex-direction: column; align-items: stretch; }
+  .admin-content.dentro .page-head > div > div:last-child { width: 100%; }
+  .admin-content.dentro .page-head > div > div:last-child > * { flex: 1; justify-content: center; }
+  .admin-content.dentro .page-head > div > div:last-child:empty { display: none; }
+  .admin-content.dentro .page-head:not(:has(> div > div:last-child > *:not([data-tour="atualizar"]))) { display: none; }
+}
