@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import MbIcon from '@/components/MbIcon';
 /* Os icones dos oito grupos antigos sairam com eles: com cinco entradas, os
    icones usados sao cinco. */
@@ -293,7 +294,10 @@ function BarraDeBaixo({ aberto }) {
   /* Activo pelo inicio do endereco: dentro da Agenda ha Marcacoes, Encaixes
      e Bloqueios, e todos continuam a ser «Hoje». */
   const activo = (to) => location.pathname === to || location.pathname.startsWith(to + '/');
-  return (
+  /* Pendurada directamente no <body> (15/10/2026): assim nenhum embrulho da
+     pagina (animacao, overflow, transform) pode mudar o sitio dela. No
+     iPhone ficava a meio do ecra depois de rolar — a frente de clientes. */
+  return createPortal(
     <nav className={`bnav${aberto ? ' bnav-escondida' : ''}`} aria-label="Principal">
       {BAIXO.map(b => (
         <Link key={b.to} to={b.to} className={`bnav-item${activo(b.to) ? ' activo' : ''}`}>
@@ -309,7 +313,8 @@ function BarraDeBaixo({ aberto }) {
         <MoreHorizontal size={21} />
         <span>Mais</span>
       </Link>
-    </nav>
+    </nav>,
+    document.body,
   );
 }
 

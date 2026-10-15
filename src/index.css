@@ -2625,6 +2625,9 @@ html:not(.theme-light) .marca-escuro { display: block !important; }
     background: var(--surface); border-top: 1px solid var(--border);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     box-shadow: 0 -6px 20px rgba(0, 0, 0, .06);
+    /* Camada propria: o Safari do iPhone deixa de a arrastar com o scroll. */
+    transform: translate3d(0, 0, 0); -webkit-transform: translate3d(0, 0, 0);
+    will-change: transform; backface-visibility: hidden;
   }
   .bnav-item {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -2730,7 +2733,10 @@ h1, h2, h3, h4, .kpi .value, .res-num, .value { font-variant-numeric: lining-num
    A janela «Nova marcacao» deslizava para a esquerda e para a direita no
    iPhone: os campos de data e hora do iOS sao mais largos do que a caixa, e
    a janela, que so devia rolar para baixo, rolava tambem para o lado. */
-html, body { overflow-x: hidden; max-width: 100vw; }
+/* clip e nao hidden (15/10/2026): com `hidden` no html E no body, o iPhone
+   passa a rolar o body em vez da janela — e tudo o que e `position: fixed`
+   (a barra de baixo!) anda com o dedo e fica parada a meio do ecra. */
+html, body { overflow-x: clip; max-width: 100vw; }
 .modal { overflow-x: hidden; }
 .modal-body, .modal-foot, .modal-head { max-width: 100%; }
 .modal input, .modal select, .modal textarea, .modal .input, .modal .select { max-width: 100%; min-width: 0; box-sizing: border-box; }
