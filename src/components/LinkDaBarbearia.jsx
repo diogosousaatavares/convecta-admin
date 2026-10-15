@@ -37,11 +37,10 @@ export default function LinkDaBarbearia() {
 
   if (!endereco) return null;
 
-  // Dois negócios ligados: o link a partilhar é o do principal — abre a
-  // porta com um botão para cada um —, mesmo com o outro aberto no painel.
-  // O principal é o que o dono escolheu na página de entrada (se escolheu).
+  // Dois negócios ligados (15/10/2026): cada um mostra o SEU link — são
+  // duas apps diferentes, cada uma com a sua identidade.
   const principal = grupo.lista.find(n => n.id === porta?.principal) || grupo.principal;
-  const enderecoPartilhado = grupo.ligado && principal ? enderecoDe(principal) : endereco;
+  const enderecoPartilhado = endereco;
   const url = `https://${enderecoPartilhado}`;
   const podePartilhar = typeof navigator !== 'undefined' && !!navigator.share;
 
@@ -93,7 +92,7 @@ export default function LinkDaBarbearia() {
     </div>
     {/* O link principal pergunta qual dos lados; estes abrem já num deles.
         Para a bio de um Instagram só do salão, por exemplo (12/10/2026). */}
-    {(grupo.ligado || eMisto()) && (
+    {!grupo.ligado && eMisto() && (
       <div style={{ margin: '10px 0 4px' }}>
         <div className="text-sec" style={{ fontSize: 13, marginBottom: 8, textAlign: 'center' }}>O link acima pergunta qual. Para abrir já num lado:</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
