@@ -140,13 +140,14 @@ export default function PagamentosOnline() {
               {!estado ? 'A ver…' : ativo ? 'Pagamentos ligados' : estado.ligado ? 'Falta acabar no Stripe' : '1. Liga a tua conta'}
               {ativo && <Check size={16} style={{ color: 'var(--success)', marginLeft: 6, verticalAlign: -2 }} />}
             </div>
-            <div className="text-sec text-sm" style={{ marginTop: 4, lineHeight: 1.55 }}>
-              {ativo
-                ? 'O dinheiro dos clientes cai na tua conta Stripe e passa para o teu banco. A Convecta não fica com nada; o Stripe cobra a taxa dele por pagamento.'
-                : estado?.ligado
-                  ? 'A conta está criada, mas o Stripe ainda precisa de alguns dados teus (identificação e IBAN) para poderes receber.'
-                  : 'Crias a tua conta no Stripe em 5 minutos: os teus dados e o IBAN para onde vai o dinheiro. A Convecta não toca no dinheiro.'}
-            </div>
+            {/* 15/10/2026: sem texto antes de ligar — o título e os logos dizem tudo. */}
+            {(ativo || estado?.ligado) && (
+              <div className="text-sec text-sm" style={{ marginTop: 4, lineHeight: 1.55 }}>
+                {ativo
+                  ? 'O dinheiro cai na tua conta e passa para o teu banco. A Convecta não fica com nada.'
+                  : 'Falta pôr no Stripe a tua identificação e o IBAN.'}
+              </div>
+            )}
             <MetodosPagamento altura={14} style={{ marginTop: 12 }} />
             {erro && <div className="text-sm" style={{ color: 'var(--error)', marginTop: 8 }}>{erro}</div>}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
