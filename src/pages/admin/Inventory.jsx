@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Package, Plus, Edit, Trash2, ArrowDownCircle, ArrowUpCircle, AlertTriangle } from 'lucide-react';
+import { Package, Plus, Trash2, ArrowUpCircle, AlertTriangle, ChevronRight, ImagePlus, X } from 'lucide-react';
+import { uploadBusinessAsset } from '@/lib/designService';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
 import { Card, Badge, Button, EmptyState, Modal } from '@/components/ui';
@@ -11,6 +12,40 @@ import { estadoStock, produtosStockBaixo, produtosEsgotados } from '@/lib/domain
 
 const MOTIVOS_ENTRADA = ['Compra ao fornecedor', 'Devolução', 'Inventário (acerto)'];
 const MOTIVOS_SAIDA = ['Quebra/Perda', 'Uso interno', 'Inventário (acerto)'];
+const FORM_VAZIO = { name: '', category: '', unit: 'un', stock: 0, minStock: 5, cost: 0, price: 0, supplier: '', supplierId: '', vendaOnline: false, fotoUrl: '' };
+
+/*
+ * A LISTA E A FICHA DO PRODUTO (15/10/2026).
+ *
+ * Como na Fresha: uma linha por produto — foto, nome, quanto ha em stock,
+ * preco — e tocar abre a ficha. A ficha esta em quatro blocos (fotografia,
+ * informacoes basicas, precos, stock) e os botoes de ajustar stock e de
+ * eliminar vivem la dentro, em vez de tres icones por linha na tabela.
+ * A foto fica no metadata, como a do servico, e o site ja a le.
+ */
+function FotoDoProduto({ valor, onMudar }) {
+  const [aEnviar, setAEnviar] = useState(false);
+  const [erro, setErro] = useState('');
+  const escolher = async (e) => {
+    const f = e.target.files?.[0]; e.target.value = '';
+    if (!f) return;
+    setAEnviar(true); setErro('');
+    try { onMudar(await uploadBusinessAsset(null, f, `produto-${Date.now()}`)); }
+    catch (err) { setErro(err.message || 'Não foi possível enviar a foto.'); }
+    finally { setAEnviar(false); }
+  };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <label style={{ width: 84, height: 84, borderRadius: 14, border: '1px dashed var(--border)', background: valor ? `center/cover no-repeat url('${valor}')` : 'var(--elevated)', display: 'grid', placeItems: 'center', cursor: 'pointer', flexShrink: 0, color: 'var(--text-sec)' }}>
+        {!valor && (aEnviar ? '…' : <ImagePlus size={22} />)}
+        <input type="file" accept="image/*" onChange={escolher} style={{ display: 'none' }} />
+      </label>
+      {valor && <Button variant="ghost" size="sm" onClick={() => onMudar('')}><X size={14} /> Tirar</Button>}
+      {aEnviar && valor && <span className="text-sec text-sm">A enviar…</span>}
+      {erro && <span className="text-sm" style={{ color: 'var(--error)' }}>{erro}</span>}
+    </div>
+  );
+}
 
 export default function Inventory() {
   const data = useStore();
@@ -19,7 +54,7 @@ export default function Inventory() {
   const [editModal, setEditModal] = useState(false);
   const [adjModal, setAdjModal] = useState(false);
   const [delId, setDelId] = useState(null);
-  const [form, setForm] = useState({ name: '', category: '', unit: 'un', stock: 0, minStock: 5, cost: 0, price: 0, supplier: '', supplierId: '', vendaOnline: false });
+  const [form, setForm] = useState(FORM_VAZIO);
   const fornecedores = data.suppliers || [];
   const [editingId, setEditingId] = useState(null);
   const [novaCategoria, setNovaCategoria] = useState(false);
@@ -35,8 +70,8 @@ export default function Inventory() {
   const esgotados = produtosEsgotados(data.products);
   const stockValue = data.products.reduce((sum, p) => sum + p.stock * (p.cost || 0), 0);
 
-  const openNew = () => { setEditingId(null); setNovaCategoria(false); setForm({ name: '', category: categoriasProduto[0] || '', unit: 'un', stock: 0, minStock: 5, cost: 0, price: 0, supplier: '', supplierId: '', vendaOnline: false }); setEditModal(true); };
-  const openEdit = (p) => { setEditingId(p.id); setNovaCategoria(false); setForm({ name: p.name, category: p.category, unit: p.unit, stock: p.stock, minStock: p.minStock, cost: p.cost, price: p.price || 0, supplier: p.supplier || '', supplierId: p.supplierId || (fornecedores.find(f => f.name === p.supplier)?.id || ''), vendaOnline: !!p.vendaOnline }); setEditModal(true); };
+  const openNew = () => { setEditingId(null); setNovaCategoria(false); setForm({ ...FORM_VAZIO, category: categoriasProduto[0] || '' }); setEditModal(true); };
+  const openEdit = (p) => { setEditingId(p.id); setNovaCategoria(false); setForm({ name: p.name, category: p.category, unit: p.unit, stock: p.stock, minStock: p.minStock, cost: p.cost, price: p.price || 0, supplier: p.supplier || '', supplierId: p.supplierId || (fornecedores.find(f => f.name === p.supplier)?.id || ''), vendaOnline: !!p.vendaOnline, fotoUrl: p.fotoUrl || '' }); setEditModal(true); };
   const openAdj = (p) => { setAdj({ id: p.id, delta: '', reason: MOTIVOS_ENTRADA[0], custo: '', comoDespesa: true, method: 'Transferência' }); setAdjModal(true); };
 
   const [avisoPreco, setAvisoPreco] = useState(false);
@@ -100,50 +135,46 @@ export default function Inventory() {
       </div>
       <PageInfo page="produtos" />
 
-      <div className="kpi-grid">
+      <div className="kpi-grid so-pc">
         <Card className="kpi"><Package className="icon" size={22} /><div className="label">Produtos</div><div className="value">{data.products.length}</div></Card>
         <Card className="kpi"><AlertTriangle className="icon" size={22} /><div className="label">Stock baixo</div><div className="value" style={{ color: lowStock.length ? 'var(--warning)' : 'inherit' }}>{lowStock.length}</div></Card>
         <Card className="kpi"><AlertTriangle className="icon" size={22} /><div className="label">Esgotados</div><div className="value" style={{ color: esgotados.length ? 'var(--error)' : 'inherit' }}>{esgotados.length}</div></Card>
         <Card className="kpi"><Package className="icon" size={22} /><div className="label">Valor de stock</div><div className="value gold">{formatPrice(stockValue)}</div></Card>
       </div>
 
-      <Card className="card-pad">
-        <div className="flex justify-between items-center mb-16" style={{ flexWrap: 'wrap', gap: 12 }}>
-          <input className="input" style={{ maxWidth: 280 }} placeholder="Pesquisar produto…" value={search} onChange={e => setSearch(e.target.value)} />
-          <Button variant="primary" onClick={openNew}><Plus size={16} /> Novo produto</Button>
-        </div>
+      <div className="prod-topo">
+        <input className="input" placeholder="Pesquisar produto…" value={search} onChange={e => setSearch(e.target.value)} />
+        <Button variant="primary" onClick={openNew}><Plus size={16} /> Adicionar</Button>
+      </div>
 
-        {products.length === 0 ? (
-          <EmptyState icon={() => <Package />} title="Sem produtos" />
-        ) : (
-          <table className="table">
-            <thead><tr><th>Produto</th><th>Categoria</th><th>Stock</th><th>Mín.</th><th>Custo</th><th>PVP</th><th>Valor stock</th><th>Fornecedor</th><th className="col-acoes"></th></tr></thead>
-            <tbody>
-              {products.map(p => (
-                <tr key={p.id}>
-                  <td className="fw-600">{p.name}{p.vendaOnline && <> <Badge variant="gold">Na app</Badge></>}</td>
-                  <td className="text-sec">{p.category}</td>
-                  <td>{p.stock} <span className="text-sec text-xs">{p.unit}</span> {estadoStock(p) === 'esgotado' ? <Badge variant="danger">Esgotado</Badge> : estadoStock(p) === 'baixo' ? <Badge variant="warning">Baixo</Badge> : null}</td>
-                  <td className="text-sec">{p.minStock}</td>
-                  <td>{formatPrice(p.cost)}</td>
-                  <td className="fw-600">{formatPrice(p.price || 0)}</td>
-                  <td className="fw-600">{formatPrice(p.stock * (p.cost || 0))}</td>
-                  <td className="text-sec text-xs">{p.supplier || '—'}</td>
-                  <td className="col-acoes">
-                    <div className="flex gap-8">
-                      <button className="btn btn-ghost btn-icon" aria-label="Ajustar stock" onClick={() => openAdj(p)} title="Ajustar stock"><ArrowUpCircle size={16} /></button>
-                      <button className="btn btn-ghost btn-icon" aria-label="Editar produto" onClick={() => openEdit(p)} title="Editar produto"><Edit size={16} /></button>
-                      <button className="btn btn-ghost btn-icon" aria-label="Eliminar produto" onClick={() => setDelId(p.id)} title="Eliminar produto"><Trash2 size={16} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </Card>
+      {products.length === 0 ? (
+        <Card className="card-pad"><EmptyState icon={() => <Package />} title="Sem produtos" /></Card>
+      ) : (
+        <div className="prod-lista">
+          {products.map(p => {
+            const est = estadoStock(p);
+            return (
+              <button key={p.id} type="button" className="prod-row" onClick={() => openEdit(p)}>
+                <span className="prod-foto" style={p.fotoUrl ? { backgroundImage: `url('${p.fotoUrl}')` } : undefined}>{!p.fotoUrl && <Package size={22} />}</span>
+                <span className="prod-nome">
+                  <b>{p.name}</b>
+                  <span className={est === 'esgotado' ? 'esgotado' : est === 'baixo' ? 'baixo' : ''}>
+                    {est === 'esgotado' ? 'Esgotado' : `${p.stock} em stock`}{p.vendaOnline ? ' · Na app' : ''}
+                  </span>
+                </span>
+                <span className="prod-preco">{formatPrice(p.price || 0)}</span>
+                <ChevronRight size={18} className="seta" />
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <Modal open={editModal} onClose={() => setEditModal(false)} title={editingId ? 'Editar produto' : 'Novo produto'}>
+        <div className="prod-sec">Fotografia</div>
+        <FotoDoProduto valor={form.fotoUrl || ''} onMudar={url => setForm(f => ({ ...f, fotoUrl: url }))} />
+
+        <div className="prod-sec">Informações básicas</div>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
         <div className="grid-2">
           <div className="field">
@@ -151,14 +182,12 @@ export default function Inventory() {
             {/* As categorias dos produtos ficam no settings da barbearia, como as
                 dos servicos. Escreve-se uma nova aqui e ela passa a estar na lista
                 — nao ha uma pagina so para isso. */}
-            <div className="flex gap-8">
-              <select className="select" style={{ flex: 1 }} value={categoriasProduto.includes(form.category) ? form.category : (form.category ? '__nova' : '')}
-                onChange={e => { const v = e.target.value; if (v === '__nova') { setForm(f => ({ ...f, category: '' })); setNovaCategoria(true); } else { setNovaCategoria(false); setForm(f => ({ ...f, category: v })); } }}>
-                <option value="">Sem categoria</option>
-                {categoriasProduto.map(c => <option key={c} value={c}>{c}</option>)}
-                <option value="__nova">+ Nova categoria…</option>
-              </select>
-            </div>
+            <select className="select" value={categoriasProduto.includes(form.category) ? form.category : (form.category ? '__nova' : '')}
+              onChange={e => { const v = e.target.value; if (v === '__nova') { setForm(f => ({ ...f, category: '' })); setNovaCategoria(true); } else { setNovaCategoria(false); setForm(f => ({ ...f, category: v })); } }}>
+              <option value="">Sem categoria</option>
+              {categoriasProduto.map(c => <option key={c} value={c}>{c}</option>)}
+              <option value="__nova">+ Nova categoria…</option>
+            </select>
             {(novaCategoria || (form.category && !categoriasProduto.includes(form.category))) && (
               <input className="input" style={{ marginTop: 8 }} autoFocus placeholder="Nome da categoria nova"
                 value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} />
@@ -166,10 +195,19 @@ export default function Inventory() {
           </div>
           <div className="field"><label className="label">Unidade</label><select className="select" value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}><option value="un">un</option><option value="cx">cx</option><option value="pct">pct</option><option value="L">L</option><option value="kg">kg</option></select></div>
         </div>
-        <div className="grid-2">
-          <div className="field"><label className="label">Stock atual</label><input type="number" min="0" step="1" className="input" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} /></div>
-          <div className="field"><label className="label">Stock mínimo</label><input type="number" min="0" step="1" className="input" value={form.minStock} onChange={e => setForm(f => ({ ...f, minStock: e.target.value }))} /></div>
+        <div className="field">
+          <label className="label">Fornecedor</label>
+          {/* Escolhido da lista de Fornecedores — era texto livre, e a
+              contagem de produtos por fornecedor falhava com uma letra
+              diferente. */}
+          <select className="select" value={form.supplierId || ''} onChange={e => setForm(f => ({ ...f, supplierId: e.target.value }))}>
+            <option value="">Sem fornecedor</option>
+            {fornecedores.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+          </select>
+          {form.supplier && !form.supplierId && <p className="text-sec text-xs" style={{ marginTop: 6 }}>Antes estava escrito «{form.supplier}». Escolhe-o da lista.</p>}
         </div>
+
+        <div className="prod-sec">Preços</div>
         <div className="grid-2">
           <div className="field"><label className="label">Custo (€)</label><input type="number" min="0" step="0.01" className="input" value={form.cost} onChange={e => setForm(f => ({ ...f, cost: e.target.value }))} /></div>
           <div className="field"><label className="label">Preço de venda (€)</label><input type="number" className="input" min="0" step="0.01" value={form.price} onChange={e => { setForm(f => ({ ...f, price: e.target.value })); setAvisoPreco(false); }} /></div>
@@ -177,8 +215,7 @@ export default function Inventory() {
         {/* Vender na app (10/10/2026): o cliente vê-o ao marcar, em «Queres
             juntar?», e leva-o na hora. Esgotado deixa de aparecer sozinho. */}
         <div className="field">
-          <label className="label">Na app do cliente</label>
-          <div className="tipo-opcoes duas" role="radiogroup" aria-label="Na app do cliente">
+          <div className="tipo-opcoes duas" role="radiogroup" aria-label="Onde se vende">
             {[
               { v: false, t: 'Só na loja', d: 'Vendes ao balcão' },
               { v: true, t: 'Vender na app', d: 'Juntam à marcação' },
@@ -192,18 +229,11 @@ export default function Inventory() {
             ))}
           </div>
         </div>
+
+        <div className="prod-sec">Stock</div>
         <div className="grid-2">
-          <div className="field">
-            <label className="label">Fornecedor</label>
-            {/* Escolhido da lista de Fornecedores — era texto livre, e a
-                contagem de produtos por fornecedor falhava com uma letra
-                diferente. */}
-            <select className="select" value={form.supplierId || ''} onChange={e => setForm(f => ({ ...f, supplierId: e.target.value }))}>
-              <option value="">Sem fornecedor</option>
-              {fornecedores.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-            </select>
-            {form.supplier && !form.supplierId && <p className="text-sec text-xs" style={{ marginTop: 6 }}>Antes estava escrito «{form.supplier}». Escolhe-o da lista.</p>}
-          </div>
+          <div className="field"><label className="label">Em stock</label><input type="number" min="0" step="1" className="input" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} /></div>
+          <div className="field"><label className="label">Avisar abaixo de</label><input type="number" min="0" step="1" className="input" value={form.minStock} onChange={e => setForm(f => ({ ...f, minStock: e.target.value }))} /></div>
         </div>
         {avisoPreco && (
           <div className="text-sm" style={{ color: 'var(--error)', margin: '0 0 12px' }}>
@@ -216,6 +246,12 @@ export default function Inventory() {
             {avisoPreco ? 'Gravar assim mesmo' : (editingId ? 'Guardar' : 'Criar')}
           </Button>
         </div>
+        {editingId && (
+          <div className="prod-ficha-acoes">
+            <Button variant="ghost" onClick={() => { const p = data.products.find(x => x.id === editingId); setEditModal(false); if (p) openAdj(p); }}><ArrowUpCircle size={16} /> Ajustar stock</Button>
+            <Button variant="ghost" style={{ color: 'var(--error)' }} onClick={() => { setEditModal(false); setDelId(editingId); }}><Trash2 size={16} /> Eliminar</Button>
+          </div>
+        )}
       </Modal>
 
       <Modal open={adjModal} onClose={() => setAdjModal(false)} title="Ajustar stock">

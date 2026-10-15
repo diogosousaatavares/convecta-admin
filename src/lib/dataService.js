@@ -706,6 +706,9 @@ function prodFromRow(row) {
     supplierId: m.supplierId || null,
     // A venda na app (10/10/2026): o cliente ve-o ao marcar e junta-o.
     vendaOnline: m.vendaOnline === true,
+    // A foto do produto (15/10/2026): no metadata, como a do servico. O site
+    // le-a pela vista produtos_publicos (foto_url).
+    fotoUrl: m.fotoUrl || '',
     isActive: row.is_active !== false,
   };
 }
@@ -715,7 +718,7 @@ function prodToRow(p) {
     business_id: BUSINESS_ID, name,
     stock_quantity: stock || 0, min_stock: minStock || 0,
     price: price || 0, is_active: isActive !== false,
-    metadata: { category: meta.category, unit: meta.unit, cost: meta.cost, supplier: meta.supplier, supplierId: meta.supplierId || null, vendaOnline: meta.vendaOnline === true },
+    metadata: { category: meta.category, unit: meta.unit, cost: meta.cost, supplier: meta.supplier, supplierId: meta.supplierId || null, vendaOnline: meta.vendaOnline === true, fotoUrl: meta.fotoUrl || '' },
   };
 }
 

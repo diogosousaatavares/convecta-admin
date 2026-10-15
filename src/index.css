@@ -2872,10 +2872,41 @@ body { font-variant-numeric: lining-nums; }
    entrou). Os botões da página, se os houver, ocupam a linha toda, em vez
    de ficarem encostados à direita por cima de um buraco. */
 @media (max-width: 767px) {
+  /* Em todo o lado, nao so dentro: puxar para baixo atualiza (AdminLayout). */
+  [data-tour="atualizar"] { display: none !important; }
+  /* Com uma janela aberta a barra de baixo sai: tapava o botao de gravar. */
+  body:has(.modal-overlay) .bnav { display: none; }
   .admin-content.dentro .page-head [data-tour="atualizar"] { display: none; }
   .admin-content.dentro .page-head > div { flex-direction: column; align-items: stretch; }
   .admin-content.dentro .page-head > div > div:last-child { width: 100%; }
   .admin-content.dentro .page-head > div > div:last-child > * { flex: 1; justify-content: center; }
   .admin-content.dentro .page-head > div > div:last-child:empty { display: none; }
   .admin-content.dentro .page-head:not(:has(> div > div:last-child > *:not([data-tour="atualizar"]))) { display: none; }
+}
+
+/* ── Produtos à Fresha (15/10/2026) ──────────────────────────────────────
+   Uma linha por produto: foto, nome, quanto há em stock, preço. Tocar abre
+   a ficha; ajustar stock e eliminar vivem dentro da ficha. */
+.prod-topo { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+.prod-topo .input { flex: 1; min-width: 0; }
+.prod-lista { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); overflow: hidden; }
+.prod-row { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 14px; background: none; border: 0; border-bottom: 1px solid var(--border); text-align: left; cursor: pointer; font: inherit; color: var(--text); }
+.prod-row:last-child { border-bottom: 0; }
+.prod-row:hover { background: var(--elevated); }
+.prod-foto { width: 54px; height: 54px; border-radius: 12px; flex-shrink: 0; background: var(--elevated) center/cover no-repeat; display: grid; place-items: center; color: var(--text-ter); }
+.prod-nome { flex: 1; min-width: 0; }
+.prod-nome b { display: block; font-weight: 600; font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prod-nome span { display: block; font-size: 13.5px; color: var(--text-sec); margin-top: 2px; }
+.prod-nome span.baixo { color: var(--warning); }
+.prod-nome span.esgotado { color: var(--error); }
+.prod-preco { font-weight: 700; font-size: 15.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.prod-row svg.seta { color: var(--text-ter); flex-shrink: 0; }
+.prod-sec { font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-sec); margin: 18px 0 10px; }
+.prod-sec:first-child { margin-top: 0; }
+.prod-ficha-acoes { display: flex; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.prod-ficha-acoes .btn { flex: 1; justify-content: center; }
+@media (max-width: 767px) {
+  .prod-topo { flex-direction: column; align-items: stretch; }
+  .prod-topo .btn { justify-content: center; }
+  .prod-lista { margin-left: -4px; margin-right: -4px; }
 }

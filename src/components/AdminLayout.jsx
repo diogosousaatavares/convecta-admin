@@ -12,7 +12,7 @@ import { useAuth, useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 
 import { moduloIndisponivel, permitidoAoProfissional } from '@/lib/modulos';
-import dataService from '@/lib/dataService';
+import dataService, { atualizarAgora } from '@/lib/dataService';
 import { supabase } from '@/lib/supabase';
 import TourDemo from '@/components/admin/TourDemo';
 import AvisoPush from '@/components/AvisoPush';
@@ -424,6 +424,22 @@ export default function AdminLayout({ children }) {
 
   // Telemovel: as tabelas viram cartoes e precisam do nome da coluna em cada celula.
   useEffect(() => vigiarTabelas(zonaConteudo.current), []);
+
+  // Telemovel (15/10/2026): o botao «Atualizar» saiu do ecra. Puxar a pagina
+  // para baixo, ja no topo, vai buscar as marcacoes — como em qualquer app.
+  useEffect(() => {
+    if (!window.matchMedia('(max-width: 767px)').matches) return undefined;
+    let y0 = null;
+    const inicio = (e) => { y0 = window.scrollY <= 0 ? e.touches[0].clientY : null; };
+    const fim = (e) => {
+      if (y0 == null) return;
+      const dy = e.changedTouches[0].clientY - y0; y0 = null;
+      if (dy > 90 && window.scrollY <= 0 && !document.querySelector('.modal-overlay')) atualizarAgora();
+    };
+    window.addEventListener('touchstart', inicio, { passive: true });
+    window.addEventListener('touchend', fim, { passive: true });
+    return () => { window.removeEventListener('touchstart', inicio); window.removeEventListener('touchend', fim); };
+  }, []);
 
 
   const isActive = (it) => {
