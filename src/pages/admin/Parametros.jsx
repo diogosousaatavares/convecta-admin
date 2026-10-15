@@ -6,15 +6,7 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 
 
-function Toggle({ checked, onChange }) {
-  return <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', gap: 8 }}>
-    <div style={{ position: 'relative', width: 40, height: 22 }}>
-      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }} />
-      <div style={{ position: 'absolute', inset: 0, borderRadius: 11, background: checked ? 'var(--gold)' : 'var(--border)', transition: 'background 0.2s' }} />
-      <div style={{ position: 'absolute', top: 3, left: checked ? 21 : 3, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
-    </div>
-  </label>;
-}
+import Toggle from '@/components/admin/Toggle';
 
 function Row({ label, desc, children }) {
   return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--border)', gap: 16 }}>
@@ -55,13 +47,14 @@ export default function Parametros() {
    */
   return (
     <AdminPage title="Parâmetros" subtitle="As regras das marcações. O que decides aqui é o que o site do cliente cumpre." page="parametros">
-      <Card className="card-pad" style={{ maxWidth: 720 }}>
-        <div className="fw-600 text-sm" style={{ color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: .8, paddingBottom: 4, marginBottom: 4 }}>Marcações pelo site</div>
+      {/* Sem bloco branco (15/10/2026): linhas com separador, direto na página. */}
+      <div className="nt-titulo" style={{ marginTop: 0 }}>Marcações pelo site</div>
+      <div className="nt-lista" style={{ maxWidth: 720 }}>
         {/* Sem frases por baixo (15/10/2026): o título chega. */}
         {row('Marcações entram confirmadas', '', <Toggle checked={v('autoConfirm', true)} onChange={x => save({ autoConfirm: x })} />)}
         {row('Cliente pode desmarcar', '', <Toggle checked={v('allowClientCancel', true)} onChange={x => save({ allowClientCancel: x })} />)}
         {row('Até quantas horas antes', '', <NumInput value={v('cancelMinHours', 2)} min={0} max={72} onChange={x => save({ cancelMinHours: x })} />)}
-      </Card>
+      </div>
     </AdminPage>
   );
 }

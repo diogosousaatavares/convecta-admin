@@ -159,11 +159,11 @@ export default function Cash() {
                   const cust = data.customers.find(c => c.id === a.customerId);
                   const pro = data.professionals.find(p => p.id === a.professionalId);
                   return (
-                    <div key={a.id} className="cobrar-row">
+                    <div key={a.id} className="cobrar-row" role="button" tabIndex={0} onClick={() => setCharge(a.id)} onKeyDown={e => { if (e.key === 'Enter') setCharge(a.id); }}>
                       <span className="cobrar-hora">{a.startTime}</span>
-                      <span className="cobrar-txt"><b>{cust?.name}</b><span>{svc?.name} · {pro?.name}</span></span>
+                      <span className="cobrar-txt"><b>{cust?.name}</b></span>
                       <span className="cobrar-preco">{formatPrice(svc?.price || 0)}</span>
-                      <Button size="sm" variant="primary" className="cobrar-btn" onClick={() => setCharge(a.id)}>Cobrar</Button>
+                      <Button size="sm" variant="primary" className="cobrar-btn" onClick={e => { e.stopPropagation(); setCharge(a.id); }}>Cobrar</Button>
                     </div>
                   );
                 })}

@@ -2376,9 +2376,7 @@ html.theme-light .page-info-popover { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12)
 .push-linha > button:disabled { opacity: 0.6; cursor: default; }
 .push-linha-ok { color: #22C55E; font-weight: 600; width: 100%; }
 .push-linha-mal { color: #F59E0B; font-weight: 600; width: 100%; }
-@media (max-width: 860px) {
-  .push-linha > button { margin-left: 0; }
-}
+.push-linha > span:first-of-type { flex: 1; min-width: 0; }
 
 /* ── Telemóvel: correcções 22/09 ─────────────────────────────────────────── */
 /* No telemóvel o :hover fica preso depois de um toque. Um transform preso num
@@ -2864,7 +2862,15 @@ body { font-variant-numeric: lining-nums; }
 .trilho-item:hover { background: var(--elevated); }
 .trilho-item.on { background: rgba(var(--gold-rgb), .16); font-weight: 700; }
 /* Os dias da experiência passam para a barra de cima no computador. */
-.dias-teste-topo .dias-teste { margin: 0; padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; font-size: 13.5px; gap: 8px; }
+.dias-teste-topo { flex-shrink: 0; }
+.dias-teste-topo .dias-teste { margin: 0; padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; font-size: 13.5px; gap: 8px; white-space: nowrap; flex-wrap: nowrap; }
+/* O nome do negócio não se espreme para «Jor…» por causa da pesquisa: a
+   pesquisa é que cede. */
+@media (min-width: 768px) {
+  .admin-topbar-nome { flex-shrink: 0; max-width: 280px; }
+  /* A pesquisa enche o que sobra até aos ícones da direita. */
+  .admin-search-wrap { flex: 1 1 200px; min-width: 160px; max-width: none; }
+}
 @media (max-width: 767px) { .trilho, .trilho-lista, .dias-teste-topo { display: none; } }
 
 /* ── No telemóvel, dentro de uma página (15/10/2026) ─────────────────────
@@ -2943,3 +2949,46 @@ body { font-variant-numeric: lining-nums; }
   .vs-head { flex-direction: column; align-items: stretch; gap: 10px; }
   .vs-botoes > .btn { flex: 1; justify-content: center; }
 }
+
+/* ── Botões de ação sempre do mesmo tamanho (15/10/2026) ─────────────────
+   Numa fila de botões (detalhe da marcação, rodapé de uma janela, ficha do
+   produto) cada botão ocupa a mesma largura, seja qual for o texto. */
+.ag-detail-actions, .modal-foot, .prod-ficha-acoes, .modal-body > .flex.gap-12:last-child, .botoes-iguais {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px;
+}
+.ag-detail-actions .btn, .modal-foot .btn, .prod-ficha-acoes .btn, .modal-body > .flex.gap-12:last-child .btn, .botoes-iguais .btn {
+  width: 100%; justify-content: center; text-align: center; white-space: normal; margin: 0;
+}
+.ag-detail-actions { margin-top: 16px; }
+
+/* ── Listas de pessoas e período (Comissões, Desempenho) ───────────────── */
+.periodo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 420px; margin-bottom: 16px; }
+.periodo label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-sec); }
+.periodo .input { width: 100%; }
+.lin-lista { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-card); background: var(--surface); overflow: hidden; }
+.lin { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 14px; background: none; border: 0; border-bottom: 1px solid var(--border); text-align: left; cursor: pointer; font: inherit; color: var(--text); }
+.lin:last-child { border-bottom: 0; }
+.lin:hover { background: var(--elevated); }
+.lin-txt { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.lin-txt b { font-weight: 600; font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lin-txt span { font-size: 13.5px; color: var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lin-valor { font-weight: 700; font-size: 15.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lin-seta { color: var(--text-ter); flex-shrink: 0; }
+.lin-rodape { display: flex; gap: 16px; align-items: center; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap; }
+.lin-rodape b { margin-left: 4px; }
+
+/* ── Notificações e Parâmetros: linhas sem bloco (15/10/2026) ─────────── */
+.nt-titulo { font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-sec); margin: 24px 0 8px; }
+.nt-lista { display: flex; flex-direction: column; }
+.nt-lista > .push-linha { margin: 0 0 6px; }
+.nt-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.nt-row:last-child { border-bottom: 0; }
+.nt-txt { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.nt-txt b { font-weight: 600; font-size: 15.5px; }
+.nt-txt > span { font-size: 14px; color: var(--text-sec); }
+.nt-txt .nt-data { font-size: 12.5px; color: var(--text-ter); }
+.nt-envio { align-items: flex-start; }
+.nt-acoes { display: flex; gap: 4px; flex-shrink: 0; align-items: center; }
+.cobrar-row { cursor: pointer; }
+/* Cartão de fidelidade no telemóvel: primeiro o cartão como o cliente o vê, depois os campos. */
+@media (max-width: 767px) { .fid-preview { order: -1; margin-bottom: 18px; } .fid-form { max-width: none; } }

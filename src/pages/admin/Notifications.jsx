@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Plus, Trash2, Send, Info, Tag, Megaphone, ArrowRight } from 'lucide-react';
-import AdminLayout from '@/components/AdminLayout';
+import AdminPage from '@/components/admin/AdminPage';
+import Toggle from '@/components/admin/Toggle';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { Modal, EmptyState, Button, Card } from '@/components/ui';
 import AvisoPush from '@/components/AvisoPush';
 import authService from '@/lib/authService';
-import SeparadoresDaFamilia from '@/components/admin/SeparadoresDaFamilia';
 import { n as nicho } from '@/lib/nicho';
 
 const TYPE_META = {
@@ -101,98 +101,57 @@ export default function Notifications() {
   const toggle = async (id) => { await dataService.toggleNotification(id); toast.info('Estado atualizado'); };
   const remove = async (id) => { await dataService.deleteNotification(id); toast.success('Notificação eliminada'); };
 
+  // Ligar/desligar o lembrete e mudar as horas grava logo: sem botão Guardar.
+  const mudarLembrete = async (ativo, horas) => {
+    setLembreteAtivo(ativo); setHorasAntes(horas);
+    try {
+      await dataService.updateBusiness({ reminders: { ativo, horasAntes: Math.max(1, Math.min(72, Number(horas) || 24)) }, exigirEmailConfirmado: false });
+    } catch (e) { toast.error('Não foi possível guardar', e.message); }
+  };
+
+  /*
+   * Sem blocos brancos (15/10/2026): a página é uma lista de linhas com um
+   * separador entre elas, como as Definições. O estado das notificações
+   * deste aparelho, o lembrete, e por baixo o que já foi enviado.
+   */
   return (
-    <AdminLayout>
-      <SeparadoresDaFamilia />
-      <div className="page-head" data-tour="notificacoes">
-        <h1>Notificações</h1>
-      </div>
-
-      {/* O sitio onde se testa se este aparelho recebe, sempre a mao. No
-          Dashboard a linha desaparece depois do primeiro teste do dia; aqui
-          fica. */}
-      <div style={{ marginBottom: 20 }} data-tour="notificacoes-aviso">
+    <AdminPage title="Notificações" actions={<Button variant="primary" onClick={openNew}><Plus size={16} /> Nova notificação</Button>}>
+      <div data-tour="notificacoes" />
+      <div className="nt-lista" data-tour="notificacoes-aviso">
         <AvisoPush businessId={data.business?.id} userId={authService.getCurrentUser()?.id} papel="admin" comTeste sempre />
-      </div>
-
-      <Card className="card-pad" style={{ marginBottom: 22, maxWidth: 620 }}>
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 14, cursor: 'pointer' }}>
-          <input type="checkbox" checked={lembreteAtivo} onChange={e => setLembreteAtivo(e.target.checked)}
-            style={{ width: 18, height: 18, marginTop: 2, accentColor: 'var(--gold)', flexShrink: 0 }} />
-          <span>
-            <span className="fw-600" style={{ display: 'block' }}>Lembrar o cliente antes da marcação</span>
-          </span>
-        </label>
-
+        <div className="nt-row">
+          <span className="nt-txt"><b>Lembrar o cliente antes da marcação</b></span>
+          <Toggle checked={lembreteAtivo} onChange={x => mudarLembrete(x, horasAntes)} />
+        </div>
         {lembreteAtivo && (
-          <div className="field" style={{ marginTop: 16, marginBottom: 0 }}>
-            <label className="label" htmlFor="horas-antes">Quantas horas antes</label>
-            <input id="horas-antes" type="number" className="input" min="1" max="72" value={horasAntes}
-              onChange={e => setHorasAntes(e.target.value)} style={{ maxWidth: 110 }} />
+          <div className="nt-row">
+            <span className="nt-txt"><b>Quantas horas antes</b></span>
+            <input type="number" className="input" min="1" max="72" value={horasAntes} style={{ width: 90, textAlign: 'right' }}
+              onChange={e => setHorasAntes(e.target.value)} onBlur={e => mudarLembrete(true, e.target.value)} />
           </div>
         )}
-
-        {/* «Só aceitar marcações de quem confirmou o email» saiu a 10/10/2026:
-            o cliente nunca mais tem de confirmar o email. */}
-
-        <div style={{ marginTop: 16 }}>
-          <Button variant="primary" onClick={guardarLembretes} disabled={aGuardar}>
-            {aGuardar ? 'A guardar…' : 'Guardar'}
-          </Button>
-        </div>
-      </Card>
-
-      <div className="flex items-center gap-16 mb-24" style={{ marginBottom: 22, flexWrap: 'wrap' }}>
-        <div className="notif-card so-pc" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div className="notif-ico" style={{ width: 36, height: 36 }}><Bell size={17} /></div>
-          <div>
-            <div className="text-xs" style={{ color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total</div>
-            <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, color: 'var(--text)' }}>{notifications.length}</div>
-          </div>
-        </div>
-        <div className="notif-card so-pc" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div className="notif-ico" style={{ width: 36, height: 36 }}><Send size={17} /></div>
-          <div>
-            <div className="text-xs" style={{ color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ativas</div>
-            <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, color: 'var(--gold-tinta)' }}>{activeCount}</div>
-          </div>
-        </div>
-        <Button variant="primary" onClick={openNew} style={{ marginLeft: 'auto' }}>
-          <Plus size={16} /> Nova notificação <ArrowRight size={15} />
-        </Button>
       </div>
 
+      <div className="nt-titulo">Enviadas</div>
       {notifications.length === 0 ? (
-        <EmptyState icon={() => <Bell size={40} />} title="Sem notificações" />
+        <EmptyState icon={() => <Bell size={40} />} title="Ainda não enviaste nenhuma" />
       ) : (
-        <div className="flex-col gap-12">
+        <div className="nt-lista">
           {notifications.map(n => {
             const meta = TYPE_META[n.type] || TYPE_META.info;
             const Icon = meta.icon;
             return (
-              <div key={n.id} className={`notif-card ${n.active ? 'unread' : ''}`} style={{ opacity: n.active ? 1 : 0.6 }}>
-                <div className="flex items-center gap-12">
-                  <div className="notif-ico"><Icon size={18} /></div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="flex items-center gap-8" style={{ flexWrap: 'wrap' }}>
-                      <span className="notif-title">{n.title}</span>
-                      <span className={`notif-badge ${meta.cls}`}>{meta.label}</span>
-                      <span className={`notif-badge ${n.active ? '' : ''}`} style={n.active ? { background: 'rgba(34,197,94,0.12)', color: 'var(--success)', borderColor: 'rgba(34,197,94,0.3)' } : { background: 'rgba(255,255,255,0.05)', color: 'var(--text-sec)', borderColor: 'rgba(255,255,255,0.1)' }}>
-                        {n.active ? 'Ativa' : 'Inativa'}
-                      </span>
-                    </div>
-                    <p className="notif-msg">{n.message}</p>
-                    <div className="notif-date">{formatDate(n.createdAt)}</div>
-                  </div>
-                </div>
-                <div className="flex gap-8" style={{ marginTop: 14, flexWrap: 'wrap' }}>
-                  <Button size="sm" variant="secondary" onClick={() => toggle(n.id)}>
-                    {n.active ? 'Desativar' : 'Ativar'} <ArrowRight size={14} />
-                  </Button>
-                  <Button size="sm" variant="danger" onClick={() => remove(n.id)}>
-                    <Trash2 size={14} /> Eliminar
-                  </Button>
-                </div>
+              <div key={n.id} className="nt-row nt-envio" style={{ opacity: n.active ? 1 : 0.55 }}>
+                <span className="notif-ico"><Icon size={18} /></span>
+                <span className="nt-txt">
+                  <b>{n.title}</b>
+                  <span>{n.message}</span>
+                  <span className="nt-data">{formatDate(n.createdAt)} · {meta.label}{n.active ? '' : ' · desativada'}</span>
+                </span>
+                <span className="nt-acoes">
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => toggle(n.id)}>{n.active ? 'Desativar' : 'Ativar'}</button>
+                  <button type="button" className="btn btn-ghost btn-icon" aria-label="Eliminar" onClick={() => remove(n.id)}><Trash2 size={16} /></button>
+                </span>
               </div>
             );
           })}
@@ -229,6 +188,6 @@ export default function Notifications() {
           <textarea className="textarea" rows={4} value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} placeholder="Escreve a mensagem que os clientes vão ver…" maxLength={400} />
         </div>
       </Modal>
-    </AdminLayout>
+    </AdminPage>
   );
 }

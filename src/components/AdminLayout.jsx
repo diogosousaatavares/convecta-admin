@@ -109,6 +109,7 @@ const GROUPS_TODOS = [
     { to: '/admin/o-meu-site', label: 'O meu site', icon: Globe, d: 'A tua página de marcações.' },
     { to: '/admin/fidelizacao', label: 'Cartão de fidelidade', icon: Heart, d: 'Carimbos e prémio.' },
     { to: '/admin/promocoes', label: 'Promoções e cupões', icon: Ticket, d: 'Descontos com prazo.' },
+    { to: '/admin/notificacoes', label: 'Notificações', icon: Bell, d: 'Avisos e promoções no telemóvel.' },
     { to: '/admin/redes-sociais', label: 'Redes sociais', icon: Instagram, d: 'Posts e vídeos prontos.' },
   ]},
 
@@ -125,7 +126,7 @@ const GROUPS_TODOS = [
   { type: 'item', to: '/admin/relatorios', label: 'Relatórios', icon: BarChart3, d: 'Números por mês.' },
 
   { type: 'group', id: 'definicoes', to: '/admin/definicoes', label: 'Definições', icon: Settings, d: 'A conta e o painel.', items: [
-    { to: '/admin/definicoes', label: 'Definições', exact: true, icon: Settings, d: 'Dados, notificações, acessos.' },
+    { to: '/admin/definicoes', label: 'Definições', exact: true, icon: Settings, d: 'Dados, agenda, acessos.' },
     { to: '/admin/subscricao', label: 'A minha subscrição', icon: Gem, d: 'Plano, extras e faturas.' },
   ]},
 ];
@@ -204,7 +205,7 @@ const PASSOS_BARBEIRO = [
     get texto() { return `O site ${nicho().da} já está no ar. É este link que vais pôr no Instagram e mandar aos clientes — copia-se com um toque.`; } },
   { rota: '/admin/o-meu-site', alvo: 'meu-site', titulo: 'Põe a tua cara',
     texto: 'Logótipo, cores, capa e fotos. Mudas aqui e vês o resultado antes de publicar.' },
-  { rota: '/admin/definicoes/notificacoes', alvo: 'notificacoes-aviso', titulo: 'Para o telemóvel tocar',
+  { rota: '/admin/notificacoes', alvo: 'notificacoes-aviso', titulo: 'Para o telemóvel tocar',
     texto: 'Liga as notificações neste telemóvel. É assim que sabes de uma marcação no segundo em que ela entra.' },
   { rota: '/admin/agenda', alvo: 'agenda', titulo: 'É aqui que elas caem',
     texto: 'Agora falta uma coisa só: partilhar o teu link. Sem isso a agenda fica bonita e vazia.' },

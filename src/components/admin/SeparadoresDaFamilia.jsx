@@ -53,7 +53,6 @@ const FAMILIAS = [
       { to: '/admin/definicoes/agenda', label: 'Agenda' },
       { to: '/admin/definicoes/profissionais', label: 'Profissionais' },
       { to: '/admin/definicoes/pagamentos', label: 'Pagamentos' },
-      { to: '/admin/definicoes/notificacoes', label: 'Notificações' },
       { to: '/admin/definicoes/clientes', label: 'Clientes' },
       { to: '/admin/definicoes/documentos', label: 'Documentos' },
       { to: '/admin/definicoes/tema', label: 'Cores do painel' },

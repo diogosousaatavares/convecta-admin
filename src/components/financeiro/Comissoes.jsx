@@ -4,7 +4,7 @@ import { useStore } from '@/hooks/useStore';
 import { formatPrice, todayStr, addDays } from '@/lib/format';
 import { exportCSV } from '@/lib/csv';
 import { resumoProfissional } from '@/lib/domain/finance';
-import { round2 } from '@/lib/domain/money';
+import ListaPessoas, { Periodo } from '@/components/admin/ListaPessoas';
 
 export default function Comissoes() {
   const data = useStore();
@@ -32,42 +32,31 @@ export default function Comissoes() {
     'Total a pagar': r.total.toFixed(2)
   })));
 
+  // Uma linha por pessoa: percentagem por baixo, total a pagar à direita.
+  // Tocar abre a ficha com as contas todas.
+  const linhas = rows.map(r => ({
+    id: r.pro.id, nome: r.pro.name,
+    sub: `${r.pro.commission || 0}% de comissão · ${r.count} ${r.count === 1 ? 'marcação' : 'marcações'}`,
+    valor: formatPrice(r.total),
+    detalhe: [
+      ['Comissão', `${r.pro.commission || 0}%`], ['Marcações', r.count], ['Receita líquida', formatPrice(r.netRev)],
+      ['Comissão €', formatPrice(r.commission)], ['Gorjetas', formatPrice(r.tips)], ['Total a pagar', formatPrice(r.total)],
+    ],
+  }));
+
   return (
-    <Card className="card-pad">
-      <div className="flex justify-between items-center mb-16" style={{ flexWrap: 'wrap', gap: 12 }}>
-        <h3 style={{ fontSize: 18 }}>Comissões por profissional</h3>
-        <div className="flex gap-8" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
-          <label className="flex items-center gap-8" style={{ fontSize: 14 }}>De <input type="date" className="input" style={{ width: 'auto' }} value={from} onChange={e => setFrom(e.target.value)} /></label>
-          <label className="flex items-center gap-8" style={{ fontSize: 14 }}>Até <input type="date" className="input" style={{ width: 'auto' }} value={to} onChange={e => setTo(e.target.value)} /></label>
-          <Button size="sm" variant="secondary" onClick={doExport} className="so-pc">Exportar CSV</Button>
-        </div>
-      </div>
-
+    <>
+      <Periodo from={from} to={to} setFrom={setFrom} setTo={setTo} />
       {rows.length === 0 || rows.every(r => r.count === 0) ? (
-        <EmptyState title="Sem dados" description="Sem marcações concluídas no período." />
+        <Card className="card-pad"><EmptyState title="Sem dados" description="Sem marcações concluídas no período." /></Card>
       ) : (
-        <table className="table">
-          <thead><tr><th>Profissional</th><th>Comissão</th><th>Marcações</th><th>Receita líquida</th><th>Comissão €</th><th>Gorjetas</th><th>Total a pagar</th></tr></thead>
-          <tbody>
-            {rows.map(r => (
-              <tr key={r.pro.id}>
-                <td className="fw-600">{r.pro.name}</td>
-                <td className="text-sec">{r.pro.commission || 0}%</td>
-                <td>{r.count}</td>
-                <td>{formatPrice(r.netRev)}</td>
-                <td className="fw-600 text-gold">{formatPrice(r.commission)}</td>
-                <td>{formatPrice(r.tips)}</td>
-                <td className="fw-600">{formatPrice(r.total)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <ListaPessoas linhas={linhas} />
       )}
-
-      <div className="flex gap-16 mt-16" style={{ justifyContent: 'flex-end' }}>
-        <span className="text-sec text-sm">Total comissões: <span className="fw-600 text-gold">{formatPrice(totalCommission)}</span></span>
-        <span className="text-sec text-sm">Total gorjetas: <span className="fw-600">{formatPrice(totalTips)}</span></span>
+      <div className="lin-rodape">
+        <span className="text-sec text-sm">Comissões <b className="text-gold">{formatPrice(totalCommission)}</b></span>
+        <span className="text-sec text-sm">Gorjetas <b>{formatPrice(totalTips)}</b></span>
+        <Button size="sm" variant="secondary" onClick={doExport} className="so-pc">Exportar CSV</Button>
       </div>
-    </Card>
+    </>
   );
 }

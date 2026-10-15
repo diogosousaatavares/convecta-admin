@@ -68,8 +68,8 @@ export default function FidelizacaoPrograma() {
 
   return (
     <AdminPage title="Cartão de fidelidade" subtitle={`A cada X ${nicho().uns}, ${nicho().un === 'sessão' ? 'a seguinte' : 'o seguinte'} é grátis. O que decides aqui é o que o cliente vê no telemóvel.`}>
-      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start', maxWidth: 900 }}>
-        <Card className="card-pad" style={{ flex: '1 1 320px', maxWidth: 460 }}>
+      <div className="fid-wrap" style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start', maxWidth: 900 }}>
+        <Card className="card-pad fid-form" style={{ flex: '1 1 320px', maxWidth: 460 }}>
           {/* Arrumado a 15/10/2026: um interruptor em cima, os campos a largura
               toda, os dois números lado a lado, o botão a largura toda. */}
           <label className="loyalty-toggle-row" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 14, marginBottom: 16, borderBottom: '1px solid var(--border)' }}>
@@ -113,10 +113,8 @@ export default function FidelizacaoPrograma() {
           </Button>
         </Card>
 
-        <div style={{ flex: '1 1 260px', minWidth: 260 }}>
-          <div className="text-sec text-sm mb-12" style={{ textTransform: 'uppercase', letterSpacing: '.06em', fontSize: 13.5 }}>
-            Como o cliente o vê
-          </div>
+        <div className="fid-preview" style={{ flex: '1 1 260px', minWidth: 260 }}>
+          <div className="nt-titulo" style={{ marginTop: 0 }}>Como o cliente o vê</div>
           {ativo ? (
             <CartaoFidelidadePreview
               nome={data.business?.name || nicho().Tua}

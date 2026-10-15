@@ -57,8 +57,8 @@ export default function DiasDeTeste() {
 
   const texto =
     faltam <= 0 ? 'A experiência acabou'
-    : dias === 1 ? 'Último dia de experiência'
-    : `Faltam ${dias} dias de experiência`;
+    : dias === 1 ? 'Último dia'
+    : `Faltam ${dias} dias`;
 
   /* Três dias é onde a conversa muda: deixa de ser informação e passa a ser
      uma coisa para resolver esta semana. A unidade é a mesma; o que muda é
