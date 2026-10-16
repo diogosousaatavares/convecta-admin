@@ -18,6 +18,8 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { TIPOS, LISTA_TIPOS, tipoActual } from '@/lib/nicho';
 import { useGrupo } from '@/lib/grupo';
+import Ajuda from '@/components/admin/Ajuda';
+import { useConfirmar } from '@/components/ui/Confirmar';
 
 const euros = c => (Number(c || 0) / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
 
@@ -44,7 +46,7 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
   const grupo = useGrupo();
   const [tipo, setTipo] = useState('');
   const [nome, setNome] = useState('');   // é outra app: nome (e endereço) próprios
-  const [aConfirmar, setAConfirmar] = useState(false);
+  const [pedir, Confirmacao] = useConfirmar();
   const [aGravar, setAGravar] = useState(false);
 
   if (!atual || atual === 'misto' || grupo.ligado) return null;
@@ -56,7 +58,6 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
     : extra ? `+${euros(extra)}${porPeriodo}, metade do teu plano.` : 'Metade do teu plano.';
 
   const juntar = async () => {
-    if (!aConfirmar) { setAConfirmar(true); return; }
     setAGravar(true);
     try {
       await dataService.adicionarSegundoTipo(tipo, nome.trim());
@@ -66,83 +67,67 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
     } catch (e) {
       toast.error('Não foi possível juntar', e.message);
       setAGravar(false);
-      setAConfirmar(false);
+      throw e;
     }
   };
 
+  const slug = nome.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+  const pronto = !!tipo && nome.trim().length >= 2 && !aGravar;
+  const porSemana = extra ? (periodo === 'anual' ? extra / 52 : periodo === 'quinzenal' ? extra * 26 / 52 : extra * 12 / 52) : 0;
+  const confirmarEJuntar = () => pedir({
+    titulo: `Juntar ${TIPOS[tipo].curto}?`,
+    texto: gratis
+      ? `Fica já criado, sem custo. Trocas entre ${TIPOS[atual].curto} e ${TIPOS[tipo].curto} no topo do painel.`
+      : `Passas a pagar mais ${euros(extra)}${porPeriodo} — metade do teu plano, cerca de ${euros(Math.round(porSemana))} por semana. Agora só pagas os dias que faltam; em experiência, nada até ao fim dela.`,
+    botao: 'Sim, juntar',
+    perigoso: false,
+    aoConfirmar: juntar,
+  });
+
+  /*
+   * Redesenhado a 16/10/2026: sem caixa amarela nem botão azeitona. Três
+   * mosaicos com uma «fotografia» de cor por tipo, o nome, o endereço que
+   * fica, e o botão preto com o preço. A explicação está no (i).
+   */
   return (
     <div id="segundo-tipo" style={{ maxWidth: 720, marginBottom: 16, scrollMarginTop: 80 }}><Card className="card-pad">
-      <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-        <span style={TILE}><Store size={22} /></span>
-        <div style={{ minWidth: 0 }}>
-          <div className="fw-600" style={{ fontSize: 18 }}>Juntar outro tipo de negócio</div>
-          <div className="text-sec" style={{ fontSize: 14.5, marginTop: 2 }}>Duas apps numa só, no mesmo espaço.</div>
-        </div>
-      </div>
+      <div className="prod-sec" style={{ marginTop: 0 }}>Outro tipo de negócio <Ajuda titulo="Outro tipo de negócio" texto={<>
+        <p>Se o teu espaço faz mais do que uma coisa — barbearia e unhas, por exemplo — cada tipo tem a sua app, com o seu nome, o seu link e os seus serviços. Entras com o mesmo login e trocas entre os dois no topo do painel.</p>
+        <p>Custa metade do teu plano{lugares ? `, e cada um tem os ${lugares} ${lugares === 1 ? 'lugar' : 'lugares'} do plano para a sua equipa` : ''}. A primeira cobrança é só dos dias que faltam até à próxima fatura.</p>
+      </>} /></div>
+      <div className="fw-600" style={{ fontSize: 18 }}>Tens outro tipo de negócio?</div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${opcoes.length}, minmax(0, 1fr))`, gap: 8, marginTop: 16 }} data-grelha>
+      <div className="st-tiles" style={{ '--st-n': opcoes.length }}>
         {opcoes.map(t => {
           const on = tipo === t;
           const Ic = ICONE_TIPO[t] || Sparkles;
           return (
-            <button key={t} type="button" aria-pressed={on} onClick={() => { setTipo(t); setAConfirmar(false); }}
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 10, minWidth: 0,
-                padding: '14px 12px', borderRadius: 14, cursor: 'pointer', font: 'inherit', textAlign: 'left',
-                border: `1.5px solid ${on ? 'var(--gold)' : 'var(--border)'}`,
-                background: on ? 'rgba(var(--gold-rgb),0.10)' : 'var(--surface)', color: 'var(--text)',
-              }}>
-              <span style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Ic size={24} strokeWidth={1.7} />
-                {on ? <Check size={18} style={{ color: 'var(--gold-tinta)' }} /> : <ChevronRight size={18} style={{ color: 'var(--text-sec)' }} />}
-              </span>
-              <span className="fw-600" style={{ fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>{TIPOS[t].curto}</span>
+            <button key={t} type="button" aria-pressed={on} className={`st-tile st-${t}${on ? ' on' : ''}`} onClick={() => setTipo(t)}>
+              <span className="st-foto"><Ic size={30} strokeWidth={1.6} />{on && <span className="st-check"><Check size={14} /></span>}</span>
+              <b>{TIPOS[t].curto}</b>
             </button>
           );
         })}
       </div>
 
       {tipo && (
-        <div style={{ marginTop: 14 }}>
-          <label className="fw-600" htmlFor="nome-segundo" style={{ display: 'block', fontSize: 14.5, marginBottom: 6 }}>Nome do novo negócio</label>
-          <input id="nome-segundo" className="input" value={nome} maxLength={60} placeholder="Ex.: Adérito Barbershop"
-            onChange={e => { setNome(e.target.value); setAConfirmar(false); }} />
-          {nome.trim().length >= 2 && (
-            <div className="text-sec" style={{ fontSize: 13, marginTop: 6 }}>
-              O site fica em <b>{nome.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}.marcacoes.app</b>
+        <>
+          <div className="field" style={{ marginTop: 16, marginBottom: 0 }}>
+            <label className="label" htmlFor="nome-segundo">Nome do novo negócio</label>
+            <input id="nome-segundo" className="input" value={nome} maxLength={60} placeholder="Ex.: Nails by Ana" onChange={e => setNome(e.target.value)} />
+          </div>
+          {slug.length >= 2 && (
+            <div className="nt-row" style={{ padding: '10px 0 0', borderBottom: 0 }}>
+              <span className="nt-txt"><b>Endereço</b><span>{slug}.marcacoes.app</span></span>
             </div>
           )}
-        </div>
+        </>
       )}
 
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginTop: 14, padding: '14px 16px', borderRadius: 14, background: 'rgba(var(--gold-rgb),0.12)' }}>
-        <Info size={20} style={{ flexShrink: 0, marginTop: 1 }} />
-        <div style={{ fontSize: 14.5, lineHeight: 1.45 }}>
-          <div className="fw-600">{precoTexto}</div>
-          {lugares ? <div className="text-sec" style={{ marginTop: 2 }}>Cada um tem os {lugares} {lugares === 1 ? 'lugar' : 'lugares'} do teu plano para a sua equipa.</div> : null}
-        </div>
-      </div>
-
-      <button type="button" onClick={juntar} disabled={!tipo || nome.trim().length < 2 || aGravar}
-        style={{
-          width: '100%', marginTop: 14, padding: '14px 16px', borderRadius: 14, border: 0, font: 'inherit',
-          fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-          background: 'var(--gold-tinta, var(--gold))', color: '#fff',
-          cursor: (!tipo || nome.trim().length < 2 || aGravar) ? 'default' : 'pointer',
-          opacity: (!tipo || nome.trim().length < 2) && !aGravar ? 0.85 : 1,
-        }}>
-        {!aGravar && !aConfirmar && <Plus size={20} />}
-        {aGravar ? 'A juntar…'
-          : !tipo ? 'Escolhe o tipo a juntar'
-          : nome.trim().length < 2 ? 'Escreve o nome'
-          : aConfirmar ? `Confirmar${!gratis && extra ? ` · +${euros(extra)}${porPeriodo}` : ''}`
-          : `Juntar ${TIPOS[tipo].curto}`}
-      </button>
-      {aConfirmar && !aGravar && (
-        <p className="text-sec" style={{ fontSize: 13, margin: '8px 0 0', textAlign: 'center' }}>
-          {gratis ? 'Fica já ativo.' : 'Na subscrição paga-se só a parte do mês que falta. Em experiência, nada até ao fim dela.'}
-        </p>
-      )}
+      <Button variant="primary" block onClick={confirmarEJuntar} disabled={!pronto} style={{ marginTop: 16 }}>
+        {aGravar ? 'A juntar…' : !tipo ? 'Escolhe o tipo' : nome.trim().length < 2 ? 'Escreve o nome' : `Juntar ${TIPOS[tipo].curto}${!gratis && extra ? ` · +${euros(extra)}${porPeriodo}` : ''}`}
+      </Button>
+      <Confirmacao />
     </Card></div>
   );
 }

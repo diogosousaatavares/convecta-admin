@@ -433,11 +433,13 @@ export default function AdminLayout({ children }) {
   useEffect(() => {
     if (!window.matchMedia('(max-width: 767px)').matches) return undefined;
     let y0 = null;
-    const inicio = (e) => { y0 = window.scrollY <= 0 ? e.touches[0].clientY : null; };
+    // No telemovel quem rola e o .admin-layout (16/10/2026), nao a janela.
+    const topo = () => (document.querySelector('.admin-layout')?.scrollTop || 0) + window.scrollY;
+    const inicio = (e) => { y0 = topo() <= 0 ? e.touches[0].clientY : null; };
     const fim = (e) => {
       if (y0 == null) return;
       const dy = e.changedTouches[0].clientY - y0; y0 = null;
-      if (dy > 90 && window.scrollY <= 0 && !document.querySelector('.modal-overlay')) atualizarAgora();
+      if (dy > 90 && topo() <= 0 && !document.querySelector('.modal-overlay')) atualizarAgora();
     };
     window.addEventListener('touchstart', inicio, { passive: true });
     window.addEventListener('touchend', fim, { passive: true });

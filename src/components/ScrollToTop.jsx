@@ -27,6 +27,8 @@ export default function ScrollToTop() {
     }
 
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    // No telemóvel quem rola é o .admin-layout, não a janela (16/10/2026).
+    document.querySelector(".admin-layout")?.scrollTo?.({ top: 0, left: 0, behavior: "instant" });
   }, [pathname, hash, navigationType]);
 
   return null;

@@ -3056,3 +3056,36 @@ body { font-variant-numeric: lining-nums; }
 .ts-pontos span { width: 6px; height: 6px; border-radius: 6px; background: var(--border); } .ts-pontos span.on { background: var(--gold); width: 18px; }
 .ts-cena h3 { font-size: 18px; margin: 0 0 6px; }
 .ts-cena p { margin: 0 auto; max-width: 340px; color: var(--text-sec); font-size: 15px; line-height: 1.5; }
+
+/* ── A BARRA DE BAIXO NUNCA MAIS SE MEXE (16/10/2026) ─────────────────────
+   No iPhone a barra fixa aparecia a meio do ecrã depois de rolar: o Safari
+   recalcula a janela enquanto a página rola e os elementos «fixed» ficam a
+   meio caminho. A solução definitiva é a janela não rolar: no telemóvel o
+   html/body ficam presos ao ecrã e quem rola é o .admin-layout. A barra
+   (pendurada no body, fora do que rola) não tem para onde ir. */
+@media (max-width: 767px) {
+  /* So quando o painel esta no ecra: o login, o arranque e as outras
+     paginas sem barra de baixo continuam a rolar na janela. */
+  html:has(.admin-layout), body:has(.admin-layout), body:has(.admin-layout) > #root { height: 100%; overflow: hidden; overscroll-behavior: none; }
+  .admin-layout {
+    min-height: 0; height: 100vh; height: 100dvh;
+    overflow-y: auto; overflow-x: clip;
+    -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+  }
+  /* O conteúdo deixa espaço para a barra, que está por cima do fim da página. */
+  .admin-layout .admin-content { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ── Outro tipo de negócio (16/10/2026) ──────────────────────────────── */
+.st-tiles { display: grid; grid-template-columns: repeat(var(--st-n, 3), minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.st-tile { display: flex; flex-direction: column; gap: 8px; padding: 0 0 10px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font: inherit; overflow: hidden; text-align: center; min-width: 0; }
+.st-tile b { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 8px; }
+.st-tile.on { border-color: var(--text); }
+.st-foto { position: relative; display: grid; place-items: center; height: 84px; color: #fff; }
+.st-cabeleireiro .st-foto { background: linear-gradient(135deg, #5B4636, #A47C5B); }
+.st-barbearia .st-foto { background: linear-gradient(135deg, #1F2A37, #4B5B6B); }
+.st-unhas .st-foto { background: linear-gradient(135deg, #8E4A6B, #D98CB3); }
+.st-estetica .st-foto { background: linear-gradient(135deg, #3C6E5A, #8FC1A9); }
+.st-clinica .st-foto { background: linear-gradient(135deg, #2F6F8F, #7FB3CC); }
+.st-check { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: #fff; color: #111; display: grid; place-items: center; }
+@media (max-width: 767px) { .st-tiles { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); } }
