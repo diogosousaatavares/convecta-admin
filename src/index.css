@@ -3049,3 +3049,10 @@ body { font-variant-numeric: lining-nums; }
 .dfa .nt-row { padding: 12px 0; }
 .dfa-sel { width: auto; min-width: 150px; max-width: 55%; }
 .dfa-dia { padding: 8px 0 !important; border-bottom: 0 !important; }
+/* Tutorial de ligar o Stripe */
+.ts-cena { text-align: center; padding: 6px 0 18px; }
+.ts-ico { display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 18px; background: rgba(var(--gold-rgb), .16); color: var(--gold-tinta, var(--gold)); margin-bottom: 12px; }
+.ts-pontos { display: flex; justify-content: center; gap: 6px; margin-bottom: 12px; }
+.ts-pontos span { width: 6px; height: 6px; border-radius: 6px; background: var(--border); } .ts-pontos span.on { background: var(--gold); width: 18px; }
+.ts-cena h3 { font-size: 18px; margin: 0 0 6px; }
+.ts-cena p { margin: 0 auto; max-width: 340px; color: var(--text-sec); font-size: 15px; line-height: 1.5; }

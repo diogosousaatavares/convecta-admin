@@ -9,7 +9,9 @@ import { supabase } from '@/lib/supabase';
 import dataService from '@/lib/dataService';
 import { formatPrice } from '@/lib/format';
 import { Link } from 'react-router-dom';
-import { extraAtivo, extraDe, mudarExtra, sufixoPeriodo } from '@/lib/extras';
+import { extraAtivo, extraDe, mudarExtra, sufixoPeriodo, textoJuntarExtra } from '@/lib/extras';
+import { useConfirmar } from '@/components/ui/Confirmar';
+import TutorialStripe from '@/components/admin/TutorialStripe';
 import MetodosPagamento from '@/components/MetodosPagamento';
 
 /*
@@ -91,14 +93,23 @@ export default function PagamentosOnline() {
 
   /* É um extra pago (13/10/2026): sem ele, a página mostra o convite. */
   const [aJuntar, setAJuntar] = useState(false);
+  const [pedir, Confirmacao] = useConfirmar();
+  const [tutorial, setTutorial] = useState(false);
   if (data.business && !extraAtivo(data.business, 'pagamentos')) {
     const e = extraDe('pagamentos');
     const p = ['anual', 'quinzenal'].includes(data.business.billingPeriod) ? data.business.billingPeriod : 'mensal';
-    const juntar = async () => {
-      setAJuntar(true);
-      try { await mudarExtra('pagamentos', true); toast.success('Pagamentos online ligados'); setTimeout(() => window.location.reload(), 700); }
-      catch (err) { toast.error('Não foi possível', err.message); setAJuntar(false); }
-    };
+    // 16/10/2026: pergunta de certeza, com a conta ao mês e à semana, antes de cobrar.
+    const juntar = () => pedir({
+      titulo: 'Juntar os pagamentos online?',
+      texto: textoJuntarExtra(e, p, formatPrice),
+      botao: 'Sim, juntar',
+      perigoso: false,
+      aoConfirmar: async () => {
+        setAJuntar(true);
+        try { await mudarExtra('pagamentos', true); toast.success('Pagamentos online ligados'); setTimeout(() => window.location.reload(), 700); }
+        catch (err) { toast.error('Não foi possível', err.message); setAJuntar(false); throw err; }
+      },
+    });
     return (
       <AdminPage title="Pagamentos online">
         <Card className="card-pad" style={{ maxWidth: 640 }}>
@@ -118,6 +129,7 @@ export default function PagamentosOnline() {
             </div>
           </div>
         </Card>
+        <Confirmacao />
       </AdminPage>
     );
   }
@@ -153,7 +165,7 @@ export default function PagamentosOnline() {
             {erro && <div className="text-sm" style={{ color: 'var(--error)', marginTop: 8 }}>{erro}</div>}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
               {!ativo && estado && (
-                <Button onClick={ligar} disabled={aAbrir}>{aAbrir ? 'A abrir o Stripe…' : estado.ligado ? 'Continuar no Stripe' : 'Ligar pagamentos'}</Button>
+                <Button onClick={() => (estado.ligado ? ligar() : setTutorial(true))} disabled={aAbrir}>{aAbrir ? 'A abrir o Stripe…' : estado.ligado ? 'Continuar no Stripe' : 'Ligar pagamentos'}</Button>
               )}
               {estado?.ligado && (
                 <a className="btn btn-secondary" href="https://dashboard.stripe.com/" target="_blank" rel="noreferrer"
@@ -162,8 +174,16 @@ export default function PagamentosOnline() {
                 </a>
               )}
             </div>
+            {/* O que o Stripe cobra (16/10/2026): a conta feita num corte de 15 €, e o (i) com a tabela. */}
+            <div className="nt-row" style={{ marginTop: 10, padding: '10px 0 0', borderTop: '1px solid var(--border)', borderBottom: 0 }}>
+              <span className="nt-txt"><b>O que o Stripe cobra <Ajuda titulo="O que o Stripe cobra" texto={<>
+                <p>O Stripe fica com <b>1,5 % + 0,25 €</b> por pagamento com cartão europeu, Apple Pay, Google Pay ou MB WAY. Cartões do Reino Unido: 2,5 % + 0,25 €. Cartões de fora da Europa: 3,15 % + 0,25 €.</p>
+                <p>Exemplos: num corte de 15 € recebes 14,52 €; em 25 € recebes 24,38 €; em 50 € recebes 49,00 €.</p>
+                <p>Passar o dinheiro para o teu banco é grátis (chega em 2 a 3 dias úteis). A Convecta não fica com nada. Preços do Stripe para Portugal a 16/10/2026.</p>
+              </>} /></b><span>1,5 % + 0,25 € por pagamento · num corte de 15 € recebes 14,52 €</span></span>
+            </div>
             {estado?.ligado && (
-              <div style={{ marginTop: 8 }}><span className="text-sec text-sm">MB WAY</span> <Ajuda titulo="Aceitar MB WAY" texto={<p>No teu Stripe: Definições › Métodos de pagamento › ligar o MB WAY. A partir daí o cliente também vê MB WAY ao pagar.</p>} /></div>
+              <div className="nt-row" style={{ padding: '10px 0 0', borderBottom: 0 }}><span className="nt-txt"><b>MB WAY <Ajuda titulo="Aceitar MB WAY" texto={<p>No teu Stripe: Definições › Métodos de pagamento › ligar o MB WAY. A partir daí o cliente também vê MB WAY ao pagar. Custa o mesmo que o cartão.</p>} /></b></span></div>
             )}
           </div>
         </div>
@@ -192,6 +212,8 @@ export default function PagamentosOnline() {
         </div>
         <Button onClick={guardar} disabled={!ativo || aGravar} style={{ marginTop: 14 }}>{aGravar ? 'A guardar…' : 'Guardar'}</Button>
       </Card>
+
+      <TutorialStripe aberto={tutorial} fechar={() => setTutorial(false)} continuar={() => { setTutorial(false); ligar(); }} aAbrir={aAbrir} />
 
       {lista.length > 0 && (
         <Card className="card-pad">

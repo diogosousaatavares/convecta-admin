@@ -7,7 +7,7 @@ import { useStore } from '@/hooks/useStore';
 import { useToast } from '@/components/ui/ToastContext';
 import { useConfirmar } from '@/components/ui/Confirmar';
 import { formatPrice } from '@/lib/format';
-import { EXTRAS, extraIncluido, mudarExtra, sufixoPeriodo } from '@/lib/extras';
+import { EXTRAS, extraIncluido, mudarExtra, sufixoPeriodo, textoJuntarExtra } from '@/lib/extras';
 
 /*
  * «Extras» em «A minha subscrição» (13/10/2026): cada um com o preço ao
@@ -24,29 +24,29 @@ const tile = ativo => ({
 export default function ExtrasSubscricao({ periodo = 'mensal', gratis = false }) {
   const data = useStore();
   const toast = useToast();
-  const confirmar = useConfirmar?.();
+  // 16/10/2026: isto chamava o resultado do hook como função e rebentava ao
+  // tocar em «Juntar». Agora pergunta de certeza, com a conta ao mês e à semana.
+  const [pedir, Confirmacao] = useConfirmar();
   const biz = data.business || {};
   const [aMudar, setAMudar] = useState('');
 
-  const mudar = async (e, ligar) => {
-    const preco = `${formatPrice(e.precos[periodo] ?? e.precos.mensal)}${sufixoPeriodo(periodo)}`;
-    if (confirmar) {
-      const ok = await confirmar({
-        titulo: ligar ? `Juntar ${e.nome}?` : `Desligar ${e.nome}?`,
-        texto: ligar
-          ? (gratis ? 'Fica ligado já, sem custo.' : `Passas a pagar mais ${preco}, na mesma subscrição. O primeiro valor é acertado à proporção dos dias.`)
-          : 'Deixa de funcionar e deixas de pagar por ele.',
-        confirmar: ligar ? 'Juntar' : 'Desligar',
-      });
-      if (!ok) return;
-    }
+  const executar = async (e, ligar) => {
     setAMudar(e.id);
     try {
       await mudarExtra(e.id, ligar);
       toast.success(ligar ? `${e.nome} ligado` : `${e.nome} desligado`);
       setTimeout(() => window.location.reload(), 700);
-    } catch (err) { toast.error('Não foi possível', err.message); setAMudar(''); }
+    } catch (err) { toast.error('Não foi possível', err.message); setAMudar(''); throw err; }
   };
+  const mudar = (e, ligar) => pedir({
+    titulo: ligar ? `Juntar ${e.nome}?` : `Desligar ${e.nome}?`,
+    texto: ligar
+      ? (gratis ? 'Fica ligado já, sem custo.' : textoJuntarExtra(e, periodo, formatPrice))
+      : 'Deixa de funcionar e deixas de pagar por ele.',
+    botao: ligar ? 'Sim, juntar' : 'Desligar',
+    perigoso: !ligar,
+    aoConfirmar: () => executar(e, ligar),
+  });
 
   return (
     <Card className="card-pad" style={{ maxWidth: 720, marginBottom: 16 }}>
@@ -97,6 +97,7 @@ export default function ExtrasSubscricao({ periodo = 'mensal', gratis = false })
           );
         })}
       </div>
+      <Confirmacao />
     </Card>
   );
 }
