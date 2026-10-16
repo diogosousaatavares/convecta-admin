@@ -1,6 +1,6 @@
 import dataService, { agendaDaBarbearia } from '@/lib/dataService';
 import IndicadoresCliente from '@/components/admin/IndicadoresCliente';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
 import {
   ChevronLeft, ChevronRight, ChevronDown, Users, Info,
   CheckCircle2, CalendarCheck, Clock3, Lock, Check, Settings } from 'lucide-react';
@@ -134,24 +134,26 @@ export default function AgendaTelemovel({
 
   const doProfissional = appts.filter(a => a.professionalId === proId && (a.blocked || a.status !== 'cancelled'));
 
+  const toque = useRef(null);
   return (
     <div className="agm" data-tour="agenda">
       {/* ---- Titulo, mes e navegacao de dias ---- */}
       <header className="agm-top">
         <div className="agm-top-txt">
           <h1 className="agm-titulo">Agenda</h1>
-          <p className="agm-mes">{MESES[mes - 1]} {ano}</p>
+          <button type="button" className="agm-mes" onClick={() => (vistaMes ? setMode('mes') : setDate(todayStr()))}>{MESES[mes - 1]} {ano}</button>
         </div>
+        {/* 16/10/2026: só a engrenagem. Sem «Hoje» nem setas — a semana
+            muda a deslizar a faixa dos dias; tocar no mês abre a vista Mês. */}
         <div className="agm-nav">
           {onDefinicoes && <button type="button" className="agm-seta" onClick={onDefinicoes} aria-label="Definições da agenda" data-tour="agenda-definicoes"><Settings size={19} /></button>}
-          <button type="button" className="agm-hoje" onClick={() => setDate(todayStr())}>Hoje</button>
-          <button type="button" className="agm-seta" onClick={() => shift(-1)} aria-label="Dia anterior"><ChevronLeft size={20} /></button>
-          <button type="button" className="agm-seta" onClick={() => shift(1)} aria-label="Dia seguinte"><ChevronRight size={20} /></button>
         </div>
       </header>
 
       {/* ---- A semana, de segunda a domingo ---- */}
-      <div className="agm-semana">
+      <div className="agm-semana"
+        onTouchStart={e => { toque.current = e.touches[0].clientX; }}
+        onTouchEnd={e => { const dx = e.changedTouches[0].clientX - (toque.current ?? e.changedTouches[0].clientX); toque.current = null; if (dx < -50) shift(7); else if (dx > 50) shift(-7); }}>
         {semana.map(ds => {
           const d = Number(ds.split('-')[2]);
           const diaSemana = DIAS_SEMANA[new Date(ds + 'T00:00:00').getDay()];
