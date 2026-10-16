@@ -1475,6 +1475,14 @@ const dataService = {
   },
   // Volta a ler as marcacoes. So as marcacoes: e o que muda sozinho enquanto
   // o painel esta aberto.
+  /** Volta a ler o negócio (depois de publicar O meu site, por exemplo). */
+  async recarregarNegocio() {
+    const { data: row, error } = await supabase.from('businesses').select('*').eq('id', BUSINESS_ID).single();
+    if (error || !row) return state.business;
+    state.business = { ...bizFromRow(row), config: state.business?.config };
+    notify(); return state.business;
+  },
+
   async refreshAppointments() {
     let data;
     try { data = await lerTudo('appointments', q => q.eq('business_id', BUSINESS_ID)); }
@@ -1613,6 +1621,25 @@ const dataService = {
     if (error) throw traduzirErro(error);
     state.appointments = state.appointments.filter(a => a.id !== id); notify(); return true;
   },
+  /**
+   * Cobrar uma marcação, de onde quer que seja (Agenda, Caixa, Marcações).
+   * Os produtos juntos à conta viram uma venda de produtos (desce o stock e
+   * entra na caixa) ANTES de se fechar a marcação: se falhar, a marcação
+   * fica por cobrar em vez de meio cobrada. Antes só a Agenda o fazia — na
+   * Caixa e nas Marcações os produtos desapareciam da conta.
+   */
+  async cobrarMarcacao(apptId, payData) {
+    const a = state.appointments.find(x => x.id === apptId);
+    if (payData?.produtos?.length) {
+      await this.createSale({
+        items: payData.produtos, total: payData.totalProdutos, method: payData.method,
+        customerId: a?.customerId || null, professionalId: a?.professionalId || null,
+      });
+    }
+    if (a && a.status === 'confirmed') await this.markAttended(apptId);
+    return this.checkoutAppointment(apptId, payData);
+  },
+
   async checkoutAppointment(apptId, payData) {
     const a = state.appointments.find(x => x.id === apptId);
     if (!a || (a.status === 'completed' && a.payment)) return a;

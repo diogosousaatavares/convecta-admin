@@ -178,7 +178,7 @@ export default function Dashboard() {
   const endingPromos = data.promotions.filter(p => p.active && p.endsAt && p.endsAt >= today && p.endsAt <= addDays(today, 7));
   const alerts = [
     ...lowStock.map(p => ({ type: 'warn', icon: Package, title: `${estadoStock(p) === 'esgotado' ? 'Esgotado' : 'Stock baixo'}: ${p.name}`, sub: `${p.stock} ${p.unit} (mín. ${p.minStock})`, to: '/admin/inventario' })),
-    ...endingPromos.map(p => ({ type: 'info', icon: Megaphone, title: `Promoção a terminar: ${p.name}`, sub: `Termina ${formatDate(p.endsAt)}`, to: '/admin/marketing' })),
+    ...endingPromos.map(p => ({ type: 'info', icon: Megaphone, title: `Promoção a terminar: ${p.name}`, sub: `Termina ${formatDate(p.endsAt)}`, to: '/admin/seccao/marketing' })),
     pendingToday > 0 ? { type: 'warn', icon: Clock, title: `${pendingToday} marcações pendentes`, sub: 'A aguardar confirmação hoje', to: '/admin/marcacoes' } : null,
     !cashOpen ? { type: 'info', icon: Lock, title: 'Caixa fechada', sub: 'Abre a caixa para registar vendas', to: '/admin/caixa' } : null
   ].filter(Boolean);

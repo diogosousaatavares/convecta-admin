@@ -1,4 +1,5 @@
 import React from 'react';
+import { todayStr } from '@/lib/format';
 
 /*
  * Os sinais que aparecem ao lado do nome do cliente, na agenda.
@@ -15,7 +16,7 @@ import React from 'react';
 
 export function indicadoresDoCliente(a, cust, data) {
   if (!cust || a?.blocked) return [];
-  const hojeMD = new Date().toISOString().slice(5, 10);
+  const hojeMD = todayStr().slice(5, 10);
   const marcacoes = (data.appointments || []).filter(
     c => c.customerId === cust.id && c.status !== 'cancelled'
   );

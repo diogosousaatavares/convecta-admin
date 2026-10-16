@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, HelpCircle, LogOut } from 'lucide-react';
+import { ChevronRight, HelpCircle, LogOut, Wallet } from 'lucide-react';
 import AdminLayout, { gruposPara, caminhoDaSeccao } from '@/components/AdminLayout';
 import Caixas, { CSS_CAIXAS } from '@/components/admin/Caixas';
 import { useStore, useAuth } from '@/hooks/useStore';
@@ -44,6 +44,19 @@ export default function Mais() {
   const caixas = grupos
     .map(g => ({ to: g.type === 'group' ? caminhoDaSeccao(g) : g.to, label: g.label, icon: g.icon, d: g.d }))
     .filter(c => !naBarra.has(c.to));
+
+  /* A Agenda e os Clientes, na barra, abrem a PÁGINA (a agenda, a lista) e
+     não a secção. As irmãs — Marcações, Orçamentos, Lista de espera,
+     Encaixes, Bloqueios, Aniversários, Avaliações — ficavam sem porta no
+     telemóvel (auditoria de 16/10/2026). Entram aqui, cada uma com a sua
+     caixa, logo à frente. */
+  const irmas = grupos
+    .filter(g => g.type === 'group' && g.to && naBarra.has(g.to))
+    .flatMap(g => (g.items || []).filter(it => it.to && !it.titulo && it.to !== g.to)
+      .map(it => ({ to: it.to, label: it.label, icon: it.icon, d: it.d })));
+  caixas.unshift(...irmas);
+  // A conta do profissional (comissões e gorjetas) não está em nenhuma secção.
+  if (data.isProfissional) caixas.push({ to: '/admin/financeiro/conta-profissional', label: 'A minha conta', icon: Wallet, d: 'Comissões e gorjetas.' });
 
   const nome = data.business?.name || nicho().Casa;
 

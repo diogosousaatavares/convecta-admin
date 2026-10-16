@@ -96,20 +96,32 @@ export default function Services() {
 
   const save = async () => {
     if (!form.name) { toast.error('Nome obrigatório'); return; }
-    if (editing === 'new') {
-      await dataService.createService(form);
-      toast.success(form.extra ? 'Extra criado' : 'Serviço criado');
-    } else {
-      await dataService.updateService(editing, form);
-      toast.success(form.extra ? 'Extra atualizado' : 'Serviço atualizado');
-    }
-    close();
+    try {
+      if (editing === 'new') {
+        await dataService.createService(form);
+        toast.success(form.extra ? 'Extra criado' : 'Serviço criado');
+      } else {
+        await dataService.updateService(editing, form);
+        toast.success(form.extra ? 'Extra atualizado' : 'Serviço atualizado');
+      }
+      close();
+    } catch (e) { toast.error('Não ficou gravado', e?.message || 'Tenta outra vez.'); }
   };
 
   const remove = async () => {
-    await dataService.deleteService(deleteTarget.id);
-    toast.success('Serviço eliminado');
-    setDeleteTarget(null);
+    // Um serviço com marcações não se pode apagar (a base de dados recusa,
+    // para não ficarem marcações sem serviço). Antes a janela ficava aberta
+    // sem dizer nada; agora diz porquê e o que fazer.
+    try {
+      await dataService.deleteService(deleteTarget.id);
+      toast.success('Serviço eliminado');
+      setDeleteTarget(null);
+    } catch (e) {
+      const temMarcacoes = /foreign key|violates|23503/i.test(e?.message || '') || e?.code === '23503';
+      toast.error('Não foi possível eliminar', temMarcacoes
+        ? 'Este serviço já tem marcações. Desativa-o em vez de o apagar: deixa de aparecer aos clientes e o histórico fica.'
+        : (e?.message || 'Tenta outra vez.'));
+    }
   };
 
   return (

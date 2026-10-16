@@ -67,6 +67,9 @@ export const ABERTO_AO_PROFISSIONAL = [
   '/admin/profissionais/ferias',
   '/admin/financeiro/conta-profissional',
   '/admin/notificacoes',
+  // No telemóvel, o «Mais» é a porta para Férias, Orçamentos e a conta dele.
+  // Sem isto, o profissional tocava em «Mais» e voltava para a agenda.
+  '/admin/mais',
 ];
 export function permitidoAoProfissional(caminho) {
   if (!caminho) return false;

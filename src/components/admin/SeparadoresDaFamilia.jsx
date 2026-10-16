@@ -55,6 +55,7 @@ const FAMILIAS = [
       { to: '/admin/definicoes/pagamentos', label: 'Pagamentos' },
       { to: '/admin/definicoes/clientes', label: 'Clientes' },
       { to: '/admin/definicoes/documentos', label: 'Documentos' },
+      { to: '/admin/o-meu-site', label: 'Logo e cores da app' },
       { to: '/admin/definicoes/tema', label: 'Cores do painel' },
       { to: '/admin/definicoes/utilizadores', label: 'Utilizadores' },
       { to: '/admin/definicoes/seguranca', label: 'Segurança' },

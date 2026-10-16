@@ -4,6 +4,7 @@ import { Image as ImagemIco, Sparkles, Palette, Waves, Type, LayoutList, Images,
 import AdminLayout from '@/components/AdminLayout';
 import TourDemo from '@/components/admin/TourDemo';
 import { useStore } from '@/hooks/useStore';
+import dataService from '@/lib/dataService';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Y, YD, YT, TY, W, W2, BG, BD, T, T2, T3, G, R, O, Spin, Btn, Inp, Sel, Lbl, Card,
@@ -892,6 +893,14 @@ export function DesignTab({biz,onGuardado,demo=false,soPrevia=false}){
   const bizVisto={...biz,logo_url:logoUrl}
   const alterado=guardadoTema&&(JSON.stringify(tema)!==JSON.stringify(guardadoTema)
     ||JSON.stringify(info)!==JSON.stringify(guardadoInfo)||logoUrl!==logoGravado)
+  // Alterações por publicar não se perdem ao fechar ou recarregar o separador:
+  // o browser pergunta antes (auditoria 16/10/2026).
+  useEffect(()=>{
+    if(!alterado||demo||soPrevia)return
+    const h=e=>{e.preventDefault();e.returnValue=''}
+    window.addEventListener('beforeunload',h)
+    return()=>window.removeEventListener('beforeunload',h)
+  },[alterado,demo,soPrevia])
   // O endereço (15/10/2026): cada negócio, ligado ou não, tem o seu.
   const[slugAtual,setSlugAtual]=useState(biz.slug||'')
   const[novoSlug,setNovoSlug]=useState(biz.slug||'')
@@ -1711,7 +1720,7 @@ export default function MeuSite() {
           recarregar aqui. Fica a funcao porque e o contrato do componente. */}
       {/* Negócios ligados: a página que o link abre e qual é o principal. */}
       <PaginaDeEntrada biz={biz} />
-      <div data-tour="meu-site"><DesignTab biz={biz} onGuardado={() => {}} /></div>
+      <div data-tour="meu-site"><DesignTab biz={biz} onGuardado={() => dataService.recarregarNegocio?.()} /></div>
     </AdminLayout>
   );
 }

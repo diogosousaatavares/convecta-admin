@@ -99,6 +99,11 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
   const totalProdutos = produtos.reduce((s, i) => s + i.unitPrice * i.qty, 0);
   // O que o cliente paga: o serviço (com desconto e gorjeta) mais os produtos.
   const total = totalServico + totalProdutos;
+  // Já pago online (Stripe) ao marcar: sai do que se cobra ao balcão. Antes
+  // o «Total a cobrar» mostrava o preço todo e, em dinheiro, entregar só o
+  // que faltava dava «Valor entregue inferior ao total».
+  const jaPagoOnline = Math.min(Number(appointment?.pagoOnline?.valor) || 0, totalServico);
+  const falta = Math.max(0, total - jaPagoOnline);
   const produtosDisponiveis = (data.products || []).filter(p => p.isActive !== false && (p.stock == null || Number(p.stock) > 0));
   const juntarProduto = () => {
     const p = produtosDisponiveis.find(x => x.id === prodSel); if (!p) return;
@@ -110,7 +115,7 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
     setProdSel('');
   };
   const mudarQtd = (id, d) => setProdutos(l => l.map(i => i.productId === id ? { ...i, qty: i.qty + d } : i).filter(i => i.qty > 0));
-  const change = method === 'Dinheiro' ? Math.max(0, (Number(amountPaid) || 0) - total) : 0;
+  const change = method === 'Dinheiro' ? Math.max(0, (Number(amountPaid) || 0) - falta) : 0;
 
   // Marcação futura, ou dinheiro com a caixa fechada: diz-se já, antes de
   // carregar em «Cobrar» (a mesma regra está na gravação).
@@ -120,7 +125,7 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
     if (bloqueio) { setError(bloqueio); return; }
     if ((manualDiscount > 0) && !discountReason.trim()) { setError('Indica o motivo do desconto.'); return; }
     if (total < 0) { setError('Valor total inválido.'); return; }
-    if (method === 'Dinheiro' && amountPaid && (Number(amountPaid) || 0) < total) { setError('Valor entregue inferior ao total.'); return; }
+    if (method === 'Dinheiro' && amountPaid && (Number(amountPaid) || 0) < falta) { setError('Valor entregue inferior ao que falta pagar.'); return; }
     setAGravar(true);
     try { await onConfirm({
       method,
@@ -132,7 +137,8 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
       voucherCode: voucher ? voucher.code : '',
       tip: tipVal,
       total: totalServico,
-      amountPaid: method === 'Dinheiro' ? (Number(amountPaid) || total) - totalProdutos : totalServico,
+      amountPaid: method === 'Dinheiro' ? (Number(amountPaid) || falta) + jaPagoOnline - totalProdutos : totalServico,
+      pagoOnline: jaPagoOnline,
       change,
       // Os produtos vão à parte: viram uma venda de produtos com o mesmo
       // método, o mesmo cliente e o mesmo barbeiro.
@@ -266,8 +272,8 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
         {method === 'Dinheiro' && (
           <div className="field mt-16">
             <label className="label">Valor entregue (€)</label>
-            <input type="number" className="input" placeholder={total.toFixed(2)} value={amountPaid} onChange={e => setAmountPaid(e.target.value)} min="0" step="0.01" />
-            {amountPaid && (Number(amountPaid) || 0) >= total && (
+            <input type="number" className="input" placeholder={falta.toFixed(2)} value={amountPaid} onChange={e => setAmountPaid(e.target.value)} min="0" step="0.01" />
+            {amountPaid && (Number(amountPaid) || 0) >= falta && (
               <div className="text-sm mt-8" style={{ color: 'var(--gold-tinta)' }}>Troco: <span className="fw-600">{formatPrice(change)}</span></div>
             )}
           </div>
@@ -281,8 +287,9 @@ export default function CheckoutModal({ open, onClose, appointment, customer, se
           {produtos.map(i => <div key={i.productId} className="flex justify-between text-sm mt-8"><span className="text-sec">{i.qty}× {i.name}</span><span>{formatPrice(i.unitPrice * i.qty)}</span></div>)}
           {discountAmount > 0 && <div className="flex justify-between text-sm mt-8"><span className="text-sec">Desconto</span><span style={{ color: 'var(--success)' }}>-{formatPrice(discountAmount)}</span></div>}
           {tipVal > 0 && <div className="flex justify-between text-sm mt-8"><span className="text-sec">Gorjeta</span><span>+{formatPrice(tipVal)}</span></div>}
+          {jaPagoOnline > 0 && <div className="flex justify-between text-sm mt-8"><span className="text-sec">Já pago online</span><span style={{ color: 'var(--success)' }}>-{formatPrice(jaPagoOnline)}</span></div>}
           <hr className="divider" style={{ margin: '10px 0' }} />
-          <div className="flex justify-between items-center"><span className="fw-600">Total a cobrar</span><span className="text-gold fw-600" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>{formatPrice(total)}</span></div>
+          <div className="flex justify-between items-center"><span className="fw-600">Total a cobrar</span><span className="text-gold fw-600" style={{ fontFamily: 'var(--font-head)', fontSize: 22 }}>{formatPrice(falta)}</span></div>
         </div>
 
         {(error || bloqueio) && <div className="text-sm mt-16" style={{ color: 'var(--error)' }}>{error || bloqueio}</div>}

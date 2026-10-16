@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Save } from 'lucide-react';
+import { Save, Globe, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useStore } from '@/hooks/useStore';
 import AdminLayout from '@/components/AdminLayout';
 import PageInfo from '@/components/admin/PageInfo';
@@ -14,10 +15,25 @@ export default function Settings() {
   const toast = useToast();
   const [form, setForm] = useState({ ...data.business });
 
+  // Só vão para a base de dados os campos DESTA página. Antes ia o negócio
+  // inteiro, tal como estava quando a página abriu — e o Guardar repunha o
+  // logotipo, as cores do site, o horário, os packs e a confirmação
+  // automática que entretanto tinham sido mudados noutro lado.
+  const CAMPOS = ['name', 'tipoNegocio', 'lados', 'tagline', 'description', 'address', 'phone', 'email'];
   const save = async () => {
-    await dataService.updateBusiness(form);
-    toast.success('Definições guardadas');
+    const mudou = {};
+    for (const k of CAMPOS) if (form[k] !== data.business?.[k]) mudou[k] = form[k];
+    if (!Object.keys(mudou).length) { toast.success('Nada para guardar'); return; }
+    try {
+      await dataService.updateBusiness(mudou);
+      toast.success('Definições guardadas');
+    } catch (e) {
+      toast.error(e?.message || 'Não foi possível guardar. Tenta outra vez.');
+    }
   };
+  // «Dois tipos no mesmo espaço» é o segundo tipo pago (Subscrição). Aqui só
+  // aparece a quem já o tinha de antes, para não se ligar sem pagar.
+  const tiposDaLista = LISTA_TIPOS_TODOS.filter(t => t !== 'misto' || data.business?.tipoNegocio === 'misto');
 
   return (
     <AdminLayout>
@@ -26,10 +42,17 @@ export default function Settings() {
         <div className="h1-com-ajuda"><h1>Definições</h1><PageInfo /></div>
       </div>
 
+      {/* Os donos procuravam o logotipo e as cores aqui. Vivem em «O meu
+          site»: fica o caminho à vista, no sítio onde o procuram. */}
+      <Link to="/admin/o-meu-site" className="nt-row mb-24" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <span style={{ flex: 1, minWidth: 0, display: 'flex', gap: 12, alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><Globe size={18} /> <b>Logotipo, cores e fotos da tua app</b></span>
+        <ChevronRight size={18} />
+      </Link>
+
       <Card className="card-pad mb-24">
         <h3 style={{ fontSize: 18, marginBottom: 20 }}>Identidade</h3>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
-        <div className="field"><label className="label">Tipo de negócio</label><select className="select" value={form.tipoNegocio || 'barbearia'} onChange={e => setForm({ ...form, tipoNegocio: e.target.value })}>{LISTA_TIPOS_TODOS.map(t => <option key={t} value={t}>{TIPOS[t].nome}</option>)}</select></div>
+        <div className="field"><label className="label">Tipo de negócio</label><select className="select" value={form.tipoNegocio || 'barbearia'} onChange={e => setForm({ ...form, tipoNegocio: e.target.value })}>{tiposDaLista.map(t => <option key={t} value={t}>{TIPOS[t].nome}</option>)}</select></div>
         {form.tipoNegocio === 'misto' && (
           <div className="field">
             <label className="label">Os dois lados do espaço</label>

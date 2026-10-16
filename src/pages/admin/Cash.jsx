@@ -102,11 +102,9 @@ export default function Cash() {
   };
 
   const finishCheckout = async (payData) => { try {
-    const a = data.appointments.find(x => x.id === charge);
-    if (a && a.status === 'confirmed') await dataService.markAttended(charge);
-    await dataService.checkoutAppointment(charge, payData);
+    await dataService.cobrarMarcacao(charge, payData);
 
-    toast.success('Cobrança concluída', `${formatPrice(payData.total)} · ${payData.method}`);
+    toast.success('Cobrança concluída', `${formatPrice(payData.totalConta ?? payData.total)} · ${payData.method}`);
     setCharge(null);
   } catch (e) { toast.error('Não foi possível cobrar', e.message); } };
 

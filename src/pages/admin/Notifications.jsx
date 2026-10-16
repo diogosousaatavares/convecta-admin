@@ -9,6 +9,7 @@ import { Modal, EmptyState, Button, Card } from '@/components/ui';
 import AvisoPush from '@/components/AvisoPush';
 import authService from '@/lib/authService';
 import { n as nicho } from '@/lib/nicho';
+import { useConfirmar } from '@/components/ui/Confirmar';
 
 const TYPE_META = {
   info: { label: 'Informação', icon: Info, cls: '' },
@@ -99,7 +100,17 @@ export default function Notifications() {
   };
 
   const toggle = async (id) => { await dataService.toggleNotification(id); toast.info('Estado atualizado'); };
-  const remove = async (id) => { await dataService.deleteNotification(id); toast.success('Notificação eliminada'); };
+  const [pedir, Confirmacao] = useConfirmar();
+  const remove = (id) => pedir({
+    titulo: 'Eliminar esta notificação?', texto: 'Sai da lista e deixa de aparecer na app dos clientes.', botao: 'Eliminar',
+    aoConfirmar: async () => {
+      try { await dataService.deleteNotification(id); toast.success('Notificação eliminada'); }
+      catch (e) { toast.error('Não foi possível eliminar', e.message); }
+    },
+  });
+  // Um profissional com acesso só liga as notificações do telemóvel dele:
+  // mandar avisos a todos os clientes e mudar os lembretes é do dono.
+  const dono = !data.isProfissional;
 
   // Ligar/desligar o lembrete e mudar as horas grava logo: sem botão Guardar.
   const mudarLembrete = async (ativo, horas) => {
@@ -115,15 +126,16 @@ export default function Notifications() {
    * deste aparelho, o lembrete, e por baixo o que já foi enviado.
    */
   return (
-    <AdminPage title="Notificações" actions={<Button variant="primary" onClick={openNew}><Plus size={16} /> Nova notificação</Button>}>
+    <AdminPage title="Notificações" actions={dono ? <Button variant="primary" onClick={openNew}><Plus size={16} /> Nova notificação</Button> : null}>
+      <Confirmacao />
       <div data-tour="notificacoes" />
       <div className="nt-lista" data-tour="notificacoes-aviso">
         <AvisoPush businessId={data.business?.id} userId={authService.getCurrentUser()?.id} papel="admin" comTeste sempre />
-        <div className="nt-row">
+        {dono && <div className="nt-row">
           <span className="nt-txt"><b>Lembrar o cliente antes da marcação</b></span>
           <Toggle checked={lembreteAtivo} onChange={x => mudarLembrete(x, horasAntes)} />
-        </div>
-        {lembreteAtivo && (
+        </div>}
+        {dono && lembreteAtivo && (
           <div className="nt-row">
             <span className="nt-txt"><b>Quantas horas antes</b></span>
             <input type="number" className="input" min="1" max="72" value={horasAntes} style={{ width: 90, textAlign: 'right' }}
@@ -132,8 +144,8 @@ export default function Notifications() {
         )}
       </div>
 
-      <div className="nt-titulo">Enviadas</div>
-      {notifications.length === 0 ? (
+      {dono && <div className="nt-titulo">Enviadas</div>}
+      {!dono ? null : notifications.length === 0 ? (
         <EmptyState icon={() => <Bell size={40} />} title="Ainda não enviaste nenhuma" />
       ) : (
         <div className="nt-lista">

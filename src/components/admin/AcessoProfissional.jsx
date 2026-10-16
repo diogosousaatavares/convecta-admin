@@ -34,6 +34,12 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, emai
   const toast = useToast();
   const { meuProfissionalId, isProfissional } = useAuth();
   const [aberto, setAberto] = useState(abertoInicial);
+  // Os hooks vêm TODOS antes de qualquer return: ao ligar/desligar a ficha
+  // do dono, o ramo «És tu» mudava a ordem dos hooks e o React rebentava
+  // (ecrã de erro em Equipa › Acessos).
+  const [email, setEmail] = useState(emailInicial || profissional?.email || '');
+  const [aEnviar, setAEnviar] = useState(false);
+  const [pedir, Confirmacao] = useConfirmar();
   // A ficha é a do próprio dono: ele entra com a conta dele, não precisa de convite.
   if (!isProfissional && meuProfissionalId && profissional?.id === meuProfissionalId) {
     return (
@@ -43,8 +49,6 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, emai
       </div>
     );
   }
-  const [email, setEmail] = useState(emailInicial || profissional?.email || '');
-  const [aEnviar, setAEnviar] = useState(false);
 
   async function chamar(corpo) {
     setAEnviar(true);
@@ -79,7 +83,6 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, emai
     });
   }
 
-  const [pedir, Confirmacao] = useConfirmar();
   /*
    * Linhas com separador, como o resto do painel (15/10/2026): «Acesso ao
    * painel» com o email por baixo e o botão à direita; «Vê a agenda toda»

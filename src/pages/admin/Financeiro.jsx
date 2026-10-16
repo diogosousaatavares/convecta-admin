@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import AdminLayout from '@/components/AdminLayout';
 import HistoricoCaixa from '@/components/financeiro/HistoricoCaixa';
 import Movimentos from '@/components/financeiro/Movimentos';
@@ -7,16 +7,15 @@ import Comissoes from '@/components/financeiro/Comissoes';
 import ContaCliente from '@/components/financeiro/ContaCliente';
 import FluxoCaixa from '@/components/financeiro/FluxoCaixa';
 import ContaProfissional from '@/components/financeiro/ContaProfissional';
-import ModulePlaceholder from '@/components/admin/ModulePlaceholder';
-import { TrendingUp, TrendingDown, ShoppingBag, Package as PackageIcon, Repeat, Wallet } from 'lucide-react';
 import PageInfo from '@/components/admin/PageInfo';
-import { n as nicho } from '@/lib/nicho';
 
 const TABS = [
   { key: 'historico', label: 'Histórico de Caixa' },
   { key: 'movimentos', label: 'Entrada / Saída' },
-  { key: 'receitas', label: 'Receitas' },
-  { key: 'despesas', label: 'Despesas' },
+  // Receitas e Despesas eram cartões «em estruturação» com links partidos.
+  // As páginas verdadeiras já existem: o separador abre-as.
+  { key: 'receitas', label: 'Receitas', to: '/admin/financeiro/receitas' },
+  { key: 'despesas', label: 'Despesas', to: '/admin/financeiro/despesas' },
   { key: 'comissoes', label: 'Comissões' },
   { key: 'conta-cliente', label: 'Conta do Cliente' },
   { key: 'fluxo', label: 'Fluxo de Caixa' },
@@ -39,36 +38,17 @@ export default function Financeiro() {
             links={['Caixa', 'Comandas', 'Subscrições', 'Relatório Financeiro']}
           />
         </div>
-        <p>Gestão financeira completa {nicho().da}.</p>
       </div>
       <div className="bp-tabs" style={{ marginBottom: 20 }}>
         {TABS.map(t => (
-          <button key={t.key} className={`bp-tab ${tab === t.key ? 'active' : ''}`} onClick={() => navigate(`/admin/financeiro?tab=${t.key}`)}>{t.label}</button>
+          <button key={t.key} className={`bp-tab ${tab === t.key ? 'active' : ''}`} onClick={() => navigate(t.to || `/admin/financeiro?tab=${t.key}`)}>{t.label}</button>
         ))}
       </div>
 
       {tab === 'historico' && <HistoricoCaixa />}
       {tab === 'movimentos' && <Movimentos />}
-      {tab === 'receitas' && (
-        <ModulePlaceholder embedded icon={TrendingUp} title="Receitas"
-          subtitle="Receitas provenientes de serviços, produtos, assinaturas e outras."
-          sections={[
-            { key: 'servicos', title: 'Serviços', description: 'Receita de marcações concluídas.', icon: ShoppingBag },
-            { key: 'produtos', title: 'Produtos', description: 'Vendas de balcão e em comandas.', icon: PackageIcon },
-            { key: 'assinaturas', title: 'Assinaturas', description: 'Receitas recorrentes de planos.', icon: Repeat },
-            { key: 'outras', title: 'Outras Receitas', description: 'Movimentos de entrada avulsos.', icon: Wallet }
-          ]}
-        />
-      )}
-      {tab === 'despesas' && (
-        <ModulePlaceholder embedded icon={TrendingDown} title="Despesas"
-          subtitle="Gestão de despesas, categorias, fornecedores e métodos de pagamento."
-          sections={[
-            { key: 'lista', title: 'Despesas', description: 'Registo com data, valor, categoria e método.', icon: Wallet },
-            { key: 'categorias', title: 'Categorias', description: 'Categorias de despesa (em Tipos).', icon: TrendingDown }
-          ]}
-        />
-      )}
+      {tab === 'receitas' && <Navigate to="/admin/financeiro/receitas" replace />}
+      {tab === 'despesas' && <Navigate to="/admin/financeiro/despesas" replace />}
       {tab === 'comissoes' && <Comissoes />}
       {tab === 'conta-cliente' && <ContaCliente />}
       {tab === 'fluxo' && <FluxoCaixa />}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ChevronLeft, RotateCw, MoreHorizontal, Share, PlusSquare, Download, X, AlignLeft } from 'lucide-react';
+import { ChevronLeft, RotateCw, MoreHorizontal, Share, PlusSquare, Download, X, AlignLeft, Pin, Globe } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import { emModoAplicacao } from '@/lib/push';
 import { DOMINIO_BASE } from '@/lib/designService';
@@ -36,6 +36,9 @@ const ehIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const ehAndroid = () => /Android/i.test(navigator.userAgent);
 const CHAVE = 'convecta_guardar_ecra_adiado';
+// No computador: «fixa o separador». Visto uma vez com «Já está», não volta.
+const CHAVE_PC = 'convecta_fixar_separador_feito';
+const ehComputador = () => !(ehIOS() || ehAndroid());
 const hoje = () => new Date().toISOString().slice(0, 10);
 
 // O Chrome do Android oferece a instalação num evento que só chega uma vez:
@@ -63,8 +66,11 @@ export default function GuardarNoEcra() {
 
   useEffect(() => {
     if (!id || location.pathname !== '/admin') return;
-    if (emModoAplicacao() || !(ehIOS() || ehAndroid())) return;
-    try { if (localStorage.getItem(CHAVE) === hoje()) return; } catch { /* segue */ }
+    if (emModoAplicacao()) return;
+    try {
+      if (localStorage.getItem(CHAVE) === hoje()) return;
+      if (ehComputador() && localStorage.getItem(CHAVE_PC)) return;
+    } catch { /* segue */ }
     // Espera que o «Bem-vindo» tenha sido visto, para não abrir por cima dele.
     const t = setInterval(() => {
       let visto = true;
@@ -96,6 +102,11 @@ export default function GuardarNoEcra() {
   };
 
   const iOS = ehIOS();
+  const pc = ehComputador();
+  const feito = () => {
+    if (pc) { try { localStorage.setItem(CHAVE_PC, '1'); } catch { /* segue */ } }
+    setAberto(false);
+  };
   const endereco = negocio?.domain || (negocio?.slug ? `${negocio.slug}.${DOMINIO_BASE}` : 'marcacoes.app');
   const naoEhSafari = iOS && !/Safari/i.test(navigator.userAgent.replace(/CriOS|FxiOS|EdgiOS/g, ''));
 
@@ -105,9 +116,39 @@ export default function GuardarNoEcra() {
       <div className="gne">
         <button className="gne-x" onClick={adiar} aria-label="Fechar"><X size={20} /></button>
 
-        <h2 id="gne-titulo" className="gne-h">Adicionar ao ecrã principal</h2>
+        <h2 id="gne-titulo" className="gne-h">{pc ? 'Fixar o painel no Chrome' : 'Adicionar ao ecrã principal'}</h2>
 
-        {iOS ? (
+        {pc ? (
+          <>
+            {/* No computador o painel vive num separador do browser. Fixado,
+                fica sempre à esquerda, abre sozinho quando o Chrome abre e não
+                se fecha sem querer — é a «app» do computador. Antes ninguém
+                lho dizia e os donos perguntavam onde se entrava. */}
+            {podeInstalar && (
+              <button onClick={instalar} className="gne-btn gne-btn-forte">
+                <Download size={17} /> Instalar no computador
+              </button>
+            )}
+            <p className="gne-p">Clica com o <b>botão direito</b> no separador do painel, lá em cima.</p>
+
+            <div className="gne-desenho">
+              <div className="gne-separadores">
+                <span className="gne-sep gne-aceso"><Globe size={14} /> Convecta · Painel</span>
+                <span className="gne-sep gne-meia-sep">Nova guia</span>
+              </div>
+              <div className="gne-lista">
+                <div className="gne-opcao gne-aceso-linha gne-entre">
+                  Fixar
+                  <span className="gne-mais"><Pin size={18} /></span>
+                </div>
+              </div>
+            </div>
+
+            <p className="gne-p gne-fim">
+              Fica sempre aberto à esquerda. Para voltar a entrar noutro computador: <b>convecta.pt</b> › <b>Iniciar sessão</b>.
+            </p>
+          </>
+        ) : iOS ? (
           <>
             <p className="gne-p">Abre o menu de partilha, na barra de baixo do Safari.</p>
 
@@ -181,10 +222,10 @@ export default function GuardarNoEcra() {
           </p>
         )}
 
-        <div className="gne-rodape">{endereco}</div>
+        <div className="gne-rodape">{pc ? 'administrador.marcacoes.app' : endereco}</div>
 
         <div className="gne-botoes">
-          <button onClick={() => setAberto(false)} className="gne-btn gne-btn-forte">Já está</button>
+          <button onClick={feito} className="gne-btn gne-btn-forte">Já está</button>
           <button onClick={adiar} className="gne-btn">Depois</button>
         </div>
       </div>
@@ -269,7 +310,18 @@ const CSS = `
   text-align: center; font-size: 14.5px; font-weight: 700; color: var(--text-sec);
   word-break: break-all;
 }
-.gne-botoes { display: flex; gap: 10px; }
+.gne-botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gne-separadores { display: flex; gap: 6px; align-items: flex-end; }
+.gne-sep {
+  display: inline-flex; align-items: center; gap: 7px; min-width: 0; white-space: nowrap;
+  padding: 8px 14px; border-radius: 10px 10px 0 0; font-size: 14px; font-weight: 600;
+  background: var(--surface); color: var(--text);
+}
+.gne-meia-sep { opacity: .4; font-weight: 500; }
+@media (min-width: 700px) {
+  .gne-fundo { align-items: center; }
+  .gne { border-radius: 22px; border-bottom: 1px solid var(--border); padding-bottom: 22px; }
+}
 .gne-btn {
   flex: 1; min-height: 50px; border-radius: 999px; cursor: pointer; font: inherit;
   font-size: 16px; font-weight: 700; display: flex; align-items: center;

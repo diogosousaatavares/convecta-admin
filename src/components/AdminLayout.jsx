@@ -106,7 +106,7 @@ const GROUPS_TODOS = [
   ]},
 
   { type: 'group', id: 'marketing', label: 'Marketing', icon: Megaphone, d: 'Trazer e manter clientes.', items: [
-    { to: '/admin/o-meu-site', label: 'O meu site', icon: Globe, d: 'A tua página de marcações.' },
+    { to: '/admin/o-meu-site', label: 'O meu site', icon: Globe, d: 'Logo, cores e fotos da tua app.' },
     { to: '/admin/fidelizacao', label: 'Cartão de fidelidade', icon: Heart, d: 'Carimbos e prémio.' },
     { to: '/admin/promocoes', label: 'Promoções e cupões', icon: Ticket, d: 'Descontos com prazo.' },
     { to: '/admin/notificacoes', label: 'Notificações', icon: Bell, d: 'Avisos e promoções no telemóvel.' },
@@ -278,6 +278,10 @@ const BAIXO = [
 
 function BarraDeBaixo({ aberto }) {
   const location = useLocation();
+  // O profissional só vê na barra o que pode abrir (Vendas e Catálogo são do
+  // dono: tocar-lhes devolvia-o à agenda sem explicação).
+  const { isProfissional } = useStore();
+  const itens = isProfissional ? BAIXO.filter(b => permitidoAoProfissional(b.to)) : BAIXO;
   /* Activo pelo inicio do endereco: dentro da Agenda ha Marcacoes, Encaixes
      e Bloqueios, e todos continuam a ser «Hoje». */
   const activo = (to) => location.pathname === to || location.pathname.startsWith(to + '/');
@@ -285,8 +289,9 @@ function BarraDeBaixo({ aberto }) {
      pagina (animacao, overflow, transform) pode mudar o sitio dela. No
      iPhone ficava a meio do ecra depois de rolar — a frente de clientes. */
   return createPortal(
-    <nav className={`bnav${aberto ? ' bnav-escondida' : ''}`} aria-label="Principal">
-      {BAIXO.map(b => (
+    <nav className={`bnav${aberto ? ' bnav-escondida' : ''}`} aria-label="Principal"
+      style={itens.length !== BAIXO.length ? { gridTemplateColumns: `repeat(${itens.length + 1}, 1fr)` } : undefined}>
+      {itens.map(b => (
         <Link key={b.to} to={b.to} className={`bnav-item${activo(b.to) ? ' activo' : ''}`}>
           <b.icon size={21} />
           <span>{b.label}</span>
@@ -296,7 +301,7 @@ function BarraDeBaixo({ aberto }) {
           onde ele estava e fecha-se por engano ao tocar fora; um ecra tem
           endereco proprio, o botao «voltar» do telemovel funciona, e cabe
           tudo o que a casa tem sem ficar espremido. */}
-      <Link to="/admin/mais" className={`bnav-item${!BAIXO.some(b => activo(b.to)) ? ' activo' : ''}`}>
+      <Link to="/admin/mais" className={`bnav-item${!itens.some(b => activo(b.to)) ? ' activo' : ''}`}>
         <MoreHorizontal size={21} />
         <span>Mais</span>
       </Link>
@@ -691,8 +696,8 @@ export default function AdminLayout({ children }) {
 
             {/* O nome (ou logo). Com o seletor de lado na faixa de baixo, no
                 telemóvel há espaço: um nome comprido corta-se com «…». */}
-            {(data.business?.logo
-              ? <img className="admin-topbar-logo" src={data.business.logo} alt={data.business.name} style={{ height: 30, width: 'auto', maxWidth: 140, objectFit: 'contain' }} />
+            {(data.business?.logoUrl
+              ? <img className="admin-topbar-logo" src={data.business.logoUrl} alt={data.business.name} style={{ height: 30, width: 'auto', maxWidth: 140, objectFit: 'contain' }} />
               : <span className="fw-600 admin-topbar-nome">{data.business?.name || 'Convecta'}</span>
             )}
             {data.business?.founder && (

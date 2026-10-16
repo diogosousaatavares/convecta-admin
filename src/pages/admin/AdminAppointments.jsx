@@ -114,13 +114,16 @@ export default function AdminAppointments() {
     toast.success('Marcação cancelada', `Referência ${cancelTarget.bookingRef}`);
     setCancelTarget(null);
   };
+  // Uma marcação cobrada (ou paga online) não se apaga: levava consigo a
+  // receita da caixa e dos relatórios, e deixava a comissão e o carimbo
+  // para trás. Essas cancelam-se, não se apagam.
+  const podeApagar = (a) => a.status !== 'completed' && !a.pagoOnline && !a.paidAt && !a.paymentMethod;
   const finishCheckout = async (payData) => {
-    const a = data.appointments.find(x => x.id === checkout);
-    if (a && a.status === 'confirmed') await dataService.markAttended(checkout);
-    await dataService.checkoutAppointment(checkout, payData);
-
-    toast.success('Marcação concluída', `${formatPrice(payData.total)} · ${payData.method} · venda registada na caixa`);
-    setCheckout(null);
+    try {
+      await dataService.cobrarMarcacao(checkout, payData);
+      toast.success('Marcação concluída', `${formatPrice(payData.totalConta ?? payData.total)} · ${payData.method} · venda registada na caixa`);
+      setCheckout(null);
+    } catch (e) { toast.error('Não foi possível cobrar', e.message); }
   };
   const remove = async () => {
     // Apagava so no ecra (e despejava o estado inteiro no localStorage). Ao
@@ -226,7 +229,7 @@ export default function AdminAppointments() {
                         {!blocked && a.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(a.id)} title="Confirmar marcação"><CheckCircle2 size={14} /></Button>}
                         {!blocked && a.status === 'confirmed' && <Button size="sm" variant="primary" onClick={() => setCheckout(a.id)} title="Concluir e cobrar"><CheckCircle2 size={14} /></Button>}
                         {!blocked && a.status !== 'cancelled' && a.status !== 'completed' && <Button size="sm" variant="secondary" onClick={() => setCancelTarget(a)} title="Cancelar"><XCircle size={14} /></Button>}
-                        <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(a)} title="Eliminar"><Trash2 size={14} /></Button>
+                        {podeApagar(a) && <Button size="sm" variant="ghost" onClick={() => setDeleteTarget(a)} title="Eliminar"><Trash2 size={14} /></Button>}
                       </div>
                     </td>
                   </tr>
@@ -275,7 +278,7 @@ export default function AdminAppointments() {
                 {!blocked && a.status === 'pending' && <Button variant="primary" onClick={() => { confirm(a.id); setDetalhe(null); }}><CheckCircle2 size={15} /> Confirmar</Button>}
                 {!blocked && a.status === 'confirmed' && <Button variant="primary" onClick={() => { setDetalhe(null); setCheckout(a.id); }}><CheckCircle2 size={15} /> Concluir e cobrar</Button>}
                 {!blocked && a.status !== 'cancelled' && a.status !== 'completed' && <Button variant="secondary" onClick={() => { setDetalhe(null); setCancelTarget(a); }}><XCircle size={15} /> Cancelar</Button>}
-                <Button variant="ghost" onClick={() => { setDetalhe(null); setDeleteTarget(a); }}><Trash2 size={15} /> Eliminar</Button>
+                {podeApagar(a) && <Button variant="ghost" onClick={() => { setDetalhe(null); setDeleteTarget(a); }}><Trash2 size={15} /> Eliminar</Button>}
               </div>
             </div>
           </Modal>

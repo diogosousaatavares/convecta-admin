@@ -46,7 +46,7 @@ export default function TemaPersonalizacao() {
   const vista = derivar(colors, modo);
   const claro = modo === 'claro';
 
-  return <AdminPage title="Tema e Personalização" subtitle="Escolhe a cor do teu painel. A pré-visualização muda na hora.">
+  return <AdminPage title="Cores do painel">
     <div className="tema-layout-grid">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Card className="card-pad">
@@ -76,7 +76,13 @@ export default function TemaPersonalizacao() {
             {avisosDeContraste(colors, modo).map(a => <div key={a}>⚠ {a}</div>)}
           </div>
         )}
-        
+        {/* Não havia botão nenhum: as cores mudavam no ecrã e voltavam atrás
+            ao recarregar. Guardar grava-as na conta (servem em qualquer
+            computador ou telemóvel). */}
+        <div className="botoes-iguais">
+          <Button variant="primary" onClick={apply}>{applied ? <Check size={16} /> : <Palette size={16} />} {applied ? 'Guardado' : 'Guardar'}</Button>
+          <Button variant="secondary" onClick={reset}><RotateCcw size={16} /> Repor</Button>
+        </div>
       </div>
       <Card className="card-pad"><div className="fw-600 mb-16" style={{ fontSize: 15.5, color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: 1 }}>Pré-visualização em tempo real</div><MiniPreview colors={vista} /></Card>
     </div>

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { n as nicho } from '@/lib/nicho';
+import { todayStr } from '@/lib/format';
 
 /*
  * Packs — o barbeiro vende um conjunto de cortes pagos à cabeça, e o
@@ -45,7 +46,7 @@ function packDeLinha(r) {
 function vendaDeLinha(r) {
   const total = r.cortes_total || 0;
   const usados = r.cortes_usados || 0;
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = todayStr(); // dia de Lisboa, não UTC (entre 00h e 01h no verão dava ontem)
   const expirado = r.valido_ate < hoje;
   return {
     id: r.id,
@@ -127,7 +128,7 @@ export async function guardarPack(businessId, pack) {
  * fica como estava: é histórico, e histórico não se reescreve.
  */
 export async function contarPacksACorrer(packId) {
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = todayStr(); // dia de Lisboa, não UTC (entre 00h e 01h no verão dava ontem)
   const { count, error } = await supabase
     .from('packs_clientes')
     .select('id', { count: 'exact', head: true })
@@ -141,7 +142,7 @@ export async function contarPacksACorrer(packId) {
 export async function aplicarIntervaloAosACorrer(packId, dias) {
   const n = Math.round(Number(dias) || 0);
   if (!(n >= 0 && n <= 60)) throw new Error('O intervalo tem de estar entre 0 e 60 dias.');
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = todayStr(); // dia de Lisboa, não UTC (entre 00h e 01h no verão dava ontem)
   const { data, error } = await supabase
     .from('packs_clientes')
     .update({ intervalo_dias: n })

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, Navigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag, Lock, Settings } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import TutorialAgenda, { jaViuTutorialAgenda } from '@/components/admin/TutorialAgenda';
@@ -220,18 +220,7 @@ export default function Agenda() {
   const [checkout, setCheckout] = useState(null);
   const attend = (id) => { setCheckout(id); setSelected(null); };
   const finishCheckout = async (payData) => { try {
-    const a = data.appointments.find(x => x.id === checkout);
-    // Os produtos primeiro: é aqui que se valida o stock e a caixa. Se falhar,
-    // a marcação fica por cobrar e o barbeiro corrige — em vez de ficar meio
-    // cobrada.
-    if (payData.produtos?.length) {
-      await dataService.createSale({
-        items: payData.produtos, total: payData.totalProdutos, method: payData.method,
-        customerId: a?.customerId || null, professionalId: a?.professionalId || null,
-      });
-    }
-    if (a && a.status === 'confirmed') await dataService.markAttended(checkout);
-    await dataService.checkoutAppointment(checkout, payData);
+    await dataService.cobrarMarcacao(checkout, payData);
 
     toast.success('Cobrança concluída', `${formatPrice(payData.totalConta ?? payData.total)} · ${payData.method}`);
     setCheckout(null);
@@ -423,11 +412,9 @@ export default function Agenda() {
                 )}
               </Card>
             )}
-            {mode === 'waitlist' && (
-              <Card className="card-pad">
-                <EmptyState icon={() => <Clock />} title="Lista de espera vazia" />
-              </Card>
-            )}
+            {/* «Espera» mostrava sempre «Lista de espera vazia», escrito à
+                mão, mesmo com gente à espera. Abre a lista verdadeira. */}
+            {mode === 'waitlist' && <Navigate to="/admin/agenda/lista-espera" />}
     </>
   );
 
