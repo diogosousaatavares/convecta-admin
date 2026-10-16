@@ -907,10 +907,29 @@ function commFromRow(row) {
 }
 
 // ─── FETCH HELPER ─────────────────────────────────────────────────────────────
+/*
+ * O Supabase devolve no maximo 1000 linhas por pedido (16/10/2026). Uma
+ * barbearia com 30 marcacoes por dia passa disso ao fim de um mes e o painel
+ * comecava, em silencio, a nao ver marcacoes — e sem `order` nem se sabia
+ * quais. Le-se em paginas de 1000 ate vir uma pagina curta. Ordenado por id
+ * para as paginas nao se baralharem entre pedidos.
+ */
+const PAGINA = 1000;
+async function lerTudo(table, filtro) {
+  const linhas = [];
+  for (let de = 0; ; de += PAGINA) {
+    let q = supabase.from(table).select('*').order('id').range(de, de + PAGINA - 1);
+    if (filtro) q = filtro(q);
+    const { data, error } = await q;
+    if (error) throw error;
+    linhas.push(...(data || []));
+    if (!data || data.length < PAGINA) break;
+  }
+  return linhas;
+}
 async function fetchAll(table, adapter) {
-  const { data, error } = await supabase.from(table).select('*').eq('business_id', BUSINESS_ID);
-  if (error) { console.error(`fetchAll(${table}):`, error); return []; }
-  return (data || []).map(adapter);
+  try { return (await lerTudo(table, q => q.eq('business_id', BUSINESS_ID))).map(adapter); }
+  catch (error) { console.error(`fetchAll(${table}):`, error); return []; }
 }
 
 // A ficha do cliente tal como esta AGORA na base de dados. O cartao de
@@ -1457,14 +1476,14 @@ const dataService = {
   // Volta a ler as marcacoes. So as marcacoes: e o que muda sozinho enquanto
   // o painel esta aberto.
   async refreshAppointments() {
-    const { data, error } = await supabase.from('appointments')
-      .select('*').eq('business_id', BUSINESS_ID);
-    if (error) throw new Error(error.message);
+    let data;
+    try { data = await lerTudo('appointments', q => q.eq('business_id', BUSINESS_ID)); }
+    catch (error) { throw new Error(error.message); }
     state.appointments = (data || []).map(apptFromRow);
     // Os clientes tambem: quem se registou no site agora aparecia como «—»
     // na agenda e nao levava carimbo, porque o painel nao o conhecia.
-    const { data: fichas, error: erroFichas } = await supabase.from('customers').select('*').eq('business_id', BUSINESS_ID);
-    if (!erroFichas && fichas) state.customers = fichas.map(custFromRow);
+    try { state.customers = (await lerTudo('customers', q => q.eq('business_id', BUSINESS_ID))).map(custFromRow); }
+    catch { /* fica a lista que havia */ }
     state.pagamentosMbway = await lerPagamentosMbway();
     state.packSales = await lerVendasPacks();
     recalcularClientes();
