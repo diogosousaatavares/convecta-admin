@@ -143,143 +143,154 @@ export default function PagamentosOnline() {
       </AdminPage>
     );
   }
-  const opcao = (v, titulo, texto) => (
-    <label key={v} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
-      <input type="radio" name="modo" checked={modo === v} onChange={() => setModo(v)} style={{ marginTop: 4, accentColor: 'var(--gold)' }} />
-      <span style={{ flex: 1 }}>
-        <span className="fw-600" style={{ display: 'block' }}>{titulo}</span>
-        <span className="text-sec text-sm">{texto}</span>
-      </span>
+  /*
+   * O desenho (18/10/2026): linhas com separador, como as Definições — sem
+   * cartões brancos, sem frases por baixo dos títulos (as explicações estão
+   * no (i)), e cada linha numa só linha: o nome à esquerda, o valor ou o
+   * botão à direita.
+   */
+  const dia = d => new Date(d + 'T12:00:00').toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
+  const valor = (txt, cor) => <span className="fw-600" style={{ whiteSpace: 'nowrap', ...(cor ? { color: cor } : {}) }}>{txt}</span>;
+  const opcao = (v, titulo, ajuda) => (
+    <label key={v} className="nt-row" style={{ cursor: 'pointer' }}>
+      <span className="nt-txt"><b>{titulo} {ajuda && <Ajuda titulo={titulo} texto={<p>{ajuda}</p>} />}</b></span>
+      <input type="radio" name="modo" checked={modo === v} onChange={() => setModo(v)} style={{ width: 20, height: 20, accentColor: 'var(--gold)' }} />
     </label>
   );
 
   return (
-    <AdminPage title="Pagamentos online" subtitle="O cliente paga ao marcar. O dinheiro cai na tua conta.">
-      <Card className="card-pad" style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          <CreditCard size={22} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="fw-600" style={{ fontSize: 16 }}>
-              {!estado ? 'A ver…' : ativo ? 'Pagamentos ligados' : estado.ligado ? 'Falta acabar no Stripe' : '1. Liga a tua conta'}
-              {ativo && <Check size={16} style={{ color: 'var(--success)', marginLeft: 6, verticalAlign: -2 }} />}
-            </div>
-            {/* 15/10/2026: sem texto antes de ligar — o título e os logos dizem tudo. */}
-            {(ativo || estado?.ligado) && (
-              <div className="text-sec text-sm" style={{ marginTop: 4, lineHeight: 1.55 }}>
-                {ativo
-                  ? 'O dinheiro cai na tua conta e passa para o teu banco. A Convecta não fica com nada.'
-                  : 'Falta pôr no Stripe a tua identificação e o IBAN.'}
-              </div>
-            )}
-            <MetodosPagamento altura={14} style={{ marginTop: 12 }} />
-            {erro && <div className="text-sm" style={{ color: 'var(--error)', marginTop: 8 }}>{erro}</div>}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-              {!ativo && estado && (
-                <Button onClick={() => (estado.ligado ? ligar() : setTutorial(true))} disabled={aAbrir}>{aAbrir ? 'A abrir o Stripe…' : estado.ligado ? 'Continuar no Stripe' : 'Ligar pagamentos'}</Button>
-              )}
-              {estado?.ligado && (
-                <a className="btn btn-secondary" href="https://dashboard.stripe.com/" target="_blank" rel="noreferrer"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  Abrir o meu Stripe <ExternalLink size={14} />
-                </a>
-              )}
-            </div>
-            {/* O que o Stripe cobra (16/10/2026): a conta feita num corte de 15 €, e o (i) com a tabela. */}
-            <div className="nt-row" style={{ marginTop: 10, padding: '10px 0 0', borderTop: '1px solid var(--border)', borderBottom: 0 }}>
-              <span className="nt-txt"><b>O que o Stripe cobra <Ajuda titulo="O que o Stripe cobra" texto={<>
-                <p>O Stripe fica com <b>1,5 % + 0,25 €</b> por pagamento com cartão europeu, Apple Pay, Google Pay ou MB WAY. Cartões do Reino Unido: 2,5 % + 0,25 €. Cartões de fora da Europa: 3,15 % + 0,25 €.</p>
-                <p>Exemplos: num corte de 15 € recebes 14,52 €; em 25 € recebes 24,38 €; em 50 € recebes 49,00 €.</p>
-                <p>Passar o dinheiro para o teu banco é grátis (chega em 2 a 3 dias úteis). A Convecta não fica com nada. Preços do Stripe para Portugal a 16/10/2026.</p>
-              </>} /></b><span>1,5 % + 0,25 € por pagamento · num corte de 15 € recebes 14,52 €</span></span>
-            </div>
-            {estado?.ligado && (
-              <div className="nt-row" style={{ padding: '10px 0 0', borderBottom: 0 }}><span className="nt-txt"><b>MB WAY <Ajuda titulo="Aceitar MB WAY" texto={<p>No teu Stripe: Definições › Métodos de pagamento › ligar o MB WAY. A partir daí o cliente também vê MB WAY ao pagar. Custa o mesmo que o cartão.</p>} /></b></span></div>
-            )}
-          </div>
+    <AdminPage title="Pagamentos online">
+      {/* ── A conta Stripe ─────────────────────────────────────────────── */}
+      <div className="nt-lista" style={{ maxWidth: 760 }}>
+        <div className="nt-row">
+          <span className="nt-txt"><b style={{ whiteSpace: 'nowrap' }}>
+            {!estado ? 'A ver…' : ativo ? 'Pagamentos ligados' : estado.ligado ? 'Falta acabar no Stripe' : 'Ligar pagamentos'}
+            {ativo && <Check size={17} style={{ color: 'var(--success)', marginLeft: 6, verticalAlign: -3 }} />}
+            {' '}<Ajuda titulo="Pagamentos online" texto={<>
+              <p>O cliente paga ao marcar, com cartão, Apple Pay, Google Pay ou MB WAY. O dinheiro cai na tua conta Stripe e passa para o teu banco. A Convecta não fica com nada.</p>
+              {estado?.ligado && !ativo && <p>Falta pores no Stripe a tua identificação e o IBAN.</p>}
+            </>} />
+          </b></span>
+          {!ativo && estado && (
+            <Button size="sm" onClick={() => (estado.ligado ? ligar() : setTutorial(true))} disabled={aAbrir}>{aAbrir ? 'A abrir…' : estado.ligado ? 'Continuar no Stripe' : 'Ligar'}</Button>
+          )}
+          {estado?.ligado && (
+            <a className="btn btn-secondary btn-sm" href="https://dashboard.stripe.com/" target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+              Abrir o Stripe <ExternalLink size={14} />
+            </a>
+          )}
         </div>
-      </Card>
+        {erro && <div className="nt-row"><span className="text-sm" style={{ color: 'var(--error)' }}>{erro}</span></div>}
+        <div className="nt-row">
+          <span className="nt-txt"><b>Formas de pagar</b></span>
+          <MetodosPagamento altura={14} />
+        </div>
+        <div className="nt-row">
+          <span className="nt-txt"><b>O que o Stripe cobra <Ajuda titulo="O que o Stripe cobra" texto={<>
+            <p>O Stripe fica com <b>1,5 % + 0,25 €</b> por pagamento com cartão europeu, Apple Pay, Google Pay ou MB WAY. Cartões do Reino Unido: 2,5 % + 0,25 €. Cartões de fora da Europa: 3,15 % + 0,25 €.</p>
+            <p>Exemplos: num corte de 15 € recebes 14,52 €; em 25 € recebes 24,38 €; em 50 € recebes 49,00 €.</p>
+            <p>Passar o dinheiro para o teu banco é grátis. Preços do Stripe para Portugal a 16/10/2026.</p>
+          </>} /></b></span>
+          {valor('1,5 % + 0,25 €')}
+        </div>
+        {estado?.ligado && (
+          <div className="nt-row">
+            <span className="nt-txt"><b>MB WAY <Ajuda titulo="Aceitar MB WAY" texto={<p>No teu Stripe: Definições › Métodos de pagamento › ligar o MB WAY. A partir daí o cliente também vê MB WAY ao pagar. Custa o mesmo que o cartão.</p>} /></b></span>
+            <a className="btn btn-ghost btn-sm" href="https://dashboard.stripe.com/settings/payment_methods" target="_blank" rel="noreferrer" style={{ whiteSpace: 'nowrap' }}>Ligar no Stripe</a>
+          </div>
+        )}
+      </div>
 
-      <Card className="card-pad" style={{ marginBottom: 16, opacity: ativo ? 1 : 0.55 }}>
-        <div className="fw-600" style={{ fontSize: 16, marginBottom: 4 }}>{ativo ? 'O que o cliente paga ao marcar' : '2. O que o cliente paga ao marcar'}</div>
-        <div style={{ pointerEvents: ativo ? 'auto' : 'none' }}>
+      {/* ── O que o cliente paga ───────────────────────────────────────── */}
+      <div style={{ maxWidth: 760, opacity: ativo ? 1 : 0.5, pointerEvents: ativo ? 'auto' : 'none' }}>
+        <div className="nt-titulo">O que o cliente paga ao marcar</div>
+        <div className="nt-lista">
           {opcao('nada', 'Nada', 'O cliente paga na loja, como hoje.')}
           {opcao('metade', 'Metade', 'Paga metade ao marcar e o resto na loja. Acaba com as faltas.')}
           {opcao('total', 'Tudo', 'Paga o serviço todo ao marcar.')}
-          {modo !== 'nada' && servicosPagaveis.length > 0 && (
-            <div style={{ marginTop: 16 }}>
-              <div className="fw-600" style={{ marginBottom: 2 }}>Em que serviços?</div>
+          {modo !== 'nada' && (
+            <div className="nt-row">
+              <span className="nt-txt"><b>Só fica marcado depois de pagar <Ajuda titulo="Pagar para marcar" texto={<>
+                <p><b>Ligado:</b> o cliente paga ao marcar. Se sair do pagamento sem pagar, não fica marcação nenhuma e a hora continua livre.</p>
+                <p><b>Desligado:</b> o cliente escolhe «Pagar já» ou «Pagar na loja». A marcação fica sempre.</p>
+              </>} /></b></span>
+              <Toggle checked={obrigatorio} onChange={setObrigatorio} />
+            </div>
+          )}
+        </div>
+
+        {modo !== 'nada' && servicosPagaveis.length > 0 && (
+          <>
+            <div className="nt-titulo">Em que serviços</div>
+            <div className="nt-lista">
               {servicosPagaveis.map(s => (
-                <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderTop: '1px solid var(--border)', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={marcado(s.id)} onChange={() => alternar(s.id)} style={{ width: 18, height: 18, accentColor: 'var(--gold)' }} />
-                  <span style={{ flex: 1, minWidth: 0 }}>{s.name}</span>
+                <label key={s.id} className="nt-row" style={{ cursor: 'pointer' }}>
+                  <input type="checkbox" checked={marcado(s.id)} onChange={() => alternar(s.id)} style={{ width: 18, height: 18, accentColor: 'var(--gold)', flexShrink: 0 }} />
+                  <span className="nt-txt" style={{ minWidth: 0 }}><b style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</b></span>
                   <span className="text-sec text-sm" style={{ whiteSpace: 'nowrap' }}>
-                    {marcado(s.id) ? `paga ${formatPrice(modo === 'metade' ? Math.round(s.price * 50) / 100 : s.price)} ao marcar` : 'na loja'}
+                    {marcado(s.id) ? `${formatPrice(modo === 'metade' ? Math.round(s.price * 50) / 100 : s.price)} ao marcar` : 'na loja'}
                   </span>
                 </label>
               ))}
             </div>
-          )}
-        </div>
-        {modo !== 'nada' && (
-          <div className="nt-row" style={{ marginTop: 8, borderBottom: 0 }}>
-            <span className="nt-txt"><b>Só fica marcado depois de pagar <Ajuda titulo="Pagar para marcar" texto={<>
-              <p><b>Ligado:</b> o cliente paga ao marcar. Se fechar o pagamento sem pagar, a hora fica guardada 30 minutos e depois fica livre outra vez. É o que acaba com as faltas.</p>
-              <p><b>Desligado:</b> o cliente escolhe «Pagar já» ou «Pagar na loja». A marcação fica sempre.</p>
-            </>} /></b></span>
-            <Toggle checked={obrigatorio} onChange={setObrigatorio} />
-          </div>
+          </>
         )}
-        <Button onClick={guardar} disabled={!ativo || aGravar} style={{ marginTop: 14 }}>{aGravar ? 'A guardar…' : 'Guardar'}</Button>
-      </Card>
+        <div className="botoes-iguais" style={{ marginTop: 16, maxWidth: 320 }}>
+          <Button onClick={guardar} disabled={!ativo || aGravar}>{aGravar ? 'A guardar…' : 'Guardar'}</Button>
+        </div>
+      </div>
 
       <TutorialStripe aberto={tutorial} fechar={() => setTutorial(false)} continuar={() => { setTutorial(false); ligar(); }} aAbrir={aAbrir} />
 
+      {/* ── O teu dinheiro ─────────────────────────────────────────────── */}
       {saldo?.ligado && (
-        <Card className="card-pad" style={{ marginBottom: 16 }}>
-          <div className="fw-600" style={{ fontSize: 16, marginBottom: 4 }}>O teu dinheiro <Ajuda titulo="Quando chega ao banco" texto={<>
-            <p>Cada pagamento fica uns dias no Stripe antes de passar para o teu banco. Nas contas novas o primeiro espera <b>7 dias</b>; depois o Stripe passa a depositar todos os dias o que já estiver disponível (chega ao banco em 1 a 2 dias úteis).</p>
-            <p>O Stripe já desconta a comissão dele: o que vês em «Recebes» é o que vai para o teu IBAN. A Convecta não fica com nada.</p>
+        <div style={{ maxWidth: 760 }}>
+          <div className="nt-titulo">O teu dinheiro <Ajuda titulo="Quando chega ao banco" texto={<>
+            <p>Cada pagamento fica uns dias no Stripe antes de passar para o teu banco. Nas contas novas o primeiro espera <b>7 dias</b>; depois o Stripe deposita todos os dias o que já estiver disponível (chega em 1 a 2 dias úteis).</p>
+            <p>«Recebes» já tem a comissão do Stripe descontada: é o que vai para o teu IBAN.</p>
           </>} /></div>
           <div className="nt-lista">
-            <div className="nt-row"><span className="nt-txt"><b>Este mês</b></span><span className="fw-600" style={{ whiteSpace: 'nowrap' }}>{saldo.mes.pagamentos} {saldo.mes.pagamentos === 1 ? 'pagamento' : 'pagamentos'} · {formatPrice(saldo.mes.bruto)}</span></div>
-            <div className="nt-row"><span className="nt-txt"><b>Ficou para o Stripe</b></span><span style={{ whiteSpace: 'nowrap' }}>{formatPrice(saldo.mes.taxas)}</span></div>
-            <div className="nt-row"><span className="nt-txt"><b>Recebes</b></span><span className="fw-600" style={{ whiteSpace: 'nowrap', color: 'var(--success)' }}>{formatPrice(saldo.mes.liquido)}</span></div>
+            <div className="nt-row"><span className="nt-txt"><b>Este mês</b></span>{valor(`${saldo.mes.pagamentos} ${saldo.mes.pagamentos === 1 ? 'pagamento' : 'pagamentos'} · ${formatPrice(saldo.mes.bruto)}`)}</div>
+            <div className="nt-row"><span className="nt-txt"><b>Ficou para o Stripe</b></span>{valor(formatPrice(saldo.mes.taxas))}</div>
+            <div className="nt-row"><span className="nt-txt"><b>Recebes</b></span>{valor(formatPrice(saldo.mes.liquido), 'var(--success)')}</div>
             {saldo.aCaminho.map(c => (
-              <div key={c.dia} className="nt-row"><span className="nt-txt"><b>A caminho do banco</b></span><span style={{ whiteSpace: 'nowrap' }}>{formatPrice(c.valor)} · a {new Date(c.dia + 'T12:00:00').toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' })}</span></div>
+              <div key={c.dia} className="nt-row"><span className="nt-txt"><b>A caminho do banco</b></span>{valor(`${formatPrice(c.valor)} · ${dia(c.dia)}`)}</div>
             ))}
             {saldo.disponivel > 0 && (
-              <div className="nt-row"><span className="nt-txt"><b>Pronto a ir para o banco</b></span><span style={{ whiteSpace: 'nowrap' }}>{formatPrice(saldo.disponivel)}</span></div>
+              <div className="nt-row"><span className="nt-txt"><b>Pronto a ir para o banco</b></span>{valor(formatPrice(saldo.disponivel))}</div>
             )}
             {saldo.depositos.map((p, i) => (
-              <div key={i} className="nt-row"><span className="nt-txt"><b>{p.estado === 'paid' ? 'Depositado' : 'Depósito a caminho'}</b></span><span style={{ whiteSpace: 'nowrap' }}>{formatPrice(p.valor)} · {new Date(p.chega + 'T12:00:00').toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' })}</span></div>
+              <div key={i} className="nt-row"><span className="nt-txt"><b>{p.estado === 'paid' ? 'Depositado' : 'Depósito a caminho'}</b></span>{valor(`${formatPrice(p.valor)} · ${dia(p.chega)}`)}</div>
             ))}
             {!saldo.automatico && (
               <div className="nt-row">
-                <span className="nt-txt"><b style={{ color: 'var(--warning, #b45309)' }}>Depósitos automáticos desligados <Ajuda titulo="Ligar os depósitos" texto={<p>No teu Stripe: Saldos › Depósitos automáticos (ou Definições › Depósitos) › escolhe «Diariamente». Confirma também que o IBAN está lá. Sem isto, o dinheiro fica no Stripe até o mandares tu para o banco.</p>} /></b></span>
+                <span className="nt-txt"><b style={{ color: 'var(--warning, #b45309)', whiteSpace: 'nowrap' }}>Depósitos automáticos desligados <Ajuda titulo="Ligar os depósitos" texto={<p>No teu Stripe: Saldos › Depósitos automáticos › «Diariamente». Confirma também que o IBAN está lá. Sem isto, o dinheiro fica no Stripe até o mandares tu para o banco.</p>} /></b></span>
                 <a className="btn btn-secondary btn-sm" href="https://dashboard.stripe.com/balance/overview" target="_blank" rel="noreferrer">Ligar</a>
               </div>
             )}
           </div>
-        </Card>
+        </div>
       )}
 
+      {/* ── Últimos pagamentos ─────────────────────────────────────────── */}
       {lista.length > 0 && (
-        <Card className="card-pad">
-          <div className="fw-600" style={{ fontSize: 16, marginBottom: 8 }}>Últimos pagamentos</div>
-          {lista.map(p => {
-            const [l, v] = ESTADO[p.estado] || [p.estado, 'default'];
-            return (
-              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderTop: '1px solid var(--border)' }}>
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <span className="fw-600">{formatPrice(p.valor_cents / 100)}</span>
-                  <span className="text-sec text-sm"> · {p.tipo === 'total' ? 'serviço' : 'metade'} · {new Date(p.pago_em || p.criado_em).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
-                </span>
-                <Badge variant={v}>{l}</Badge>
-              </div>
-            );
-          })}
-        </Card>
+        <div style={{ maxWidth: 760 }}>
+          <div className="nt-titulo">Últimos pagamentos</div>
+          <div className="nt-lista">
+            {lista.map(p => {
+              const [l, v] = ESTADO[p.estado] || [p.estado, 'default'];
+              const cor = v === 'success' ? 'var(--success)' : v === 'warning' ? 'var(--warning, #b45309)' : 'var(--text-sec)';
+              return (
+                <div key={p.id} className="nt-row">
+                  <span className="nt-txt" style={{ minWidth: 0 }}><b style={{ whiteSpace: 'nowrap' }}>{formatPrice(p.valor_cents / 100)} <span className="text-sec" style={{ fontWeight: 400 }}>· {p.tipo === 'total' ? 'serviço' : 'metade'} · {new Date(p.pago_em || p.criado_em).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span></b></span>
+                  <span className="fw-600 text-sm" style={{ color: cor, whiteSpace: 'nowrap' }}>{l}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
+      <Confirmacao />
     </AdminPage>
   );
 }
