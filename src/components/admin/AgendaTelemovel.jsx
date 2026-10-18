@@ -135,6 +135,23 @@ export default function AgendaTelemovel({
   const doProfissional = appts.filter(a => a.professionalId === proId && (a.blocked || a.status !== 'cancelled'));
 
   const toque = useRef(null);
+  /* Deslizar a semana (18/10/2026): a faixa segue o dedo e, ao largar,
+     sai para o lado e a semana nova entra do outro — em vez de saltar. */
+  const [arrasto, setArrasto] = useState(0);        // px, enquanto o dedo está em cima
+  const [comTransicao, setComTransicao] = useState(false);
+  const faixa = useRef(null);
+  const largura = () => faixa.current?.offsetWidth || 320;
+  const largar = (dx) => {
+    const w = largura();
+    if (Math.abs(dx) < 50) { setComTransicao(true); setArrasto(0); return; }
+    const dir = dx < 0 ? 1 : -1;                     // 1 = semana seguinte
+    setComTransicao(true); setArrasto(-dir * w);     // sai para o lado
+    setTimeout(() => {
+      shift(7 * dir);
+      setComTransicao(false); setArrasto(dir * w);   // a nova fica do outro lado…
+      requestAnimationFrame(() => requestAnimationFrame(() => { setComTransicao(true); setArrasto(0); })); // …e entra
+    }, 200);
+  };
   return (
     <div className="agm" data-tour="agenda">
       {/* ---- Titulo, mes e navegacao de dias ---- */}
@@ -151,9 +168,12 @@ export default function AgendaTelemovel({
       </header>
 
       {/* ---- A semana, de segunda a domingo ---- */}
-      <div className="agm-semana"
-        onTouchStart={e => { toque.current = e.touches[0].clientX; }}
-        onTouchEnd={e => { const dx = e.changedTouches[0].clientX - (toque.current ?? e.changedTouches[0].clientX); toque.current = null; if (dx < -50) shift(7); else if (dx > 50) shift(-7); }}>
+      <div className="agm-semana" ref={faixa}
+        onTouchStart={e => { toque.current = e.touches[0].clientX; setComTransicao(false); }}
+        onTouchMove={e => { if (toque.current == null) return; setArrasto(e.touches[0].clientX - toque.current); }}
+        onTouchEnd={e => { const dx = e.changedTouches[0].clientX - (toque.current ?? e.changedTouches[0].clientX); toque.current = null; largar(dx); }}
+        onTouchCancel={() => { toque.current = null; largar(0); }}>
+        <div className="agm-semana-faixa" style={{ transform: `translate3d(${arrasto}px, 0, 0)`, transition: comTransicao ? 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)' : 'none' }}>
         {semana.map(ds => {
           const d = Number(ds.split('-')[2]);
           const diaSemana = DIAS_SEMANA[new Date(ds + 'T00:00:00').getDay()];
@@ -173,6 +193,7 @@ export default function AgendaTelemovel({
             </button>
           );
         })}
+        </div>
       </div>
 
       {/* ---- Dia / Lista / Espera ---- */}

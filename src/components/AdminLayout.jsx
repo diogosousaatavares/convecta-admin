@@ -707,7 +707,7 @@ export default function AdminLayout({ children }) {
             {/* O nome (ou logo). Com o seletor de lado na faixa de baixo, no
                 telemóvel há espaço: um nome comprido corta-se com «…». */}
             {(data.business?.logoUrl
-              ? <img className="admin-topbar-logo" src={data.business.logoUrl} alt={data.business.name} style={{ height: 30, width: 'auto', maxWidth: 140, objectFit: 'contain' }} />
+              ? <img className="admin-topbar-logo-img" src={data.business.logoUrl} alt={data.business.name} />
               : <span className="fw-600 admin-topbar-nome">{data.business?.name || 'Convecta'}</span>
             )}
             {data.business?.founder && (

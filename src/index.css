@@ -2177,7 +2177,8 @@ html.theme-light .page-info-popover { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12)
 .agm-hoje:active, .agm-seta:active { background: var(--elevated); border-color: var(--gold); }
 
 /* ---- A semana, de segunda a domingo ---- */
-.agm-semana { display: flex; gap: 7px; margin-bottom: 14px; }
+.agm-semana { margin-bottom: 14px; overflow: hidden; touch-action: pan-y; }
+.agm-semana-faixa { display: flex; gap: 7px; will-change: transform; }
 .agm-dia {
   flex: 1 1 0; min-width: 0;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
@@ -3173,3 +3174,8 @@ body { font-variant-numeric: lining-nums; }
   .admin-content.dentro .h1-com-ajuda:not(:has(> :not(h1):not(.ajuda-pagina))) { display: none; }
   .admin-content.dentro .page-head > div > div:first-child:not(:has(> :not(div))):not(:has(> div > :not(h1):not(.ajuda-pagina))) { display: none; }
 }
+
+/* O logótipo do negócio no topo (18/10/2026): num círculo, do tamanho dos
+   botões ao lado, centrado — antes era um rectângulo de 30 px colado ao
+   canto, com o fundo branco do ficheiro à vista. */
+.admin-topbar-logo-img { width: 40px; height: 40px; border-radius: 999px; object-fit: contain; padding: 3px; box-sizing: border-box; background: #fff; border: 1px solid var(--border); flex-shrink: 0; display: block; }
