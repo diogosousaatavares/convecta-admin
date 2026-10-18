@@ -227,6 +227,10 @@ export default function PagamentosOnline() {
         </div>
         <div className="nt-lista">
           {saldo && linha('Próximo depósito', proximo ? `${formatPrice(proximo.valor)} · ${dia(proximo.dia)}` : 'Nada a caminho', () => setVerDinheiro(true))}
+          {/* Até ao primeiro depósito chegar: um aviso calmo, numa linha. */}
+          {saldo && !saldo.depositos.some(p => p.estado === 'paid') && (
+            <div className="po-primeiro"><Clock size={15} /><span>O primeiro depósito demora 7 dias. Depois é todos os dias.</span></div>
+          )}
           {saldo && !saldo.automatico && (
             <a className="nt-row po-linha-botao po-alerta" href="https://dashboard.stripe.com/balance/overview" target="_blank" rel="noreferrer">
               <span className="nt-txt"><b className="po-nowrap">Ligar os depósitos automáticos</b></span>
@@ -521,6 +525,7 @@ function Assistente({ fechar, temExtra, juntar, aJuntar, irStripe, aAbrir, preco
                 <button type="button" onClick={() => ir(2)}><span><b>Pagamento</b></span><em>{obrigatorio ? 'Obrigatório' : 'Opcional'}</em><ChevronRight size={18} /></button>
                 <button type="button" onClick={() => ir(3)}><span><b>Em que serviços</b></span><em>{nomeQuais}</em><ChevronRight size={18} /></button>
               </div>
+              <div className="po-primeiro po-primeiro-ass"><Clock size={15} /><span>O primeiro depósito demora 7 dias. Depois é todos os dias.</span></div>
               <h3 className="po-ass-h3">No Stripe vais precisar de</h3>
               <div className="po-ass-tabela">
                 <div><span className="po-ass-com-ico"><Clock size={20} /><span><b>5 minutos</b>Uma vez, e fica feito</span></span></div>
@@ -658,6 +663,10 @@ const CSS = `
 .po-ass-resumo > button em { color: var(--text); }
 .po-ass-resumo > button svg { color: var(--text-ter); flex-shrink: 0; }
 .po-ass-h3 { margin: 26px 0 0; font-size: 17px; }
+.po-primeiro { display: flex; align-items: center; gap: 8px; padding: 12px 0; font-size: 14px; color: var(--text-sec); border-bottom: 1px solid var(--border); }
+.po-primeiro svg { flex-shrink: 0; color: var(--gold-tinta); }
+.po-primeiro span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.po-primeiro-ass { border-bottom: 0; padding: 14px 0 0; }
 .po-ass-h3 + .po-ass-tabela { margin-top: 12px; }
 @media (max-width: 767px) { .po-ass-extra { margin-left: 0; } .po-ass-lead { font-size: 15.5px; } }
 
