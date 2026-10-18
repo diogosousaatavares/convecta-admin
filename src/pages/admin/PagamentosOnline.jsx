@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check, ExternalLink, ArrowRight, ArrowLeft, X, ChevronRight, CreditCard, Landmark, IdCard, Clock, Percent } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import AdminLayout from '@/components/AdminLayout';
-import PageInfo from '@/components/admin/PageInfo';
-import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import Ajuda from '@/components/admin/Ajuda';
 import Toggle from '@/components/admin/Toggle';
 import { Button, Modal } from '@/components/ui';
@@ -55,6 +54,7 @@ const dia = d => new Date(d + 'T12:00:00').toLocaleDateString('pt-PT', { day: '2
 const quando = iso => new Date(iso).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
 export default function PagamentosOnline() {
+  const navigate = useNavigate();
   const data = useStore();
   const toast = useToast();
   const cfg = data.business?.pagamentosOnline || {};
@@ -150,7 +150,9 @@ export default function PagamentosOnline() {
 
   /* ── AINDA NÃO RECEBE: a apresentação ─────────────────────────────── */
   if (!ativo) {
-    const continuarNoStripe = estado?.ligado;
+    // Ecrã inteiro, à Fresha: o menu desaparece e o X volta onde estava.
+    // «Começar já» abre SEMPRE o formulário (as regras); o Stripe vem no fim.
+    const sair = () => (window.history.length > 1 ? navigate(-1) : navigate('/admin/dashboard'));
     return (
       <AdminLayout>
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
@@ -160,8 +162,8 @@ export default function PagamentosOnline() {
         <section className="po-capa po-capa-cheia">
           {/* O título e o Atualizar vivem dentro da imagem (pedido do Diogo). */}
           <div className="po-capa-cabeca">
-            <div className="po-capa-titulo"><h1>Pagamentos online</h1><PageInfo /></div>
-            <BotaoAtualizar />
+            <div className="po-selo"><span><CreditCard size={16} /></span>Pagamentos online</div>
+            <button type="button" className="po-capa-fechar" onClick={sair} aria-label="Fechar"><X size={26} /></button>
           </div>
           <picture>
             <source media="(max-width: 767px)" srcSet="/pagamentos/pagamentos-online-capa-v3-telemovel.jpg" />
@@ -178,9 +180,9 @@ export default function PagamentosOnline() {
             {!temExtra && <div className="po-preco-sub">+{formatPrice(extra.precos[periodo])}{sufixoPeriodo(periodo)} na subscrição · incluído no Profissional e Business</div>}
             {erro && <div className="text-sm" style={{ color: 'var(--error)', marginTop: 10 }}>{erro}</div>}
             <div className="po-acoes">
-              <button type="button" className="po-btn" disabled={!estado || aAbrir}
-                onClick={() => (continuarNoStripe ? ligar() : setAssistente(true))}>
-                {!estado ? 'A ver…' : aAbrir ? 'A abrir o Stripe…' : continuarNoStripe ? 'Continuar no Stripe' : 'Começar já'}
+              <button type="button" className="po-btn" disabled={aAbrir}
+                onClick={() => setAssistente(true)}>
+                {aAbrir ? 'A abrir o Stripe…' : 'Começar já'}
               </button>
               <a className="po-link" href="https://convecta.pt/pagamentos-online" target="_blank" rel="noreferrer">Saber mais</a>
             </div>
@@ -685,8 +687,8 @@ const CSS = `
 
 /* Capa v2: a imagem ocupa tudo, o texto por cima */
 .po-capa { position: relative; max-width: 1100px; border-radius: 24px; overflow: hidden; isolation: isolate; color: #fff; background: #15120E; box-shadow: 0 18px 50px rgba(0,0,0,.28); }
-.po-capa picture, .po-capa img { display: block; width: 100%; height: 100%; }
-.po-capa img { object-fit: cover; object-position: right center; min-height: 520px; max-height: min(620px, 74vh); }
+.po-capa > picture, .po-capa > picture img { display: block; width: 100%; height: 100%; }
+.po-capa > picture img { object-fit: cover; object-position: right center; min-height: 520px; max-height: min(620px, 74vh); }
 .po-capa .po-h { font-size: clamp(30px, 3vw, 42px); margin: 16px 0 14px; }
 .po-capa .po-checks li { font-size: 15.5px; white-space: nowrap; }
 .po-capa .po-preco { margin-top: 18px; font-size: 20px; }
@@ -704,7 +706,7 @@ const CSS = `
 .po-capa-stripe b { color: #fff; font-weight: 800; letter-spacing: -.01em; }
 @media (max-width: 767px) {
   .po-capa { border-radius: 20px; }
-  .po-capa img { min-height: 0; height: auto; aspect-ratio: 1080 / 1500; max-height: 62vh; object-position: center top; }
+  .po-capa > picture img { min-height: 0; height: auto; aspect-ratio: 1080 / 1500; max-height: 62vh; object-position: center top; }
   .po-capa .po-checks li { white-space: normal; }
   .po-capa::after { display: none; }
   .po-capa-texto { position: relative; width: auto; inset: auto; margin-top: -150px; padding: 120px 20px 24px; background: linear-gradient(180deg, rgba(21,18,14,0) 0, #15120E 130px); }
@@ -716,9 +718,13 @@ const CSS = `
 }
 
 /* Capa cheia (18/10): de ponta a ponta, sem espaço à volta, até ao fundo */
-.po-capa-cheia { max-width: none; border-radius: 0; box-shadow: none; margin: -28px calc(-1 * var(--pad-lado, 32px)) -40px; width: calc(100% + 2 * var(--pad-lado, 32px)); min-height: calc(100dvh - 56px); }
-.po-capa-cheia picture { position: absolute; inset: 0; }
-.po-capa-cheia img { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; max-height: none; object-fit: cover; object-position: right center; }
+.po-capa-cheia { position: fixed; inset: 0; z-index: 900; max-width: none; border-radius: 0; box-shadow: none; margin: 0; overflow-y: auto; overscroll-behavior: contain; animation: po-capa-entra 260ms ease backwards; }
+@keyframes po-capa-entra { from { opacity: 0; } }
+.po-capa-fechar { width: 52px; height: 52px; border-radius: 999px; border: 0; background: transparent; color: #fff !important; display: grid; place-items: center; cursor: pointer; }
+.po-capa-fechar:hover { background: rgba(255,255,255,.1); }
+.po-capa-cheia .po-capa-cabeca .po-selo > span { color: #111; }
+.po-capa-cheia > picture { position: absolute; inset: 0; }
+.po-capa-cheia > picture img { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; max-height: none; object-fit: cover; object-position: right center; }
 .po-capa-cheia .po-capa-texto { width: min(46%, 560px); padding: 96px 0 48px clamp(32px, 5vw, 80px); }
 .po-capa-cheia .po-h { font-size: clamp(34px, 3.6vw, 54px); }
 .po-capa-cheia .po-checks li { font-size: 16.5px; }
@@ -726,12 +732,13 @@ const CSS = `
 .po-capa-titulo { display: flex; align-items: center; gap: 10px; }
 .po-capa-titulo h1 { margin: 0; color: #fff; font-family: var(--font-head); font-size: 34px; }
 .po-capa-cabeca, .po-capa-cabeca * { color: #e9e3d6; }
-.po-capa-cabeca button { background: rgba(255,255,255,.08) !important; border-color: rgba(255,255,255,.22) !important; color: #fff !important; }
 @media (max-width: 767px) {
-  .po-capa-cheia { margin: 0 calc(-1 * var(--pad-lado, 16px)); min-height: 0; }
-  .po-capa-cheia picture, .po-capa-cheia img { position: static; height: auto; }
-  .po-capa-cheia img { aspect-ratio: 1080 / 1500; max-height: 62vh; object-position: center top; }
-  .po-capa-cabeca { display: none; }
+  .po-capa-cheia { margin: 0; border-radius: 0; }
+  .po-capa-cheia > picture, .po-capa-cheia > picture img { position: static; height: auto; }
+  .po-capa-cheia > picture img { aspect-ratio: 1080 / 1500; max-height: 62vh; object-position: center top; }
+  .po-capa-cabeca { position: fixed; padding: 10px 12px 0 18px; }
+  .po-capa-cheia .po-capa-cabeca .po-selo { visibility: hidden; }
+  .po-capa-fechar { background: rgba(21,18,14,.55); backdrop-filter: blur(8px); }
   .po-capa-cheia .po-capa-texto { width: auto; padding: 120px 20px 28px; }
   .po-capa-cheia .po-h { font-size: 30px; }
   .po-capa-cheia .po-checks li { font-size: 15px; }
