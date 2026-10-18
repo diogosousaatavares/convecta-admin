@@ -3213,3 +3213,13 @@ body { font-variant-numeric: lining-nums; }
 .agmm-linhas button span { display: flex; align-items: center; gap: 14px; }
 .agmm-linhas button > svg { color: var(--text-ter); }
 @media (prefers-reduced-motion: reduce) { .agmm, .agmm.sai { animation: none; } }
+
+/* 18/10: o nome já está ao centro na barra de cima — sem título repetido por baixo */
+.admin-content.base-tel > .pagina-desliza > .page-head, .admin-content.base-tel > .page-head { display: none; }
+/* Barra de cima no telemóvel: três botões iguais, sem círculo na lua, título mesmo ao centro */
+.admin-topbar-tel { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important; }
+.admin-topbar-tel .admin-topbar-right { gap: 0; }
+.admin-topbar-tel .admin-topbar-right > .btn, .admin-topbar-tel .admin-topbar-right > .theme-toggle, .admin-topbar-tel .admin-topbar-right > * > .btn { width: 40px; height: 40px; min-width: 40px; padding: 0; }
+.admin-topbar-tel .theme-toggle { background: transparent; border: 0; color: var(--text); }
+.admin-topbar-tel .theme-toggle:hover { transform: none; }
+.admin-topbar-tel .theme-toggle svg { width: 19px; height: 19px; }

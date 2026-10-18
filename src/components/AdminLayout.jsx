@@ -676,7 +676,7 @@ export default function AdminLayout({ children }) {
           </button>
         </form>
       </Modal>
-      <main className={`admin-content${!noComputador && !BAIXO.some(b => location.pathname === b.to) && location.pathname !== '/admin/mais' ? ' dentro' : ''}${location.pathname === '/admin/o-meu-site' ? ' sem-barra' : ''}`} ref={zonaConteudo}>
+      <main className={`admin-content${!noComputador && !BAIXO.some(b => location.pathname === b.to) && location.pathname !== '/admin/mais' ? ' dentro' : ''}${location.pathname === '/admin/o-meu-site' ? ' sem-barra' : ''}${!noComputador && BAIXO.some(b => location.pathname === b.to) ? ' base-tel' : ''}`} ref={zonaConteudo}>
         {emDemo && <TourDemo passos={PASSOS_DEMO} chave="convecta_tour_painel" />}
         {/* Nunca as duas: numa barbearia de demonstracao manda a da demonstracao. */}
         {!emDemo && <TourDemo passos={PASSOS_BARBEIRO} chave="convecta_visita_barbeiro" ativo={visitaBarbeiro} />}
