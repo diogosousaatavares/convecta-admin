@@ -3142,7 +3142,10 @@ body { font-variant-numeric: lining-nums; }
    frente vem da direita; ao voltar, da esquerda. As janelas sobem e descem
    (telemóvel) ou aparecem e somem com um pequeno deslize (computador). */
 .pagina-entra:has(.admin-layout) { animation: none; }
-.pagina-desliza { display: flex; flex-direction: column; flex: 1 0 auto; min-width: 0; animation: pagina-da-direita 280ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pagina-desliza { display: flex; flex-direction: column; flex: 1 0 auto; min-width: 0; animation: pagina-da-direita 280ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+/* «backwards» e não «both»: uma animação de transform que fica «presa» no
+   fim faz do bloco a referência dos elementos fixed lá dentro — o menu do
+   editor de O meu site ficava a meio do ecrã. Acabada a animação, nada fica. */
 .pagina-desliza.volta { animation-name: pagina-da-esquerda; }
 @keyframes pagina-da-direita { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
 @keyframes pagina-da-esquerda { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
@@ -3179,3 +3182,9 @@ body { font-variant-numeric: lining-nums; }
    botões ao lado, centrado — antes era um rectângulo de 30 px colado ao
    canto, com o fundo branco do ficheiro à vista. */
 .admin-topbar-logo-img { width: 40px; height: 40px; border-radius: 999px; object-fit: contain; padding: 3px; box-sizing: border-box; background: #fff; border: 1px solid var(--border); flex-shrink: 0; display: block; }
+
+/* O meu site não tem a barra de baixo (tem o menu do editor): sem o espaço
+   reservado para ela, o menu do editor fica mesmo no fundo do ecrã. */
+@media (max-width: 767px) {
+  .admin-layout .admin-content.sem-barra { padding-bottom: env(safe-area-inset-bottom, 0px); }
+}

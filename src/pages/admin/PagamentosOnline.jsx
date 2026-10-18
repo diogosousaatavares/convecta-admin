@@ -67,6 +67,7 @@ export default function PagamentosOnline() {
   const [assistente, setAssistente] = useState(false);
   const [verServicos, setVerServicos] = useState(false);
   const [verModo, setVerModo] = useState(false);
+  const [verObrigatorio, setVerObrigatorio] = useState(false);
   const [verDinheiro, setVerDinheiro] = useState(false);
   const [verTodos, setVerTodos] = useState(false);
   const [verTaxas, setVerTaxas] = useState(false);
@@ -222,20 +223,15 @@ export default function PagamentosOnline() {
           )}
         </div>
 
-        {/* As escolhas */}
-        <div className="nt-titulo">Ao marcar</div>
+        {/* As regras: o que ELE decide, aqui (18/10/2026). Separado do que
+            se muda no Stripe, lá em baixo. */}
+        <div className="nt-titulo po-titulo-sec"><span>As tuas regras</span><em>mudas aqui</em></div>
         <div className="nt-lista">
-          {linha('O cliente paga', MODO_NOME[modo], () => setVerModo(true))}
+          {linha('Quanto pagam ao marcar', MODO_NOME[modo], () => setVerModo(true))}
           {modo !== 'nada' && (
             <>
-              {linha('Serviços', escolhidos == null ? `Todos (${servicosPagaveis.length})` : `${nEscolhidos} de ${servicosPagaveis.length}`, () => setVerServicos(true))}
-              <div className="nt-row">
-                <span className="nt-txt"><b className="po-nowrap">Só marca depois de pagar <Ajuda titulo="Pagar para marcar" texto={<>
-                  <p><b>Ligado:</b> sem pagamento não há marcação, e a hora continua livre.</p>
-                  <p><b>Desligado:</b> o cliente escolhe «Pagar já» ou «Pagar na loja».</p>
-                </>} /></b></span>
-                <Toggle checked={obrigatorio} onChange={v => gravar({ obrigatorio: v })} />
-              </div>
+              {linha('Pagamento', obrigatorio ? 'Obrigatório' : 'Opcional', () => setVerObrigatorio(true))}
+              {linha('Em que serviços', escolhidos == null ? `Todos (${servicosPagaveis.length})` : `${nEscolhidos} de ${servicosPagaveis.length}`, () => setVerServicos(true))}
             </>
           )}
         </div>
@@ -243,7 +239,7 @@ export default function PagamentosOnline() {
         {/* Pagamentos */}
         {lista.length > 0 && (
           <>
-            <div className="nt-titulo">Pagamentos</div>
+            <div className="nt-titulo">Pagamentos recebidos</div>
             <div className="nt-lista">
               {lista.slice(0, 3).map(p => {
                 const [l, cor] = ESTADO[estadoDe(p)] || [p.estado, 'var(--text-sec)'];
@@ -260,7 +256,7 @@ export default function PagamentosOnline() {
         )}
 
         {/* A conta */}
-        <div className="nt-titulo">Conta Stripe</div>
+        <div className="nt-titulo po-titulo-sec"><span>Conta Stripe</span><em>mudas no Stripe</em></div>
         <div className="nt-lista">
           {linha('O que o Stripe cobra', '1,5 % + 0,25 €', () => setVerTaxas(true))}
           {ligacao('MB WAY', 'Ligar no Stripe', 'https://dashboard.stripe.com/settings/payment_methods')}
@@ -270,15 +266,28 @@ export default function PagamentosOnline() {
 
       {/* O que o cliente paga */}
       <Modal open={verModo} onClose={() => setVerModo(false)} title="O cliente paga ao marcar">
-        <div className="nt-lista">
-          {[['nada', 'Nada', 'Paga na loja, como hoje.'], ['metade', 'Metade', 'Metade ao marcar, o resto na loja.'], ['total', 'Tudo', 'O serviço todo ao marcar.']].map(([v, t, d]) => (
-            <label key={v} className="nt-row" style={{ cursor: 'pointer' }}>
-              <span className="nt-txt"><b>{t}</b><span>{d}</span></span>
-              <input type="radio" name="modo" checked={modo === v} onChange={() => { gravar({ modo: v }); setVerModo(false); }} style={{ width: 20, height: 20, accentColor: 'var(--gold)' }} />
-            </label>
+        <div className="po-escolhas">
+          {[['nada', 'Nada', 'Paga tudo na loja, como hoje.'], ['metade', 'Metade', 'Metade ao marcar, o resto na loja.'], ['total', 'Tudo', 'O serviço todo ao marcar. Na loja não paga nada.']].map(([v, t, d]) => (
+            <button key={v} type="button" className={`po-escolha${modo === v ? ' on' : ''}`} onClick={() => { gravar({ modo: v }); setVerModo(false); }}>
+              <span className="po-escolha-bola">{modo === v && <Check size={14} />}</span>
+              <span><b>{t}</b><span>{d}</span></span>
+            </button>
           ))}
         </div>
         <MetodosPagamento altura={14} style={{ marginTop: 14 }} />
+      </Modal>
+
+      {/* Obrigatório ou opcional — as duas escolhas, ditas por extenso */}
+      <Modal open={verObrigatorio} onClose={() => setVerObrigatorio(false)} title="O pagamento é…">
+        <div className="po-escolhas">
+          {[[true, 'Obrigatório', 'O cliente paga ao marcar. Sem pagar, não há marcação e a hora continua livre. Acaba com as faltas.'],
+            [false, 'Opcional', 'O cliente escolhe «Pagar já» ou «Pagar na loja». A marcação fica sempre.']].map(([v, t, d]) => (
+            <button key={t} type="button" className={`po-escolha${obrigatorio === v ? ' on' : ''}`} onClick={() => { gravar({ obrigatorio: v }); setVerObrigatorio(false); }}>
+              <span className="po-escolha-bola">{obrigatorio === v && <Check size={14} />}</span>
+              <span><b>{t}</b><span>{d}</span></span>
+            </button>
+          ))}
+        </div>
       </Modal>
 
       {/* Serviços */}
@@ -503,6 +512,15 @@ const CSS = `
 }
 
 /* Painel v2 */
+.po-titulo-sec { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.po-titulo-sec em { font-style: normal; font-weight: 600; letter-spacing: 0; text-transform: none; font-size: 12.5px; color: var(--text-ter); white-space: nowrap; }
+.po-escolhas { display: grid; gap: 10px; }
+.po-escolha { display: flex; gap: 12px; align-items: flex-start; text-align: left; padding: 14px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); font: inherit; cursor: pointer; }
+.po-escolha.on { border-color: var(--text); }
+.po-escolha b { display: block; font-size: 16px; margin-bottom: 3px; }
+.po-escolha span span { font-size: 14px; color: var(--text-sec); line-height: 1.45; }
+.po-escolha-bola { width: 22px; height: 22px; border-radius: 999px; border: 1.5px solid var(--border); flex-shrink: 0; display: grid; place-items: center; margin-top: 1px; }
+.po-escolha.on .po-escolha-bola { background: var(--text); border-color: var(--text); color: var(--surface); }
 .po-resumo { display: grid; gap: 4px; padding: 6px 0 18px; }
 .po-ligados { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 700; color: var(--success); margin-bottom: 8px; }
 .po-rotulo { font-size: 14px; color: var(--text-sec); }
