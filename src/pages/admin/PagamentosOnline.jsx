@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ExternalLink, ArrowRight, ArrowLeft, X, ChevronRight, CreditCard, Landmark, IdCard, Clock, Percent } from 'lucide-react';
+import { Check, ExternalLink, ArrowRight, ArrowLeft, X, ChevronRight, CreditCard, Landmark, IdCard, Clock, Percent, Smartphone, ShieldCheck, Store, Gem, ListChecks, UserRound, Building2 } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import AdminLayout from '@/components/AdminLayout';
 import Ajuda from '@/components/admin/Ajuda';
@@ -99,9 +99,9 @@ export default function PagamentosOnline() {
   const marcado = id => escolhidos == null || escolhidos.includes(id);
   const nEscolhidos = servicosPagaveis.filter(s => marcado(s.id)).length;
 
-  const ligar = async () => {
+  const ligar = async (tipo) => {
     setAAbrir(true); setErro('');
-    try { const r = await invocar({ acao: 'ligar' }); window.location.href = r.url; }
+    try { const r = await invocar({ acao: 'ligar', ...(typeof tipo === 'string' ? { tipo } : {}) }); window.location.href = r.url; }
     catch (e) { setErro(e.message); setAAbrir(false); toast.error('Não foi possível abrir o Stripe', e.message); }
   };
 
@@ -194,7 +194,7 @@ export default function PagamentosOnline() {
           <Assistente
             fechar={() => setAssistente(false)}
             temExtra={temExtra} juntar={juntar} aJuntar={aJuntar}
-            irStripe={ligar} aAbrir={aAbrir}
+            irStripe={ligar} aAbrir={aAbrir} jaLigado={!!estado?.ligado}
             precoExtra={`+${formatPrice(extra.precos[periodo])}${sufixoPeriodo(periodo)}`}
             servicos={servicosPagaveis.map(sv => ({ ...sv, price: Number(sv.price) }))}
             inicial={{ modo, obrigatorio, servicos: escolhidos }}
@@ -389,22 +389,27 @@ export default function PagamentosOnline() {
   );
 }
 
-/* O assistente em ecrã inteiro, como o da Fresha (18/10/2026, pedido do
-   Diogo): antes de ir para o Stripe, três perguntas rápidas — quanto paga
-   o cliente, se é obrigatório, em que serviços — e um resumo. As respostas
-   ficam gravadas antes de abrir o Stripe; só contam quando a conta estiver
-   ligada (o servidor e a app do cliente olham para pagamentos_ativos). */
+/* O formulário em ecrã inteiro, à Fresha (18/10/2026, pedido do Diogo, com o
+   vídeo do da Fresha): escuro, um passo de cada vez, Fechar e Continuar em
+   cima. Primeiro o que é e o que custa; depois a barra de progresso e as
+   perguntas — quanto paga o cliente, se é obrigatório, em que serviços,
+   como trabalhas — em cartões que avançam sozinhos ao tocar; no fim a
+   verificação do Stripe. As respostas ficam gravadas antes de abrir o
+   Stripe e só contam quando a conta estiver ligada (o servidor e a app do
+   cliente olham para pagamentos_ativos). */
 const LIMIARES = [15, 20, 25, 30, 40, 50, 75, 100, 150];
-function Assistente({ fechar, temExtra, juntar, aJuntar, irStripe, aAbrir, precoExtra, servicos, inicial, guardar }) {
+function Assistente({ fechar, temExtra, juntar, aJuntar, irStripe, aAbrir, precoExtra, servicos, inicial, guardar, jaLigado }) {
+  const PASSOS = ['intro', 'taxas', 'quanto', 'obrigatorio', 'servicos', ...(jaLigado ? [] : ['tipo']), 'pronto'];
   const [i, setI] = useState(0);
   const [para, setPara] = useState('frente');
-  const [modo, setModo] = useState(inicial.modo === 'metade' || inicial.modo === 'total' ? inicial.modo : null);
-  const [obrigatorio, setObrigatorio] = useState(inicial.modo === 'metade' || inicial.modo === 'total' ? inicial.obrigatorio : null);
-  const [quais, setQuais] = useState(Array.isArray(inicial.servicos) ? 'escolho' : (inicial.modo === 'metade' || inicial.modo === 'total' ? 'todos' : null));
+  const comecou = inicial.modo === 'metade' || inicial.modo === 'total';
+  const [modo, setModo] = useState(comecou ? inicial.modo : null);
+  const [obrigatorio, setObrigatorio] = useState(comecou ? inicial.obrigatorio : null);
+  const [quais, setQuais] = useState(Array.isArray(inicial.servicos) ? 'escolho' : (comecou ? 'todos' : null));
   const [escolhidos, setEscolhidos] = useState(Array.isArray(inicial.servicos) ? inicial.servicos : []);
+  const [tipo, setTipo] = useState(null);
   const [aGravar, setAGravar] = useState(false);
 
-  // Os «mais caros»: os limiares que deixam pelo menos um de fora e um dentro.
   const limiares = LIMIARES.filter(t => { const n = servicos.filter(s => s.price >= t).length; return n > 0 && n < servicos.length; }).slice(0, 4);
   const [limiar, setLimiar] = useState(limiares[Math.floor((limiares.length - 1) / 2)] ?? null);
   const caros = limiar == null ? [] : servicos.filter(s => s.price >= limiar).map(s => s.id);
@@ -417,15 +422,18 @@ function Assistente({ fechar, temExtra, juntar, aJuntar, irStripe, aAbrir, preco
     return () => { document.body.style.overflow = antes; window.removeEventListener('keydown', tecla); };
   }, [fechar]);
 
+  const passo = PASSOS[i];
   const ir = n => { setPara(n < i ? 'tras' : 'frente'); setI(n); };
-  const escolherE = (fn, v) => { fn(v); setTimeout(() => ir(i + 1), 230); };   // escolha única: avança sozinho
+  const irPara = nome => ir(PASSOS.indexOf(nome));
+  const escolherE = (fn, v) => { fn(v); setTimeout(() => ir(i + 1), 240); };
 
   const lista = quais === 'todos' ? null : quais === 'caros' ? caros : escolhidos;
   const nServ = lista == null ? servicos.length : lista.length;
-  const pode = [true, !!modo, obrigatorio != null, quais != null && nServ > 0, true][i];
-  const ultimo = i === 4;
+  // Nos passos de escolha única não há «Continuar»: tocar no cartão avança (como na Fresha).
+  const soCartoes = ['quanto', 'obrigatorio', 'tipo'].includes(passo) || (passo === 'servicos' && quais !== 'caros' && quais !== 'escolho');
+  const pode = { intro: true, taxas: true, quanto: !!modo, obrigatorio: obrigatorio != null, servicos: quais != null && nServ > 0, tipo: !!tipo, pronto: true }[passo];
+  const ultimo = passo === 'pronto';
 
-  // Um exemplo com um serviço verdadeiro do negócio (o do meio em preço).
   const ordenados = [...servicos].sort((a, b) => a.price - b.price);
   const ex = ordenados[Math.floor(ordenados.length / 2)];
   const metade = ex ? Math.round(ex.price * 50) / 100 : 0;
@@ -434,96 +442,112 @@ function Assistente({ fechar, temExtra, juntar, aJuntar, irStripe, aAbrir, preco
     setAGravar(true);
     const ok = await guardar({ modo, obrigatorio, servicos: lista });
     setAGravar(false);
-    if (ok) (temExtra ? irStripe() : juntar());
+    if (ok) (temExtra ? irStripe(tipo) : juntar());
   };
   const ocupado = aAbrir || aJuntar || aGravar;
 
-  const escolha = (on, titulo, texto, onClick, selo) => (
-    <button type="button" className={`po-escolha po-escolha-g${on ? ' on' : ''}`} onClick={onClick}>
-      <span className="po-escolha-bola">{on && <Check size={14} />}</span>
-      <span><b>{titulo}{selo && <i className="po-selo-rec">{selo}</i>}</b><span>{texto}</span></span>
+  const escolha = (on, titulo, texto, onClick, Icone, selo) => (
+    <button type="button" className={`pa-cartao${on ? ' on' : ''}`} onClick={onClick}>
+      <span className="pa-cartao-txt"><b>{titulo}{selo && <i className="pa-selo">{selo}</i>}</b><span>{texto}</span></span>
+      {Icone && <span className="pa-ico pa-ico-p"><Icone size={20} /></span>}
     </button>
   );
   const alternar = id => setEscolhidos(l => (l.includes(id) ? l.filter(x => x !== id) : [...l, id]));
   const nomeQuais = quais === 'todos' ? `Todos (${servicos.length})` : quais === 'caros' ? `A partir de ${limiar} € (${caros.length})` : `${escolhidos.length} de ${servicos.length}`;
 
+  // A barra de progresso só nas perguntas (como a da Fresha).
+  const PERG = PASSOS.slice(2);
+  const iPerg = PERG.indexOf(passo);
+
   return (
-    <div className="po-ass" role="dialog" aria-modal="true" aria-label="Ligar os pagamentos online">
-      <div className="po-ass-topo">
-        {i > 0 ? <button type="button" className="po-ass-redondo" onClick={() => ir(i - 1)} aria-label="Voltar"><ArrowLeft size={20} /></button> : <span />}
-        <div className="po-ass-pontos">{[0, 1, 2, 3, 4].map(k => <span key={k} className={k === i ? 'on' : k < i ? 'feito' : ''} />)}</div>
-        <div className="po-ass-botoes">
-          <button type="button" className="po-ass-fechar" onClick={fechar}><X size={16} /> Fechar</button>
-          <button type="button" className="po-ass-seguinte" disabled={!pode || ocupado}
-            onClick={() => (ultimo ? final() : ir(i + 1))}>
-            {ultimo ? (ocupado ? 'A abrir…' : temExtra ? 'Ir para o Stripe' : 'Juntar e continuar') : 'Continuar'} <ArrowRight size={17} />
-          </button>
+    <div className="pa" role="dialog" aria-modal="true" aria-label="Ligar os pagamentos online">
+      {iPerg >= 0 && <div className="pa-barra">{PERG.map((p, k) => <span key={p} className={k <= iPerg ? 'on' : ''} />)}</div>}
+      <div className="pa-topo">
+        {i > 0 ? <button type="button" className="pa-redondo" onClick={() => ir(i - 1)} aria-label="Voltar"><ArrowLeft size={20} /></button> : <span />}
+        <div className="pa-botoes">
+          <button type="button" className="pa-fechar" onClick={fechar}>Fechar</button>
+          {!soCartoes && (
+            <button type="button" className="pa-seguinte" disabled={!pode || ocupado} onClick={() => (ultimo ? final() : ir(i + 1))}>
+              {ultimo ? (ocupado ? 'A abrir…' : temExtra ? 'Ir para o Stripe' : 'Juntar e continuar') : 'Continuar'} <ArrowRight size={17} />
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="po-ass-corpo">
-        <div key={i} className={`po-ass-passo ${para}`}>
-          {i === 0 && (
-            <div className="po-ass-duas">
-              <div>
-                <h2>Recebe ao marcar, de forma rápida e segura</h2>
-                <p className="po-ass-lead">Três perguntas e ligamos ao Stripe.</p>
-              </div>
-              <div className="po-ass-lista">
-                <div><span className="po-ass-ico"><CreditCard size={22} /></span><div><h3>O cliente paga ao marcar</h3><p>Metade ou o serviço todo, só nos serviços que escolheres. Acabam as faltas.</p></div></div>
-                <div><span className="po-ass-ico"><Landmark size={22} /></span><div><h3>O dinheiro é teu</h3><p>Vai para a tua conta Stripe e daí para o teu banco. A Convecta não fica com nada.</p></div></div>
-                <div><span className="po-ass-ico"><Percent size={22} /></span><div><h3>Pagas só quando recebes</h3><p>1,5 % + 0,25 € por pagamento, ao Stripe. Num corte de 15 € recebes 14,52 €.</p></div></div>
+      <div className="pa-corpo">
+        <div key={i} className={`pa-passo ${para}`}>
+          {passo === 'intro' && (
+            <div className="pa-duas">
+              <h2 className="pa-h">Recebe ao marcar, de forma rápida e segura com Stripe</h2>
+              <div className="pa-lista">
+                <div><div><h3>O cliente paga ao marcar</h3><p>Metade ou o serviço todo, só nos serviços que escolheres. Sem pagamento, não há marcação: acabam as faltas.</p></div><span className="pa-ico"><CreditCard size={24} /></span></div>
+                <div><div><h3>Cartão, Apple Pay, Google Pay e MB WAY</h3><p>O cliente paga no telemóvel em segundos, numa página segura do Stripe.</p></div><span className="pa-ico"><Smartphone size={24} /></span></div>
+                <div><div><h3>O dinheiro é teu</h3><p>Vai para a tua conta Stripe e daí para o teu banco, todos os dias. A Convecta não fica com nada.</p></div><span className="pa-ico"><Landmark size={24} /></span></div>
               </div>
             </div>
           )}
 
-          {i === 1 && (
-            <div className="po-ass-meio">
-              <span className="po-ass-num">Pergunta 1 de 3</span>
-              <h2>Quanto paga o cliente ao marcar?</h2>
-              <div className="po-escolhas po-ass-escolhas">
-                {escolha(modo === 'metade', 'Metade', ex ? `${ex.name} ${formatPrice(ex.price)}: paga ${formatPrice(metade)} ao marcar e o resto na loja.` : 'Metade ao marcar, o resto na loja.', () => escolherE(setModo, 'metade'))}
-                {escolha(modo === 'total', 'Tudo', ex ? `${ex.name} ${formatPrice(ex.price)}: paga ${formatPrice(ex.price)} ao marcar. Na loja não paga nada.` : 'O serviço todo ao marcar. Na loja não paga nada.', () => escolherE(setModo, 'total'))}
+          {passo === 'taxas' && (
+            <div className="pa-meio">
+              <h2 className="pa-h">Taxas simples</h2>
+              <p className="pa-sub">Sem mensalidade no Stripe: só pagas quando recebes.</p>
+              <div className="pa-tabela">
+                <div><span><b>Depósitos para o teu banco</b>Todos os dias, sozinhos</span><em className="gratis">Grátis</em></div>
+                <div><span><b>Cartões europeus, Apple Pay, Google Pay, MB WAY</b>Por pagamento</span><em>1,5 % + 0,25 €</em></div>
+                <div><span><b>Cartões do Reino Unido</b>Por pagamento</span><em>2,5 % + 0,25 €</em></div>
+                <div><span><b>Cartões de fora da Europa</b>Por pagamento</span><em>3,15 % + 0,25 €</em></div>
+                <div><span><b>Convecta</b>Não ficamos com nada</span><em className="gratis">0 %</em></div>
+                {!temExtra && <div><span><b>Na tua subscrição</b>Incluído no Profissional e Business</span><em>{precoExtra}</em></div>}
+              </div>
+              <p className="pa-nota">Num corte de 15 € recebes 14,52 €. Preços do Stripe para Portugal.</p>
+            </div>
+          )}
+
+          {passo === 'quanto' && (
+            <div className="pa-meio">
+              <h2 className="pa-h">Quanto paga o cliente ao marcar?</h2>
+              <p className="pa-sub">Mudas quando quiseres.</p>
+              <div className="pa-cartoes">
+                {escolha(modo === 'metade', 'Metade', ex ? `${ex.name} ${formatPrice(ex.price)}: paga ${formatPrice(metade)} ao marcar e o resto na loja.` : 'Metade ao marcar, o resto na loja.', () => escolherE(setModo, 'metade'), Percent)}
+                {escolha(modo === 'total', 'Tudo', ex ? `${ex.name} ${formatPrice(ex.price)}: paga ${formatPrice(ex.price)} ao marcar. Na loja não paga nada.` : 'O serviço todo ao marcar. Na loja não paga nada.', () => escolherE(setModo, 'total'), CreditCard)}
               </div>
             </div>
           )}
 
-          {i === 2 && (
-            <div className="po-ass-meio">
-              <span className="po-ass-num">Pergunta 2 de 3</span>
-              <h2>O cliente é obrigado a pagar?</h2>
-              <div className="po-escolhas po-ass-escolhas">
-                {escolha(obrigatorio === true, 'Sim, é obrigatório', 'Sem pagar, não fica marcado e a hora continua livre para outro. É o que acaba com as faltas.', () => escolherE(setObrigatorio, true), 'Recomendado')}
-                {escolha(obrigatorio === false, 'Não, ele escolhe', 'Aparece «Pagar já» ou «Pagar na loja». A marcação fica sempre, pague ou não.', () => escolherE(setObrigatorio, false))}
+          {passo === 'obrigatorio' && (
+            <div className="pa-meio">
+              <h2 className="pa-h">O cliente é obrigado a pagar?</h2>
+              <p className="pa-sub">É isto que te protege das faltas.</p>
+              <div className="pa-cartoes">
+                {escolha(obrigatorio === true, 'Sim, é obrigatório', 'Sem pagar, não fica marcado e a hora continua livre para outro.', () => escolherE(setObrigatorio, true), ShieldCheck, 'Recomendado')}
+                {escolha(obrigatorio === false, 'Não, ele escolhe', 'Aparece «Pagar já» ou «Pagar na loja». A marcação fica sempre.', () => escolherE(setObrigatorio, false), Store)}
               </div>
             </div>
           )}
 
-          {i === 3 && (
-            <div className="po-ass-meio">
-              <span className="po-ass-num">Pergunta 3 de 3</span>
-              <h2>Em que serviços?</h2>
-              <div className="po-escolhas po-ass-escolhas">
-                {escolha(quais === 'todos', 'Todos os serviços', `Os ${servicos.length} serviços com preço.`, () => escolherE(setQuais, 'todos'))}
-                {limiares.length > 0 && escolha(quais === 'caros', 'Só os mais caros', 'Os serviços mais baratos continuam a pagar na loja.', () => setQuais('caros'))}
+          {passo === 'servicos' && (
+            <div className="pa-meio">
+              <h2 className="pa-h">Em que serviços?</h2>
+              <p className="pa-sub">Os outros continuam a pagar na loja.</p>
+              <div className="pa-cartoes">
+                {escolha(quais === 'todos', 'Todos os serviços', `Os ${servicos.length} serviços com preço.`, () => escolherE(setQuais, 'todos'), Check)}
+                {limiares.length > 0 && escolha(quais === 'caros', 'Só os mais caros', 'Escolhes a partir de que preço.', () => setQuais('caros'), Gem)}
                 {quais === 'caros' && (
-                  <div className="po-ass-extra">
-                    <div className="po-ass-chips">
-                      {limiares.map(t => (
-                        <button key={t} type="button" className={`po-chip${limiar === t ? ' on' : ''}`} onClick={() => setLimiar(t)}>A partir de {t} €</button>
-                      ))}
+                  <div className="pa-extra">
+                    <div className="pa-chips">
+                      {limiares.map(t => <button key={t} type="button" className={`pa-chip${limiar === t ? ' on' : ''}`} onClick={() => setLimiar(t)}>A partir de {t} €</button>)}
                     </div>
-                    <div className="po-ass-conta">{caros.length} {caros.length === 1 ? 'serviço' : 'serviços'}: {servicos.filter(s => caros.includes(s.id)).map(s => s.name).join(', ')}</div>
+                    <div className="pa-conta">{caros.length} {caros.length === 1 ? 'serviço' : 'serviços'}: {servicos.filter(s => caros.includes(s.id)).map(s => s.name).join(', ')}</div>
                   </div>
                 )}
-                {escolha(quais === 'escolho', 'Escolho eu', 'Marcas um a um.', () => setQuais('escolho'))}
+                {escolha(quais === 'escolho', 'Escolho eu', 'Marcas um a um.', () => setQuais('escolho'), ListChecks)}
                 {quais === 'escolho' && (
-                  <div className="po-ass-extra po-ass-servicos">
+                  <div className="pa-extra pa-servicos">
                     {servicos.map(s => (
-                      <label key={s.id} className="po-ass-serv">
+                      <label key={s.id} className="pa-serv">
                         <input type="checkbox" checked={escolhidos.includes(s.id)} onChange={() => alternar(s.id)} />
-                        <span className="po-ass-serv-nome">{s.name}</span>
-                        <span className="po-ass-serv-preco">{formatPrice(s.price)}</span>
+                        <span className="pa-serv-nome">{s.name}</span>
+                        <span className="pa-serv-preco">{formatPrice(s.price)}</span>
                       </label>
                     ))}
                   </div>
@@ -532,25 +556,37 @@ function Assistente({ fechar, temExtra, juntar, aJuntar, irStripe, aAbrir, preco
             </div>
           )}
 
-          {i === 4 && (
-            <div className="po-ass-meio">
-              <h2>Está tudo. Falta o Stripe.</h2>
-              <div className="po-ass-tabela po-ass-resumo">
-                <button type="button" onClick={() => ir(1)}><span><b>Quanto paga ao marcar</b></span><em>{modo === 'total' ? 'Tudo' : 'Metade'}</em><ChevronRight size={18} /></button>
-                <button type="button" onClick={() => ir(2)}><span><b>Pagamento</b></span><em>{obrigatorio ? 'Obrigatório' : 'Opcional'}</em><ChevronRight size={18} /></button>
-                <button type="button" onClick={() => ir(3)}><span><b>Em que serviços</b></span><em>{nomeQuais}</em><ChevronRight size={18} /></button>
+          {passo === 'tipo' && (
+            <div className="pa-meio">
+              <h2 className="pa-h">Como trabalhas?</h2>
+              <p className="pa-sub">Tem de ser igual aos teus dados nas Finanças e à conta do banco onde vais receber.</p>
+              <div className="pa-cartoes">
+                {escolha(tipo === 'individual', 'Empresário em nome individual', 'Trabalhas por conta própria, com atividade aberta nas Finanças.', () => escolherE(setTipo, 'individual'), UserRound)}
+                {escolha(tipo === 'company', 'Empresa', 'Tens uma sociedade (Lda. ou Unipessoal) com NIPC.', () => escolherE(setTipo, 'company'), Building2)}
               </div>
-              <div className="po-primeiro po-primeiro-ass"><Clock size={15} /><span>O primeiro depósito demora 7 dias. Depois é todos os dias.</span></div>
-              <h3 className="po-ass-h3">No Stripe vais precisar de</h3>
-              <div className="po-ass-tabela">
-                <div><span className="po-ass-com-ico"><Clock size={20} /><span><b>5 minutos</b>Uma vez, e fica feito</span></span></div>
-                <div><span className="po-ass-com-ico"><IdCard size={20} /><span><b>Cartão de cidadão e NIF</b>O Stripe pode pedir uma foto do cartão</span></span></div>
-                <div><span className="po-ass-com-ico"><Landmark size={20} /><span><b>O IBAN</b>Da conta onde queres receber</span></span></div>
+            </div>
+          )}
+
+          {passo === 'pronto' && (
+            <div className="pa-duas pa-duas-pronto">
+              <div>
+                <span className="pa-escudo"><ShieldCheck size={64} /></span>
+                <h2 className="pa-h">Falta o Stripe confirmar quem és</h2>
+                <p className="pa-sub">Para o dinheiro ir em segurança para a tua conta, o Stripe verifica a tua identidade e o teu banco. Estes dados não são partilhados com os teus clientes.</p>
               </div>
-              <p className="po-ass-nota">
-                No Stripe: «Empresário em nome individual» (ou «Sociedade» se tens empresa) e, no site, o endereço da tua app de marcações. No fim volta sozinho para aqui.
-                {!temExtra && <> Na tua subscrição: {precoExtra} (incluído no Profissional e Business).</>}
-              </p>
+              <div>
+                <div className="pa-tabela pa-resumo">
+                  <button type="button" onClick={() => irPara('quanto')}><span><b>Quanto paga ao marcar</b></span><em>{modo === 'total' ? 'Tudo' : 'Metade'}</em><ChevronRight size={18} /></button>
+                  <button type="button" onClick={() => irPara('obrigatorio')}><span><b>Pagamento</b></span><em>{obrigatorio ? 'Obrigatório' : 'Opcional'}</em><ChevronRight size={18} /></button>
+                  <button type="button" onClick={() => irPara('servicos')}><span><b>Em que serviços</b></span><em>{nomeQuais}</em><ChevronRight size={18} /></button>
+                </div>
+                <h3 className="pa-h3">Tem à mão</h3>
+                <div className="pa-tabela">
+                  <div><span className="pa-com-ico"><IdCard size={20} /><span><b>Cartão de cidadão e NIF</b>O Stripe pode pedir uma foto do cartão</span></span></div>
+                  <div><span className="pa-com-ico"><Landmark size={20} /><span><b>O IBAN</b>Da conta onde queres receber</span></span></div>
+                  <div><span className="pa-com-ico"><Clock size={20} /><span><b>5 minutos</b>O primeiro depósito demora 7 dias. Depois é todos os dias.</span></span></div>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -742,6 +778,87 @@ const CSS = `
   .po-capa-cheia .po-capa-texto { width: auto; padding: 120px 20px 28px; }
   .po-capa-cheia .po-h { font-size: 30px; }
   .po-capa-cheia .po-checks li { font-size: 15px; }
+}
+
+/* Formulário escuro, à Fresha (18/10) — preto quente e dourado da Convecta */
+.pa { position: fixed; inset: 0; z-index: 1000; background: #15120E; color: #f3eee3; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; animation: po-capa-entra 220ms ease backwards; }
+.pa-barra { position: sticky; top: 0; z-index: 3; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; padding: 10px 24px 0; background: #15120E; }
+.pa-barra span { height: 4px; border-radius: 4px; background: rgba(255,255,255,.12); transition: background .3s; }
+.pa-barra span.on { background: #C9A227; }
+.pa-topo { position: sticky; top: 14px; z-index: 2; display: flex; justify-content: space-between; align-items: center; padding: 14px 24px; background: #15120E; }
+.pa-botoes { display: flex; gap: 10px; }
+.pa-redondo { width: 46px; height: 46px; border-radius: 999px; border: 0; background: transparent; color: #f3eee3; display: grid; place-items: center; cursor: pointer; }
+.pa-redondo:hover { background: rgba(255,255,255,.08); }
+.pa-fechar, .pa-seguinte { min-height: 46px; padding: 0 22px; border-radius: 999px; font: inherit; font-weight: 700; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap; }
+.pa-fechar { background: rgba(255,255,255,.04); color: #f3eee3; border: 1px solid rgba(255,255,255,.18); }
+.pa-seguinte { background: #C9A227; color: #15120E; border: 0; }
+.pa-seguinte:disabled { opacity: .45; cursor: default; }
+.pa-corpo { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px 24px 56px; }
+.pa-passo { width: 100%; display: flex; justify-content: center; animation: po-passo-frente 260ms cubic-bezier(0.22,1,0.36,1) backwards; }
+.pa-passo.tras { animation-name: po-passo-tras; }
+.pa-h { font-family: var(--font-head); font-weight: 700; font-size: clamp(30px, 3.8vw, 50px); line-height: 1.08; margin: 0; text-wrap: balance; color: #fff; }
+.pa-meio .pa-h { font-size: clamp(28px, 3vw, 40px); }
+.pa-sub { margin: 12px 0 0; font-size: 16px; line-height: 1.55; color: #b8b0a0; max-width: 620px; }
+.pa-duas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 64px; align-items: center; max-width: 1180px; width: 100%; }
+.pa-lista > div { display: flex; justify-content: space-between; gap: 24px; align-items: center; padding: 24px 0; }
+.pa-lista > div + div { border-top: 1px solid rgba(255,255,255,.1); }
+.pa-lista h3 { margin: 0 0 8px; font-size: 21px; color: #fff; }
+.pa-lista p { margin: 0; color: #b8b0a0; line-height: 1.55; font-size: 15.5px; }
+.pa-ico { width: 60px; height: 60px; border-radius: 18px; flex-shrink: 0; display: grid; place-items: center; color: #15120E; background: linear-gradient(140deg, #f1d36b, #C9A227 55%, #8a6d0f); box-shadow: 0 10px 30px rgba(201,162,39,.25); }
+.pa-ico-p { width: 44px; height: 44px; border-radius: 13px; box-shadow: none; }
+.pa-meio { width: 100%; max-width: 700px; }
+.pa-cartoes { display: grid; gap: 12px; margin-top: 26px; }
+.pa-cartao { display: flex; justify-content: space-between; align-items: center; gap: 18px; width: 100%; text-align: left; padding: 20px 22px; border-radius: 16px; border: 1.5px solid rgba(255,255,255,.1); background: rgba(255,255,255,.035); color: #f3eee3; font: inherit; cursor: pointer; transition: border-color .15s, background .15s, transform .12s; }
+.pa-cartao:hover { border-color: rgba(201,162,39,.55); background: rgba(255,255,255,.055); }
+.pa-cartao:active { transform: scale(.99); }
+.pa-cartao.on { border-color: #C9A227; background: rgba(201,162,39,.08); }
+.pa-cartao-txt { display: grid; gap: 4px; min-width: 0; }
+.pa-cartao b { font-size: 16.5px; color: #fff; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pa-cartao-txt > span { font-size: 14.5px; color: #b8b0a0; line-height: 1.45; }
+.pa-selo { font-style: normal; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: #C9A227; color: #15120E; }
+.pa-extra { margin: -2px 0 4px; animation: po-passo-frente 220ms ease backwards; }
+.pa-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+.pa-chip { flex-shrink: 0; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.18); background: transparent; color: #f3eee3; font: inherit; font-weight: 700; font-size: 14px; white-space: nowrap; cursor: pointer; }
+.pa-chip.on { background: #C9A227; color: #15120E; border-color: #C9A227; }
+.pa-conta { margin-top: 10px; font-size: 14px; color: #b8b0a0; line-height: 1.45; }
+.pa-servicos { border: 1px solid rgba(255,255,255,.1); border-radius: 14px; background: rgba(255,255,255,.03); max-height: 300px; overflow-y: auto; }
+.pa-serv { display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer; }
+.pa-serv + .pa-serv { border-top: 1px solid rgba(255,255,255,.08); }
+.pa-serv input { width: 18px; height: 18px; accent-color: #C9A227; flex-shrink: 0; }
+.pa-serv-nome { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.pa-serv-preco { color: #b8b0a0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pa-tabela { margin-top: 24px; border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 4px 22px; background: rgba(255,255,255,.035); }
+.pa-tabela > div, .pa-tabela > button { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 0; width: 100%; }
+.pa-tabela > * + * { border-top: 1px solid rgba(255,255,255,.08) !important; }
+.pa-tabela span { display: grid; gap: 3px; font-size: 14px; color: #b8b0a0; min-width: 0; }
+.pa-tabela b { font-size: 15.5px; color: #fff; }
+.pa-tabela em { font-style: normal; font-weight: 700; white-space: nowrap; color: #C9A227; }
+.pa-tabela em.gratis { color: #4ade80; }
+.pa-resumo > button { background: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.pa-resumo > button span { flex: 1; }
+.pa-resumo > button em { color: #fff; }
+.pa-resumo > button svg { color: #8c8577; flex-shrink: 0; }
+.pa-com-ico { display: flex !important; gap: 14px; align-items: center; }
+.pa-com-ico > svg { color: #C9A227; flex-shrink: 0; }
+.pa-h3 { margin: 26px 0 0; font-size: 17px; color: #fff; }
+.pa-h3 + .pa-tabela { margin-top: 12px; }
+.pa-nota { margin: 16px 0 0; font-size: 14.5px; color: #b8b0a0; }
+.pa-escudo { width: 116px; height: 116px; border-radius: 32px; display: grid; place-items: center; margin-bottom: 26px; color: #15120E; background: linear-gradient(140deg, #f1d36b, #C9A227 55%, #8a6d0f); box-shadow: 0 18px 50px rgba(201,162,39,.3); }
+.pa-duas-pronto { align-items: start; }
+@media (prefers-reduced-motion: reduce) { .pa, .pa-passo { animation: none; } }
+@media (max-width: 767px) {
+  .pa-barra { padding: 8px 14px 0; gap: 6px; }
+  .pa-topo { padding: 10px 14px; top: 12px; }
+  .pa-fechar { padding: 0 16px; }
+  .pa-seguinte { padding: 0 16px; }
+  .pa-corpo { align-items: flex-start; padding: 8px 18px 40px; }
+  .pa-duas { grid-template-columns: 1fr; gap: 20px; }
+  .pa-lista > div { padding: 18px 0; }
+  .pa-ico { width: 50px; height: 50px; border-radius: 15px; }
+  .pa-cartao { padding: 16px; }
+  .pa-tabela { padding: 2px 16px; }
+  .pa-escudo { width: 84px; height: 84px; border-radius: 24px; margin-bottom: 18px; }
+  .pa-escudo svg { width: 46px; height: 46px; }
 }
 
 /* Painel v2 */
