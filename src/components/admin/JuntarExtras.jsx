@@ -83,12 +83,12 @@ export default function JuntarExtras({ appointment, toast }) {
     <>
       <div className="ag-detail-row">
         <span className="l">Extras</span>
-        <span className="v" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        <span className="v" style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end' }}>
           {escolhidos.length
             ? <span>{escolhidos.map(x => `${x.qtd > 1 ? x.qtd + '× ' : ''}${x.nome}`).join(' · ')} <span className="text-sec">(+{formatPrice(appointment.precoExtras || 0)})</span></span>
             : <span className="text-sec">nenhum</span>}
           {!fechada && !aberto && (servicos.length > 0 || produtos.length > 0) && (
-            <Button size="sm" variant="secondary" onClick={() => setAberto(true)}><Plus size={13} /> {escolhidos.length ? 'Mudar' : 'Juntar'}</Button>
+            <button type="button" className="ag-detail-link" onClick={() => setAberto(true)}><Plus size={14} /> {escolhidos.length ? 'Mudar' : 'Juntar'}</button>
           )}
         </span>
       </div>

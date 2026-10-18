@@ -626,13 +626,13 @@ export default function Agenda() {
                 {selAppt.usaRecompensa && (
                   <div className="ag-detail-row">
                     <span className="l">Pagamento</span>
-                    <span className="v"><Badge variant="gold">🎁 {nicho().premio} do cartão</Badge></span>
+                    <span className="v v-ouro">{nicho().premio} do cartão</span>
                   </div>
                 )}
                 {selAppt.pagoOnline && (
                   <div className="ag-detail-row">
                     <span className="l">Pago online</span>
-                    <span className="v"><Badge variant="success">Pago · {formatPrice(selAppt.pagoOnline.valor)}</Badge></span>
+                    <span className="v v-ok">{formatPrice(selAppt.pagoOnline.valor)}</span>
                   </div>
                 )}
                 {(() => {
@@ -659,14 +659,14 @@ export default function Agenda() {
                 {selAppt.usaPack && (
                   <div className="ag-detail-row">
                     <span className="l">Pagamento</span>
-                    <span className="v"><Badge variant="gold">Pack mensal — já pago, não cobrar</Badge></span>
+                    <span className="v v-ouro">Pack mensal · já pago</span>
                   </div>
                 )}
                 {!podeMexer(selAppt) && <div className="text-sec text-sm mt-8">Marcação de {nicho().id === 'barbearia' ? 'outro barbeiro' : 'outro profissional'} — só o próprio ou o dono a podem mudar.</div>}
                 {podeMexer(selAppt) && <div className="ag-detail-actions">
                   {selAppt.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(selAppt.id)}>Confirmar</Button>}
-                  {selAppt.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(selAppt.id)}>Confirmar presença</Button>}
-                  {selAppt.status !== 'cancelled' && selAppt.status !== 'completed' && !selAppt.blocked && <Button size="sm" variant="secondary" onClick={() => pedirReagendar(selAppt)}>Re-agendar</Button>}
+                  {selAppt.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(selAppt.id)}>Cobrar</Button>}
+                  {selAppt.status !== 'cancelled' && selAppt.status !== 'completed' && !selAppt.blocked && <Button size="sm" variant="secondary" onClick={() => pedirReagendar(selAppt)}>Reagendar</Button>}
                   {selAppt.status !== 'cancelled' && selAppt.status !== 'completed' && <Button size="sm" variant="danger" onClick={() => askCancel(selAppt)}>Cancelar</Button>}
                 </div>}
               </>

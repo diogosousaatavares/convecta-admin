@@ -3089,3 +3089,18 @@ body { font-variant-numeric: lining-nums; }
 .st-clinica .st-foto { background: linear-gradient(135deg, #2F6F8F, #7FB3CC); }
 .st-check { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: #fff; color: #111; display: grid; place-items: center; }
 @media (max-width: 767px) { .st-tiles { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); } }
+
+/* Detalhe da marcação, linha a linha (18/10/2026): rótulo à esquerda, valor à
+   direita, numa linha só. Nada de pastilhas cinzentas a partir o rótulo
+   («Pagament/o») nem botões com contorno no meio das linhas. */
+.ag-detail-row { align-items: center; gap: 14px; min-height: 30px; }
+.ag-detail-row .l { white-space: nowrap; flex-shrink: 0; }
+.ag-detail-row .v { min-width: 0; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ag-detail-row .v-ouro { color: var(--gold-tinta); }
+.ag-detail-row .v-ok { color: var(--success); }
+.ag-detail-link {
+  display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+  background: none; border: 0; padding: 4px 0; cursor: pointer; font: inherit;
+  font-weight: 700; color: var(--gold-tinta);
+}
+.ag-detail-actions .btn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
