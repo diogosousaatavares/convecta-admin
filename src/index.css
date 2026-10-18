@@ -3104,3 +3104,19 @@ body { font-variant-numeric: lining-nums; }
   font-weight: 700; color: var(--gold-tinta);
 }
 .ag-detail-actions .btn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* O nome do ícone ao passar o rato no computador (18/10/2026, à Fresha). */
+.trilho-dica {
+  position: fixed; left: 80px; transform: translateY(-50%); z-index: 200; pointer-events: none;
+  white-space: nowrap; padding: 8px 14px; border-radius: 10px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  font-size: 15px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.14);
+  animation: trilho-dica-entra 90ms ease-out;
+}
+.trilho-dica::before {
+  content: ''; position: absolute; left: -6px; top: 50%; width: 10px; height: 10px;
+  background: var(--surface); border-left: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  transform: translateY(-50%) rotate(45deg);
+}
+@keyframes trilho-dica-entra { from { opacity: 0; transform: translate(-4px, -50%); } to { opacity: 1; transform: translate(0, -50%); } }
+@media (prefers-reduced-motion: reduce) { .trilho-dica { animation: none; } }

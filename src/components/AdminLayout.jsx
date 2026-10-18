@@ -321,6 +321,13 @@ function Trilho({ grupos, isActive, onApoio, onSair }) {
   const location = useLocation();
   const [aberto, setAberto] = useState(null);   // id da secção com a lista aberta
   const caixa = useRef(null);
+  /* O nome ao passar o rato (18/10/2026, como na Fresha). Antes estava
+     dentro do botão, mas a coluna dos ícones rola (overflow) e cortava-o:
+     nunca se via. Agora desenha-se por cima de tudo, à altura do ícone. */
+  const [dica, setDica] = useState(null);       // { texto, y }
+  const mostrar = (e, texto) => { const r = e.currentTarget.getBoundingClientRect(); setDica({ texto, y: r.top + r.height / 2 }); };
+  const esconder = () => setDica(null);
+  const comDica = texto => ({ onMouseEnter: e => mostrar(e, texto), onMouseLeave: esconder, onFocus: e => mostrar(e, texto), onBlur: esconder });
   useEffect(() => { setAberto(null); }, [location.pathname]);
   useEffect(() => {
     if (!aberto) return;
@@ -332,7 +339,7 @@ function Trilho({ grupos, isActive, onApoio, onSair }) {
   const activoNoGrupo = x => x.type === 'group' ? x.items.some(isActive) || location.pathname === caminhoDaSeccao(x) : isActive(x);
   return (
     <aside className="trilho" ref={caixa}>
-      <Link to="/admin" className="trilho-marca" aria-label="Início">
+      <Link to="/admin" className="trilho-marca" aria-label="Início" {...comDica('Início')}>
         <img src="/admin-icon-192.png" alt="" />
       </Link>
       <nav className="trilho-nav">
@@ -341,20 +348,21 @@ function Trilho({ grupos, isActive, onApoio, onSair }) {
           const on = activoNoGrupo(x);
           const ir = () => {
             if (x.type !== 'group') { setAberto(null); navigate(x.to); return; }
+            esconder();
             setAberto(a => (a === x.id ? null : x.id));
           };
           return (
-            <button key={x.id || x.to} type="button" onClick={ir} className={`trilho-btn${on ? ' on' : ''}${aberto === x.id ? ' aberto' : ''}`} aria-label={x.label} aria-expanded={x.type === 'group' ? aberto === x.id : undefined}>
+            <button key={x.id || x.to} type="button" onClick={ir} className={`trilho-btn${on ? ' on' : ''}${aberto === x.id ? ' aberto' : ''}`} aria-label={x.label} aria-expanded={x.type === 'group' ? aberto === x.id : undefined} {...comDica(x.label)}>
               <Ic size={22} strokeWidth={1.8} />
-              <span className="trilho-rot">{x.label}</span>
             </button>
           );
         })}
       </nav>
       <div className="trilho-fundo">
-        <button type="button" className="trilho-btn" onClick={onApoio} aria-label="Apoio ao cliente"><HelpCircle size={22} strokeWidth={1.8} /><span className="trilho-rot">Apoio</span></button>
-        <button type="button" className="trilho-btn" onClick={onSair} aria-label="Terminar sessão"><LogOut size={22} strokeWidth={1.8} /><span className="trilho-rot">Sair</span></button>
+        <button type="button" className="trilho-btn" onClick={onApoio} aria-label="Apoio ao cliente" {...comDica('Apoio ao cliente')}><HelpCircle size={22} strokeWidth={1.8} /></button>
+        <button type="button" className="trilho-btn" onClick={onSair} aria-label="Terminar sessão" {...comDica('Terminar sessão')}><LogOut size={22} strokeWidth={1.8} /></button>
       </div>
+      {dica && !g && <div className="trilho-dica" style={{ top: dica.y }} role="tooltip">{dica.texto}</div>}
       {g && (
         <div className="trilho-lista" role="menu" aria-label={g.label}>
           <div className="trilho-lista-h">{g.label}</div>
