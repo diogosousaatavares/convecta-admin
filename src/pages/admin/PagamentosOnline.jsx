@@ -165,10 +165,12 @@ export default function PagamentosOnline() {
             <div className="po-selo"><span><CreditCard size={16} /></span>Pagamentos online</div>
             <button type="button" className="po-capa-fechar" onClick={sair} aria-label="Fechar"><X size={26} /></button>
           </div>
-          <picture>
-            <source media="(max-width: 767px)" srcSet="/pagamentos/pagamentos-online-capa-v3-telemovel.jpg" />
-            <img src="/pagamentos/pagamentos-online-capa-v3-1200.jpg" srcSet="/pagamentos/pagamentos-online-capa-v3-1200.jpg 1200w, /pagamentos/pagamentos-online-capa-v3.jpg 2400w" sizes="(max-width: 1100px) 100vw, 1100px" alt="" />
-          </picture>
+          {/* Fundo e telemóveis separados (18/10): os telemóveis aparecem
+              sempre inteiros, seja qual for o tamanho do ecrã. */}
+          <div className="po-capa-fundo" aria-hidden="true" />
+          <img className="po-capa-fones" src="/pagamentos/pagamentos-online-telemoveis-v4-900.png"
+            srcSet="/pagamentos/pagamentos-online-telemoveis-v4-900.png 778w, /pagamentos/pagamentos-online-telemoveis-v4.png 1557w"
+            sizes="(max-width: 767px) 92vw, 50vw" alt="" />
           <div className="po-capa-texto">
                         <h2 className="po-h">O cliente paga ao marcar. <em>Acabam as faltas.</em></h2>
             <ul className="po-checks">
@@ -581,10 +583,10 @@ function Assistente({ fechar, temExtra, juntar, aJuntar, irStripe, aAbrir, preco
                   <button type="button" onClick={() => irPara('servicos')}><span><b>Em que serviços</b></span><em>{nomeQuais}</em><ChevronRight size={18} /></button>
                 </div>
                 <h3 className="pa-h3">Tem à mão</h3>
-                <div className="pa-tabela">
-                  <div><span className="pa-com-ico"><IdCard size={20} /><span><b>Cartão de cidadão e NIF</b>O Stripe pode pedir uma foto do cartão</span></span></div>
-                  <div><span className="pa-com-ico"><Landmark size={20} /><span><b>O IBAN</b>Da conta onde queres receber</span></span></div>
-                  <div><span className="pa-com-ico"><Clock size={20} /><span><b>5 minutos</b>O primeiro depósito demora 7 dias. Depois é todos os dias.</span></span></div>
+                <div className="pa-precisa">
+                  <div><span className="pa-ico pa-ico-p"><IdCard size={20} /></span><span><b>Cartão de cidadão e NIF</b>O Stripe pode pedir uma foto do cartão</span></div>
+                  <div><span className="pa-ico pa-ico-p"><Landmark size={20} /></span><span><b>O IBAN</b>Da conta onde queres receber</span></div>
+                  <div><span className="pa-ico pa-ico-p"><Clock size={20} /></span><span><b>5 minutos</b>O 1.º depósito demora 7 dias, depois é todos os dias</span></div>
                 </div>
               </div>
             </div>
@@ -780,6 +782,18 @@ const CSS = `
   .po-capa-cheia .po-checks li { font-size: 15px; }
 }
 
+/* Fundo + telemóveis inteiros (v4) */
+.po-capa-fundo { position: absolute; inset: 0; z-index: 0; background: #15120E url(/pagamentos/pagamentos-online-fundo-v4.jpg) center / cover no-repeat; }
+.po-capa-cheia .po-capa-fones { position: absolute; z-index: 1; right: clamp(16px, 4vw, 72px); top: 50%; transform: translateY(-50%); height: min(84vh, 900px); max-width: 50vw; width: auto; object-fit: contain; pointer-events: none; }
+.po-capa-cheia::after { z-index: 0; }
+.po-capa-cheia .po-capa-texto { z-index: 2; }
+.po-capa-cheia .po-capa-cabeca { z-index: 3; }
+@media (max-width: 767px) {
+  .po-capa-fundo { position: fixed; background-image: url(/pagamentos/pagamentos-online-fundo-v4-telemovel.jpg); }
+  .po-capa-cheia .po-capa-fones { position: relative; transform: none; top: auto; right: auto; display: block; height: auto; width: 100%; max-width: 440px; max-height: 58vh; margin: 64px auto 0; }
+  .po-capa-cheia .po-capa-texto { margin-top: -40px; padding: 60px 20px 32px; }
+}
+
 /* Formulário escuro, à Fresha (18/10) — preto quente e dourado da Convecta */
 .pa { position: fixed; inset: 0; z-index: 1000; background: #15120E; color: #f3eee3; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; animation: po-capa-entra 220ms ease backwards; }
 .pa-barra { position: sticky; top: 0; z-index: 3; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; padding: 10px 24px 0; background: #15120E; }
@@ -840,8 +854,13 @@ const CSS = `
 .pa-resumo > button svg { color: #8c8577; flex-shrink: 0; }
 .pa-com-ico { display: flex !important; gap: 14px; align-items: center; }
 .pa-com-ico > svg { color: #C9A227; flex-shrink: 0; }
-.pa-h3 { margin: 26px 0 0; font-size: 17px; color: #fff; }
-.pa-h3 + .pa-tabela { margin-top: 12px; }
+.pa-h3 { margin: 30px 0 0; font-family: inherit; font-weight: 700; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: #8c8577; }
+.pa-precisa { margin-top: 6px; }
+.pa-precisa > div { display: flex; align-items: center; gap: 16px; padding: 14px 0; }
+.pa-precisa > div + div { border-top: 1px solid rgba(255,255,255,.08); }
+.pa-precisa > div > span:last-child { display: grid; gap: 3px; min-width: 0; font-size: 14.5px; color: #b8b0a0; }
+.pa-precisa b { font-size: 16px; color: #fff; }
+.pa { min-height: 100dvh; }
 .pa-nota { margin: 16px 0 0; font-size: 14.5px; color: #b8b0a0; }
 .pa-escudo { width: 116px; height: 116px; border-radius: 32px; display: grid; place-items: center; margin-bottom: 26px; color: #15120E; background: linear-gradient(140deg, #f1d36b, #C9A227 55%, #8a6d0f); box-shadow: 0 18px 50px rgba(201,162,39,.3); }
 .pa-duas-pronto { align-items: start; }
