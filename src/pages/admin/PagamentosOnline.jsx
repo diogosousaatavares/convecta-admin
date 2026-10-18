@@ -1,35 +1,38 @@
+import React, { useEffect, useState } from 'react';
+import { Check, ExternalLink, ArrowRight, ArrowLeft, X, ChevronRight, CreditCard, Landmark, IdCard, Clock } from 'lucide-react';
+import AdminPage from '@/components/admin/AdminPage';
 import Ajuda from '@/components/admin/Ajuda';
 import Toggle from '@/components/admin/Toggle';
-import React, { useEffect, useState } from 'react';
-import { CreditCard, Check, ExternalLink } from 'lucide-react';
-import AdminPage from '@/components/admin/AdminPage';
-import { Card, Button, Badge } from '@/components/ui';
+import { Button, Modal } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { useToast } from '@/components/ui/ToastContext';
 import { supabase } from '@/lib/supabase';
 import dataService from '@/lib/dataService';
 import { formatPrice } from '@/lib/format';
-import { Link } from 'react-router-dom';
 import { extraAtivo, extraDe, mudarExtra, sufixoPeriodo, textoJuntarExtra } from '@/lib/extras';
 import { useConfirmar } from '@/components/ui/Confirmar';
-import TutorialStripe from '@/components/admin/TutorialStripe';
 import MetodosPagamento from '@/components/MetodosPagamento';
 
 /*
- * PAGAMENTOS ONLINE (13/10/2026, decisão do Diogo).
+ * PAGAMENTOS ONLINE — à Fresha (18/10/2026, pedido do Diogo).
  *
- * O cliente paga ao marcar — nada, um sinal ou o serviço todo, à escolha do
- * dono. O dinheiro vai direto para a conta Stripe DELE (Stripe Connect): a
- * Convecta não toca no dinheiro nem fica com nada. O Stripe cobra-lhe as
- * taxas dele.
+ * Dois ecrãs, conforme o estado:
  *
- *   1. Ligar: cria a conta e abre o Stripe para ele pôr os dados e o IBAN.
- *   2. Escolher o que se paga (settings.pagamentosOnline): nada, metade ou
- *      tudo, e em que serviços (15/10/2026). servicos ausente = todos.
- *   3. Ver os últimos pagamentos.
+ *  · AINDA NÃO RECEBE: a página de apresentação (imagem à direita, o que
+ *    ganha em três linhas, o que custa, «Começar já» e «Saber mais»). Em
+ *    «Começar já» abre o assistente em ecrã inteiro, três passos —
+ *    o que é, o que custa, o que precisas — e no fim vai para o Stripe.
+ *    Sem o extra (plano Essencial), o último passo junta-o à subscrição.
  *
- * Precisa do PAGAMENTOS_ONLINE_2026-10-13.sql e das funções
- * pagamentos-ligar, pagar-marcacao e stripe-connect-eventos.
+ *  · JÁ RECEBE: o resumo do dinheiro em cima (este mês, recebes, a caminho
+ *    do banco), as escolhas por baixo — Nada / Metade / Tudo num seletor,
+ *    «Só fica marcado depois de pagar», os serviços numa linha que abre a
+ *    lista (antes eram doze linhas seguidas) —, os últimos pagamentos e a
+ *    conta Stripe. Grava sozinho, sem botão Guardar.
+ *
+ * O dinheiro vai direto para a conta Stripe do negócio (Connect); a
+ * Convecta não fica com nada. Funções: pagamentos-ligar (ligar, estado,
+ * saldo), pagar-marcacao, stripe-connect-eventos.
  */
 const invocar = async (corpo) => {
   const { data, error } = await supabase.functions.invoke('pagamentos-ligar', { body: corpo });
@@ -42,7 +45,10 @@ const invocar = async (corpo) => {
   return data;
 };
 
-const ESTADO = { pago: ['Pago', 'success'], pendente: ['Por pagar', 'warning'], expirou: ['Não pagou', 'default'], reembolsado: ['Devolvido', 'default'] };
+const ESTADO = { pago: ['Pago', 'var(--success)'], pendente: ['Por pagar', 'var(--warning, #b45309)'], expirou: ['Não pagou', 'var(--text-ter)'], reembolsado: ['Devolvido', 'var(--text-ter)'] };
+const MODOS = [['nada', 'Nada'], ['metade', 'Metade'], ['total', 'Tudo']];
+const dia = d => new Date(d + 'T12:00:00').toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
+const quando = iso => new Date(iso).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
 export default function PagamentosOnline() {
   const data = useStore();
@@ -51,27 +57,23 @@ export default function PagamentosOnline() {
   const [estado, setEstado] = useState(null);     // { ligado, ativo, dadosEntregues, falta }
   const [erro, setErro] = useState('');
   const [aAbrir, setAAbrir] = useState(false);
-  // Os serviços que se podem pagar online: ativos e com preço.
   const servicosPagaveis = (data.services || []).filter(s => s.isActive && !s.orcamento && Number(s.price) > 0);
   const modoDe = m => (m === 'sinal' ? 'metade' : m || 'nada');   // o antigo «sinal» passa a «metade»
   const [modo, setModo] = useState(modoDe(cfg.modo));
   const [escolhidos, setEscolhidos] = useState(null);             // null = todos
-  // Obrigatório (18/10/2026): sem pagar, a hora não fica — liberta-se sozinha
-  // ao fim de 30 minutos. Desligado, o cliente escolhe «Pagar já» ou «Na loja».
   const [obrigatorio, setObrigatorio] = useState(cfg.obrigatorio !== false);
-  const [aGravar, setAGravar] = useState(false);
   const [lista, setLista] = useState([]);
-  // O dinheiro (18/10/2026): o que entrou, o que o Stripe ficou, o que vai a
-  // caminho do banco e quando chega. Lido ao Stripe, na conta do negócio.
   const [saldo, setSaldo] = useState(null);
+  const [assistente, setAssistente] = useState(false);
+  const [verServicos, setVerServicos] = useState(false);
+  const [aJuntar, setAJuntar] = useState(false);
+  const [pedir, Confirmacao] = useConfirmar();
 
-  useEffect(() => { setModo(modoDe(cfg.modo)); setEscolhidos(Array.isArray(cfg.servicos) ? cfg.servicos : null); setObrigatorio(cfg.obrigatorio !== false); }, [cfg.modo, cfg.servicos, cfg.obrigatorio]);
-  const marcado = id => escolhidos == null || escolhidos.includes(id);
-  const alternar = id => {
-    const atual = escolhidos == null ? servicosPagaveis.map(s => s.id) : escolhidos;
-    const novo = atual.includes(id) ? atual.filter(x => x !== id) : [...atual, id];
-    setEscolhidos(servicosPagaveis.every(s => novo.includes(s.id)) ? null : novo);
-  };
+  useEffect(() => {
+    setModo(modoDe(cfg.modo));
+    setEscolhidos(Array.isArray(cfg.servicos) ? cfg.servicos : null);
+    setObrigatorio(cfg.obrigatorio !== false);
+  }, [cfg.modo, cfg.servicos, cfg.obrigatorio]);
 
   useEffect(() => {
     invocar({ acao: 'estado' }).then(est => {
@@ -79,218 +81,358 @@ export default function PagamentosOnline() {
       if (est?.ligado) invocar({ acao: 'saldo' }).then(setSaldo).catch(() => setSaldo(null));
     }).catch(e => { setErro(e.message); setEstado({ ligado: false, ativo: false }); });
     supabase.from('pagamentos_online').select('id, valor_cents, tipo, estado, criado_em, pago_em')
-      .order('criado_em', { ascending: false }).limit(20)
+      .order('criado_em', { ascending: false }).limit(10)
       .then(({ data: l }) => setLista(l || []));
   }, []);
+
+  const temExtra = !data.business || extraAtivo(data.business, 'pagamentos');
+  const ativo = !!estado?.ativo;
+  const marcado = id => escolhidos == null || escolhidos.includes(id);
+  const nEscolhidos = servicosPagaveis.filter(s => marcado(s.id)).length;
 
   const ligar = async () => {
     setAAbrir(true); setErro('');
     try { const r = await invocar({ acao: 'ligar' }); window.location.href = r.url; }
-    catch (e) { setErro(e.message); setAAbrir(false); }
+    catch (e) { setErro(e.message); setAAbrir(false); toast.error('Não foi possível abrir o Stripe', e.message); }
   };
 
-  const guardar = async () => {
-    if (modo !== 'nada' && escolhidos != null && escolhidos.length === 0) { toast.error('Escolhe pelo menos um serviço'); return; }
-    setAGravar(true);
+  // Grava sozinho a cada escolha (como as Notificações): sem botão Guardar.
+  const gravar = async (mudancas) => {
+    const novo = { modo, servicos: escolhidos, obrigatorio, ...mudancas };
+    if (novo.modo !== 'nada' && Array.isArray(novo.servicos) && novo.servicos.length === 0) {
+      toast.error('Escolhe pelo menos um serviço'); return;
+    }
+    if ('modo' in mudancas) setModo(novo.modo);
+    if ('servicos' in mudancas) setEscolhidos(novo.servicos);
+    if ('obrigatorio' in mudancas) setObrigatorio(novo.obrigatorio);
     try {
-      await dataService.updateBusiness({ pagamentosOnline: { modo, servicos: modo === 'nada' ? null : escolhidos, obrigatorio } });
+      await dataService.updateBusiness({ pagamentosOnline: { modo: novo.modo, servicos: novo.modo === 'nada' ? null : novo.servicos, obrigatorio: novo.obrigatorio } });
       toast.success('Guardado');
-    } catch (e) { toast.error('Não foi possível guardar', e.message); }
-    finally { setAGravar(false); }
+    } catch (e) { toast.error('Não ficou gravado', e.message); }
+  };
+  const alternar = id => {
+    const atual = escolhidos == null ? servicosPagaveis.map(s => s.id) : escolhidos;
+    const novo = atual.includes(id) ? atual.filter(x => x !== id) : [...atual, id];
+    setEscolhidos(servicosPagaveis.every(s => novo.includes(s.id)) ? null : novo);
   };
 
-  const ativo = !!estado?.ativo;
+  // Sem o extra: junta-se à subscrição (pergunta com a conta ao mês e à semana).
+  const periodo = ['anual', 'quinzenal'].includes(data.business?.billingPeriod) ? data.business.billingPeriod : 'mensal';
+  const extra = extraDe('pagamentos');
+  const juntar = () => pedir({
+    titulo: 'Juntar os pagamentos online?',
+    texto: textoJuntarExtra(extra, periodo, formatPrice),
+    botao: 'Sim, juntar',
+    perigoso: false,
+    aoConfirmar: async () => {
+      setAJuntar(true);
+      try { await mudarExtra('pagamentos', true); toast.success('Pagamentos online juntos à subscrição'); setTimeout(() => window.location.reload(), 700); }
+      catch (err) { toast.error('Não foi possível', err.message); setAJuntar(false); throw err; }
+    },
+  });
 
-  /* É um extra pago (13/10/2026): sem ele, a página mostra o convite. */
-  const [aJuntar, setAJuntar] = useState(false);
-  const [pedir, Confirmacao] = useConfirmar();
-  const [tutorial, setTutorial] = useState(false);
-  if (data.business && !extraAtivo(data.business, 'pagamentos')) {
-    const e = extraDe('pagamentos');
-    const p = ['anual', 'quinzenal'].includes(data.business.billingPeriod) ? data.business.billingPeriod : 'mensal';
-    // 16/10/2026: pergunta de certeza, com a conta ao mês e à semana, antes de cobrar.
-    const juntar = () => pedir({
-      titulo: 'Juntar os pagamentos online?',
-      texto: textoJuntarExtra(e, p, formatPrice),
-      botao: 'Sim, juntar',
-      perigoso: false,
-      aoConfirmar: async () => {
-        setAJuntar(true);
-        try { await mudarExtra('pagamentos', true); toast.success('Pagamentos online ligados'); setTimeout(() => window.location.reload(), 700); }
-        catch (err) { toast.error('Não foi possível', err.message); setAJuntar(false); throw err; }
-      },
-    });
+  /* ── AINDA NÃO RECEBE: a apresentação ─────────────────────────────── */
+  if (!ativo) {
+    const continuarNoStripe = estado?.ligado;
     return (
       <AdminPage title="Pagamentos online">
-        <Card className="card-pad" style={{ maxWidth: 640 }}>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-            <CreditCard size={24} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 2 }} />
-            <div>
-              <div className="fw-600" style={{ fontSize: 18 }}>Acaba com as faltas</div>
-              <p className="text-sec" style={{ margin: '6px 0 0', lineHeight: 1.6 }}>O cliente paga ao marcar. O dinheiro cai na tua conta.</p>
-              <MetodosPagamento altura={16} style={{ marginTop: 10 }} />
-              <p style={{ margin: '12px 0 0', fontSize: 15 }}>
-                <b>+{formatPrice(e.precos[p])}{sufixoPeriodo(p)}</b> na tua subscrição. <span className="text-sec">Incluído nos planos Profissional e Business.</span>
-              </p>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
-                <Button onClick={juntar} disabled={aJuntar}>{aJuntar ? 'A ligar…' : 'Juntar à subscrição'}</Button>
-                <Link className="btn btn-secondary" to="/admin/subscricao">Ver os planos</Link>
-              </div>
+        <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        <section className="po-hero">
+          <div className="po-hero-texto">
+            <div className="po-selo"><span><CreditCard size={16} /></span>Pagamentos online</div>
+            <h2 className="po-h">O cliente paga ao marcar. Acabam as faltas.</h2>
+            <ul className="po-checks">
+              <li><Check size={17} /> Metade ou o serviço todo, só nos serviços que escolheres</li>
+              <li><Check size={17} /> Cartão, Apple Pay, Google Pay e MB WAY</li>
+              <li><Check size={17} /> O dinheiro vai para o teu banco. A Convecta não fica com nada</li>
+            </ul>
+            <div className="po-preco">1,5 % + 0,25 € por pagamento</div>
+            {!temExtra && <div className="po-preco-sub">+{formatPrice(extra.precos[periodo])}{sufixoPeriodo(periodo)} na subscrição · incluído no Profissional e Business</div>}
+            {erro && <div className="text-sm" style={{ color: 'var(--error)', marginTop: 10 }}>{erro}</div>}
+            <div className="po-acoes">
+              <button type="button" className="po-btn" disabled={!estado || aAbrir}
+                onClick={() => (continuarNoStripe ? ligar() : setAssistente(true))}>
+                {!estado ? 'A ver…' : aAbrir ? 'A abrir o Stripe…' : continuarNoStripe ? 'Continuar no Stripe' : 'Começar já'}
+              </button>
+              <a className="po-link" href="https://convecta.pt/pagamentos-online" target="_blank" rel="noreferrer">Saber mais</a>
             </div>
+            <MetodosPagamento altura={16} style={{ marginTop: 22 }} />
           </div>
-        </Card>
+          <div className="po-hero-img"><img src="/pagamentos/pagamentos-online-capa-v1-900.jpg" alt="" /></div>
+        </section>
+
+        {assistente && (
+          <Assistente
+            fechar={() => setAssistente(false)}
+            temExtra={temExtra} juntar={juntar} aJuntar={aJuntar}
+            irStripe={ligar} aAbrir={aAbrir}
+            precoExtra={`+${formatPrice(extra.precos[periodo])}${sufixoPeriodo(periodo)}`}
+          />
+        )}
         <Confirmacao />
       </AdminPage>
     );
   }
-  /*
-   * O desenho (18/10/2026): linhas com separador, como as Definições — sem
-   * cartões brancos, sem frases por baixo dos títulos (as explicações estão
-   * no (i)), e cada linha numa só linha: o nome à esquerda, o valor ou o
-   * botão à direita.
-   */
-  const dia = d => new Date(d + 'T12:00:00').toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
-  const valor = (txt, cor) => <span className="fw-600" style={{ whiteSpace: 'nowrap', ...(cor ? { color: cor } : {}) }}>{txt}</span>;
-  const opcao = (v, titulo, ajuda) => (
-    <label key={v} className="nt-row" style={{ cursor: 'pointer' }}>
-      <span className="nt-txt"><b>{titulo} {ajuda && <Ajuda titulo={titulo} texto={<p>{ajuda}</p>} />}</b></span>
-      <input type="radio" name="modo" checked={modo === v} onChange={() => setModo(v)} style={{ width: 20, height: 20, accentColor: 'var(--gold)' }} />
-    </label>
-  );
 
+  /* ── JÁ RECEBE: o painel ──────────────────────────────────────────── */
+  const proximo = saldo?.aCaminho?.[0];
   return (
     <AdminPage title="Pagamentos online">
-      {/* ── A conta Stripe ─────────────────────────────────────────────── */}
-      <div className="nt-lista" style={{ maxWidth: 760 }}>
-        <div className="nt-row">
-          <span className="nt-txt"><b style={{ whiteSpace: 'nowrap' }}>
-            {!estado ? 'A ver…' : ativo ? 'Pagamentos ligados' : estado.ligado ? 'Falta acabar no Stripe' : 'Ligar pagamentos'}
-            {ativo && <Check size={17} style={{ color: 'var(--success)', marginLeft: 6, verticalAlign: -3 }} />}
-            {' '}<Ajuda titulo="Pagamentos online" texto={<>
-              <p>O cliente paga ao marcar, com cartão, Apple Pay, Google Pay ou MB WAY. O dinheiro cai na tua conta Stripe e passa para o teu banco. A Convecta não fica com nada.</p>
-              {estado?.ligado && !ativo && <p>Falta pores no Stripe a tua identificação e o IBAN.</p>}
-            </>} />
-          </b></span>
-          {!ativo && estado && (
-            <Button size="sm" onClick={() => (estado.ligado ? ligar() : setTutorial(true))} disabled={aAbrir}>{aAbrir ? 'A abrir…' : estado.ligado ? 'Continuar no Stripe' : 'Ligar'}</Button>
-          )}
-          {estado?.ligado && (
-            <a className="btn btn-secondary btn-sm" href="https://dashboard.stripe.com/" target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-              Abrir o Stripe <ExternalLink size={14} />
-            </a>
-          )}
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <div className="po-pagina">
+        <div className="po-estado">
+          <span className="po-estado-t"><Check size={18} /> Pagamentos ligados</span>
+          <a className="btn btn-secondary btn-sm po-nowrap" href="https://dashboard.stripe.com/" target="_blank" rel="noreferrer">Abrir o Stripe <ExternalLink size={14} /></a>
         </div>
-        {erro && <div className="nt-row"><span className="text-sm" style={{ color: 'var(--error)' }}>{erro}</span></div>}
-        <div className="nt-row">
-          <span className="nt-txt"><b>Formas de pagar</b></span>
-          <MetodosPagamento altura={14} />
+
+        {/* O dinheiro, em três números */}
+        <div className="po-numeros">
+          <div><span>Este mês</span><b>{saldo ? formatPrice(saldo.mes.bruto) : '—'}</b><small>{saldo ? `${saldo.mes.pagamentos} ${saldo.mes.pagamentos === 1 ? 'pagamento' : 'pagamentos'}` : ' '}</small></div>
+          <div><span>Recebes</span><b style={{ color: 'var(--success)' }}>{saldo ? formatPrice(saldo.mes.liquido) : '—'}</b><small>{saldo ? `Stripe: ${formatPrice(saldo.mes.taxas)}` : ' '}</small></div>
+          <div><span>A caminho do banco <Ajuda titulo="Quando chega ao banco" texto={<>
+            <p>Cada pagamento fica uns dias no Stripe e depois passa sozinho para o teu IBAN. Nas contas novas o primeiro espera <b>7 dias</b>; depois o Stripe deposita todos os dias o que já estiver disponível (chega em 1 a 2 dias úteis).</p>
+          </>} /></span><b>{proximo ? formatPrice(proximo.valor) : saldo ? formatPrice(0) : '—'}</b><small>{proximo ? `chega a ${dia(proximo.dia)}` : ' '}</small></div>
         </div>
-        <div className="nt-row">
-          <span className="nt-txt"><b>O que o Stripe cobra <Ajuda titulo="O que o Stripe cobra" texto={<>
-            <p>O Stripe fica com <b>1,5 % + 0,25 €</b> por pagamento com cartão europeu, Apple Pay, Google Pay ou MB WAY. Cartões do Reino Unido: 2,5 % + 0,25 €. Cartões de fora da Europa: 3,15 % + 0,25 €.</p>
-            <p>Exemplos: num corte de 15 € recebes 14,52 €; em 25 € recebes 24,38 €; em 50 € recebes 49,00 €.</p>
-            <p>Passar o dinheiro para o teu banco é grátis. Preços do Stripe para Portugal a 16/10/2026.</p>
-          </>} /></b></span>
-          {valor('1,5 % + 0,25 €')}
-        </div>
-        {estado?.ligado && (
-          <div className="nt-row">
-            <span className="nt-txt"><b>MB WAY <Ajuda titulo="Aceitar MB WAY" texto={<p>No teu Stripe: Definições › Métodos de pagamento › ligar o MB WAY. A partir daí o cliente também vê MB WAY ao pagar. Custa o mesmo que o cartão.</p>} /></b></span>
-            <a className="btn btn-ghost btn-sm" href="https://dashboard.stripe.com/settings/payment_methods" target="_blank" rel="noreferrer" style={{ whiteSpace: 'nowrap' }}>Ligar no Stripe</a>
+        {saldo && !saldo.automatico && (
+          <div className="po-aviso">
+            <span>Depósitos automáticos desligados <Ajuda titulo="Ligar os depósitos" texto={<p>No teu Stripe: Saldos › Depósitos automáticos › «Diariamente». Confirma também que o IBAN está lá. Sem isto, o dinheiro fica no Stripe até o mandares tu para o banco.</p>} /></span>
+            <a className="btn btn-secondary btn-sm" href="https://dashboard.stripe.com/balance/overview" target="_blank" rel="noreferrer">Ligar</a>
           </div>
         )}
-      </div>
 
-      {/* ── O que o cliente paga ───────────────────────────────────────── */}
-      <div style={{ maxWidth: 760, opacity: ativo ? 1 : 0.5, pointerEvents: ativo ? 'auto' : 'none' }}>
+        {/* As escolhas */}
         <div className="nt-titulo">O que o cliente paga ao marcar</div>
+        <div className="po-seletor" role="radiogroup" aria-label="O que o cliente paga ao marcar">
+          {MODOS.map(([v, t]) => (
+            <button key={v} type="button" role="radio" aria-checked={modo === v} className={modo === v ? 'on' : ''} onClick={() => modo !== v && gravar({ modo: v })}>{t}</button>
+          ))}
+        </div>
         <div className="nt-lista">
-          {opcao('nada', 'Nada', 'O cliente paga na loja, como hoje.')}
-          {opcao('metade', 'Metade', 'Paga metade ao marcar e o resto na loja. Acaba com as faltas.')}
-          {opcao('total', 'Tudo', 'Paga o serviço todo ao marcar.')}
           {modo !== 'nada' && (
-            <div className="nt-row">
-              <span className="nt-txt"><b>Só fica marcado depois de pagar <Ajuda titulo="Pagar para marcar" texto={<>
-                <p><b>Ligado:</b> o cliente paga ao marcar. Se sair do pagamento sem pagar, não fica marcação nenhuma e a hora continua livre.</p>
-                <p><b>Desligado:</b> o cliente escolhe «Pagar já» ou «Pagar na loja». A marcação fica sempre.</p>
-              </>} /></b></span>
-              <Toggle checked={obrigatorio} onChange={setObrigatorio} />
-            </div>
+            <>
+              <div className="nt-row">
+                <span className="nt-txt"><b>Só fica marcado depois de pagar <Ajuda titulo="Pagar para marcar" texto={<>
+                  <p><b>Ligado:</b> sem pagamento não há marcação, e a hora continua livre.</p>
+                  <p><b>Desligado:</b> o cliente escolhe «Pagar já» ou «Pagar na loja».</p>
+                </>} /></b></span>
+                <Toggle checked={obrigatorio} onChange={v => gravar({ obrigatorio: v })} />
+              </div>
+              <button type="button" className="nt-row po-linha-botao" onClick={() => setVerServicos(true)}>
+                <span className="nt-txt"><b>Serviços</b></span>
+                <span className="text-sec po-nowrap">{escolhidos == null ? `Todos (${servicosPagaveis.length})` : `${nEscolhidos} de ${servicosPagaveis.length}`}</span>
+                <ChevronRight size={18} />
+              </button>
+            </>
           )}
         </div>
 
-        {modo !== 'nada' && servicosPagaveis.length > 0 && (
+        {/* Últimos pagamentos */}
+        {lista.length > 0 && (
           <>
-            <div className="nt-titulo">Em que serviços</div>
+            <div className="nt-titulo">Últimos pagamentos</div>
             <div className="nt-lista">
-              {servicosPagaveis.map(s => (
-                <label key={s.id} className="nt-row" style={{ cursor: 'pointer' }}>
-                  <input type="checkbox" checked={marcado(s.id)} onChange={() => alternar(s.id)} style={{ width: 18, height: 18, accentColor: 'var(--gold)', flexShrink: 0 }} />
-                  <span className="nt-txt" style={{ minWidth: 0 }}><b style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</b></span>
-                  <span className="text-sec text-sm" style={{ whiteSpace: 'nowrap' }}>
-                    {marcado(s.id) ? `${formatPrice(modo === 'metade' ? Math.round(s.price * 50) / 100 : s.price)} ao marcar` : 'na loja'}
-                  </span>
-                </label>
-              ))}
+              {lista.map(p => {
+                const [l, cor] = ESTADO[p.estado] || [p.estado, 'var(--text-sec)'];
+                return (
+                  <div key={p.id} className="nt-row">
+                    <span className="nt-txt"><b className="po-nowrap">{formatPrice(p.valor_cents / 100)} <span className="text-sec" style={{ fontWeight: 400 }}>· {p.tipo === 'total' ? 'serviço' : 'metade'} · {quando(p.pago_em || p.criado_em)}</span></b></span>
+                    <span className="fw-600 text-sm po-nowrap" style={{ color: cor }}>{l}</span>
+                  </div>
+                );
+              })}
             </div>
           </>
         )}
-        <div className="botoes-iguais" style={{ marginTop: 16, maxWidth: 320 }}>
-          <Button onClick={guardar} disabled={!ativo || aGravar}>{aGravar ? 'A guardar…' : 'Guardar'}</Button>
+
+        {/* A conta */}
+        <div className="nt-titulo">A tua conta Stripe</div>
+        <div className="nt-lista">
+          <div className="nt-row"><span className="nt-txt"><b>Formas de pagar</b></span><MetodosPagamento altura={14} /></div>
+          <div className="nt-row">
+            <span className="nt-txt"><b>O que o Stripe cobra <Ajuda titulo="O que o Stripe cobra" texto={<>
+              <p><b>1,5 % + 0,25 €</b> por pagamento com cartão europeu, Apple Pay, Google Pay ou MB WAY. Cartões do Reino Unido: 2,5 % + 0,25 €. De fora da Europa: 3,15 % + 0,25 €.</p>
+              <p>Num corte de 15 € recebes 14,52 €; em 25 € recebes 24,38 €. Passar o dinheiro para o banco é grátis. A Convecta não fica com nada.</p>
+            </>} /></b></span>
+            <span className="fw-600 po-nowrap">1,5 % + 0,25 €</span>
+          </div>
+          <div className="nt-row">
+            <span className="nt-txt"><b>MB WAY <Ajuda titulo="Aceitar MB WAY" texto={<p>No teu Stripe: Definições › Métodos de pagamento › ligar o MB WAY. Custa o mesmo que o cartão.</p>} /></b></span>
+            <a className="btn btn-ghost btn-sm po-nowrap" href="https://dashboard.stripe.com/settings/payment_methods" target="_blank" rel="noreferrer">Ligar no Stripe</a>
+          </div>
         </div>
       </div>
 
-      <TutorialStripe aberto={tutorial} fechar={() => setTutorial(false)} continuar={() => { setTutorial(false); ligar(); }} aAbrir={aAbrir} />
-
-      {/* ── O teu dinheiro ─────────────────────────────────────────────── */}
-      {saldo?.ligado && (
-        <div style={{ maxWidth: 760 }}>
-          <div className="nt-titulo">O teu dinheiro <Ajuda titulo="Quando chega ao banco" texto={<>
-            <p>Cada pagamento fica uns dias no Stripe antes de passar para o teu banco. Nas contas novas o primeiro espera <b>7 dias</b>; depois o Stripe deposita todos os dias o que já estiver disponível (chega em 1 a 2 dias úteis).</p>
-            <p>«Recebes» já tem a comissão do Stripe descontada: é o que vai para o teu IBAN.</p>
-          </>} /></div>
-          <div className="nt-lista">
-            <div className="nt-row"><span className="nt-txt"><b>Este mês</b></span>{valor(`${saldo.mes.pagamentos} ${saldo.mes.pagamentos === 1 ? 'pagamento' : 'pagamentos'} · ${formatPrice(saldo.mes.bruto)}`)}</div>
-            <div className="nt-row"><span className="nt-txt"><b>Ficou para o Stripe</b></span>{valor(formatPrice(saldo.mes.taxas))}</div>
-            <div className="nt-row"><span className="nt-txt"><b>Recebes</b></span>{valor(formatPrice(saldo.mes.liquido), 'var(--success)')}</div>
-            {saldo.aCaminho.map(c => (
-              <div key={c.dia} className="nt-row"><span className="nt-txt"><b>A caminho do banco</b></span>{valor(`${formatPrice(c.valor)} · ${dia(c.dia)}`)}</div>
-            ))}
-            {saldo.disponivel > 0 && (
-              <div className="nt-row"><span className="nt-txt"><b>Pronto a ir para o banco</b></span>{valor(formatPrice(saldo.disponivel))}</div>
-            )}
-            {saldo.depositos.map((p, i) => (
-              <div key={i} className="nt-row"><span className="nt-txt"><b>{p.estado === 'paid' ? 'Depositado' : 'Depósito a caminho'}</b></span>{valor(`${formatPrice(p.valor)} · ${dia(p.chega)}`)}</div>
-            ))}
-            {!saldo.automatico && (
-              <div className="nt-row">
-                <span className="nt-txt"><b style={{ color: 'var(--warning, #b45309)', whiteSpace: 'nowrap' }}>Depósitos automáticos desligados <Ajuda titulo="Ligar os depósitos" texto={<p>No teu Stripe: Saldos › Depósitos automáticos › «Diariamente». Confirma também que o IBAN está lá. Sem isto, o dinheiro fica no Stripe até o mandares tu para o banco.</p>} /></b></span>
-                <a className="btn btn-secondary btn-sm" href="https://dashboard.stripe.com/balance/overview" target="_blank" rel="noreferrer">Ligar</a>
-              </div>
-            )}
-          </div>
+      <Modal open={verServicos} onClose={() => { setVerServicos(false); gravar({ servicos: escolhidos }); }} title="Em que serviços"
+        footer={<div className="botoes-iguais"><Button onClick={() => { setVerServicos(false); gravar({ servicos: escolhidos }); }}>Feito</Button></div>}>
+        <div className="nt-lista">
+          <label className="nt-row" style={{ cursor: 'pointer' }}>
+            <span className="nt-txt"><b>Todos os serviços</b></span>
+            <Toggle checked={escolhidos == null} onChange={v => setEscolhidos(v ? null : [])} />
+          </label>
+          {servicosPagaveis.map(s => (
+            <label key={s.id} className="nt-row" style={{ cursor: 'pointer' }}>
+              <input type="checkbox" checked={marcado(s.id)} onChange={() => alternar(s.id)} style={{ width: 18, height: 18, accentColor: 'var(--gold)', flexShrink: 0 }} />
+              <span className="nt-txt" style={{ minWidth: 0 }}><b className="po-nowrap" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</b></span>
+              <span className="text-sec text-sm po-nowrap">{marcado(s.id) ? formatPrice(modo === 'metade' ? Math.round(s.price * 50) / 100 : s.price) : 'na loja'}</span>
+            </label>
+          ))}
         </div>
-      )}
-
-      {/* ── Últimos pagamentos ─────────────────────────────────────────── */}
-      {lista.length > 0 && (
-        <div style={{ maxWidth: 760 }}>
-          <div className="nt-titulo">Últimos pagamentos</div>
-          <div className="nt-lista">
-            {lista.map(p => {
-              const [l, v] = ESTADO[p.estado] || [p.estado, 'default'];
-              const cor = v === 'success' ? 'var(--success)' : v === 'warning' ? 'var(--warning, #b45309)' : 'var(--text-sec)';
-              return (
-                <div key={p.id} className="nt-row">
-                  <span className="nt-txt" style={{ minWidth: 0 }}><b style={{ whiteSpace: 'nowrap' }}>{formatPrice(p.valor_cents / 100)} <span className="text-sec" style={{ fontWeight: 400 }}>· {p.tipo === 'total' ? 'serviço' : 'metade'} · {new Date(p.pago_em || p.criado_em).toLocaleString('pt-PT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span></b></span>
-                  <span className="fw-600 text-sm" style={{ color: cor, whiteSpace: 'nowrap' }}>{l}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      </Modal>
       <Confirmacao />
     </AdminPage>
   );
 }
+
+/* O assistente em ecrã inteiro, como o da Fresha: Fechar e Continuar em
+   cima, um passo de cada vez. */
+function Assistente({ fechar, temExtra, juntar, aJuntar, irStripe, aAbrir, precoExtra }) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const antes = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const tecla = e => { if (e.key === 'Escape') fechar(); };
+    window.addEventListener('keydown', tecla);
+    return () => { document.body.style.overflow = antes; window.removeEventListener('keydown', tecla); };
+  }, [fechar]);
+  const ultimo = i === 2;
+  const final = () => (temExtra ? irStripe() : juntar());
+  return (
+    <div className="po-ass" role="dialog" aria-modal="true" aria-label="Ligar os pagamentos online">
+      <div className="po-ass-topo">
+        {i > 0 ? <button type="button" className="po-ass-redondo" onClick={() => setI(i - 1)} aria-label="Voltar"><ArrowLeft size={20} /></button> : <span />}
+        <div className="po-ass-pontos">{[0, 1, 2].map(k => <span key={k} className={k === i ? 'on' : ''} />)}</div>
+        <div className="po-ass-botoes">
+          <button type="button" className="po-ass-fechar" onClick={fechar}><X size={16} /> Fechar</button>
+          <button type="button" className="po-ass-seguinte" disabled={aAbrir || aJuntar}
+            onClick={() => (ultimo ? final() : setI(i + 1))}>
+            {ultimo ? (aAbrir || aJuntar ? 'A abrir…' : temExtra ? 'Ir para o Stripe' : 'Juntar e continuar') : 'Continuar'} <ArrowRight size={17} />
+          </button>
+        </div>
+      </div>
+
+      <div className="po-ass-corpo">
+        {i === 0 && (
+          <div className="po-ass-duas">
+            <h2>Recebe ao marcar, de forma rápida e segura</h2>
+            <div className="po-ass-lista">
+              <div><span className="po-ass-ico"><CreditCard size={22} /></span><div><h3>O cliente paga ao marcar</h3><p>Metade ou o serviço todo. Sem pagamento, não há marcação — acabam as faltas.</p></div></div>
+              <div><span className="po-ass-ico"><Landmark size={22} /></span><div><h3>O dinheiro é teu</h3><p>Vai direto para a tua conta Stripe e daí para o teu banco. A Convecta não fica com nada.</p></div></div>
+            </div>
+          </div>
+        )}
+        {i === 1 && (
+          <div className="po-ass-meio">
+            <h2>O que custa</h2>
+            <div className="po-ass-tabela">
+              <div><span><b>Depósitos para o teu banco</b>Todos os dias, sozinhos</span><em className="gratis">Grátis</em></div>
+              <div><span><b>Cartões europeus, Apple Pay, Google Pay, MB WAY</b>Por pagamento</span><em>1,5 % + 0,25 €</em></div>
+              <div><span><b>Cartões do Reino Unido</b>Por pagamento</span><em>2,5 % + 0,25 €</em></div>
+              <div><span><b>Cartões de fora da Europa</b>Por pagamento</span><em>3,15 % + 0,25 €</em></div>
+              <div><span><b>Convecta</b>Não ficamos com nada</span><em className="gratis">0 %</em></div>
+              {!temExtra && <div><span><b>Na tua subscrição</b>Incluído no Profissional e Business</span><em>{precoExtra}</em></div>}
+            </div>
+            <p className="po-ass-nota">Num corte de 15 € recebes 14,52 €. Preços do Stripe para Portugal.</p>
+          </div>
+        )}
+        {i === 2 && (
+          <div className="po-ass-meio">
+            <h2>O que vais precisar</h2>
+            <div className="po-ass-tabela">
+              <div><span className="po-ass-com-ico"><Clock size={20} /><span><b>5 minutos</b>Uma vez, e fica feito</span></span></div>
+              <div><span className="po-ass-com-ico"><IdCard size={20} /><span><b>Cartão de cidadão e NIF</b>O Stripe pode pedir uma foto do cartão</span></span></div>
+              <div><span className="po-ass-com-ico"><Landmark size={20} /><span><b>O IBAN</b>Da conta onde queres receber</span></span></div>
+            </div>
+            <p className="po-ass-nota">No Stripe: tipo de empresa «Empresário em nome individual» (ou «Sociedade» se tens empresa), e no site o endereço da tua app de marcações. No fim volta sozinho para aqui.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const CSS = `
+.po-nowrap { white-space: nowrap; }
+/* Apresentação */
+.po-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 36px; align-items: center; max-width: 1100px; }
+.po-selo { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; color: var(--text); }
+.po-selo > span { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--gold); color: #111; }
+.po-h { font-family: var(--font-head); font-weight: 700; font-size: clamp(28px, 3.6vw, 44px); line-height: 1.08; margin: 18px 0 16px; text-wrap: balance; color: var(--text); }
+.po-checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.po-checks li { display: flex; gap: 10px; align-items: flex-start; font-size: 16px; color: var(--text); line-height: 1.4; }
+.po-checks svg { flex-shrink: 0; margin-top: 2px; color: var(--gold-tinta); }
+.po-preco { margin-top: 24px; font-size: 22px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.po-preco-sub { margin-top: 4px; font-size: 14px; color: var(--text-sec); }
+.po-acoes { display: flex; gap: 22px; align-items: center; margin-top: 22px; flex-wrap: wrap; }
+.po-btn { min-height: 52px; padding: 0 30px; border-radius: 999px; border: 0; cursor: pointer; font: inherit; font-size: 16px; font-weight: 700; background: var(--text); color: var(--surface); }
+.po-btn:disabled { opacity: .6; cursor: default; }
+.po-link { font-weight: 700; color: var(--text); text-decoration: none; border-bottom: 2px solid var(--gold); padding: 3px 0; }
+.po-hero-img img { display: block; width: 100%; height: auto; border-radius: 22px; box-shadow: 0 22px 60px rgba(0,0,0,.22); }
+@media (max-width: 860px) {
+  .po-hero { grid-template-columns: 1fr; gap: 22px; }
+  .po-hero-img { order: -1; }
+  .po-btn { flex: 1; }
+}
+/* Painel */
+.po-pagina { max-width: 760px; }
+.po-estado { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0 14px; }
+.po-estado-t { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 17px; white-space: nowrap; }
+.po-estado-t svg { color: var(--success); }
+.po-numeros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.po-numeros > div { display: grid; gap: 3px; padding: 16px 14px 16px 0; min-width: 0; }
+.po-numeros > div + div { padding-left: 16px; border-left: 1px solid var(--border); }
+.po-numeros span { font-size: 13.5px; color: var(--text-sec); white-space: nowrap; }
+.po-numeros b { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.po-numeros small { font-size: 13px; color: var(--text-ter); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1em; }
+.po-aviso { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); font-weight: 600; color: var(--warning, #b45309); }
+.po-seletor { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 999px; background: var(--elevated); border: 1px solid var(--border); max-width: 420px; margin-bottom: 6px; }
+.po-seletor button { min-height: 42px; border: 0; border-radius: 999px; background: transparent; color: var(--text-sec); font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; }
+.po-seletor button.on { background: var(--text); color: var(--surface); }
+.po-linha-botao { width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; cursor: pointer; font: inherit; color: inherit; text-align: left; }
+@media (max-width: 767px) {
+  .po-numeros b { font-size: 19px; }
+  .po-numeros > div + div { padding-left: 10px; }
+  .po-numeros > div { padding-right: 8px; }
+  .po-seletor { max-width: none; }
+}
+/* Assistente em ecrã inteiro */
+.po-ass { position: fixed; inset: 0; z-index: 1000; background: var(--bg); color: var(--text); display: flex; flex-direction: column; overflow-y: auto; }
+.po-ass-topo { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 14px 20px; position: sticky; top: 0; background: var(--bg); }
+.po-ass-botoes { display: flex; gap: 10px; justify-content: flex-end; }
+.po-ass-redondo { width: 46px; height: 46px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text); display: grid; place-items: center; cursor: pointer; }
+.po-ass-fechar, .po-ass-seguinte { min-height: 46px; padding: 0 20px; border-radius: 999px; font: inherit; font-weight: 700; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap; }
+.po-ass-fechar { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.po-ass-seguinte { background: var(--text); color: var(--surface); border: 0; }
+.po-ass-seguinte:disabled { opacity: .6; }
+.po-ass-pontos { display: flex; gap: 6px; }
+.po-ass-pontos span { width: 8px; height: 8px; border-radius: 999px; background: var(--border); }
+.po-ass-pontos span.on { background: var(--text); width: 22px; }
+.po-ass-corpo { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px 24px 48px; }
+.po-ass h2 { font-family: var(--font-head); font-weight: 700; font-size: clamp(28px, 4vw, 46px); line-height: 1.08; margin: 0; text-wrap: balance; }
+.po-ass-duas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 56px; align-items: center; max-width: 1100px; width: 100%; }
+.po-ass-lista > div { display: flex; gap: 18px; align-items: flex-start; padding: 22px 0; }
+.po-ass-lista > div + div { border-top: 1px solid var(--border); }
+.po-ass-lista h3 { margin: 0 0 6px; font-size: 20px; }
+.po-ass-lista p, .po-ass-nota { margin: 0; color: var(--text-sec); line-height: 1.55; font-size: 15.5px; }
+.po-ass-ico { width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0; display: grid; place-items: center; background: var(--gold); color: #111; }
+.po-ass-meio { width: 100%; max-width: 700px; }
+.po-ass-tabela { margin-top: 24px; border: 1px solid var(--border); border-radius: 18px; padding: 6px 22px; background: var(--surface); }
+.po-ass-tabela > div { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 0; }
+.po-ass-tabela > div + div { border-top: 1px solid var(--border); }
+.po-ass-tabela span { display: grid; gap: 3px; font-size: 14px; color: var(--text-sec); min-width: 0; }
+.po-ass-tabela b { font-size: 15.5px; color: var(--text); }
+.po-ass-tabela em { font-style: normal; font-weight: 700; white-space: nowrap; color: var(--gold-tinta); }
+.po-ass-tabela em.gratis { color: var(--success); }
+.po-ass-com-ico { display: flex !important; gap: 14px; align-items: center; }
+.po-ass-com-ico > svg { color: var(--gold-tinta); flex-shrink: 0; }
+.po-ass-nota { margin-top: 16px; font-size: 14.5px; }
+@media (max-width: 767px) {
+  .po-ass-topo { grid-template-columns: auto 1fr auto; padding: 12px 14px; }
+  .po-ass-pontos { justify-content: center; }
+  .po-ass-fechar { padding: 0 12px; }
+  .po-ass-fechar svg { display: none; }
+  .po-ass-seguinte { padding: 0 16px; }
+  .po-ass-duas { grid-template-columns: 1fr; gap: 18px; }
+  .po-ass-corpo { align-items: flex-start; padding-top: 8px; }
+  .po-ass-tabela { padding: 4px 16px; }
+}
+`;

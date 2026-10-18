@@ -212,9 +212,9 @@ export default function RedesSociais() {
               <canvas ref={el => { telas.current[i] = el; }} />
             </div>
             <div className="rs-pe">
-              <span className="text-sec text-xs">{i + 1} de {MODELO.ecras.length}</span>
+              <span className="text-sec text-xs" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>{i + 1}/{MODELO.ecras.length}</span>
               <button className="btn btn-ghost" onClick={() => guardarUma(i)}
-                disabled={!barbearia || aDesenhar} style={{ fontSize: 15 }}>
+                disabled={!barbearia || aDesenhar} style={{ fontSize: 15, whiteSpace: 'nowrap', paddingLeft: 8, paddingRight: 8 }}>
                 <Download size={15} /> Guardar
               </button>
             </div>

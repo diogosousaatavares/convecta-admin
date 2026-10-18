@@ -3072,8 +3072,18 @@ body { font-variant-numeric: lining-nums; }
     overflow-y: auto; overflow-x: clip;
     -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
   }
-  /* O conteúdo deixa espaço para a barra, que está por cima do fim da página. */
-  .admin-layout .admin-content { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  /* O conteúdo deixa espaço para a barra, que está por cima do fim da página.
+     18/10/2026: o espaço não aparecia. A .admin-layout é uma linha flex com
+     altura fixa (o ecrã), e um filho «esticado» fica com a altura DO ECRÃ,
+     não do conteúdo: o conteúdo transbordava e o padding ficava a meio, no
+     fim do primeiro ecrã. O fim de cada página ficava escondido por baixo
+     da barra. Agora o conteúdo cresce com o que tem (align-self), e o fim da
+     página é a linha de cima da barra. */
+  .admin-layout { align-items: flex-start; }
+  .admin-layout .admin-content {
+    align-self: flex-start; min-height: 100%; height: auto; box-sizing: border-box;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* ── Outro tipo de negócio (16/10/2026) ──────────────────────────────── */
@@ -3120,3 +3130,8 @@ body { font-variant-numeric: lining-nums; }
 }
 @keyframes trilho-dica-entra { from { opacity: 0; transform: translate(-4px, -50%); } to { opacity: 1; transform: translate(0, -50%); } }
 @media (prefers-reduced-motion: reduce) { .trilho-dica { animation: none; } }
+
+/* Nada no painel encolhe na vertical (18/10/2026): numa coluna flex, uma fila
+   que desliza (overflow) podia ficar espremida — os filtros das Marcações
+   apareciam cortados a meio. */
+.admin-content > *, .chip-row, .fam-tabs, .bp-tabs { flex-shrink: 0; }
