@@ -7,7 +7,8 @@ import { Card, Badge, Button, EmptyState, Modal } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
-import { formatPrice, formatDate, todayStr } from '@/lib/format';
+import { formatPrice, formatDate, todayStr, localDateStr } from '@/lib/format';
+import { Link } from 'react-router-dom';
 import { getExpectedCash, pagamentosDaSessao, vendasDaSessao, packsDaSessao, textoDiferenca } from '@/lib/domain/finance';
 import { TabelaFechos } from '@/components/financeiro/HistoricoCaixa';
 import CheckoutModal from '@/components/admin/CheckoutModal';
@@ -83,6 +84,10 @@ export default function Cash() {
   const netRevenue = totalSales - totalExpenses;
   // Uma conta so, a mesma que o painel e os relatorios usam.
   const expectedCash = getExpectedCash(data, session);
+  // Pagos online hoje (Stripe, 18/10/2026): não entram na gaveta, mas o dono
+  // quer ver quanto entrou por aí sem ir ao Stripe.
+  const onlineHoje = (data.appointments || []).filter(a => a.pagoOnline?.em && localDateStr(new Date(a.pagoOnline.em)) === today);
+  const totalOnlineHoje = onlineHoje.reduce((t, a) => t + (Number(a.pagoOnline.valor) || 0), 0);
 
   const history = data.cashSessions.filter(s => s.status === 'closed').sort((a, b) => (b.closedAt || '').localeCompare(a.closedAt || '')).slice(0, 10);
 
@@ -328,6 +333,11 @@ export default function Cash() {
                   );
                 })}
               </div>
+              <Link to="/admin/pagamentos-online" className="flex items-center gap-12" style={{ padding: '10px 0', borderBottom: '1px solid var(--border)', color: 'inherit', textDecoration: 'none' }}>
+                <span className="notif-ico" style={{ width: 34, height: 34 }}><CreditCard size={16} /></span>
+                <span className="flex-1 text-sm" style={{ whiteSpace: 'nowrap' }}>Online · {onlineHoje.length} {onlineHoje.length === 1 ? 'pagamento' : 'pagamentos'}</span>
+                <span className="fw-600">{formatPrice(totalOnlineHoje)}</span>
+              </Link>
               <hr className="divider" />
               <div className="flex justify-between items-center"><span className="text-sec text-sm">Caixa esperada (numerário)</span><span className="fw-600 text-gold">{formatPrice(expectedCash)}</span></div>
             </Card>

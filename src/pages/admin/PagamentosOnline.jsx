@@ -61,6 +61,9 @@ export default function PagamentosOnline() {
   const [obrigatorio, setObrigatorio] = useState(cfg.obrigatorio !== false);
   const [aGravar, setAGravar] = useState(false);
   const [lista, setLista] = useState([]);
+  // O dinheiro (18/10/2026): o que entrou, o que o Stripe ficou, o que vai a
+  // caminho do banco e quando chega. Lido ao Stripe, na conta do negócio.
+  const [saldo, setSaldo] = useState(null);
 
   useEffect(() => { setModo(modoDe(cfg.modo)); setEscolhidos(Array.isArray(cfg.servicos) ? cfg.servicos : null); setObrigatorio(cfg.obrigatorio !== false); }, [cfg.modo, cfg.servicos, cfg.obrigatorio]);
   const marcado = id => escolhidos == null || escolhidos.includes(id);
@@ -71,7 +74,10 @@ export default function PagamentosOnline() {
   };
 
   useEffect(() => {
-    invocar({ acao: 'estado' }).then(setEstado).catch(e => { setErro(e.message); setEstado({ ligado: false, ativo: false }); });
+    invocar({ acao: 'estado' }).then(est => {
+      setEstado(est);
+      if (est?.ligado) invocar({ acao: 'saldo' }).then(setSaldo).catch(() => setSaldo(null));
+    }).catch(e => { setErro(e.message); setEstado({ ligado: false, ativo: false }); });
     supabase.from('pagamentos_online').select('id, valor_cents, tipo, estado, criado_em, pago_em')
       .order('criado_em', { ascending: false }).limit(20)
       .then(({ data: l }) => setLista(l || []));
@@ -227,6 +233,35 @@ export default function PagamentosOnline() {
       </Card>
 
       <TutorialStripe aberto={tutorial} fechar={() => setTutorial(false)} continuar={() => { setTutorial(false); ligar(); }} aAbrir={aAbrir} />
+
+      {saldo?.ligado && (
+        <Card className="card-pad" style={{ marginBottom: 16 }}>
+          <div className="fw-600" style={{ fontSize: 16, marginBottom: 4 }}>O teu dinheiro <Ajuda titulo="Quando chega ao banco" texto={<>
+            <p>Cada pagamento fica uns dias no Stripe antes de passar para o teu banco. Nas contas novas o primeiro espera <b>7 dias</b>; depois o Stripe passa a depositar todos os dias o que já estiver disponível (chega ao banco em 1 a 2 dias úteis).</p>
+            <p>O Stripe já desconta a comissão dele: o que vês em «Recebes» é o que vai para o teu IBAN. A Convecta não fica com nada.</p>
+          </>} /></div>
+          <div className="nt-lista">
+            <div className="nt-row"><span className="nt-txt"><b>Este mês</b></span><span className="fw-600" style={{ whiteSpace: 'nowrap' }}>{saldo.mes.pagamentos} {saldo.mes.pagamentos === 1 ? 'pagamento' : 'pagamentos'} · {formatPrice(saldo.mes.bruto)}</span></div>
+            <div className="nt-row"><span className="nt-txt"><b>Ficou para o Stripe</b></span><span style={{ whiteSpace: 'nowrap' }}>{formatPrice(saldo.mes.taxas)}</span></div>
+            <div className="nt-row"><span className="nt-txt"><b>Recebes</b></span><span className="fw-600" style={{ whiteSpace: 'nowrap', color: 'var(--success)' }}>{formatPrice(saldo.mes.liquido)}</span></div>
+            {saldo.aCaminho.map(c => (
+              <div key={c.dia} className="nt-row"><span className="nt-txt"><b>A caminho do banco</b></span><span style={{ whiteSpace: 'nowrap' }}>{formatPrice(c.valor)} · a {new Date(c.dia + 'T12:00:00').toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' })}</span></div>
+            ))}
+            {saldo.disponivel > 0 && (
+              <div className="nt-row"><span className="nt-txt"><b>Pronto a ir para o banco</b></span><span style={{ whiteSpace: 'nowrap' }}>{formatPrice(saldo.disponivel)}</span></div>
+            )}
+            {saldo.depositos.map((p, i) => (
+              <div key={i} className="nt-row"><span className="nt-txt"><b>{p.estado === 'paid' ? 'Depositado' : 'Depósito a caminho'}</b></span><span style={{ whiteSpace: 'nowrap' }}>{formatPrice(p.valor)} · {new Date(p.chega + 'T12:00:00').toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' })}</span></div>
+            ))}
+            {!saldo.automatico && (
+              <div className="nt-row">
+                <span className="nt-txt"><b style={{ color: 'var(--warning, #b45309)' }}>Depósitos automáticos desligados <Ajuda titulo="Ligar os depósitos" texto={<p>No teu Stripe: Saldos › Depósitos automáticos (ou Definições › Depósitos) › escolhe «Diariamente». Confirma também que o IBAN está lá. Sem isto, o dinheiro fica no Stripe até o mandares tu para o banco.</p>} /></b></span>
+                <a className="btn btn-secondary btn-sm" href="https://dashboard.stripe.com/balance/overview" target="_blank" rel="noreferrer">Ligar</a>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
 
       {lista.length > 0 && (
         <Card className="card-pad">
