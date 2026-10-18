@@ -66,6 +66,10 @@ export default function PagamentosOnline() {
   const [saldo, setSaldo] = useState(null);
   const [assistente, setAssistente] = useState(false);
   const [verServicos, setVerServicos] = useState(false);
+  const [verModo, setVerModo] = useState(false);
+  const [verDinheiro, setVerDinheiro] = useState(false);
+  const [verTodos, setVerTodos] = useState(false);
+  const [verTaxas, setVerTaxas] = useState(false);
   const [aJuntar, setAJuntar] = useState(false);
   const [pedir, Confirmacao] = useConfirmar();
 
@@ -174,94 +178,110 @@ export default function PagamentosOnline() {
     );
   }
 
-  /* ── JÁ RECEBE: o painel ──────────────────────────────────────────── */
+  /* ── JÁ RECEBE: o painel (v2, 18/10/2026) ───────────────────────────
+     Como as definições da Fresha: um número grande em cima (o que recebes),
+     e por baixo poucas linhas, cada uma com o valor à direita e uma seta —
+     tocar abre o detalhe. Nada de listas compridas na página. */
   const proximo = saldo?.aCaminho?.[0];
+  const MODO_NOME = { nada: 'Nada', metade: 'Metade', total: 'Tudo' };
+  // Um pedido de pagamento que ficou por pagar mais de 35 min já não é
+  // «por pagar»: a hora foi libertada.
+  const estadoDe = p => (p.estado === 'pendente' && Date.now() - new Date(p.criado_em).getTime() > 35 * 60000 ? 'expirou' : p.estado);
+  const linha = (rotulo, valor, onClick, extraRotulo) => (
+    <button type="button" className="nt-row po-linha-botao" onClick={onClick}>
+      <span className="nt-txt"><b className="po-nowrap">{rotulo}{extraRotulo}</b></span>
+      <span className="text-sec po-nowrap po-valor">{valor}</span>
+      <ChevronRight size={18} className="po-seta" />
+    </button>
+  );
+  const ligacao = (rotulo, valor, href) => (
+    <a className="nt-row po-linha-botao" href={href} target="_blank" rel="noreferrer">
+      <span className="nt-txt"><b className="po-nowrap">{rotulo}</b></span>
+      <span className="text-sec po-nowrap po-valor">{valor}</span>
+      <ExternalLink size={16} className="po-seta" />
+    </a>
+  );
   return (
     <AdminPage title="Pagamentos online">
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="po-pagina">
-        <div className="po-estado">
-          <span className="po-estado-t"><Check size={18} /> Pagamentos ligados</span>
-          <a className="btn btn-secondary btn-sm po-nowrap" href="https://dashboard.stripe.com/" target="_blank" rel="noreferrer">Abrir o Stripe <ExternalLink size={14} /></a>
-        </div>
-
-        {/* O dinheiro, em três números */}
-        <div className="po-numeros">
-          <div><span>Este mês</span><b>{saldo ? formatPrice(saldo.mes.bruto) : '—'}</b><small>{saldo ? `${saldo.mes.pagamentos} ${saldo.mes.pagamentos === 1 ? 'pagamento' : 'pagamentos'}` : ' '}</small></div>
-          <div><span>Recebes</span><b style={{ color: 'var(--success)' }}>{saldo ? formatPrice(saldo.mes.liquido) : '—'}</b><small>{saldo ? `Stripe: ${formatPrice(saldo.mes.taxas)}` : ' '}</small></div>
-          <div><span>A caminho do banco <Ajuda titulo="Quando chega ao banco" texto={<>
-            <p>Cada pagamento fica uns dias no Stripe e depois passa sozinho para o teu IBAN. Nas contas novas o primeiro espera <b>7 dias</b>; depois o Stripe deposita todos os dias o que já estiver disponível (chega em 1 a 2 dias úteis).</p>
-          </>} /></span><b>{proximo ? formatPrice(proximo.valor) : saldo ? formatPrice(0) : '—'}</b><small>{proximo ? `chega a ${dia(proximo.dia)}` : ' '}</small></div>
-        </div>
-        {saldo && !saldo.automatico && (
-          <div className="po-aviso">
-            <span>Depósitos automáticos desligados <Ajuda titulo="Ligar os depósitos" texto={<p>No teu Stripe: Saldos › Depósitos automáticos › «Diariamente». Confirma também que o IBAN está lá. Sem isto, o dinheiro fica no Stripe até o mandares tu para o banco.</p>} /></span>
-            <a className="btn btn-secondary btn-sm" href="https://dashboard.stripe.com/balance/overview" target="_blank" rel="noreferrer">Ligar</a>
-          </div>
-        )}
-
-        {/* As escolhas */}
-        <div className="nt-titulo">O que o cliente paga ao marcar</div>
-        <div className="po-seletor" role="radiogroup" aria-label="O que o cliente paga ao marcar">
-          {MODOS.map(([v, t]) => (
-            <button key={v} type="button" role="radio" aria-checked={modo === v} className={modo === v ? 'on' : ''} onClick={() => modo !== v && gravar({ modo: v })}>{t}</button>
-          ))}
+        {/* O dinheiro */}
+        <div className="po-resumo">
+          <span className="po-ligados"><Check size={15} /> Pagamentos ligados</span>
+          <span className="po-rotulo">Recebes este mês</span>
+          <b className="po-grande">{saldo ? formatPrice(saldo.mes.liquido) : '—'}</b>
+          <span className="po-sub">{saldo ? `${saldo.mes.pagamentos} ${saldo.mes.pagamentos === 1 ? 'pagamento' : 'pagamentos'} · ${formatPrice(saldo.mes.bruto)} pagos · Stripe ${formatPrice(saldo.mes.taxas)}` : 'A ler o Stripe…'}</span>
         </div>
         <div className="nt-lista">
+          {saldo && linha('Próximo depósito', proximo ? `${formatPrice(proximo.valor)} · ${dia(proximo.dia)}` : 'Nada a caminho', () => setVerDinheiro(true))}
+          {saldo && !saldo.automatico && (
+            <a className="nt-row po-linha-botao po-alerta" href="https://dashboard.stripe.com/balance/overview" target="_blank" rel="noreferrer">
+              <span className="nt-txt"><b className="po-nowrap">Ligar os depósitos automáticos</b></span>
+              <ExternalLink size={16} className="po-seta" />
+            </a>
+          )}
+        </div>
+
+        {/* As escolhas */}
+        <div className="nt-titulo">Ao marcar</div>
+        <div className="nt-lista">
+          {linha('O cliente paga', MODO_NOME[modo], () => setVerModo(true))}
           {modo !== 'nada' && (
             <>
+              {linha('Serviços', escolhidos == null ? `Todos (${servicosPagaveis.length})` : `${nEscolhidos} de ${servicosPagaveis.length}`, () => setVerServicos(true))}
               <div className="nt-row">
-                <span className="nt-txt"><b>Só fica marcado depois de pagar <Ajuda titulo="Pagar para marcar" texto={<>
+                <span className="nt-txt"><b className="po-nowrap">Só marca depois de pagar <Ajuda titulo="Pagar para marcar" texto={<>
                   <p><b>Ligado:</b> sem pagamento não há marcação, e a hora continua livre.</p>
                   <p><b>Desligado:</b> o cliente escolhe «Pagar já» ou «Pagar na loja».</p>
                 </>} /></b></span>
                 <Toggle checked={obrigatorio} onChange={v => gravar({ obrigatorio: v })} />
               </div>
-              <button type="button" className="nt-row po-linha-botao" onClick={() => setVerServicos(true)}>
-                <span className="nt-txt"><b>Serviços</b></span>
-                <span className="text-sec po-nowrap">{escolhidos == null ? `Todos (${servicosPagaveis.length})` : `${nEscolhidos} de ${servicosPagaveis.length}`}</span>
-                <ChevronRight size={18} />
-              </button>
             </>
           )}
         </div>
 
-        {/* Últimos pagamentos */}
+        {/* Pagamentos */}
         {lista.length > 0 && (
           <>
-            <div className="nt-titulo">Últimos pagamentos</div>
+            <div className="nt-titulo">Pagamentos</div>
             <div className="nt-lista">
-              {lista.map(p => {
-                const [l, cor] = ESTADO[p.estado] || [p.estado, 'var(--text-sec)'];
+              {lista.slice(0, 3).map(p => {
+                const [l, cor] = ESTADO[estadoDe(p)] || [p.estado, 'var(--text-sec)'];
                 return (
                   <div key={p.id} className="nt-row">
-                    <span className="nt-txt"><b className="po-nowrap">{formatPrice(p.valor_cents / 100)} <span className="text-sec" style={{ fontWeight: 400 }}>· {p.tipo === 'total' ? 'serviço' : 'metade'} · {quando(p.pago_em || p.criado_em)}</span></b></span>
+                    <span className="nt-txt"><b className="po-nowrap">{formatPrice(p.valor_cents / 100)}</b><span className="po-nowrap">{quando(p.pago_em || p.criado_em)}</span></span>
                     <span className="fw-600 text-sm po-nowrap" style={{ color: cor }}>{l}</span>
                   </div>
                 );
               })}
+              {lista.length > 3 && linha('Ver todos', `${lista.length}`, () => setVerTodos(true))}
             </div>
           </>
         )}
 
         {/* A conta */}
-        <div className="nt-titulo">A tua conta Stripe</div>
+        <div className="nt-titulo">Conta Stripe</div>
         <div className="nt-lista">
-          <div className="nt-row"><span className="nt-txt"><b>Formas de pagar</b></span><MetodosPagamento altura={14} /></div>
-          <div className="nt-row">
-            <span className="nt-txt"><b>O que o Stripe cobra <Ajuda titulo="O que o Stripe cobra" texto={<>
-              <p><b>1,5 % + 0,25 €</b> por pagamento com cartão europeu, Apple Pay, Google Pay ou MB WAY. Cartões do Reino Unido: 2,5 % + 0,25 €. De fora da Europa: 3,15 % + 0,25 €.</p>
-              <p>Num corte de 15 € recebes 14,52 €; em 25 € recebes 24,38 €. Passar o dinheiro para o banco é grátis. A Convecta não fica com nada.</p>
-            </>} /></b></span>
-            <span className="fw-600 po-nowrap">1,5 % + 0,25 €</span>
-          </div>
-          <div className="nt-row">
-            <span className="nt-txt"><b>MB WAY <Ajuda titulo="Aceitar MB WAY" texto={<p>No teu Stripe: Definições › Métodos de pagamento › ligar o MB WAY. Custa o mesmo que o cartão.</p>} /></b></span>
-            <a className="btn btn-ghost btn-sm po-nowrap" href="https://dashboard.stripe.com/settings/payment_methods" target="_blank" rel="noreferrer">Ligar no Stripe</a>
-          </div>
+          {linha('O que o Stripe cobra', '1,5 % + 0,25 €', () => setVerTaxas(true))}
+          {ligacao('MB WAY', 'Ligar no Stripe', 'https://dashboard.stripe.com/settings/payment_methods')}
+          {ligacao('Abrir o Stripe', 'IBAN, depósitos', 'https://dashboard.stripe.com/')}
         </div>
       </div>
 
+      {/* O que o cliente paga */}
+      <Modal open={verModo} onClose={() => setVerModo(false)} title="O cliente paga ao marcar">
+        <div className="nt-lista">
+          {[['nada', 'Nada', 'Paga na loja, como hoje.'], ['metade', 'Metade', 'Metade ao marcar, o resto na loja.'], ['total', 'Tudo', 'O serviço todo ao marcar.']].map(([v, t, d]) => (
+            <label key={v} className="nt-row" style={{ cursor: 'pointer' }}>
+              <span className="nt-txt"><b>{t}</b><span>{d}</span></span>
+              <input type="radio" name="modo" checked={modo === v} onChange={() => { gravar({ modo: v }); setVerModo(false); }} style={{ width: 20, height: 20, accentColor: 'var(--gold)' }} />
+            </label>
+          ))}
+        </div>
+        <MetodosPagamento altura={14} style={{ marginTop: 14 }} />
+      </Modal>
+
+      {/* Serviços */}
       <Modal open={verServicos} onClose={() => { setVerServicos(false); gravar({ servicos: escolhidos }); }} title="Em que serviços"
         footer={<div className="botoes-iguais"><Button onClick={() => { setVerServicos(false); gravar({ servicos: escolhidos }); }}>Feito</Button></div>}>
         <div className="nt-lista">
@@ -277,6 +297,52 @@ export default function PagamentosOnline() {
             </label>
           ))}
         </div>
+      </Modal>
+
+      {/* O dinheiro, em detalhe */}
+      <Modal open={verDinheiro} onClose={() => setVerDinheiro(false)} title="O teu dinheiro">
+        {saldo && (
+          <div className="nt-lista">
+            <div className="nt-row"><span className="nt-txt"><b>Pago este mês</b></span><span className="fw-600 po-nowrap">{formatPrice(saldo.mes.bruto)}</span></div>
+            <div className="nt-row"><span className="nt-txt"><b>Ficou para o Stripe</b></span><span className="fw-600 po-nowrap">{formatPrice(saldo.mes.taxas)}</span></div>
+            <div className="nt-row"><span className="nt-txt"><b>Recebes</b></span><span className="fw-600 po-nowrap" style={{ color: 'var(--success)' }}>{formatPrice(saldo.mes.liquido)}</span></div>
+            {saldo.aCaminho.map(c => (
+              <div key={c.dia} className="nt-row"><span className="nt-txt"><b>A caminho do banco</b></span><span className="fw-600 po-nowrap">{formatPrice(c.valor)} · {dia(c.dia)}</span></div>
+            ))}
+            {saldo.disponivel > 0 && <div className="nt-row"><span className="nt-txt"><b>Pronto a ir para o banco</b></span><span className="fw-600 po-nowrap">{formatPrice(saldo.disponivel)}</span></div>}
+            {saldo.depositos.map((p, k) => (
+              <div key={k} className="nt-row"><span className="nt-txt"><b>{p.estado === 'paid' ? 'Depositado' : 'Depósito a caminho'}</b></span><span className="fw-600 po-nowrap">{formatPrice(p.valor)} · {dia(p.chega)}</span></div>
+            ))}
+          </div>
+        )}
+        <p className="text-sec text-sm" style={{ marginTop: 14, lineHeight: 1.55 }}>Nas contas novas o primeiro pagamento espera 7 dias no Stripe. Depois o Stripe deposita todos os dias o que estiver disponível; chega ao banco em 1 a 2 dias úteis.</p>
+      </Modal>
+
+      {/* Todos os pagamentos */}
+      <Modal open={verTodos} onClose={() => setVerTodos(false)} title="Pagamentos">
+        <div className="nt-lista">
+          {lista.map(p => {
+            const [l, cor] = ESTADO[estadoDe(p)] || [p.estado, 'var(--text-sec)'];
+            return (
+              <div key={p.id} className="nt-row">
+                <span className="nt-txt"><b className="po-nowrap">{formatPrice(p.valor_cents / 100)}</b><span className="po-nowrap">{p.tipo === 'total' ? 'Serviço' : 'Metade'} · {quando(p.pago_em || p.criado_em)}</span></span>
+                <span className="fw-600 text-sm po-nowrap" style={{ color: cor }}>{l}</span>
+              </div>
+            );
+          })}
+        </div>
+      </Modal>
+
+      {/* As taxas */}
+      <Modal open={verTaxas} onClose={() => setVerTaxas(false)} title="O que o Stripe cobra">
+        <div className="nt-lista">
+          <div className="nt-row"><span className="nt-txt"><b>Cartões europeus, Apple Pay, Google Pay, MB WAY</b></span><span className="fw-600 po-nowrap">1,5 % + 0,25 €</span></div>
+          <div className="nt-row"><span className="nt-txt"><b>Cartões do Reino Unido</b></span><span className="fw-600 po-nowrap">2,5 % + 0,25 €</span></div>
+          <div className="nt-row"><span className="nt-txt"><b>Cartões de fora da Europa</b></span><span className="fw-600 po-nowrap">3,15 % + 0,25 €</span></div>
+          <div className="nt-row"><span className="nt-txt"><b>Depósitos para o banco</b></span><span className="fw-600 po-nowrap" style={{ color: 'var(--success)' }}>Grátis</span></div>
+          <div className="nt-row"><span className="nt-txt"><b>Convecta</b></span><span className="fw-600 po-nowrap" style={{ color: 'var(--success)' }}>0 %</span></div>
+        </div>
+        <p className="text-sec text-sm" style={{ marginTop: 14 }}>Num corte de 15 € recebes 14,52 €; em 25 € recebes 24,38 €.</p>
       </Modal>
       <Confirmacao />
     </AdminPage>
@@ -435,4 +501,15 @@ const CSS = `
   .po-ass-corpo { align-items: flex-start; padding-top: 8px; }
   .po-ass-tabela { padding: 4px 16px; }
 }
+
+/* Painel v2 */
+.po-resumo { display: grid; gap: 4px; padding: 6px 0 18px; }
+.po-ligados { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 700; color: var(--success); margin-bottom: 8px; }
+.po-rotulo { font-size: 14px; color: var(--text-sec); }
+.po-grande { font-family: var(--font-head); font-size: 44px; line-height: 1.05; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+.po-sub { font-size: 14px; color: var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.po-valor { margin-left: auto; overflow: hidden; text-overflow: ellipsis; }
+.po-seta { color: var(--text-ter); flex-shrink: 0; }
+a.po-linha-botao { color: inherit; text-decoration: none; }
+.po-alerta b { color: var(--warning, #b45309); }
 `;
