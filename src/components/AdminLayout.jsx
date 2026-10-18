@@ -703,6 +703,29 @@ export default function AdminLayout({ children }) {
           </div>
         </div>
         ) : (
+        !noComputador ? (
+        /* Telemóvel, páginas da barra de baixo (18/10/2026, pedido do Diogo):
+           sem logo nem «Founder» (o selo vive no «Mais»), o nome da página
+           ao centro e, na Agenda, o menu hambúrguer — só para a agenda. */
+        <div className="admin-topbar admin-topbar-tel">
+          <div className="admin-topbar-tel-lado">
+            {location.pathname === '/admin/agenda' && (
+              <button type="button" className="btn btn-ghost btn-icon" aria-label="Menu da agenda"
+                onClick={() => window.dispatchEvent(new Event('convecta:menu-agenda'))}>
+                <Menu size={22} />
+              </button>
+            )}
+          </div>
+          <span className="admin-topbar-tel-titulo">{location.pathname === '/admin/mais' ? 'Mais' : tituloDaPagina(location.pathname)}</span>
+          <div className="admin-topbar-right">
+            <BotaoModo />
+            <SinoAvisos businessId={data.business?.id} porConfirmar={porConfirmar} />
+            <button className="btn btn-ghost btn-icon" onClick={handleLogout} title="Terminar sessão" aria-label="Terminar sessão">
+              <LogOut size={16} />
+            </button>
+          </div>
+        </div>
+        ) : (
         <div className="admin-topbar">
           <div className="admin-topbar-left">
 
@@ -754,7 +777,7 @@ export default function AdminLayout({ children }) {
             </button>
           </div>
         </div>
-        )}
+        ))}
         {!noComputador && seletorDeLado && <div className="lado-faixa">{seletorDeLado}</div>}
         {/* A FAIXA DO LINK vive no «O meu site», e so la.
             Esteve em todas as paginas, e a razao era boa: e a coisa que ele

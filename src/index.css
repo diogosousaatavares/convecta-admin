@@ -3188,3 +3188,28 @@ body { font-variant-numeric: lining-nums; }
 @media (max-width: 767px) {
   .admin-layout .admin-content.sem-barra { padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
+
+/* Telemóvel: barra de cima sem logo, título ao centro, hambúrguer da agenda (18/10/2026) */
+.admin-topbar-tel { position: sticky; display: grid !important; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; }
+.admin-topbar-tel-lado { display: flex; align-items: center; min-width: 40px; }
+.admin-topbar-tel-titulo { font-size: 15px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+.admin-topbar-tel .admin-topbar-right { justify-content: flex-end; }
+.agm-top-so-mes { justify-content: center; margin: 0 0 12px; }
+.agm-top-so-mes .agm-mes { text-align: center; font-weight: 600; color: var(--text); }
+.agm-filtros .agm-pro-btn { flex: 1; }
+/* O menu da agenda, em ecrã inteiro, a entrar da esquerda (à Fresha) */
+.agmm { position: fixed; inset: 0; z-index: 9500; background: var(--bg); color: var(--text); overflow-y: auto; padding: calc(env(safe-area-inset-top, 0px) + 10px) 18px calc(env(safe-area-inset-bottom, 0px) + 24px); animation: agmm-entra 260ms cubic-bezier(0.22,1,0.36,1) backwards; }
+.agmm.sai { animation: agmm-sai 220ms ease forwards; }
+@keyframes agmm-entra { from { transform: translateX(-100%); } }
+@keyframes agmm-sai { to { transform: translateX(-100%); } }
+.agmm-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 6px 0 20px; }
+.agmm-topo h2 { margin: 0; font-size: 26px; font-family: var(--font-head); }
+.agmm-x { width: 44px; height: 44px; border-radius: 999px; border: 0; background: transparent; color: var(--text); display: grid; place-items: center; cursor: pointer; }
+.agmm-vistas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.agmm-vistas button { display: grid; justify-items: center; gap: 8px; padding: 18px 8px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; }
+.agmm-vistas button.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.agmm-linhas { margin-top: 22px; border-top: 1px solid var(--border); }
+.agmm-linhas button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 60px; padding: 0 2px; border: 0; border-bottom: 1px solid var(--border); background: none; color: var(--text); font: inherit; font-size: 16.5px; cursor: pointer; }
+.agmm-linhas button span { display: flex; align-items: center; gap: 14px; }
+.agmm-linhas button > svg { color: var(--text-ter); }
+@media (prefers-reduced-motion: reduce) { .agmm, .agmm.sai { animation: none; } }

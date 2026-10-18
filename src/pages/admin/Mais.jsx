@@ -87,6 +87,7 @@ export default function Mais() {
             ? <img className="mais-logo" src={data.business.logoUrl} alt="" />
             : <Avatar name={nome} size="lg" />}
           <div className="mais-nome">{nome}</div>
+          {data.business?.founder && <span className="founder-selo mais-founder" title="Fazes parte do Programa Founders da Convecta">Founder</span>}
           {user?.email && <div className="mais-email">{user.email}</div>}
           {/* O link do site vive aqui, por baixo do email: e o sitio onde se
               vai buscar a conta e a casa. No «O meu site» ocupava a primeira
@@ -163,6 +164,7 @@ const CSS = `
 }
 .mais-topo .avatar { margin: 0 auto 12px; }
 .mais-nome { font-size: 20px; font-weight: 700; }
+.mais-founder { display: inline-block; margin-top: 8px; }
 .mais-email { font-size: 14px; color: var(--text-sec); margin-top: 3px; word-break: break-all; }
 .mais-link { margin-top: 16px; text-align: left; }
 .mais-link .link-faixa { width: 100% !important; max-width: 100% !important; margin: 0 !important; box-sizing: border-box;

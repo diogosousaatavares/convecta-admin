@@ -3,7 +3,8 @@ import IndicadoresCliente from '@/components/admin/IndicadoresCliente';
 import React, { useRef, useEffect, useMemo, useState } from 'react';
 import {
   ChevronLeft, ChevronRight, ChevronDown, Users, Info,
-  CheckCircle2, CalendarCheck, Clock3, Lock, Check, Settings } from 'lucide-react';
+  CheckCircle2, CalendarCheck, Clock3, Lock, Check, Settings, X, CalendarDays, Calendar, List, Hourglass } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 import { todayStr } from '@/lib/format';
@@ -101,6 +102,16 @@ export default function AgendaTelemovel({
   const [proId, setProId] = useState(() => proInicial || professionals[0]?.id || '');
   const [seletorAberto, setSeletorAberto] = useState(false);
   const [legendaAberta, setLegendaAberta] = useState(false);
+  // O menu hambúrguer da barra de cima (18/10/2026, à Fresha): as vistas,
+  // a legenda e as definições da agenda saem do ecrã e vivem aqui.
+  const [menu, setMenu] = useState(false);
+  const [menuSai, setMenuSai] = useState(false);
+  useEffect(() => {
+    const abrir = () => { setMenuSai(false); setMenu(true); };
+    window.addEventListener('convecta:menu-agenda', abrir);
+    return () => window.removeEventListener('convecta:menu-agenda', abrir);
+  }, []);
+  const fecharMenu = (depois) => { setMenuSai(true); setTimeout(() => { setMenu(false); setMenuSai(false); depois && depois(); }, 220); };
 
   // Se o profissional escolhido deixar de existir (apagado, desativado),
   // volta ao primeiro em vez de mostrar uma coluna vazia sem explicacao.
@@ -155,16 +166,10 @@ export default function AgendaTelemovel({
   return (
     <div className="agm" data-tour="agenda">
       {/* ---- Titulo, mes e navegacao de dias ---- */}
-      <header className="agm-top">
-        <div className="agm-top-txt">
-          <h1 className="agm-titulo">Agenda</h1>
-          <button type="button" className="agm-mes" onClick={() => (vistaMes ? setMode('mes') : setDate(todayStr()))}>{MESES[mes - 1]} {ano}</button>
-        </div>
-        {/* 16/10/2026: só a engrenagem. Sem «Hoje» nem setas — a semana
-            muda a deslizar a faixa dos dias; tocar no mês abre a vista Mês. */}
-        <div className="agm-nav">
-          {onDefinicoes && <button type="button" className="agm-seta" onClick={onDefinicoes} aria-label="Definições da agenda" data-tour="agenda-definicoes"><Settings size={19} /></button>}
-        </div>
+      {/* 18/10/2026: o «Agenda» está ao centro na barra de cima e a
+          engrenagem passou para o menu hambúrguer. Fica só o mês. */}
+      <header className="agm-top agm-top-so-mes">
+        <button type="button" className="agm-mes" onClick={() => (vistaMes ? setMode('mes') : setDate(todayStr()))}>{MESES[mes - 1]} {ano}</button>
       </header>
 
       {/* ---- A semana, de segunda a domingo ---- */}
@@ -196,13 +201,25 @@ export default function AgendaTelemovel({
         </div>
       </div>
 
-      {/* ---- Dia / Lista / Espera ---- */}
-      <div className="agm-vistas">
-        <button type="button" className={mode === 'grid' ? 'ativa' : ''} onClick={() => setMode('grid')}>Dia</button>
-        {vistaMes && <button type="button" className={mode === 'mes' ? 'ativa' : ''} onClick={() => setMode('mes')}>Mês</button>}
-        <button type="button" className={mode === 'list' ? 'ativa' : ''} onClick={() => setMode('list')}>Lista</button>
-        <button type="button" className={mode === 'waitlist' ? 'ativa' : ''} onClick={() => setMode('waitlist')}>Espera</button>
-      </div>
+      {/* ---- O menu da agenda (hambúrguer) ---- */}
+      {menu && createPortal(
+        <div className={`agmm${menuSai ? ' sai' : ''}`} role="dialog" aria-modal="true" aria-label="Menu da agenda">
+          <div className="agmm-topo">
+            <h2>Vistas da agenda</h2>
+            <button type="button" className="agmm-x" onClick={() => fecharMenu()} aria-label="Fechar"><X size={24} /></button>
+          </div>
+          <div className="agmm-vistas">
+            {[['grid', 'Dia', CalendarDays], ...(vistaMes ? [['mes', 'Mês', Calendar]] : []), ['list', 'Lista', List], ['waitlist', 'Espera', Hourglass]].map(([m, l, Ic]) => (
+              <button key={m} type="button" className={mode === m ? 'on' : ''} onClick={() => fecharMenu(() => setMode(m))}>
+                <Ic size={22} /><span>{l}</span>
+              </button>
+            ))}
+          </div>
+          <div className="agmm-linhas">
+            <button type="button" onClick={() => fecharMenu(() => setLegendaAberta(true))}><span><Info size={19} />Legenda</span><ChevronRight size={18} /></button>
+            {onDefinicoes && <button type="button" data-tour="agenda-definicoes" onClick={() => fecharMenu(onDefinicoes)}><span><Settings size={19} />Definições da agenda</span><ChevronRight size={18} /></button>}
+          </div>
+        </div>, document.body)}
 
       {mode === 'mes' ? vistaMes : mode === 'grid' ? (
         <>
@@ -212,11 +229,6 @@ export default function AgendaTelemovel({
               <Users size={17} />
               <span className="agm-pro-nome">{pro ? pro.name : 'Sem profissionais'}</span>
               <ChevronDown size={17} className="agm-pro-seta" />
-            </button>
-            <button type="button" className="agm-legenda-btn" onClick={() => setLegendaAberta(true)}>
-              <span className="agm-legenda-pontos"><i className="p1" /><i className="p2" /></span>
-              Legenda
-              <Info size={16} />
             </button>
           </div>
 
