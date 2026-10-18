@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Check, ExternalLink, ArrowRight, ArrowLeft, X, ChevronRight, CreditCard, Landmark, IdCard, Clock, Percent } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
+import AdminLayout from '@/components/AdminLayout';
+import PageInfo from '@/components/admin/PageInfo';
+import BotaoAtualizar from '@/components/admin/BotaoAtualizar';
 import Ajuda from '@/components/admin/Ajuda';
 import Toggle from '@/components/admin/Toggle';
 import { Button, Modal } from '@/components/ui';
@@ -149,19 +152,23 @@ export default function PagamentosOnline() {
   if (!ativo) {
     const continuarNoStripe = estado?.ligado;
     return (
-      <AdminPage title="Pagamentos online">
+      <AdminLayout>
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         {/* A capa ocupa tudo e o texto e os botões vivem DENTRO da imagem
             (18/10/2026, pedido do Diogo). Estilo Convecta (preto quente e
             dourado) nos dois temas, por isso as cores aqui são fixas. */}
-        <section className="po-capa">
+        <section className="po-capa po-capa-cheia">
+          {/* O título e o Atualizar vivem dentro da imagem (pedido do Diogo). */}
+          <div className="po-capa-cabeca">
+            <div className="po-capa-titulo"><h1>Pagamentos online</h1><PageInfo /></div>
+            <BotaoAtualizar />
+          </div>
           <picture>
             <source media="(max-width: 767px)" srcSet="/pagamentos/pagamentos-online-capa-v3-telemovel.jpg" />
             <img src="/pagamentos/pagamentos-online-capa-v3-1200.jpg" srcSet="/pagamentos/pagamentos-online-capa-v3-1200.jpg 1200w, /pagamentos/pagamentos-online-capa-v3.jpg 2400w" sizes="(max-width: 1100px) 100vw, 1100px" alt="" />
           </picture>
           <div className="po-capa-texto">
-            <div className="po-selo"><span><CreditCard size={16} /></span>Pagamentos online</div>
-            <h2 className="po-h">O cliente paga ao marcar. <em>Acabam as faltas.</em></h2>
+                        <h2 className="po-h">O cliente paga ao marcar. <em>Acabam as faltas.</em></h2>
             <ul className="po-checks">
               <li><Check size={17} /> Metade ou o serviço todo, só nos serviços que escolheres</li>
               <li><Check size={17} /> Cartão, Apple Pay, Google Pay e MB WAY</li>
@@ -193,7 +200,7 @@ export default function PagamentosOnline() {
           />
         )}
         <Confirmacao />
-      </AdminPage>
+      </AdminLayout>
     );
   }
 
@@ -706,6 +713,28 @@ const CSS = `
   .po-capa .po-preco { margin-top: 16px; font-size: 19px; }
   .po-capa .po-acoes { margin-top: 16px; }
   .po-capa-stripe { margin-top: 16px; }
+}
+
+/* Capa cheia (18/10): de ponta a ponta, sem espaço à volta, até ao fundo */
+.po-capa-cheia { max-width: none; border-radius: 0; box-shadow: none; margin: -28px calc(-1 * var(--pad-lado, 32px)) -40px; width: calc(100% + 2 * var(--pad-lado, 32px)); min-height: calc(100dvh - 56px); }
+.po-capa-cheia picture { position: absolute; inset: 0; }
+.po-capa-cheia img { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; max-height: none; object-fit: cover; object-position: right center; }
+.po-capa-cheia .po-capa-texto { width: min(46%, 560px); padding: 96px 0 48px clamp(32px, 5vw, 80px); }
+.po-capa-cheia .po-h { font-size: clamp(34px, 3.6vw, 54px); }
+.po-capa-cheia .po-checks li { font-size: 16.5px; }
+.po-capa-cabeca { position: absolute; z-index: 2; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 26px clamp(32px, 5vw, 80px) 0; }
+.po-capa-titulo { display: flex; align-items: center; gap: 10px; }
+.po-capa-titulo h1 { margin: 0; color: #fff; font-family: var(--font-head); font-size: 34px; }
+.po-capa-cabeca, .po-capa-cabeca * { color: #e9e3d6; }
+.po-capa-cabeca button { background: rgba(255,255,255,.08) !important; border-color: rgba(255,255,255,.22) !important; color: #fff !important; }
+@media (max-width: 767px) {
+  .po-capa-cheia { margin: 0 calc(-1 * var(--pad-lado, 16px)); min-height: 0; }
+  .po-capa-cheia picture, .po-capa-cheia img { position: static; height: auto; }
+  .po-capa-cheia img { aspect-ratio: 1080 / 1500; max-height: 62vh; object-position: center top; }
+  .po-capa-cabeca { display: none; }
+  .po-capa-cheia .po-capa-texto { width: auto; padding: 120px 20px 28px; }
+  .po-capa-cheia .po-h { font-size: 30px; }
+  .po-capa-cheia .po-checks li { font-size: 15px; }
 }
 
 /* Painel v2 */
