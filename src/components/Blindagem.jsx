@@ -21,11 +21,17 @@ import React from 'react';
  *    quem está a ver.
  */
 
-const CHAVE_RECARGA = 'convecta_recarga_versao';
+const CHAVE_RECARGA = 'convecta_recarga_em';
+// Duas recargas seguidas em menos disto = ciclo. Aí mostra-se o erro.
+const INTERVALO_MIN = 20000;
 
 function eVersaoAntiga(erro) {
   const m = `${erro?.name || ''} ${erro?.message || ''}`;
-  return /ChunkLoadError|Loading chunk|dynamically imported module|Importing a module script failed|Failed to fetch/i.test(m);
+  // As várias formas de «pedi um pedaço de código que já não existe»: cada
+  // browser diz à sua maneira. O Safari do iPhone diz «'text/html' is not a
+  // valid JavaScript MIME type» quando o servidor responde com a página de
+  // erro em vez do ficheiro .js — era esta que faltava.
+  return /ChunkLoadError|Loading chunk|dynamically imported module|Importing a module script failed|Failed to fetch|valid JavaScript MIME type|module script failed|error loading dynamically|expected a JavaScript(-or-Wasm)? module|Unexpected token '<'/i.test(m);
 }
 
 export default class Blindagem extends React.Component {
@@ -40,20 +46,16 @@ export default class Blindagem extends React.Component {
     console.error('[convecta] a app parou:', erro, info?.componentStack);
 
     if (eVersaoAntiga(erro)) {
-      // Uma vez e só uma. Se recarregar não chegou, o problema é outro e um
-      // ciclo de recargas é pior do que o ecrã de erro.
-      let jaTentou = false;
-      try { jaTentou = sessionStorage.getItem(CHAVE_RECARGA) === '1'; } catch { /* sem storage */ }
-      if (!jaTentou) {
-        try { sessionStorage.setItem(CHAVE_RECARGA, '1'); } catch { /* sem storage */ }
+      // Recarrega sozinho, mas não mais do que uma vez a cada 20s: se logo a
+      // seguir à recarga voltar a falhar, é problema a sério e um ciclo de
+      // recargas é pior do que o ecrã de erro.
+      let ultima = 0;
+      try { ultima = Number(sessionStorage.getItem(CHAVE_RECARGA)) || 0; } catch { /* sem storage */ }
+      if (Date.now() - ultima > INTERVALO_MIN) {
+        try { sessionStorage.setItem(CHAVE_RECARGA, String(Date.now())); } catch { /* sem storage */ }
         window.location.reload();
       }
     }
-  }
-
-  componentDidMount() {
-    // Chegou aqui inteiro: a próxima falha de versão pode voltar a recarregar.
-    try { sessionStorage.removeItem(CHAVE_RECARGA); } catch { /* sem storage */ }
   }
 
   render() {
