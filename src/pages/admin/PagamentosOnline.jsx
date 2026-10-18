@@ -1,4 +1,5 @@
 import Ajuda from '@/components/admin/Ajuda';
+import Toggle from '@/components/admin/Toggle';
 import React, { useEffect, useState } from 'react';
 import { CreditCard, Check, ExternalLink } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
@@ -55,10 +56,13 @@ export default function PagamentosOnline() {
   const modoDe = m => (m === 'sinal' ? 'metade' : m || 'nada');   // o antigo «sinal» passa a «metade»
   const [modo, setModo] = useState(modoDe(cfg.modo));
   const [escolhidos, setEscolhidos] = useState(null);             // null = todos
+  // Obrigatório (18/10/2026): sem pagar, a hora não fica — liberta-se sozinha
+  // ao fim de 30 minutos. Desligado, o cliente escolhe «Pagar já» ou «Na loja».
+  const [obrigatorio, setObrigatorio] = useState(cfg.obrigatorio !== false);
   const [aGravar, setAGravar] = useState(false);
   const [lista, setLista] = useState([]);
 
-  useEffect(() => { setModo(modoDe(cfg.modo)); setEscolhidos(Array.isArray(cfg.servicos) ? cfg.servicos : null); }, [cfg.modo, cfg.servicos]);
+  useEffect(() => { setModo(modoDe(cfg.modo)); setEscolhidos(Array.isArray(cfg.servicos) ? cfg.servicos : null); setObrigatorio(cfg.obrigatorio !== false); }, [cfg.modo, cfg.servicos, cfg.obrigatorio]);
   const marcado = id => escolhidos == null || escolhidos.includes(id);
   const alternar = id => {
     const atual = escolhidos == null ? servicosPagaveis.map(s => s.id) : escolhidos;
@@ -83,7 +87,7 @@ export default function PagamentosOnline() {
     if (modo !== 'nada' && escolhidos != null && escolhidos.length === 0) { toast.error('Escolhe pelo menos um serviço'); return; }
     setAGravar(true);
     try {
-      await dataService.updateBusiness({ pagamentosOnline: { modo, servicos: modo === 'nada' ? null : escolhidos } });
+      await dataService.updateBusiness({ pagamentosOnline: { modo, servicos: modo === 'nada' ? null : escolhidos, obrigatorio } });
       toast.success('Guardado');
     } catch (e) { toast.error('Não foi possível guardar', e.message); }
     finally { setAGravar(false); }
@@ -210,6 +214,15 @@ export default function PagamentosOnline() {
             </div>
           )}
         </div>
+        {modo !== 'nada' && (
+          <div className="nt-row" style={{ marginTop: 8, borderBottom: 0 }}>
+            <span className="nt-txt"><b>Só fica marcado depois de pagar <Ajuda titulo="Pagar para marcar" texto={<>
+              <p><b>Ligado:</b> o cliente paga ao marcar. Se fechar o pagamento sem pagar, a hora fica guardada 30 minutos e depois fica livre outra vez. É o que acaba com as faltas.</p>
+              <p><b>Desligado:</b> o cliente escolhe «Pagar já» ou «Pagar na loja». A marcação fica sempre.</p>
+            </>} /></b></span>
+            <Toggle checked={obrigatorio} onChange={setObrigatorio} />
+          </div>
+        )}
         <Button onClick={guardar} disabled={!ativo || aGravar} style={{ marginTop: 14 }}>{aGravar ? 'A guardar…' : 'Guardar'}</Button>
       </Card>
 

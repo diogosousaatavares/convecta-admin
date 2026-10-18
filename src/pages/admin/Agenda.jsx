@@ -36,10 +36,12 @@ function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return S
 // de maneiras diferentes no fim do mês, e tratam-se de maneiras diferentes no
 // momento. Dizer só "Cancelada" obriga o barbeiro a adivinhar.
 function rotuloEstado(a) {
+  if (a.aguardaPagamento && (a.status === 'pending' || a.status === 'confirmed')) return 'À espera do pagamento';
   if (a.status === 'confirmed') return 'Confirmada';
   if (a.status === 'completed') return 'Concluída';
   if (a.status === 'cancelled') {
     if (a.cancelledBy === 'cliente') return 'Cancelada pelo cliente';
+    if (a.cancelledBy === 'sem_pagamento') return 'Não pagou a tempo';
     if (a.cancelledBy === 'barbearia') return `Cancelada ${nicho().pela}`;
     return 'Cancelada';
   }

@@ -624,6 +624,9 @@ function apptFromRow(row) {
     mbway: m.mbway || null,
     // Pago online ao marcar (Stripe, na conta do negócio). Só o webhook escreve.
     pagoOnline: row.pago_online_em ? { valor: (Number(row.pago_online_cents) || 0) / 100, em: row.pago_online_em } : null,
+    // À espera do pagamento online obrigatório: se não pagar em 30 min, a
+    // base de dados cancela-a (PAGAR_PARA_MARCAR_2026-10-18.sql).
+    aguardaPagamento: m.aguardaPagamento === true && !row.pago_online_em,
     blocked: m.blocked || false,
     createdAt: row.created_at,
     confirmedAt: m.confirmedAt, completedAt: m.completedAt,
