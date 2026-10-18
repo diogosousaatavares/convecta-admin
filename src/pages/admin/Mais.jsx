@@ -7,6 +7,7 @@ import { useStore, useAuth } from '@/hooks/useStore';
 import { Avatar, Modal } from '@/components/ui';
 import AvisoPush from '@/components/AvisoPush';
 import { listConvectaNotifs } from '@/lib/convectaNotifs';
+import { IDIOMAS, lerIdioma, mudarIdioma } from '@/lib/idioma';
 import LinkDaBarbearia from '@/components/LinkDaBarbearia';
 import { n as nicho } from '@/lib/nicho';
 
@@ -68,6 +69,7 @@ export default function Mais() {
   /* O fundo do «Mais», à Fresha (18/10/2026): a conta e a ajuda numa só
      caixa — idioma, notícias da Convecta, subscrição, notificações da app,
      apoio e guias. */
+  const idiomaAtual = IDIOMAS.find(l => l.id === lerIdioma()) || IDIOMAS[0];
   const [novas, setNovas] = useState(0);
   const [ver, setVer] = useState(null);   // 'idioma' | 'push' | 'apoio'
   useEffect(() => { listConvectaNotifs().then(l => setNovas(l.filter(n => !n.read).length)).catch(() => {}); }, []);
@@ -99,7 +101,7 @@ export default function Mais() {
 
         <section className="mais-bloco">
           <div className="mais-caixa">
-            {linhaBotao(<span className="mais-bandeira">🇵🇹</span>, 'Português (PT)', () => setVer('idioma'))}
+            {linhaBotao(<span className="mais-bandeira">{idiomaAtual.bandeira}</span>, idiomaAtual.nome, () => setVer('idioma'))}
             <Link className="mais-linha" to="/admin/noticias">
               <span><Rocket size={19} />Notícias</span>{novas > 0 && <i className="mais-novas">{novas}</i>}<ChevronRight size={18} />
             </Link>
@@ -117,8 +119,14 @@ export default function Mais() {
         </section>
 
         <Modal open={ver === 'idioma'} onClose={() => setVer(null)} title="Idioma">
-          <div className="mais-caixa">
-            <div className="mais-linha"><span><span className="mais-bandeira">🇵🇹</span>Português (Portugal)</span><Check size={18} /></div>
+          {/* Os nomes dos idiomas não se traduzem: cada um no seu. */}
+          <div className="mais-caixa" data-sem-traduzir="">
+            {IDIOMAS.map(l => (
+              <button key={l.id} type="button" className="mais-linha" onClick={() => (l.id === idiomaAtual.id ? setVer(null) : mudarIdioma(l.id))}>
+                <span><span className="mais-bandeira">{l.bandeira}</span>{l.nome}</span>
+                {l.id === idiomaAtual.id ? <Check size={18} /> : <span />}
+              </button>
+            ))}
           </div>
         </Modal>
         <Modal open={ver === 'push'} onClose={() => setVer(null)} title="Notificações da app">
