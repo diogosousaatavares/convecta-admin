@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, ExternalLink, ArrowRight, ArrowLeft, X, ChevronRight, CreditCard, Landmark, IdCard, Clock, Percent, Smartphone, ShieldCheck, Store, Gem, ListChecks, UserRound, Building2 } from 'lucide-react';
+import { Check, ExternalLink, ArrowRight, ArrowLeft, X, ChevronRight, CreditCard, Landmark, IdCard, Clock, Percent, Smartphone, ShieldCheck, Store, Gem, ListChecks, UserRound, Building2, PlayCircle } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import AdminLayout from '@/components/AdminLayout';
 import Ajuda from '@/components/admin/Ajuda';
@@ -48,6 +48,9 @@ const invocar = async (corpo) => {
   if (data?.erro) throw new Error(data.erro);
   return data;
 };
+
+// O tutorial em vídeo: como ligar a conta Stripe (18/10/2026).
+const VIDEO = 'https://youtu.be/ViSip1m6-K0';
 
 const ESTADO = { pago: ['Pago', 'var(--success)'], pendente: ['Por pagar', 'var(--warning, #b45309)'], expirou: ['Não pagou', 'var(--text-ter)'], reembolsado: ['Devolvido', 'var(--text-ter)'] };
 const MODOS = [['nada', 'Nada'], ['metade', 'Metade'], ['total', 'Tudo']];
@@ -188,6 +191,7 @@ export default function PagamentosOnline() {
                 {aAbrir ? 'A abrir o Stripe…' : 'Começar já'}
               </button>
               <a className="po-link" href="https://convecta.pt/pagamentos-online" target="_blank" rel="noreferrer">Saber mais</a>
+              <a className="po-link po-link-video" href={VIDEO} target="_blank" rel="noreferrer"><PlayCircle size={18} /> Ver o vídeo</a>
             </div>
             <div className="po-capa-stripe"><span>Pagamentos seguros com <b>Stripe</b></span><MetodosPagamento altura={15} /></div>
           </div>
@@ -295,6 +299,7 @@ export default function PagamentosOnline() {
           {linha('O que o Stripe cobra', '1,5 % + 0,25 €', () => setVerTaxas(true))}
           {ligacao('MB WAY', 'Ligar no Stripe', 'https://dashboard.stripe.com/settings/payment_methods')}
           {ligacao('Abrir o Stripe', 'IBAN, depósitos', 'https://dashboard.stripe.com/')}
+          {ligacao('Vídeo: como funciona', 'YouTube', VIDEO)}
         </div>
       </div>
 
@@ -583,6 +588,7 @@ function Assistente({ fechar, temExtra, juntar, aJuntar, irStripe, aAbrir, preco
                   <button type="button" onClick={() => irPara('obrigatorio')}><span><b>Pagamento</b></span><em>{obrigatorio ? 'Obrigatório' : 'Opcional'}</em><ChevronRight size={18} /></button>
                   <button type="button" onClick={() => irPara('servicos')}><span><b>Em que serviços</b></span><em>{nomeQuais}</em><ChevronRight size={18} /></button>
                 </div>
+                <a className="pa-video" href={VIDEO} target="_blank" rel="noreferrer"><span className="pa-ico pa-ico-p"><PlayCircle size={20} /></span><span><b>Vê como se faz no Stripe</b>Vídeo passo a passo</span><ExternalLink size={16} /></a>
                 <h3 className="pa-h3">Tem à mão</h3>
                 <div className="pa-precisa">
                   <div><span className="pa-ico pa-ico-p"><IdCard size={20} /></span><span><b>Cartão de cidadão e NIF</b>O Stripe pode pedir uma foto do cartão</span></div>
@@ -910,6 +916,14 @@ const CSS = `
   .pa-lista .pa-ico svg { width: 20px; height: 20px; }
   .pa-sub { font-size: 15px; }
 }
+
+/* Vídeo tutorial (18/10) */
+.po-link-video { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.pa-video { display: flex; align-items: center; gap: 14px; margin-top: 22px; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(201,162,39,.45); background: rgba(201,162,39,.08); color: #f3eee3; text-decoration: none; }
+.pa-video > span:nth-child(2) { flex: 1; display: grid; gap: 2px; font-size: 14px; color: #b8b0a0; }
+.pa-video b { font-size: 16px; color: #fff; }
+.pa-video > svg { color: #C9A227; flex-shrink: 0; }
+@media (max-width: 767px) { .po-capa-cheia .po-acoes { flex-wrap: wrap; row-gap: 12px; } .po-capa-cheia .po-btn { flex: 1 0 100%; } }
 
 /* Painel v2 */
 .po-titulo-sec { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
