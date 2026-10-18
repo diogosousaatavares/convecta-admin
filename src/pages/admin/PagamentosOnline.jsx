@@ -794,36 +794,6 @@ const CSS = `
   .po-capa-cheia .po-capa-texto { margin-top: -40px; padding: 60px 20px 32px; }
 }
 
-/* Por cima de tudo (portal no body) e a ocupar o ecrã inteiro, notch incluído */
-.po-capa-cheia { z-index: 9000; }
-.pa { z-index: 9100; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
-@media (max-width: 767px) {
-  .po-capa-cheia { display: flex; flex-direction: column; min-height: 100dvh; }
-  .po-capa-cheia::after { display: none; }
-  .po-capa-cheia .po-capa-cabeca { position: absolute; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 0 18px; }
-  .po-capa-cheia .po-capa-cabeca .po-selo { visibility: visible; font-size: 14px; }
-  .po-capa-cheia .po-capa-fones { flex: 0 1 auto; width: auto; max-width: 92%; height: auto; max-height: 44dvh; margin: calc(env(safe-area-inset-top, 0px) + 66px) auto 0; }
-  .po-capa-cheia .po-capa-texto { position: relative; inset: auto; flex: 1; margin: 0; width: auto; display: flex; flex-direction: column; justify-content: flex-end; padding: 18px 20px calc(env(safe-area-inset-bottom, 0px) + 22px); background: linear-gradient(180deg, rgba(21,18,14,0), #15120E 40px); }
-  .po-capa-cheia .po-h { font-size: clamp(26px, 7.4vw, 32px); margin: 0 0 12px; }
-  .po-capa-cheia .po-checks { gap: 8px; }
-  .po-capa-cheia .po-checks li { font-size: 15px; white-space: nowrap; }
-  .po-capa-cheia .po-preco { margin-top: 14px; font-size: 18px; }
-  .po-capa-cheia .po-acoes { margin-top: 14px; gap: 18px; }
-  .po-capa-cheia .po-btn { min-height: 52px; }
-  .po-capa-cheia .po-capa-stripe { margin-top: 14px; gap: 8px; font-size: 13px; }
-  .po-capa-fechar { width: 44px; height: 44px; }
-  /* Formulário no telemóvel: compacto, ícone à esquerda, letra do corpo */
-  .pa-topo { top: 0; }
-  .pa-barra + .pa-topo { top: 12px; }
-  .pa-h { font-size: 30px; }
-  .pa-lista > div { flex-direction: row-reverse; justify-content: flex-end; align-items: flex-start; gap: 14px; padding: 16px 0; }
-  .pa-lista h3 { font-family: inherit; font-size: 16.5px; margin: 0 0 4px; }
-  .pa-lista p { font-size: 14.5px; line-height: 1.45; }
-  .pa-lista .pa-ico { width: 44px; height: 44px; border-radius: 13px; box-shadow: none; }
-  .pa-lista .pa-ico svg { width: 20px; height: 20px; }
-  .pa-sub { font-size: 15px; }
-}
-
 /* Formulário escuro, à Fresha (18/10) — preto quente e dourado da Convecta */
 .pa { position: fixed; inset: 0; z-index: 1000; background: #15120E; color: #f3eee3; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; animation: po-capa-entra 220ms ease backwards; }
 .pa-barra { position: sticky; top: 0; z-index: 3; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; padding: 10px 24px 0; background: #15120E; }
@@ -908,6 +878,37 @@ const CSS = `
   .pa-tabela { padding: 2px 16px; }
   .pa-escudo { width: 84px; height: 84px; border-radius: 24px; margin-bottom: 18px; }
   .pa-escudo svg { width: 46px; height: 46px; }
+}
+
+/* (fica depois do formulário para ganhar às regras dele: z-index, topo) */
+/* Por cima de tudo (portal no body) e a ocupar o ecrã inteiro, notch incluído */
+.po-capa-cheia { z-index: 9000; }
+.pa { z-index: 9100; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+@media (max-width: 767px) {
+  .po-capa-cheia { display: flex; flex-direction: column; min-height: 100dvh; }
+  .po-capa-cheia::after { display: none; }
+  .po-capa-cheia .po-capa-cabeca { position: absolute; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 0 18px; }
+  .po-capa-cheia .po-capa-cabeca .po-selo { visibility: visible; font-size: 14px; }
+  .po-capa-cheia .po-capa-fones { flex: 0 1 auto; width: auto; max-width: 92%; height: auto; max-height: 44dvh; margin: calc(env(safe-area-inset-top, 0px) + 66px) auto 0; }
+  .po-capa-cheia .po-capa-texto { position: relative; inset: auto; flex: 1; margin: 0; width: auto; display: flex; flex-direction: column; justify-content: flex-end; padding: 18px 20px calc(env(safe-area-inset-bottom, 0px) + 22px); background: linear-gradient(180deg, rgba(21,18,14,0), #15120E 40px); }
+  .po-capa-cheia .po-h { font-size: clamp(26px, 7.4vw, 32px); margin: 0 0 12px; }
+  .po-capa-cheia .po-checks { gap: 8px; }
+  .po-capa-cheia .po-checks li { font-size: 15px; white-space: nowrap; }
+  .po-capa-cheia .po-preco { margin-top: 14px; font-size: 18px; }
+  .po-capa-cheia .po-acoes { margin-top: 14px; gap: 18px; }
+  .po-capa-cheia .po-btn { min-height: 52px; }
+  .po-capa-cheia .po-capa-stripe { margin-top: 14px; gap: 8px; font-size: 13px; }
+  .po-capa-fechar { width: 44px; height: 44px; }
+  /* Formulário no telemóvel: compacto, ícone à esquerda, letra do corpo */
+  .pa-topo { top: 0; }
+  .pa-barra + .pa-topo { top: 12px; }
+  .pa-h { font-size: 30px; }
+  .pa-lista > div { flex-direction: row-reverse; justify-content: flex-end; align-items: flex-start; gap: 14px; padding: 16px 0; }
+  .pa-lista h3 { font-family: inherit; font-size: 16.5px; margin: 0 0 4px; }
+  .pa-lista p { font-size: 14.5px; line-height: 1.45; }
+  .pa-lista .pa-ico { width: 44px; height: 44px; border-radius: 13px; box-shadow: none; }
+  .pa-lista .pa-ico svg { width: 20px; height: 20px; }
+  .pa-sub { font-size: 15px; }
 }
 
 /* Painel v2 */
