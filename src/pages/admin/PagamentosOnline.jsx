@@ -152,16 +152,16 @@ export default function PagamentosOnline() {
       <AdminPage title="Pagamentos online">
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
         {/* A capa ocupa tudo e o texto e os botões vivem DENTRO da imagem
-            (18/10/2026, pedido do Diogo). A imagem é clara nos dois temas,
-            por isso as cores aqui são fixas, não do tema. */}
+            (18/10/2026, pedido do Diogo). Estilo Convecta (preto quente e
+            dourado) nos dois temas, por isso as cores aqui são fixas. */}
         <section className="po-capa">
           <picture>
-            <source media="(max-width: 767px)" srcSet="/pagamentos/pagamentos-online-capa-v2-telemovel.jpg" />
-            <img src="/pagamentos/pagamentos-online-capa-v2-1200.jpg" srcSet="/pagamentos/pagamentos-online-capa-v2-1200.jpg 1200w, /pagamentos/pagamentos-online-capa-v2.jpg 2400w" sizes="(max-width: 1100px) 100vw, 1100px" alt="" />
+            <source media="(max-width: 767px)" srcSet="/pagamentos/pagamentos-online-capa-v3-telemovel.jpg" />
+            <img src="/pagamentos/pagamentos-online-capa-v3-1200.jpg" srcSet="/pagamentos/pagamentos-online-capa-v3-1200.jpg 1200w, /pagamentos/pagamentos-online-capa-v3.jpg 2400w" sizes="(max-width: 1100px) 100vw, 1100px" alt="" />
           </picture>
           <div className="po-capa-texto">
             <div className="po-selo"><span><CreditCard size={16} /></span>Pagamentos online</div>
-            <h2 className="po-h">O cliente paga ao marcar. Acabam as faltas.</h2>
+            <h2 className="po-h">O cliente paga ao marcar. <em>Acabam as faltas.</em></h2>
             <ul className="po-checks">
               <li><Check size={17} /> Metade ou o serviço todo, só nos serviços que escolheres</li>
               <li><Check size={17} /> Cartão, Apple Pay, Google Pay e MB WAY</li>
@@ -677,23 +677,24 @@ const CSS = `
 @media (max-width: 767px) { .po-ass-extra { margin-left: 0; } .po-ass-lead { font-size: 15.5px; } }
 
 /* Capa v2: a imagem ocupa tudo, o texto por cima */
-.po-capa { position: relative; max-width: 1100px; border-radius: 24px; overflow: hidden; isolation: isolate; color: #15171a; box-shadow: 0 18px 50px rgba(0,0,0,.18); }
+.po-capa { position: relative; max-width: 1100px; border-radius: 24px; overflow: hidden; isolation: isolate; color: #fff; background: #15120E; box-shadow: 0 18px 50px rgba(0,0,0,.28); }
 .po-capa picture, .po-capa img { display: block; width: 100%; height: 100%; }
 .po-capa img { object-fit: cover; min-height: 560px; }
-.po-capa::after { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(90deg, rgba(246,245,241,.94) 0%, rgba(246,245,241,.82) 36%, rgba(246,245,241,0) 58%); }
+.po-capa::after { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(90deg, rgba(21,18,14,.92) 0%, rgba(21,18,14,.7) 38%, rgba(21,18,14,0) 58%); }
 .po-capa-texto { position: absolute; z-index: 1; inset: 0; width: min(52%, 520px); padding: 44px 0 40px 48px; display: flex; flex-direction: column; justify-content: center; }
-.po-capa .po-selo, .po-capa .po-h, .po-capa .po-checks li, .po-capa .po-preco, .po-capa .po-link { color: #15171a; }
-.po-capa .po-checks svg { color: #8a6d0f; }
-.po-capa .po-preco-sub { color: #4a4f57; }
-.po-capa .po-btn { background: #15171a; color: #fff; }
-.po-capa .po-link { border-bottom-color: #c9a227; }
-.po-capa-stripe { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 22px; font-size: 14px; color: #4a4f57; }
-.po-capa-stripe b { color: #635bff; font-weight: 800; letter-spacing: -.01em; }
+.po-capa .po-selo, .po-capa .po-h, .po-capa .po-checks li, .po-capa .po-preco, .po-capa .po-link { color: #fff; }
+.po-capa .po-h em { font-style: italic; color: #C9A227; }
+.po-capa .po-checks svg { color: #C9A227; }
+.po-capa .po-preco-sub { color: #b8b0a0; }
+.po-capa .po-btn { background: #C9A227; color: #15120E; }
+.po-capa .po-link { border-bottom-color: #C9A227; }
+.po-capa-stripe { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 22px; font-size: 14px; color: #b8b0a0; }
+.po-capa-stripe b { color: #fff; font-weight: 800; letter-spacing: -.01em; }
 @media (max-width: 767px) {
-  .po-capa { border-radius: 20px; background: #f6f5f1; }
+  .po-capa { border-radius: 20px; }
   .po-capa img { min-height: 0; height: auto; aspect-ratio: 1080 / 1500; max-height: 62vh; }
   .po-capa::after { display: none; }
-  .po-capa-texto { position: relative; width: auto; inset: auto; margin-top: -150px; padding: 120px 20px 24px; background: linear-gradient(180deg, rgba(246,245,241,0) 0, #f6f5f1 130px); }
+  .po-capa-texto { position: relative; width: auto; inset: auto; margin-top: -150px; padding: 120px 20px 24px; background: linear-gradient(180deg, rgba(21,18,14,0) 0, #15120E 130px); }
   .po-capa .po-h { font-size: 28px; margin: 12px 0 12px; }
   .po-capa .po-checks li { font-size: 15px; }
   .po-capa .po-preco { margin-top: 16px; font-size: 19px; }
