@@ -339,7 +339,9 @@ export default function Subscricao() {
   }, [planos, haAnual, haQuinzenal, periodo]);
   // Vem escolhido o que ele escolheu no site (/comecar).
   useEffect(() => {
-    if (['quinzenal', 'anual'].includes(sub?.periodo) && planos?.length) setPeriodo(sub.periodo);
+    // Qualquer um dos três: antes só se copiava «quinzenal» e «anual», e quem
+    // escolheu «mensal» no site via (e pagava) o de 15 em 15 dias.
+    if (sub?.periodo && planos?.some(p => p.precos?.[sub.periodo])) setPeriodo(sub.periodo);
   }, [sub?.periodo, planos]);
 
   // O plano que ele escolheu no site (ou o que lhe foi atribuído pelo número
@@ -380,9 +382,17 @@ export default function Subscricao() {
     const semCartao = !sub || sub.estado === 'sem_cartao' || sub.estado === 'cancelada';
     if (aCarregar || !semCartao || !precoDaCasa || aAbrir) return;
     let primeira = false;
-    try { primeira = sessionStorage.getItem('convecta_primeira_entrada') === '1'; sessionStorage.removeItem('convecta_primeira_entrada'); } catch { /* nada */ }
+    try { primeira = sessionStorage.getItem('convecta_primeira_entrada') === '1'; } catch { /* nada */ }
     if (!primeira) return;
-    const t = setTimeout(() => assinar(precoDaCasa, true), 1200);
+    // O preço do período que ele escolheu no site, mesmo que o seletor ainda
+    // não o tenha apanhado. E a marca só se apaga quando se vai mesmo: se o
+    // período mudava a meio, o temporizador era cancelado com a marca já
+    // apagada e o Stripe nunca abria.
+    const preco = planoDaCasa?.precos?.[sub?.periodo] || precoDaCasa;
+    const t = setTimeout(() => {
+      try { sessionStorage.removeItem('convecta_primeira_entrada'); } catch { /* nada */ }
+      assinar(preco, true);
+    }, 1200);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aCarregar, sub, precoDaCasa]);
@@ -605,7 +615,7 @@ export default function Subscricao() {
               <div className="sub-ico"><CreditCard size={24} /></div>
               {/* «Pagamento seguro» é o que toda a gente escreve e ninguém
                   lê. O que faz carregar no botão é não se pagar nada hoje. */}
-              <div className="sub-pill"><Gift size={13} style={{ color: 'var(--gold-tinta)' }} /> 14 dias grátis</div>
+              {sub?.estado !== 'cancelada' && <div className="sub-pill"><Gift size={13} style={{ color: 'var(--gold-tinta)' }} /> 14 dias grátis</div>}
             </div>
             <h2 className="sub-hero-h1">{sub?.estado === 'cancelada' ? 'Reactiva a tua conta' : 'Activa a tua conta'}</h2>
             <p className="sub-hero-sub">Pedimos o cartão para a conta ser de uma pessoa real. Hoje não pagas nada e cancelas quando quiseres.</p>
@@ -613,11 +623,13 @@ export default function Subscricao() {
             <div className="sub-linhas">
               <div className="sub-linha"><i><Zap size={18} /></i><b>Em menos de 2 minutos</b></div>
               <div className="sub-linha"><i><ShieldCheck size={18} /></i><b>Seguro, pela Stripe</b></div>
-              <div className="sub-linha"><i><CalendarDays size={18} /></i><b>Hoje 0 €. Primeiro pagamento a {diaDaCobranca}</b></div>
+              {/* Os 14 dias são uma vez por negócio (o servidor confirma):
+                  quem cancelou e volta reactiva a pagar. */}
+              {sub?.estado !== 'cancelada' && <div className="sub-linha"><i><CalendarDays size={18} /></i><b>Hoje 0 €. Primeiro pagamento a {diaDaCobranca}</b></div>}
             </div>
             {precoDaCasa ? (
               <button className="sub-btn" onClick={() => assinar(precoDaCasa, true)} disabled={!!aAbrir}>
-                {aAbrir ? 'A abrir…' : 'Activar 14 dias grátis'} <ArrowRight size={20} />
+                {aAbrir ? 'A abrir…' : sub?.estado === 'cancelada' ? 'Reactivar a conta' : 'Activar 14 dias grátis'} <ArrowRight size={20} />
               </button>
             ) : (
               <button className="sub-btn" onClick={() => setVerPlanos(true)}>Escolher o plano <ArrowRight size={20} /></button>
