@@ -165,7 +165,7 @@ export default function PagamentosOnline() {
             <ul className="po-checks">
               <li><Check size={17} /> Metade ou o serviço todo, só nos serviços que escolheres</li>
               <li><Check size={17} /> Cartão, Apple Pay, Google Pay e MB WAY</li>
-              <li><Check size={17} /> O dinheiro vai para o teu banco. A Convecta não fica com nada</li>
+              <li><Check size={17} /> O dinheiro vai direto para o teu banco</li>
             </ul>
             <div className="po-preco">1,5 % + 0,25 € por pagamento</div>
             {!temExtra && <div className="po-preco-sub">+{formatPrice(extra.precos[periodo])}{sufixoPeriodo(periodo)} na subscrição · incluído no Profissional e Business</div>}
@@ -679,9 +679,14 @@ const CSS = `
 /* Capa v2: a imagem ocupa tudo, o texto por cima */
 .po-capa { position: relative; max-width: 1100px; border-radius: 24px; overflow: hidden; isolation: isolate; color: #fff; background: #15120E; box-shadow: 0 18px 50px rgba(0,0,0,.28); }
 .po-capa picture, .po-capa img { display: block; width: 100%; height: 100%; }
-.po-capa img { object-fit: cover; min-height: 560px; }
+.po-capa img { object-fit: cover; object-position: right center; min-height: 520px; max-height: min(620px, 74vh); }
+.po-capa .po-h { font-size: clamp(30px, 3vw, 42px); margin: 16px 0 14px; }
+.po-capa .po-checks li { font-size: 15.5px; white-space: nowrap; }
+.po-capa .po-preco { margin-top: 18px; font-size: 20px; }
+.po-capa .po-acoes { margin-top: 18px; flex-wrap: nowrap; }
+.po-capa .po-btn { white-space: nowrap; }
 .po-capa::after { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(90deg, rgba(21,18,14,.92) 0%, rgba(21,18,14,.7) 38%, rgba(21,18,14,0) 58%); }
-.po-capa-texto { position: absolute; z-index: 1; inset: 0; width: min(52%, 520px); padding: 44px 0 40px 48px; display: flex; flex-direction: column; justify-content: center; }
+.po-capa-texto { position: absolute; z-index: 1; inset: 0; width: min(50%, 500px); padding: 32px 0 32px 44px; display: flex; flex-direction: column; justify-content: center; }
 .po-capa .po-selo, .po-capa .po-h, .po-capa .po-checks li, .po-capa .po-preco, .po-capa .po-link { color: #fff; }
 .po-capa .po-h em { font-style: italic; color: #C9A227; }
 .po-capa .po-checks svg { color: #C9A227; }
@@ -692,7 +697,8 @@ const CSS = `
 .po-capa-stripe b { color: #fff; font-weight: 800; letter-spacing: -.01em; }
 @media (max-width: 767px) {
   .po-capa { border-radius: 20px; }
-  .po-capa img { min-height: 0; height: auto; aspect-ratio: 1080 / 1500; max-height: 62vh; }
+  .po-capa img { min-height: 0; height: auto; aspect-ratio: 1080 / 1500; max-height: 62vh; object-position: center top; }
+  .po-capa .po-checks li { white-space: normal; }
   .po-capa::after { display: none; }
   .po-capa-texto { position: relative; width: auto; inset: auto; margin-top: -150px; padding: 120px 20px 24px; background: linear-gradient(180deg, rgba(21,18,14,0) 0, #15120E 130px); }
   .po-capa .po-h { font-size: 28px; margin: 12px 0 12px; }
