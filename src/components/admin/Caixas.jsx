@@ -13,9 +13,12 @@ import { ChevronRight } from 'lucide-react';
  * dentro de um cartão — ícone, nome, seta — sem a frase. No computador fica
  * igual às outras caixas.
  */
-export default function Caixas({ itens, colunas = 2, lista = false }) {
+export default function Caixas({ itens, colunas = 2, lista = false, azulejos = false }) {
+  /* `azulejos` (18/10/2026, o «Mais» da Fresha): duas colunas sempre, o
+     ícone em cima e o nome por baixo — sem frase, sem seta. Cabe tudo no
+     ecrã e lê-se de relance. */
   return (
-    <div className={`cx-grelha${lista ? ' cx-lista' : ''}`} style={{ '--cx-colunas': colunas }} data-grelha>
+    <div className={`cx-grelha${lista ? ' cx-lista' : ''}${azulejos ? ' cx-azulejos' : ''}`} style={{ '--cx-colunas': colunas }} data-grelha>
       {itens.map(it => {
         const Ic = it.icon;
         return (
@@ -23,9 +26,9 @@ export default function Caixas({ itens, colunas = 2, lista = false }) {
             <span className="cx-icone">{Ic ? <Ic size={22} strokeWidth={1.8} /> : null}</span>
             <span className="cx-texto">
               <b>{it.label}</b>
-              {it.d && <span>{it.d}</span>}
+              {it.d && !azulejos && <span>{it.d}</span>}
             </span>
-            <ChevronRight size={18} className="cx-seta" />
+            {!azulejos && <ChevronRight size={18} className="cx-seta" />}
           </Link>
         );
       })}
@@ -45,6 +48,11 @@ export const CSS_CAIXAS = `
 .cx-texto b { font-size: 16px; font-weight: 700; }
 .cx-texto span { font-size: 14px; color: var(--text-sec); line-height: 1.35; }
 .cx-seta { color: var(--text-ter); flex-shrink: 0; }
+.cx-azulejos { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px; }
+.cx-azulejos .cx { flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 18px; min-height: 104px; padding: 16px; }
+.cx-azulejos .cx-icone { width: 26px; height: 26px; border-radius: 0; background: none; color: var(--text); }
+.cx-azulejos .cx-texto b { font-size: 16.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 768px) { .cx-azulejos { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
 @media (max-width: 767px) {
   .cx-lista { gap: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
   .cx-lista .cx { border: 0; border-bottom: 1px solid var(--border); border-radius: 0; min-height: 56px; padding: 14px 16px; background: none; }

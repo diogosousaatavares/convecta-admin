@@ -51,6 +51,19 @@ export function EmptyState({ icon: Icon, title, description, action }) {
 }
 
 export function Modal({ open, onClose, title, children, footer }) {
+  /* Sai a deslizar (18/10/2026): ao fechar, fica mais 220 ms no ecrã com a
+     classe «a-sair», para descer (telemóvel) ou desvanecer (computador),
+     em vez de desaparecer de repente. */
+  const [montado, setMontado] = React.useState(open);
+  const [aSair, setASair] = React.useState(false);
+  React.useEffect(() => {
+    if (open) { setMontado(true); setASair(false); return; }
+    if (!montado) return;
+    setASair(true);
+    const t = setTimeout(() => { setMontado(false); setASair(false); }, 220);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
   React.useEffect(() => {
     if (!open) return;
     const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -61,7 +74,7 @@ export function Modal({ open, onClose, title, children, footer }) {
     document.body.style.overflow = 'hidden';
     return () => { document.removeEventListener('keydown', handleKey); document.body.style.overflow = antes; };
   }, [open, onClose]);
-  if (!open) return null;
+  if (!montado) return null;
   // Desenhada fora da página onde é aberta: dentro da agenda, um bloco com
   // transform (o toque no telemóvel deixa o :hover preso) prendia a janela
   // a esse bloco — ficava cortada a meio, com a agenda a aparecer por baixo.
@@ -69,7 +82,7 @@ export function Modal({ open, onClose, title, children, footer }) {
     // Fecha so quando o toque COMECA e ACABA fora da janela. Sem isto,
     // arrastar alguma coisa la dentro (a foto do barbeiro) e largar fora
     // fechava a janela e perdia-se o que estava a ser feito.
-    <div className="modal-overlay"
+    <div className={`modal-overlay${aSair ? ' a-sair' : ''}`}
       onPointerDown={e => { e.currentTarget.dataset.fora = e.target === e.currentTarget ? '1' : ''; }}
       onClick={e => { if (e.target === e.currentTarget && e.currentTarget.dataset.fora === '1') onClose(); }}>
       <div className="modal" onClick={e => e.stopPropagation()}>

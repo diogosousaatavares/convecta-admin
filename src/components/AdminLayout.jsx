@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
+import PageInfo from '@/components/admin/PageInfo';
 import { createPortal } from 'react-dom';
 import MbIcon from '@/components/MbIcon';
 /* Os icones dos oito grupos antigos sairam com eles: com cinco entradas, os
@@ -381,6 +382,7 @@ function Trilho({ grupos, isActive, onApoio, onSair }) {
 export default function AdminLayout({ children }) {
   const data = useStore();
   const location = useLocation();
+  const tipoDeNavegacao = useNavigationType();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const emDemo = data.business?._settings?.demo?.ativo === true;
@@ -693,7 +695,7 @@ export default function AdminLayout({ children }) {
             onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/admin/mais'))}>
             <ArrowLeft size={22} />
           </button>
-          <span className="admin-topbar-titulo">{tituloDaPagina(location.pathname)}</span>
+          <span className="admin-topbar-titulo"><span className="admin-topbar-nome">{tituloDaPagina(location.pathname)}</span><PageInfo /></span>
           <div className="admin-topbar-right">
             <SinoAvisos businessId={data.business?.id} porConfirmar={porConfirmar} />
           </div>
@@ -788,7 +790,12 @@ export default function AdminLayout({ children }) {
             ver — e era precisamente a quem acabou de chegar que ela servia.
             Fica nos dois sitios, escrita num lado so. */}
         {(location.pathname === '/admin/agenda' || location.pathname === '/admin/dashboard') && <PrimeirosPassos />}
-        {children}
+        {/* A página entra a deslizar (18/10/2026): para a frente vem da
+            direita, ao voltar vem da esquerda — como numa app. A barra de
+            cima não se mexe; só o conteúdo. */}
+        <div key={location.pathname} className={`pagina-desliza${tipoDeNavegacao === 'POP' ? ' volta' : ''}`}>
+          {children}
+        </div>
       </main>
     </div>
   );

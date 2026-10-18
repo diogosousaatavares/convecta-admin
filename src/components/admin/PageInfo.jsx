@@ -18,5 +18,8 @@ export default function PageInfo() {
   const { pathname } = useLocation();
   const a = ajudaDe(pathname);
   if (!a) return null;
-  return <Ajuda titulo={a.titulo} texto={a.texto.split('\n\n').map((p, i) => <p key={i}>{p}</p>)} />;
+  // «ajuda-pagina»: no telemóvel, nas páginas de dentro, o (i) da página vai
+  // para a barra de cima, ao lado do nome (18/10/2026) — e este, o do título
+  // escondido, deixa de ocupar uma linha sozinho.
+  return <span className="ajuda-pagina"><Ajuda titulo={a.titulo} texto={a.texto.split('\n\n').map((p, i) => <p key={i}>{p}</p>)} /></span>;
 }

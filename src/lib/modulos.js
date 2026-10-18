@@ -70,6 +70,9 @@ export const ABERTO_AO_PROFISSIONAL = [
   // No telemóvel, o «Mais» é a porta para Férias, Orçamentos e a conta dele.
   // Sem isto, o profissional tocava em «Mais» e voltava para a agenda.
   '/admin/mais',
+  // As páginas de secção (as caixas da Agenda, por exemplo): mostram só o
+  // que ele pode abrir (gruposPara filtra).
+  '/admin/seccao',
 ];
 export function permitidoAoProfissional(caminho) {
   if (!caminho) return false;

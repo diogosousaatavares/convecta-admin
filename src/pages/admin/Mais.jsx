@@ -50,11 +50,14 @@ export default function Mais() {
      Encaixes, Bloqueios, Aniversários, Avaliações — ficavam sem porta no
      telemóvel (auditoria de 16/10/2026). Entram aqui, cada uma com a sua
      caixa, logo à frente. */
-  const irmas = grupos
-    .filter(g => g.type === 'group' && g.to && naBarra.has(g.to))
-    .flatMap(g => (g.items || []).filter(it => it.to && !it.titulo && it.to !== g.to)
-      .map(it => ({ to: it.to, label: it.label, icon: it.icon, d: it.d })));
-  caixas.unshift(...irmas);
+  /* 18/10/2026 (o «Mais» da Fresha): em vez de cada página irmã numa linha
+     comprida, a Agenda e os Clientes entram como secção — tocar mostra as
+     páginas delas (Marcações, Orçamentos, Espera, Encaixes, Bloqueios;
+     Aniversários, Avaliações). */
+  const comoSeccao = grupos
+    .filter(g => g.type === 'group' && g.to && naBarra.has(g.to) && (g.items || []).some(it => it.to && !it.titulo && it.to !== g.to))
+    .map(g => ({ to: `/admin/seccao/${g.id}`, label: g.label, icon: g.icon }));
+  caixas.splice(caixas.length && caixas[0].to === '/admin/dashboard' ? 1 : 0, 0, ...comoSeccao);
   // A conta do profissional (comissões e gorjetas) não está em nenhuma secção.
   if (data.isProfissional) caixas.push({ to: '/admin/financeiro/conta-profissional', label: 'A minha conta', icon: Wallet, d: 'Comissões e gorjetas.' });
 
@@ -77,7 +80,7 @@ export default function Mais() {
           <div className="mais-link"><LinkDaBarbearia /></div>
         </header>
 
-        <section className="mais-bloco"><Caixas itens={caixas} colunas={2} /></section>
+        <section className="mais-bloco"><Caixas itens={caixas} colunas={2} azulejos /></section>
 
         <section className="mais-bloco">
           <h2 className="mais-h">Ajuda</h2>
