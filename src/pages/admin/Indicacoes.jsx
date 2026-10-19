@@ -3,10 +3,8 @@ import { createPortal } from 'react-dom';
 import { Copy, Check, Share2, Clock3, BadgeCheck, X, Banknote, ChevronRight } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import { Modal } from '@/components/ui';
-import { useStore } from '@/hooks/useStore';
 import { useToast } from '@/components/ui/ToastContext';
 import { supabase } from '@/lib/supabase';
-import dataService from '@/lib/dataService';
 import { formatPrice } from '@/lib/format';
 
 /*
@@ -38,15 +36,16 @@ const PASSOS = [
 ];
 
 export default function Indicacoes() {
-  const data = useStore();
   const toast = useToast();
   const [codigo, setCodigo] = useState(null);
   const [lista, setLista] = useState(null);
   const [copiado, setCopiado] = useState('');
   const [verRegras, setVerRegras] = useState(false);
-  const recebeGravado = data.business?._settings?.indicacaoRecebe || '';
-  const [tipoRecebe, setTipoRecebe] = useState(/^iban/i.test(recebeGravado) ? 'iban' : 'mbway');
-  const [numRecebe, setNumRecebe] = useState(recebeGravado.replace(/^(mb\s*way|iban)\s*/i, ''));
+  // O «onde receber» é da CONTA (negócio principal), não deste espaço —
+  // por isso lê-se e grava-se por RPC, para ser o mesmo em todo o grupo.
+  const [recebeGravado, setRecebeGravado] = useState('');
+  const [tipoRecebe, setTipoRecebe] = useState('mbway');
+  const [numRecebe, setNumRecebe] = useState('');
   const [aGravar, setAGravar] = useState(false);
   // Na 1.ª vez, a capa abre em ecrã inteiro (como os Pagamentos online).
   const [cartaz, setCartaz] = useState(() => { try { return localStorage.getItem('convecta_indicacoes_visto') !== '1'; } catch { return true; } });
@@ -57,6 +56,12 @@ export default function Indicacoes() {
   useEffect(() => {
     supabase.rpc('meu_codigo_indicacao').then(({ data: c, error }) => { if (!error) setCodigo(c); });
     supabase.rpc('minhas_indicacoes').then(({ data: l }) => setLista(l || []));
+    supabase.rpc('meu_recebe_indicacao').then(({ data: r }) => {
+      const v = (r || '').trim();
+      setRecebeGravado(v);
+      setTipoRecebe(/^iban/i.test(v) ? 'iban' : 'mbway');
+      setNumRecebe(v.replace(/^(mb\s*way|iban)\s*/i, ''));
+    });
   }, []);
 
   const link = codigo ? `https://convecta.pt/comecar?ref=${codigo}` : '';
@@ -72,7 +77,7 @@ export default function Indicacoes() {
   };
   const guardarRecebe = async () => {
     setAGravar(true);
-    try { await dataService.updateBusiness({ indicacaoRecebe: recebeMontado }); toast.success('Guardado'); }
+    try { const { error } = await supabase.rpc('guardar_recebe_indicacao', { p_texto: recebeMontado }); if (error) throw error; setRecebeGravado(recebeMontado); toast.success('Guardado'); }
     catch (e) { toast.error('Não ficou gravado', e.message); }
     finally { setAGravar(false); }
   };
