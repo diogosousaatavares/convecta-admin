@@ -76,8 +76,11 @@ export default function Indicacoes() {
       <div className="ind">
 
         <section className="ind-hero">
-          <div className="ind-selo"><Gift size={18} /></div>
-          <h2>Ganha <b>{VALOR} €</b> por cada amigo</h2>
+          <img className="ind-cartaz"
+            src="/indicacoes/ganha-40-amigo.jpg"
+            srcSet="/indicacoes/ganha-40-amigo-640.jpg 640w, /indicacoes/ganha-40-amigo.jpg 1280w"
+            sizes="(max-width: 700px) 100vw, 640px"
+            alt={`Ganha ${VALOR} € ao convidar o teu amigo`} />
           <p>Por cada barbearia, salão ou estética que entre pelo teu link e pague o 1.º mês, recebes {VALOR} € em dinheiro. Sem limite — 3 amigos são {VALOR * 3} €.</p>
         </section>
 
@@ -163,7 +166,8 @@ export default function Indicacoes() {
 const CSS = `
 .ind { max-width: 640px; display: grid; gap: 22px; }
 .po-nowrap { white-space: nowrap; }
-.ind-hero { text-align: center; padding: 10px 0 4px; }
+.ind-hero { text-align: center; padding: 0 0 4px; }
+.ind-cartaz { display: block; width: 100%; max-width: 560px; margin: 0 auto 16px; border-radius: 16px; }
 .ind-selo { width: 54px; height: 54px; border-radius: 16px; margin: 0 auto 14px; display: grid; place-items: center; color: #15120E; background: var(--gold); }
 .ind-hero h2 { font-family: var(--font-head); font-size: clamp(26px, 6vw, 34px); margin: 0 0 8px; color: var(--text); }
 .ind-hero h2 b { color: var(--gold-tinta); }
