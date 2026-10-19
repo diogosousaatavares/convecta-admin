@@ -205,7 +205,6 @@ export default function Indicacoes() {
           <button type="button" className="ind-full-x" onClick={fecharCartaz} aria-label="Fechar"><X size={24} /></button>
           <div className="ind-full-top">
             <div className="ind-full-eyebrow">Convida e ganha</div>
-            <h2>Ganha <b>{VALOR} €</b><br />por cada amigo</h2>
             <div className="ind-full-passos">
               {PASSOS.map(({ Icone, t }, k) => (
                 <div key={k} className="ind-full-passo">
@@ -280,10 +279,10 @@ const CSS = `
 .ind-regras-nota { margin: 0; font-size: 13px; color: var(--text-ter); line-height: 1.5; }
 
 /* Capa da 1.ª vez — passos em cima, foto cortada em baixo */
-.ind-full { position: fixed; inset: 0; z-index: 9000; background: var(--bg, #0d0b08); display: flex; flex-direction: column; animation: ind-full-entra 240ms ease backwards; }
+.ind-full { position: fixed; inset: 0; z-index: 9000; background: #000; display: flex; flex-direction: column; animation: ind-full-entra 240ms ease backwards; }
 @keyframes ind-full-entra { from { opacity: 0; } }
-.ind-full-x { position: absolute; z-index: 3; top: calc(env(safe-area-inset-top, 0px) + 12px); right: 14px; width: 44px; height: 44px; border-radius: 999px; border: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(6px); color: #fff; display: grid; place-items: center; cursor: pointer; }
-.ind-full-top { position: relative; z-index: 2; padding: calc(env(safe-area-inset-top, 0px) + 40px) 24px 18px; display: grid; gap: 18px; justify-items: center; text-align: center; }
+.ind-full-x { position: absolute; z-index: 3; top: calc(env(safe-area-inset-top, 0px) + 12px); right: 14px; width: 44px; height: 44px; border-radius: 999px; border: 0; background: rgba(255,255,255,.14); backdrop-filter: blur(6px); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.ind-full-top { position: relative; z-index: 2; padding: calc(env(safe-area-inset-top, 0px) + 56px) 24px 22px; display: grid; gap: 20px; justify-items: center; text-align: center; }
 .ind-full-eyebrow { font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
 .ind-full-top h2 { font-family: var(--font-head); font-size: clamp(30px, 8vw, 40px); line-height: 1.05; margin: 0; color: #fff; }
 .ind-full-top h2 b { color: var(--gold); }
@@ -294,7 +293,7 @@ const CSS = `
 .ind-full-btn { min-height: 54px; padding: 0 56px; border-radius: 999px; border: 0; background: var(--gold); color: #15120E; font: inherit; font-size: 17px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
 .ind-full-img { position: relative; flex: 1 1 auto; min-height: 180px; overflow: hidden; margin-top: 4px; }
 .ind-full-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
-.ind-full-img::before { content: ''; position: absolute; inset: 0 0 auto; height: 60px; z-index: 1; background: linear-gradient(var(--bg, #0d0b08), transparent); }
+.ind-full-img::before { content: ''; position: absolute; inset: 0 0 auto; height: 72px; z-index: 1; background: linear-gradient(#000, transparent); }
 @media (min-width: 768px) {
   .ind-full { flex-direction: row; align-items: stretch; }
   .ind-full-top { flex: 1; align-content: center; padding: 48px; max-width: 560px; margin: auto 0; }
