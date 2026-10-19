@@ -260,7 +260,7 @@ export function gruposPara(demo, profissional) {
 function tituloDaPagina(pathname) {
   const sec = pathname.match(/^\/admin\/seccao\/([a-z]+)$/);
   if (sec) return GROUPS_TODOS.find(g => g.id === sec[1])?.label || '';
-  const fixos = { '/admin/noticias': 'Notícias', '/admin/subscricao': 'A minha subscrição', '/admin/indicacoes': 'Traz um amigo' };
+  const fixos = { '/admin/noticias': 'Notícias', '/admin/subscricao': 'A minha subscrição', '/admin/indicacoes': 'Traz um amigo', '/admin/suplementos': 'Suplementos' };
   if (fixos[pathname]) return fixos[pathname];
   let melhor = null;
   const ve = (it) => {

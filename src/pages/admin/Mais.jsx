@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, LogOut, Wallet, Rocket, CreditCard, Bell, LifeBuoy, PlaySquare, Check, MessageCircle, Phone, Gift } from 'lucide-react';
+import { ChevronRight, LogOut, Wallet, Rocket, CreditCard, Bell, LifeBuoy, PlaySquare, Check, MessageCircle, Phone, Gift, Puzzle } from 'lucide-react';
 import AdminLayout, { gruposPara, caminhoDaSeccao } from '@/components/AdminLayout';
 import Caixas, { CSS_CAIXAS } from '@/components/admin/Caixas';
 import { useStore, useAuth } from '@/hooks/useStore';
@@ -63,6 +63,8 @@ export default function Mais() {
   caixas.splice(caixas.length && caixas[0].to === '/admin/dashboard' ? 1 : 0, 0, ...comoSeccao);
   // A conta do profissional (comissões e gorjetas) não está em nenhuma secção.
   if (data.isProfissional) caixas.push({ to: '/admin/financeiro/conta-profissional', label: 'A minha conta', icon: Wallet, d: 'Comissões e gorjetas.' });
+  // Suplementos (19/10/2026): os extras, no lugar vazio ao lado das Definições.
+  if (!data.isProfissional) caixas.push({ to: '/admin/suplementos', label: 'Suplementos', icon: Puzzle, d: 'Pagamentos online e mais.' });
 
   const nome = data.business?.name || nicho().Casa;
 
@@ -98,6 +100,12 @@ export default function Mais() {
         </header>
 
         <section className="mais-bloco"><Caixas itens={caixas} colunas={2} azulejos /></section>
+
+        {!data.isProfissional && (
+          <Link to="/admin/indicacoes" className="mais-cartaz" aria-label="Ganha 40 € ao convidar um amigo">
+            <img src="/indicacoes/ganha-40-amigo.jpg" srcSet="/indicacoes/ganha-40-amigo-640.jpg 640w, /indicacoes/ganha-40-amigo.jpg 1280w" sizes="(max-width: 700px) 100vw, 560px" alt="Ganha 40 € ao convidar um amigo" />
+          </Link>
+        )}
 
         <section className="mais-bloco">
           <div className="mais-caixa">
@@ -145,12 +153,6 @@ export default function Mais() {
             </a>
           </div>
         </Modal>
-
-        {!data.isProfissional && (
-          <Link to="/admin/indicacoes" className="mais-cartaz" aria-label="Ganha 40 € ao convidar um amigo">
-            <img src="/indicacoes/ganha-40-amigo.jpg" srcSet="/indicacoes/ganha-40-amigo-640.jpg 640w, /indicacoes/ganha-40-amigo.jpg 1280w" sizes="(max-width: 700px) 100vw, 560px" alt="Ganha 40 € ao convidar um amigo" />
-          </Link>
-        )}
 
         <button type="button" className="mais-sair" onClick={logout}>
           <LogOut size={17} /> Terminar sessão
