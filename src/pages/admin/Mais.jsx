@@ -97,14 +97,6 @@ export default function Mais() {
           <div className="mais-link"><LinkDaBarbearia /></div>
         </header>
 
-        {!data.isProfissional && (
-          <Link to="/admin/indicacoes" className="mais-indica">
-            <span className="mais-indica-ico"><Gift size={20} /></span>
-            <span className="mais-indica-txt"><b>Ganha 40 € por amigo</b><span>Indica outro negócio e recebe dinheiro</span></span>
-            <ChevronRight size={20} />
-          </Link>
-        )}
-
         <section className="mais-bloco"><Caixas itens={caixas} colunas={2} azulejos /></section>
 
         <section className="mais-bloco">
@@ -154,6 +146,12 @@ export default function Mais() {
           </div>
         </Modal>
 
+        {!data.isProfissional && (
+          <Link to="/admin/indicacoes" className="mais-cartaz" aria-label="Ganha 40 € ao convidar um amigo">
+            <img src="/indicacoes/ganha-40-amigo.jpg" srcSet="/indicacoes/ganha-40-amigo-640.jpg 640w, /indicacoes/ganha-40-amigo.jpg 1280w" sizes="(max-width: 700px) 100vw, 560px" alt="Ganha 40 € ao convidar um amigo" />
+          </Link>
+        )}
+
         <button type="button" className="mais-sair" onClick={logout}>
           <LogOut size={17} /> Terminar sessão
         </button>
@@ -169,11 +167,8 @@ export default function Mais() {
 const CANAL_YOUTUBE = 'https://www.youtube.com/watch?v=96XY7C_AlTQ';
 
 const CSS = `
-.mais-indica { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 16px; text-decoration: none; margin-bottom: 22px; background: var(--gold); color: #15120E; }
-.mais-indica-ico { width: 40px; height: 40px; border-radius: 12px; background: rgba(0,0,0,.14); display: grid; place-items: center; flex-shrink: 0; }
-.mais-indica-txt { flex: 1; min-width: 0; display: grid; gap: 2px; }
-.mais-indica-txt b { font-size: 16.5px; }
-.mais-indica-txt span { font-size: 13.5px; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mais-cartaz { display: block; margin: 8px 0 22px; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+.mais-cartaz img { display: block; width: 100%; height: auto; }
 .mais { width: 100%; max-width: 560px; min-width: 0; margin: 0 auto; box-sizing: border-box; }
 .mais-topo, .mais-bloco, .mais-caixa, .mais-link { min-width: 0; max-width: 100%; }
 
