@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import {
   CreditCard, Check, ExternalLink, AlertTriangle,
   ChevronDown, ChevronRight, MessageCircle, Lock, Zap, ShieldCheck, CalendarDays, Headphones, ArrowRight, Receipt, FileDown, PartyPopper, Gift,
@@ -241,6 +241,7 @@ const WHATSAPP = 'https://wa.me/351914874725?text=' + encodeURIComponent('Olá! 
 export default function Subscricao() {
   const toast = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [sub, setSub] = useState(null);
   const [negocio, setNegocio] = useState(null);
@@ -283,6 +284,7 @@ export default function Subscricao() {
       if (!vivo) return;
       setNegocio(b);
 
+      let estadoFinal = s?.estado;
       if (voltouDoStripe === 'sucesso' && s?.estado === 'sem_cartao') {
         // Tenta mais três vezes, de dois em dois segundos. Se ao fim disso o
         // webhook ainda não escreveu, diz-se a verdade em vez de fingir.
@@ -290,11 +292,22 @@ export default function Subscricao() {
           await new Promise(r => setTimeout(r, 2000));
           if (!vivo) return;
           const outra = await carregar();
+          estadoFinal = outra?.estado;
           if (outra?.estado !== 'sem_cartao') break;
         }
       }
 
       if (!vivo) return;
+      /*
+       * ACABOU DE PAGAR -> VAI PARA A AGENDA (19/10/2026, pedido do Diogo).
+       * Quem volta do Stripe com o cartão já posto não fica preso aqui na
+       * subscrição: segue direto para a agenda, onde arranca o tutorial
+       * (a «visita do barbeiro») e, no fim dele, o «guardar no ecrã principal».
+       */
+      if (voltouDoStripe === 'sucesso' && ['em_teste', 'activa', 'gratis'].includes(estadoFinal)) {
+        navigate('/admin/agenda', { replace: true });
+        return;
+      }
       setACarregar(false);
     })();
     return () => { vivo = false; };

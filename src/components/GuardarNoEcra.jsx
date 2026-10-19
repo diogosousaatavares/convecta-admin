@@ -55,11 +55,19 @@ export default function GuardarNoEcra() {
   const id = negocio?.id;
   const [aberto, setAberto] = useState(false);
   const [podeInstalar, setPodeInstalar] = useState(false);
+  // Aberto no fim do tutorial: insistente (sem «Depois», sem X) — o pedido do
+  // Diogo de «quase obrigar» a pôr no ecrã principal.
+  const [forcado, setForcado] = useState(false);
 
   /* Aberto à mão, pela faixa do topo: aqui não se pergunta nada — se ele
      tocou, é porque quer ver. */
   useEffect(() => {
-    const abrir = () => { setPodeInstalar(!!pedidoInstalar); setAberto(true); };
+    const abrir = (ev) => {
+      if (emModoAplicacao()) return; // ja' instalado: nao ha' nada a pedir
+      setForcado(!!ev?.detail?.forcar);
+      setPodeInstalar(!!pedidoInstalar);
+      setAberto(true);
+    };
     window.addEventListener('convecta-guardar-ecra', abrir);
     return () => window.removeEventListener('convecta-guardar-ecra', abrir);
   }, []);
@@ -114,7 +122,7 @@ export default function GuardarNoEcra() {
     <div className="gne-fundo" role="dialog" aria-modal="true" aria-labelledby="gne-titulo">
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="gne">
-        <button className="gne-x" onClick={adiar} aria-label="Fechar"><X size={20} /></button>
+        {!forcado && <button className="gne-x" onClick={adiar} aria-label="Fechar"><X size={20} /></button>}
 
         <h2 id="gne-titulo" className="gne-h">{pc ? 'Fixar o painel no Chrome' : 'Adicionar ao ecrã principal'}</h2>
 
@@ -226,7 +234,7 @@ export default function GuardarNoEcra() {
 
         <div className="gne-botoes">
           <button onClick={feito} className="gne-btn gne-btn-forte">Já está</button>
-          <button onClick={adiar} className="gne-btn">Depois</button>
+          {!forcado && <button onClick={adiar} className="gne-btn">Depois</button>}
         </div>
       </div>
     </div>

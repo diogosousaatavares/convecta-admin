@@ -679,7 +679,8 @@ export default function AdminLayout({ children }) {
       <main className={`admin-content${!noComputador && !BAIXO.some(b => location.pathname === b.to) && location.pathname !== '/admin/mais' ? ' dentro' : ''}${location.pathname === '/admin/o-meu-site' ? ' sem-barra' : ''}${!noComputador && BAIXO.some(b => location.pathname === b.to) ? ' base-tel' : ''}`} ref={zonaConteudo}>
         {emDemo && <TourDemo passos={PASSOS_DEMO} chave="convecta_tour_painel" />}
         {/* Nunca as duas: numa barbearia de demonstracao manda a da demonstracao. */}
-        {!emDemo && <TourDemo passos={PASSOS_BARBEIRO} chave="convecta_visita_barbeiro" ativo={visitaBarbeiro} />}
+        {!emDemo && <TourDemo passos={PASSOS_BARBEIRO} chave="convecta_visita_barbeiro" ativo={visitaBarbeiro}
+          aoTerminar={() => { try { window.dispatchEvent(new CustomEvent('convecta-guardar-ecra', { detail: { forcar: true } })); } catch { /* sem eventos */ } }} />}
         {emDemo && (
           <div style={{
             background: 'var(--gold)', color: 'var(--on-gold)', fontSize: 15, fontWeight: 700,
