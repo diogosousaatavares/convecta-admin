@@ -35,8 +35,12 @@ export default function Indicacoes() {
   const [codigo, setCodigo] = useState(null);
   const [lista, setLista] = useState(null);
   const [copiado, setCopiado] = useState('');
-  const [recebe, setRecebe] = useState(data.business?._settings?.indicacaoRecebe || '');
+  const recebeGravado = data.business?._settings?.indicacaoRecebe || '';
+  const [tipoRecebe, setTipoRecebe] = useState(/^iban/i.test(recebeGravado) ? 'iban' : 'mbway');
+  const [numRecebe, setNumRecebe] = useState(recebeGravado.replace(/^(mb\s*way|iban)\s*/i, ''));
   const [aGravar, setAGravar] = useState(false);
+  // Junta o tipo + o número num texto só, que é o que o super admin lê.
+  const recebeMontado = numRecebe.trim() ? (tipoRecebe === 'iban' ? 'IBAN ' + numRecebe.trim() : 'MB WAY ' + numRecebe.trim()) : '';
 
   useEffect(() => {
     supabase.rpc('meu_codigo_indicacao').then(({ data: c, error }) => { if (!error) setCodigo(c); });
@@ -56,7 +60,7 @@ export default function Indicacoes() {
   };
   const guardarRecebe = async () => {
     setAGravar(true);
-    try { await dataService.updateBusiness({ indicacaoRecebe: recebe.trim() }); toast.success('Guardado'); }
+    try { await dataService.updateBusiness({ indicacaoRecebe: recebeMontado }); toast.success('Guardado'); }
     catch (e) { toast.error('Não ficou gravado', e.message); }
     finally { setAGravar(false); }
   };
@@ -103,11 +107,20 @@ export default function Indicacoes() {
         {/* Onde receber */}
         <div className="ind-bloco">
           <div className="nt-titulo">Onde queres receber os {VALOR} €</div>
-          <div className="ind-recebe">
-            <input value={recebe} onChange={e => setRecebe(e.target.value)} placeholder="MB WAY (9xx xxx xxx) ou IBAN" />
-            <button type="button" onClick={guardarRecebe} disabled={aGravar || recebe.trim() === (data.business?._settings?.indicacaoRecebe || '')}>Guardar</button>
+          <div className="ind-tipo">
+            <button type="button" className={tipoRecebe === 'mbway' ? 'on' : ''} onClick={() => setTipoRecebe('mbway')}>MB WAY</button>
+            <button type="button" className={tipoRecebe === 'iban' ? 'on' : ''} onClick={() => setTipoRecebe('iban')}>IBAN</button>
           </div>
-          <p className="ind-nota">É para onde te enviamos o dinheiro quando um amigo paga. Só tu e a Convecta vêem isto.</p>
+          <div className="ind-recebe">
+            <input value={numRecebe}
+              inputMode={tipoRecebe === 'mbway' ? 'tel' : 'text'}
+              placeholder={tipoRecebe === 'mbway' ? 'O teu número MB WAY (9xx xxx xxx)' : 'O teu IBAN (PT50 …)'}
+              onChange={e => setNumRecebe(e.target.value)} />
+            <button type="button" onClick={guardarRecebe} disabled={aGravar || !numRecebe.trim() || recebeMontado === recebeGravado}>Guardar</button>
+          </div>
+          <p className="ind-nota">{tipoRecebe === 'mbway'
+            ? 'Enviamos por MB WAY para este número quando um amigo paga.'
+            : 'Fazemos a transferência para este IBAN quando um amigo paga.'} Só tu e a Convecta vêem isto.</p>
         </div>
 
         {/* O que já ganhaste */}
@@ -169,6 +182,9 @@ const CSS = `
 .ind-passos > div { display: flex; align-items: center; gap: 14px; }
 .ind-passos span { width: 30px; height: 30px; flex-shrink: 0; border-radius: 999px; background: var(--elevated); border: 1px solid var(--border); display: grid; place-items: center; font-weight: 700; font-size: 14px; color: var(--text); }
 .ind-passos p { margin: 0; font-size: 15px; color: var(--text); line-height: 1.4; }
+.ind-tipo { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: var(--elevated); border: 1px solid var(--border); max-width: 300px; }
+.ind-tipo button { min-height: 40px; border: 0; border-radius: 999px; background: transparent; color: var(--text-sec); font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; }
+.ind-tipo button.on { background: var(--text); color: var(--surface); }
 .ind-recebe { display: flex; gap: 8px; }
 .ind-recebe input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 15px; }
 .ind-recebe button { padding: 0 18px; border-radius: 12px; border: 0; background: var(--text); color: var(--surface); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
