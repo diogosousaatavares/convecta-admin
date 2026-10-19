@@ -161,15 +161,38 @@ export default function Indicacoes() {
           ) : lista.length === 0 ? (
             <div className="ind-vazio">Ainda não indicaste ninguém. Partilha o teu link e aparece aqui.</div>
           ) : (
-            <div className="nt-lista">
+            <div className="ind-amigos">
               {lista.map((i, k) => {
                 const [rot, cor] = ESTADO[i.estado] || ['—', 'var(--text-sec)'];
+                // Marcos: Entrou -> Paga o 1.o mes -> 40 euros na conta.
+                const feitos = i.recompensa_paga_em ? 3 : i.estado === 'pagou' ? 2 : 1;
+                const caiu = i.estado === 'caiu';
+                const prox = caiu ? 'Não ficou desta vez.'
+                  : i.recompensa_paga_em ? `Recebeste os ${VALOR} €. 🎉`
+                  : i.estado === 'pagou' ? `Ganhaste ${VALOR} €! Vamos enviar para o que indicaste.`
+                  : `Falta ele pagar o 1.º mês — depois caem-te ${VALOR} €.`;
                 return (
-                  <div key={k} className="nt-row">
-                    <span className="nt-txt"><b className="po-nowrap">{i.nome || 'Negócio'}</b></span>
-                    <span className="po-nowrap" style={{ color: cor, fontWeight: 600, fontSize: 14 }}>
-                      {i.estado === 'pagou' && (i.recompensa_paga_em ? <BadgeCheck size={14} style={{ verticalAlign: '-2px' }} /> : null)} {rot}
-                    </span>
+                  <div key={k} className="ind-amigo">
+                    <div className="ind-amigo-topo">
+                      <b className="po-nowrap">{i.nome || 'Negócio'}</b>
+                      <span className="po-nowrap" style={{ color: cor, fontWeight: 700, fontSize: 13.5 }}>
+                        {i.estado === 'pagou' && i.recompensa_paga_em ? <BadgeCheck size={14} style={{ verticalAlign: '-2px' }} /> : null} {rot}
+                      </span>
+                    </div>
+                    <div className="ind-passinhos">
+                      {['Entrou', `Paga o 1.º mês`, `${VALOR} € na conta`].map((m, j) => {
+                        const on = !caiu && j < feitos;
+                        return (
+                          <React.Fragment key={j}>
+                            {j > 0 && <i className={'ind-traco' + (on ? ' on' : '')} />}
+                            <span className={'ind-marco' + (on ? ' on' : '')}>
+                              <b>{on ? '✓' : ''}</b>{m}
+                            </span>
+                          </React.Fragment>
+                        );
+                      })}
+                    </div>
+                    {!caiu && <div className="ind-amigo-prox">{prox}</div>}
                   </div>
                 );
               })}
@@ -269,6 +292,18 @@ const CSS = `
 .ind-ganho b { font-family: var(--font-head); font-size: 34px; color: var(--success); }
 .ind-ganho-sub { margin-top: 6px; font-size: 13.5px; color: var(--text-sec); display: flex; align-items: center; gap: 6px; }
 .ind-vazio { padding: 24px 0; text-align: center; color: var(--text-ter); font-size: 14.5px; }
+.ind-amigos { display: grid; gap: 10px; }
+.ind-amigo { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); padding: 13px 14px; display: grid; gap: 9px; }
+.ind-amigo-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ind-amigo-topo b { font-size: 15px; color: var(--text); }
+.ind-passinhos { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+.ind-marco { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--text-ter); white-space: nowrap; }
+.ind-marco.on { color: var(--text); font-weight: 700; }
+.ind-marco b { display: grid; place-items: center; width: 15px; height: 15px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 9px; color: #fff; }
+.ind-marco.on b { background: var(--success); border-color: var(--success); }
+.ind-traco { width: 16px; height: 2px; background: var(--border); margin: 0 5px; flex-shrink: 0; }
+.ind-traco.on { background: var(--success); }
+.ind-amigo-prox { font-size: 13px; color: var(--text-sec); line-height: 1.4; }
 
 /* Regras (modal) */
 .ind-regras { display: grid; gap: 18px; }
