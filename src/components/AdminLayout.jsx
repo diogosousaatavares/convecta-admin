@@ -387,7 +387,10 @@ export default function AdminLayout({ children }) {
   const tipoDeNavegacao = useNavigationType();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const emDemo = data.business?._settings?.demo?.ativo === true;
+  // Modo demo do PAINEL desligado (20/10/2026): a demonstração passou a ser só
+  // do lado do cliente (demonstracao.marcacoes.app). No painel, a barbearia da
+  // demo comporta-se como qualquer outra — sem tutorial, sem banner, menu normal.
+  const emDemo = false;
 
   /*
    * A visita arranca quando ele passa a ter subscricao e ainda nao a viu.

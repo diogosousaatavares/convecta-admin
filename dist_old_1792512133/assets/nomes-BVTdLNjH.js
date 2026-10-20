@@ -1,0 +1,1 @@
+function f(a,e,i){if(!e)return"";const n=(e.name||"").trim(),t=(a||[]).filter(o=>(o.name||"").trim().toLowerCase()===n.toLowerCase());if(t.length<=1)return n;const l=[i,e.phone,e.email,e.role].filter(Boolean);for(const o of l)if(t.filter(r=>[r.phone,r.email,r.role].some(s=>s===o)).length===1)return`${n} · ${o}`;return`${n} · ${String(e.id||"").slice(0,4)}`}export{f as n};

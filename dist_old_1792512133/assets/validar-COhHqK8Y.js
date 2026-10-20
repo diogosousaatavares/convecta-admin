@@ -1,0 +1,1 @@
+function n(e){const t=(e||"").trim();return t?!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t):!1}function s(e){const t=(e||"").trim();if(!t)return!1;const r=t.replace(/[\s.()-]/g,"");return/^\+?\d+$/.test(r)?r.replace(/\D/g,"").length<9:!0}export{n as e,s as t};

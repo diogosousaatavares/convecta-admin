@@ -1,0 +1,14 @@
+import{u as i,j as s,a3 as n,Q as p,a1 as r,I as l}from"./index-MSJ5Bzx4.js";import{A as d}from"./AdminPage-p1npQ__1.js";import{e as c,a as x}from"./extras-AJUvjiVQ.js";import{S as u}from"./store-CTZWVXnw.js";import"./BotaoAtualizar-DGCccYs1.js";import"./SeparadoresDaFamilia-RN2o2tRb.js";function S(){const a=i().business,o=c(a,"pagamentos")?"Incluído no teu plano":x(a,"pagamentos")?"Ligado":null,t=[{id:"pagamentos",icon:n,nome:"Pagamentos online",desc:"O cliente paga ao marcar — cartão, Apple Pay, Google Pay ou MB WAY. Acabam as faltas.",to:"/admin/pagamentos-online",estado:o},{id:"novo-espaco",icon:u,nome:"Adição de novo espaço",desc:"Junta um segundo tipo no mesmo sítio (ex. unhas + cabelo) ou um segundo negócio ligado.",to:"/admin/subscricao#segundo-tipo",estado:null}];return s.jsxs(d,{title:"Suplementos",children:[s.jsx("style",{dangerouslySetInnerHTML:{__html:m}}),s.jsxs("div",{className:"sup",children:[s.jsxs("div",{className:"sup-topo",children:[s.jsx("span",{className:"sup-beta",children:"beta"}),s.jsx("p",{children:"Mais funcionalidades para juntares ao teu plano quando precisares. Pagas só o que ligares."})]}),s.jsx("div",{className:"sup-lista",children:t.map(e=>s.jsxs(p,{to:e.to,className:"sup-item",children:[s.jsx("span",{className:"sup-ico",children:s.jsx(e.icon,{size:22})}),s.jsxs("span",{className:"sup-txt",children:[s.jsxs("b",{children:[e.nome,e.estado&&s.jsxs("i",{className:"sup-sel",children:[s.jsx(r,{size:12})," ",e.estado]})]}),s.jsx("span",{children:e.desc})]}),s.jsx(l,{size:20,className:"sup-seta"})]},e.id))})]})]})}const m=`
+.sup { max-width: 640px; }
+.sup-topo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.sup-beta { font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--gold); color: #15120E; }
+.sup-topo p { margin: 0; flex: 1 1 240px; color: var(--text-sec); font-size: 14.5px; line-height: 1.5; }
+.sup-lista { display: grid; gap: 12px; }
+.sup-item { display: flex; align-items: flex-start; gap: 14px; padding: 18px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface); text-decoration: none; color: var(--text); }
+.sup-ico { width: 44px; height: 44px; border-radius: 13px; flex-shrink: 0; display: grid; place-items: center; color: #15120E; background: var(--gold); }
+.sup-txt { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.sup-txt > b { font-size: 16.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sup-sel { font-style: normal; font-size: 12px; font-weight: 700; color: var(--success); display: inline-flex; align-items: center; gap: 3px; }
+.sup-txt > span { font-size: 14px; color: var(--text-sec); line-height: 1.5; }
+.sup-seta { color: var(--text-ter); flex-shrink: 0; margin-top: 10px; }
+`;export{S as default};

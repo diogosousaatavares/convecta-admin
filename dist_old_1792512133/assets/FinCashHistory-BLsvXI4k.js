@@ -1,0 +1,1 @@
+import{j as i}from"./index-MSJ5Bzx4.js";import{A as s}from"./AdminPage-p1npQ__1.js";import{H as t}from"./HistoricoCaixa-Dywk-lne.js";import"./BotaoAtualizar-DGCccYs1.js";import"./SeparadoresDaFamilia-RN2o2tRb.js";function p(){return i.jsx(s,{title:"Histórico de Caixa",subtitle:"Sessões fechadas e respetivos fechos.",children:i.jsx(t,{})})}export{p as default};

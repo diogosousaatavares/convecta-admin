@@ -1,0 +1,1 @@
+function s(o){const t=Number(o==null?void 0:o.stock)||0;return t<=0?"esgotado":t<=(Number(o==null?void 0:o.minStock)||0)?"baixo":"ok"}const e=(o=[])=>o.filter(t=>t.isActive!==!1&&s(t)==="esgotado"),a=(o=[])=>o.filter(t=>t.isActive!==!1&&s(t)==="baixo");export{a,s as e,e as p};

@@ -1,0 +1,1 @@
+import{ac as t}from"./index-MSJ5Bzx4.js";async function s(){const{data:a,error:e}=await t.from("business_notifications").select("*").order("created_at",{ascending:!1}).limit(20);return e?[]:a||[]}async function n(a){await t.from("business_notifications").update({read:!0}).eq("id",a)}export{s as l,n as m};
