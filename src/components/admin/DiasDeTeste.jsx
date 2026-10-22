@@ -47,7 +47,7 @@ export default function DiasDeTeste() {
     return () => clearInterval(t);
   }, []);
 
-  if (!sub || sub.estado !== 'em_teste' || !sub.fimDoTeste) return null;
+  if (!sub || !['em_teste', 'experiencia'].includes(sub.estado) || !sub.fimDoTeste) return null;
 
   const fim = new Date(sub.fimDoTeste).getTime();
   if (Number.isNaN(fim)) return null;

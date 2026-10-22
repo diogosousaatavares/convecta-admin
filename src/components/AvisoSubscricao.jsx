@@ -33,13 +33,14 @@ import { n as nicho } from '@/lib/nicho';
  */
 
 const AVISOS = {
+  // 22/10/2026: os 14 dias grátis são sem cartão. Esta faixa só aparece quando acabaram.
   sem_cartao: {
     cor: 'var(--gold)',
     fundo: 'rgba(201, 162, 39, 0.10)',
     icone: CreditCard,
-    titulo: 'Falta registar o cartão para começares a receber marcações',
-    texto: 'Podes preparar tudo — serviços, horários, aparência. Só as marcações é que esperam. São 14 dias grátis e só depois é que pagas.',
-    botao: 'Ver planos',
+    titulo: 'Os 14 dias grátis acabaram — regista o cartão para continuar a receber marcações',
+    texto: 'A agenda e os teus dados estão todos aqui. Só as marcações novas é que esperam pelo cartão. Cancelas quando quiseres.',
+    botao: 'Registar cartão',
   },
   em_atraso: {
     cor: '#F59E0B',

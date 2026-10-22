@@ -44,7 +44,8 @@ import { useGrupo, mudarDeNegocio } from '@/lib/grupo';
  */
 
 const ESTADOS = {
-  sem_cartao: { texto: 'Sem cartão registado', cor: 'var(--text-sec)' },
+  sem_cartao: { texto: 'Experiência terminada — sem cartão', cor: 'var(--text-sec)' },
+  experiencia:{ texto: 'Em experiência (sem cartão)', cor: 'var(--gold)' },
   em_teste:   { texto: 'Em experiência',       cor: 'var(--gold)' },
   activa:     { texto: 'Activa',               cor: 'var(--success, #22C55E)' },
   em_atraso:  { texto: 'Pagamento em atraso',  cor: '#F59E0B' },
@@ -392,7 +393,7 @@ export default function Subscricao() {
    * ficar a andar à roda.
    */
   useEffect(() => {
-    const semCartao = !sub || sub.estado === 'sem_cartao' || sub.estado === 'cancelada';
+    const semCartao = !sub || sub.estado === 'sem_cartao' || sub.estado === 'experiencia' || sub.estado === 'cancelada';
     if (aCarregar || !semCartao || !precoDaCasa || aAbrir) return;
     let primeira = false;
     try { primeira = sessionStorage.getItem('convecta_primeira_entrada') === '1'; } catch { /* nada */ }
@@ -482,7 +483,8 @@ export default function Subscricao() {
   }
 
   const estado = ESTADOS[sub?.estado] || ESTADOS.sem_cartao;
-  const precisaDeCartao = !sub || sub.estado === 'sem_cartao' || sub.estado === 'cancelada';
+  const precisaDeCartao = !sub || sub.estado === 'sem_cartao' || sub.estado === 'experiencia' || sub.estado === 'cancelada';
+  const emExperiencia = sub?.estado === 'experiencia';
   const nomeDoPlano = planoDaCasa?.nome || NOMES_DOS_PLANOS[sub?.plano] || 'o teu plano';
   /*
    * QUANTOS DIAS DURA O TESTE.
@@ -493,7 +495,9 @@ export default function Subscricao() {
    *   7 dias ate 26/09/2026 · 30 dias ate 30/09/2026 · 14 desde entao.
    */
   const DIAS_DE_TESTE = 14;
-  const diaDaCobranca = daquiA(DIAS_DE_TESTE);
+  // 22/10/2026: os 14 dias contam desde o registo. Em experiência, a cobrança
+  // é no fim dela; com a experiência já acabada, é hoje.
+  const diaDaCobranca = emExperiencia && sub?.fimDoTeste ? dataCurta(sub.fimDoTeste) : sub?.experienciaAcabou ? 'hoje' : daquiA(DIAS_DE_TESTE);
 
   // Na venda não há cabeçalho de página nem botão de actualizar: é um ecrã
   // só, limpo, com uma coisa para fazer. Quando já há subscrição, é uma
@@ -628,21 +632,23 @@ export default function Subscricao() {
               <div className="sub-ico"><CreditCard size={24} /></div>
               {/* «Pagamento seguro» é o que toda a gente escreve e ninguém
                   lê. O que faz carregar no botão é não se pagar nada hoje. */}
-              {sub?.estado !== 'cancelada' && <div className="sub-pill"><Gift size={13} style={{ color: 'var(--gold-tinta)' }} /> 14 dias grátis</div>}
+              {sub?.estado !== 'cancelada' && <div className="sub-pill"><Gift size={13} style={{ color: 'var(--gold-tinta)' }} /> {emExperiencia ? `Em experiência · faltam ${Math.max(0, diasAte(sub.fimDoTeste))} dias` : '14 dias grátis'}</div>}
             </div>
-            <h2 className="sub-hero-h1">{sub?.estado === 'cancelada' ? 'Reactiva a tua conta' : 'Activa a tua conta'}</h2>
-            <p className="sub-hero-sub">Pedimos o cartão para a conta ser de uma pessoa real. Hoje não pagas nada e cancelas quando quiseres.</p>
+            <h2 className="sub-hero-h1">{sub?.estado === 'cancelada' ? 'Reactiva a tua conta' : emExperiencia ? 'Continuar depois da experiência' : 'Activa a tua conta'}</h2>
+            <p className="sub-hero-sub">{emExperiencia
+              ? 'Estás a receber marcações sem cartão. Para não parares no fim dos 14 dias, regista o cartão quando quiseres: até lá continua a 0 € e cancelas sozinho.'
+              : 'Pedimos o cartão para a conta ser de uma pessoa real. Hoje não pagas nada e cancelas quando quiseres.'}</p>
             <Cartoes />
             <div className="sub-linhas">
               <div className="sub-linha"><i><Zap size={18} /></i><b>Em menos de 2 minutos</b></div>
               <div className="sub-linha"><i><ShieldCheck size={18} /></i><b>Seguro, pela Stripe</b></div>
               {/* Os 14 dias são uma vez por negócio (o servidor confirma):
                   quem cancelou e volta reactiva a pagar. */}
-              {sub?.estado !== 'cancelada' && <div className="sub-linha"><i><CalendarDays size={18} /></i><b>Hoje 0 €. Primeiro pagamento a {diaDaCobranca}</b></div>}
+              {sub?.estado !== 'cancelada' && <div className="sub-linha"><i><CalendarDays size={18} /></i><b>{sub?.experienciaAcabou ? 'Primeiro pagamento hoje — a experiência já foi usada' : `Hoje 0 €. Primeiro pagamento a ${diaDaCobranca}`}</b></div>}
             </div>
             {precoDaCasa ? (
               <button className="sub-btn" onClick={() => assinar(precoDaCasa, true)} disabled={!!aAbrir}>
-                {aAbrir ? 'A abrir…' : sub?.estado === 'cancelada' ? 'Reactivar a conta' : 'Activar 14 dias grátis'} <ArrowRight size={20} />
+                {aAbrir ? 'A abrir…' : sub?.estado === 'cancelada' ? 'Reactivar a conta' : emExperiencia ? 'Registar cartão' : 'Registar cartão e continuar'} <ArrowRight size={20} />
               </button>
             ) : (
               <button className="sub-btn" onClick={() => setVerPlanos(true)}>Escolher o plano <ArrowRight size={20} /></button>

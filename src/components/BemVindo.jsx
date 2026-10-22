@@ -41,7 +41,7 @@ export default function BemVindo() {
       try {
         const [s, b] = await Promise.all([dataService.subscricao(), dataService.getBusiness()]);
         if (!vivo || !b?.id) return;
-        if (s?.estado !== 'sem_cartao') return;
+        if (!['sem_cartao', 'experiencia'].includes(s?.estado)) return;   // 22/10/2026: nasce em experiência, sem cartão
         let visto = false;
         try { visto = !!localStorage.getItem(chaveDeMemoria(b.id)); } catch { visto = false; }
         if (visto) return;
@@ -116,8 +116,8 @@ export default function BemVindo() {
           </p>
           <div className="bv-tempo">
             <div className="bv-tempo-i"><b>Agora</b><span>Os teus preços e o teu horário</span></div>
-            <div className="bv-tempo-i"><b>Depois</b><span>O cartão, quando quiseres receber marcações</span></div>
-            <div className="bv-tempo-i"><b>14 dias</b><span>Grátis, e cancelas sozinho</span></div>
+            <div className="bv-tempo-i"><b>14 dias</b><span>Grátis, sem cartão — recebes marcações desde já</span></div>
+            <div className="bv-tempo-i"><b>Depois</b><span>Registas o cartão se quiseres continuar</span></div>
           </div>
           <p className="bv-p bv-mini">Não te pedimos cartão nenhum para isto.</p>
         </>

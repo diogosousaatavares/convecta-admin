@@ -98,7 +98,7 @@ function traduzirErro(error) {
    * que esperam pelo cartao. E diz-se-lhe exactamente onde carregar.
    */
   if (typeof error.message === 'string' && error.message.includes('SEM_SUBSCRICAO')) {
-    const e = new Error('Para começares a receber marcações falta registar o cartão. São 14 dias grátis e só depois é que pagas — vai a Subscrição, no fim do menu.');
+    const e = new Error('Os 14 dias grátis acabaram. Para continuares a receber marcações, regista o cartão — vai a Subscrição, no fim do menu.');
     e.semSubscricao = true;
     return e;
   }
@@ -2485,7 +2485,7 @@ const dataService = {
   async subscricao() {
     if (!BUSINESS_ID) return null;
 
-    const COLUNAS = 'plan, billing_period, professional_limit, subscricao_estado, trial_ends_at, current_period_end, stripe_customer_id';
+    const COLUNAS = 'plan, billing_period, professional_limit, subscricao_estado, trial_ends_at, current_period_end, stripe_customer_id, created_at';
 
     /*
      * As colunas mais recentes pedem-se primeiro, e cada uma que ainda nao
@@ -2520,13 +2520,27 @@ const dataService = {
       throw new Error(error.message);
     }
     if (!data) return null;
+    /*
+     * 22/10/2026: 14 DIAS GRÁTIS SEM CARTÃO, a contar do registo. Sem cartão
+     * e dentro dos 14 dias, a barbearia está «em experiência» — recebe
+     * marcações normalmente (EXPERIENCIA_SEM_CARTAO_2026-10-22.sql). Passados
+     * os 14 dias sem cartão, volta a «sem_cartao»: a porta fecha até o
+     * registar. A data do fim é a do registo + 14.
+     */
+    const DIAS_EXPERIENCIA = 14;
+    const semCartao = !data.isenta && !data.is_test && (data.subscricao_estado || 'sem_cartao') === 'sem_cartao';
+    const fimDaExperiencia = semCartao && data.created_at
+      ? new Date(new Date(data.created_at).getTime() + DIAS_EXPERIENCIA * 86400000).toISOString() : null;
+    const emExperiencia = !!fimDaExperiencia && new Date(fimDaExperiencia).getTime() > Date.now();
     return {
       plano: data.plan || null,
       periodo: data.billing_period || 'mensal',
       limiteProfissionais: data.professional_limit ?? null,
       // Quem nao paga nao tem estado de subscricao que interesse: esta aberto.
-      estado: (data.isenta || data.is_test) ? 'gratis' : (data.subscricao_estado || 'sem_cartao'),
-      fimDoTeste: data.trial_ends_at || null,
+      estado: (data.isenta || data.is_test) ? 'gratis' : emExperiencia ? 'experiencia' : (data.subscricao_estado || 'sem_cartao'),
+      // Sem cartão: a experiência já acabou (o painel diz-lho e pede o cartão).
+      experienciaAcabou: semCartao && !!fimDaExperiencia && !emExperiencia,
+      fimDoTeste: data.trial_ends_at || fimDaExperiencia || null,
       fimDoPeriodo: data.current_period_end || null,
       temCliente: !!data.stripe_customer_id,
       // Cancelou no portal, mas continua a usar ate ao fim do periodo. Sao
