@@ -3,13 +3,39 @@ import IndicadoresCliente from '@/components/admin/IndicadoresCliente';
 import React, { useRef, useEffect, useMemo, useState } from 'react';
 import {
   ChevronLeft, ChevronRight, ChevronDown, Users, Info,
-  CheckCircle2, CalendarCheck, Clock3, Lock, Check, Settings, X, CalendarDays, Calendar, List, Hourglass } from 'lucide-react';
+  CheckCircle2, CalendarCheck, Clock3, Lock, Check, Settings, X, CalendarDays, Calendar, List, Hourglass, Plus } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useStore } from '@/hooks/useStore';
 import { Modal } from '@/components/ui';
 import { todayStr } from '@/lib/format';
 import { Link } from 'react-router-dom';
 import { n as nicho } from '@/lib/nicho';
+import Toggle from '@/components/admin/Toggle';
+import { useToast } from '@/components/ui/ToastContext';
+
+/* A barra da confirmação automática (23/10/2026). A mesma regra que está em
+   Parâmetros e em Marcações: `params.autoConfirm`, ligada por omissão. */
+function BarraAutoConfirmar() {
+  const data = useStore();
+  const toast = useToast();
+  const [aGravar, setAGravar] = useState(false);
+  const params = data.business?.config?.params || {};
+  const ligado = params.autoConfirm !== false;
+  const trocar = async () => {
+    setAGravar(true);
+    try { await dataService.updateConfig('params', { ...params, autoConfirm: !ligado }); toast.success(!ligado ? 'Marcações aceites automaticamente' : 'Voltas a confirmar uma a uma'); }
+    catch (e) { toast.error('Não ficou gravado', e.message); }
+    finally { setAGravar(false); }
+  };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '0 -16px 12px', padding: '10px 16px',
+      background: ligado ? 'rgba(var(--gold-rgb), .12)' : 'var(--elevated)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+      <CheckCircle2 size={17} style={{ color: ligado ? 'var(--gold-tinta)' : 'var(--text-ter)', flexShrink: 0 }} />
+      <span style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>{ligado ? 'Marcações entram confirmadas' : 'Confirmas cada marcação à mão'}</span>
+      <Toggle checked={ligado} disabled={aGravar} onChange={trocar} />
+    </div>
+  );
+}
 
 /*
  * A agenda no telemovel.
@@ -165,6 +191,14 @@ export default function AgendaTelemovel({
   };
   return (
     <div className="agm" data-tour="agenda">
+      {onNovaMarcacao && mode === 'grid' && (
+        <button type="button" aria-label="Nova marcação" onClick={onNovaMarcacao}
+          style={{ position: 'fixed', right: 16, bottom: 'calc(84px + env(safe-area-inset-bottom, 0px))', zIndex: 60,
+            width: 48, height: 48, borderRadius: 24, border: 'none', background: 'var(--gold)', color: '#111',
+            boxShadow: '0 4px 14px rgba(0,0,0,.22)', display: 'grid', placeItems: 'center', cursor: 'pointer' }}>
+          <Plus size={24} />
+        </button>
+      )}
       {/* ---- Titulo, mes e navegacao de dias ---- */}
       {/* 18/10/2026: o «Agenda» está ao centro na barra de cima e a
           engrenagem passou para o menu hambúrguer. Fica só o mês. */}
@@ -231,6 +265,10 @@ export default function AgendaTelemovel({
               <ChevronDown size={17} className="agm-pro-seta" />
             </button>
           </div>
+
+          {/* 23/10/2026: a confirmação automática à vista, entre o nome e a
+              agenda. Ligada: o que entra pela app fica logo confirmado. */}
+          <BarraAutoConfirmar />
 
           {/* ---- A grelha do dia ---- */}
           {!aberto ? (

@@ -23,6 +23,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import { packsActivosDoCliente, saldoParaServico } from '@/lib/packsService';
 import { nomeSemRepetir } from '@/lib/nomes';
 import EscolherCliente from '@/components/admin/EscolherCliente';
+import CorrigirCobranca from '@/components/admin/CorrigirCobranca';
 import { pedidosPendentes } from '@/lib/orcamentosService';
 import { proporNovaHora } from '@/lib/propostasService';
 import { n as nicho } from '@/lib/nicho';
@@ -221,6 +222,7 @@ export default function Agenda() {
     } catch (e) { falhou(e); }
   };
   const [checkout, setCheckout] = useState(null);
+  const [corrigir, setCorrigir] = useState(null);
   const attend = (id) => { setCheckout(id); setSelected(null); };
   const finishCheckout = async (payData) => { try {
     await dataService.cobrarMarcacao(checkout, payData);
@@ -666,10 +668,18 @@ export default function Agenda() {
                   </div>
                 )}
                 {!podeMexer(selAppt) && <div className="text-sec text-sm mt-8">Marcação de {nicho().id === 'barbearia' ? 'outro barbeiro' : 'outro profissional'} — só o próprio ou o dono a podem mudar.</div>}
+                {selAppt.status === 'completed' && selAppt.payment && (
+                  <div className="ag-detail-row">
+                    <span className="l">Pago</span>
+                    <span className="v">{selAppt.paymentMethod || '—'} · {formatPrice(Number(selAppt.payment.total) || 0)}{selAppt.payment.correcoes?.length ? ' · corrigido' : ''}</span>
+                  </div>
+                )}
                 {podeMexer(selAppt) && <div className="ag-detail-actions">
                   {selAppt.status === 'pending' && <Button size="sm" variant="primary" onClick={() => confirm(selAppt.id)}>Confirmar</Button>}
                   {selAppt.status === 'confirmed' && <Button size="sm" variant="secondary" onClick={() => attend(selAppt.id)}>Cobrar</Button>}
-                  {selAppt.status !== 'cancelled' && selAppt.status !== 'completed' && !selAppt.blocked && <Button size="sm" variant="secondary" onClick={() => pedirReagendar(selAppt)}>Reagendar</Button>}
+                  {/* 23/10/2026: depois de cobrada também se corrige — método, valor — e se reagenda (a hora errada). */}
+                  {selAppt.status === 'completed' && selAppt.payment && <Button size="sm" variant="secondary" onClick={() => { setSelected(null); setCorrigir(selAppt.id); }}>Houve algum erro?</Button>}
+                  {selAppt.status !== 'cancelled' && !selAppt.blocked && <Button size="sm" variant="secondary" onClick={() => pedirReagendar(selAppt)}>Reagendar</Button>}
                   {selAppt.status !== 'cancelled' && selAppt.status !== 'completed' && <Button size="sm" variant="danger" onClick={() => askCancel(selAppt)}>Cancelar</Button>}
                 </div>}
               </>
@@ -712,10 +722,10 @@ export default function Agenda() {
             <EscolherCliente clientes={(data.customers || []).filter(c => !c.semCadastro)} value={quick.customerId} onChange={id => setQuick(f => ({ ...f, customerId: id }))} />
             {/* 23/10/2026: o turista, o que passa uma vez — marca-se sem ficha. */}
             {!quick.customerId && (
-              <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 6 }}
+              <Button variant="secondary" block style={{ marginTop: 8 }}
                 onClick={async () => { try { const c = await dataService.clienteSemCadastro(); setQuick(f => ({ ...f, customerId: c.id })); } catch (e) { setQuickError(e.message); } }}>
-                Sem cadastro (cliente de passagem)
-              </button>
+                Sem cadastro
+              </Button>
             )}
             {(data.customers || []).find(c => c.id === quick.customerId)?.semCadastro && (
               <div className="text-sm mt-8" style={{ color: 'var(--text-sec)' }}>Marcação sem ficha: conta na receita e na comissão, não dá carimbos.</div>
@@ -791,6 +801,7 @@ export default function Agenda() {
         </div>
       </Modal>
 
+      {corrigir && <CorrigirCobranca appointment={data.appointments.find(x => x.id === corrigir)} onClose={() => setCorrigir(null)} onFeito={() => toast.success('Cobrança corrigida')} />}
       <CheckoutModal
         open={!!checkout}
         onClose={() => setCheckout(null)}

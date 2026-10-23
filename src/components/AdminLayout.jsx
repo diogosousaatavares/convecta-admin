@@ -273,9 +273,9 @@ function tituloDaPagina(pathname) {
 }
 
 const BAIXO = [
-  { to: '/admin/agenda', label: 'Agenda', icon: CalendarDays },
-  { to: '/admin/seccao/vendas', label: 'Vendas', icon: Receipt },
   { to: '/admin/clientes', label: 'Clientes', icon: Users },
+  { to: '/admin/seccao/vendas', label: 'Vendas', icon: Receipt },
+  { to: '/admin/agenda', label: 'Agenda', icon: CalendarDays },
   { to: '/admin/seccao/catalogo', label: 'Catálogo', icon: Package },
 ];
 

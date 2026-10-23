@@ -587,6 +587,9 @@ function custToRow(c) {
       pendingStamp: meta.pendingStamp, pendingReview: meta.pendingReview,
       balance: meta.balance, passwordHash: meta.passwordHash,
       notes: meta.notes || null,
+      // A ficha única «Sem cadastro» (23/10/2026). Sem isto aqui, a marca
+      // perdia-se ao gravar e nascia uma ficha nova de cada vez.
+      ...(meta.semCadastro ? { semCadastro: true } : {}),
     },
   };
 }
@@ -1788,7 +1791,7 @@ const dataService = {
    * comissões, caixa) ficam exatamente iguais.
    */
   async clienteSemCadastro() {
-    let c = state.customers.find(x => x.semCadastro);
+    let c = state.customers.find(x => x.semCadastro) || state.customers.find(x => (x.name || '').trim().toLowerCase() === 'sem cadastro');
     if (c) return c;
     const { data: existente } = await supabase.from('customers').select('*').eq('business_id', BUSINESS_ID)
       .contains('metadata', { semCadastro: true }).limit(1).maybeSingle();
