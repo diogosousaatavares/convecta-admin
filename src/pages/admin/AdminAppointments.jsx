@@ -80,6 +80,17 @@ export default function AdminAppointments() {
   const [detalhe, setDetalhe] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [checkout, setCheckout] = useState(null);
+  // Corrigir uma cobrança já feita (23/10/2026): método, valor, nota.
+  const [corrigir, setCorrigir] = useState(null);   // { id, method, total, motivo }
+  const [aCorrigir, setACorrigir] = useState(false);
+  const [erroCorrigir, setErroCorrigir] = useState('');
+  const gravarCorrecao = async () => {
+    if (!corrigir) return;
+    setACorrigir(true); setErroCorrigir('');
+    try { await dataService.corrigirCobranca(corrigir.id, corrigir); setCorrigir(null); }
+    catch (e) { setErroCorrigir(e.message || 'Não foi possível corrigir.'); }
+    finally { setACorrigir(false); }
+  };
   // A avaliação de um corte, se o cliente já a tiver deixado.
   const avaliacaoDe = (apptId) => (data.reviews || []).find(r => r.appointmentId === apptId) || null;
 
@@ -272,11 +283,15 @@ export default function AdminAppointments() {
                 {!blocked && <div><span>Serviço</span><b>{svc?.name || '—'}</b></div>}
                 <div><span>{nicho().Pro}</span><b>{pro?.name || '—'}</b></div>
                 {a.bookingRef && <div><span>Ref.</span><b>{a.bookingRef}</b></div>}
+                {a.status === 'completed' && a.payment && (
+                  <div><span>Pago</span><b>{a.paymentMethod || '—'} · {formatPrice(Number(a.payment.total) || 0)}{a.payment.correcoes?.length ? ' · corrigido' : ''}</b></div>
+                )}
                 {av && <div><span>Avaliação</span><b style={{ color: 'var(--gold-tinta)' }}><Star size={13} fill="currentColor" /> {av.rating}{av.comment ? ` · «${av.comment}»` : ''}</b></div>}
               </div>
               <div className="mrc-ficha-botoes">
                 {!blocked && a.status === 'pending' && <Button variant="primary" onClick={() => { confirm(a.id); setDetalhe(null); }}><CheckCircle2 size={15} /> Confirmar</Button>}
                 {!blocked && a.status === 'confirmed' && <Button variant="primary" onClick={() => { setDetalhe(null); setCheckout(a.id); }}><CheckCircle2 size={15} /> Concluir e cobrar</Button>}
+                {!blocked && a.status === 'completed' && a.payment && <Button variant="secondary" onClick={() => { setDetalhe(null); setErroCorrigir(''); setCorrigir({ id: a.id, method: a.paymentMethod || 'Dinheiro', total: String(Number(a.payment.total) || 0), motivo: '' }); }}>Corrigir cobrança</Button>}
                 {!blocked && a.status !== 'cancelled' && a.status !== 'completed' && <Button variant="secondary" onClick={() => { setDetalhe(null); setCancelTarget(a); }}><XCircle size={15} /> Cancelar</Button>}
                 {podeApagar(a) && <Button variant="ghost" onClick={() => { setDetalhe(null); setDeleteTarget(a); }}><Trash2 size={15} /> Eliminar</Button>}
               </div>
@@ -284,6 +299,32 @@ export default function AdminAppointments() {
           </Modal>
         );
       })()}
+
+      <Modal open={!!corrigir} onClose={() => setCorrigir(null)} title="Corrigir cobrança"
+        footer={<><Button variant="ghost" onClick={() => setCorrigir(null)}>Cancelar</Button><Button variant="primary" disabled={aCorrigir} onClick={gravarCorrecao}>{aCorrigir ? 'A gravar…' : 'Gravar correção'}</Button></>}>
+        {corrigir && (
+          <div className="ag-detail">
+            <div className="field">
+              <label className="label">Como foi pago</label>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {['Dinheiro', 'Cartão', 'MB WAY', 'Transferência', 'Voucher'].map(m => (
+                  <button key={m} type="button" className={`btn btn-sm ${corrigir.method === m ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setCorrigir(c => ({ ...c, method: m }))}>{m}</button>
+                ))}
+              </div>
+            </div>
+            <div className="field">
+              <label className="label">Valor cobrado (€)</label>
+              <input className="input" type="number" min="0" step="0.5" value={corrigir.total} onChange={e => setCorrigir(c => ({ ...c, total: e.target.value }))} />
+              <div className="text-sm mt-8" style={{ color: 'var(--text-sec)' }}>A comissão e o total do cliente são recalculados.</div>
+            </div>
+            <div className="field">
+              <label className="label">Porquê (opcional)</label>
+              <input className="input" type="text" placeholder="Ex.: era MB WAY, não dinheiro" value={corrigir.motivo} onChange={e => setCorrigir(c => ({ ...c, motivo: e.target.value }))} />
+            </div>
+            {erroCorrigir && <div className="text-sm" style={{ color: 'var(--error)' }}>{erroCorrigir}</div>}
+          </div>
+        )}
+      </Modal>
 
       <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Eliminar marcação"
         footer={<><Button variant="ghost" onClick={() => setDeleteTarget(null)}>Cancelar</Button><Button variant="danger" onClick={remove}>Eliminar</Button></>}>

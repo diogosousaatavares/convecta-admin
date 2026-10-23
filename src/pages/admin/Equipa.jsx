@@ -4,6 +4,7 @@ import { Users, ShieldCheck, ShieldOff, Eye, EyeOff, Pencil, Crown, ChevronRight
 import { Link } from 'react-router-dom';
 import { useStore, useAuth } from '@/hooks/useStore';
 import { supabase } from '@/lib/supabase';
+import dataService from '@/lib/dataService';
 import authService from '@/lib/authService';
 import { useToast } from '@/components/ui/ToastContext';
 import AdminLayout from '@/components/AdminLayout';
@@ -60,9 +61,26 @@ export default function Equipa() {
   const acessos = useAcessos(data.business?.id);
   const [selecionado, setSelecionado] = useState(null);
   const pros = useMemo(() => (data.professionals || []).filter(p => p.isActive !== false), [data.professionals]);
+  /*
+   * A RECEÇÃO (23/10/2026, pedido de um founder). Quem está ao balcão não
+   * corta: precisa da agenda de toda a gente, dos clientes, de cobrar e da
+   * caixa — e de mais nada. É uma ficha de profissional «Receção», inativa
+   * (não aparece na app nem na agenda como coluna), com acesso ao painel
+   * e a permissão `rececao`.
+   */
+  const rececao = useMemo(() => (data.professionals || []).find(p => p.rececao === true) || null, [data.professionals]);
+  const [aCriarRececao, setACriarRececao] = useState(false);
+  const criarRececao = async () => {
+    setACriarRececao(true);
+    try {
+      const p = await dataService.createProfessional({ name: 'Receção', role: 'Receção', isActive: false, rececao: true, commission: 0 });
+      setSelecionado(p.id);
+    } catch (e) { toast.error('Não ficou criada', e.message); }
+    finally { setACriarRececao(false); }
+  };
   const dono = data.user || {};
   const comAcesso = pros.filter(p => acessos.de(p.id)).length;
-  const pro = pros.find(p => p.id === selecionado);
+  const pro = pros.find(p => p.id === selecionado) || (rececao && rececao.id === selecionado ? rececao : null);
   const toast = useToast();
   const { meuProfissionalId } = useAuth();
   const [aLigar, setALigar] = useState(false);
@@ -119,6 +137,23 @@ export default function Equipa() {
             </button>
           );
         })}
+
+        {rececao ? (
+          <button type="button" className="lin" onClick={() => setSelecionado(rececao.id)}>
+            <Avatar name="Receção" />
+            <span className="lin-txt"><b>Receção</b><span>Balcão · agenda de todos, clientes, cobrar e caixa</span></span>
+            <span className="lin-valor" style={{ fontSize: 14, display: 'flex', alignItems: 'center', gap: 5, color: acessos.de(rececao.id) ? 'var(--success)' : 'var(--text-sec)' }}>
+              {acessos.de(rececao.id) ? <><ShieldCheck size={14} /> Com acesso</> : <><ShieldOff size={14} /> Sem acesso</>}
+            </span>
+            <ChevronRight size={18} className="lin-seta" />
+          </button>
+        ) : (
+          <button type="button" className="lin" disabled={aCriarRececao} onClick={criarRececao}>
+            <Avatar name="R" />
+            <span className="lin-txt"><b>+ Receção</b><span>Um acesso para o balcão: vê a agenda de todos, marca, cobra e abre a caixa.</span></span>
+            <ChevronRight size={18} className="lin-seta" />
+          </button>
+        )}
       </div>
 
       {/* Ligar a conta do dono a uma ficha. So aparece quando ainda nao esta

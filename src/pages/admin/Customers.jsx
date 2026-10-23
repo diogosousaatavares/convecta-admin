@@ -13,7 +13,8 @@ const empty = { name: '', email: '', phone: '', birthDate: '' };
 export default function Customers() {
   const data = useStore();
   const toast = useToast();
-  const [customerList, setCustomerList] = useState(data.customers);
+  // O «Sem cadastro» (marcações de passagem) não é um contacto: fica fora da lista.
+  const [customerList, setCustomerList] = useState((data.customers || []).filter(c => !c.semCadastro));
   const [q, setQ] = useState('');
   const [selected, setSelected] = useState(null);
   const [editing, setEditing] = useState(null); // null | 'new' | id

@@ -64,6 +64,11 @@ export default function AcessoProfissional({ profissional, acesso, onMudou, emai
     if (!email.trim()) return;
     try {
       await chamar({ acao: 'dar', professional_id: profissional.id, email: email.trim() });
+      // A ficha «Receção» leva logo a permissão de balcão (agenda de todos + caixa).
+      if (profissional.rececao) {
+        const { data: u } = await supabase.from('users').select('id').eq('professional_id', profissional.id).maybeSingle();
+        if (u?.id) await supabase.rpc('definir_permissoes_profissional', { p_user_id: u.id, p_permissoes: { agenda_toda: true, rececao: true } });
+      }
       toast.success('Acesso criado', `${profissional.name} recebeu um email para escolher a palavra-passe.`);
       setAberto(false); setEmail(''); onMudou?.();
     } catch (e) { toast.error('Não deu', e.message); }

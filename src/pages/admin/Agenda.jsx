@@ -67,7 +67,8 @@ export default function Agenda() {
   const falhou = (e) => toast.error('Não ficou gravado', (e && e.message) || 'Verifica a internet e tenta outra vez.');
   // Um barbeiro com acesso proprio ve a agenda toda mas so mexe na coluna
   // dele. `so` e o id da ficha dele; para o dono e null (mexe em tudo).
-  const so = data.isProfissional ? data.meuProfissionalId : null;
+  // A receção (23/10/2026) mexe em todas as colunas, como o dono.
+  const so = data.isProfissional && !(data.permissoes && data.permissoes.rececao) ? data.meuProfissionalId : null;
 
   // Quantos pedidos de orçamento estão à espera. Só o número: o que se faz
   // com eles é nos Orçamentos.
@@ -708,7 +709,17 @@ export default function Agenda() {
         <div className="ag-detail">
           <div className="field">
             <label className="label">Cliente</label>
-            <EscolherCliente clientes={data.customers} value={quick.customerId} onChange={id => setQuick(f => ({ ...f, customerId: id }))} />
+            <EscolherCliente clientes={(data.customers || []).filter(c => !c.semCadastro)} value={quick.customerId} onChange={id => setQuick(f => ({ ...f, customerId: id }))} />
+            {/* 23/10/2026: o turista, o que passa uma vez — marca-se sem ficha. */}
+            {!quick.customerId && (
+              <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 6 }}
+                onClick={async () => { try { const c = await dataService.clienteSemCadastro(); setQuick(f => ({ ...f, customerId: c.id })); } catch (e) { setQuickError(e.message); } }}>
+                Sem cadastro (cliente de passagem)
+              </button>
+            )}
+            {(data.customers || []).find(c => c.id === quick.customerId)?.semCadastro && (
+              <div className="text-sm mt-8" style={{ color: 'var(--text-sec)' }}>Marcação sem ficha: conta na receita e na comissão, não dá carimbos.</div>
+            )}
           </div>
           <div className="field">
             <label className="label">Serviço</label>

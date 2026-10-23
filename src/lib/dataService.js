@@ -252,6 +252,8 @@ export function cartaoExpirou(loyalty, meses = mesesDeValidade()) {
 
 async function addLoyaltyStamp(appt, at = new Date().toISOString()) {
   if (!appt?.customerId || appt.loyaltyStamped) return;
+  // O «Sem cadastro» não é uma pessoa: não ganha carimbos nem pede avaliação.
+  if (state.customers.find(c => c.id === appt.customerId)?.semCadastro) return;
   // Corte do pack mensal: por omissão NÃO dá carimbo no cartão de
   // fidelidade — o pack já é o desconto. A barbearia pode mudar isso em
   // Packs › «Os cortes do pack dão carimbo».
@@ -483,6 +485,7 @@ function proFromRow(row) {
     lado: m.lado || '',
     commission: row.commission_value ?? m.commission ?? 30,
     schedule: m.schedule || null,
+    rececao: m.rececao === true,   // a ficha do balcão (23/10/2026)
     isActive: row.is_active !== false,
   };
 }
@@ -566,6 +569,7 @@ function custFromRow(row) {
     // escritas no ecra e deitadas fora aqui: nunca chegaram a ser gravadas.
     notes: m.notes || '',
     passwordHash: m.passwordHash || null,
+    semCadastro: m.semCadastro === true,   // a ficha «Sem cadastro» (23/10/2026)
     isActive: row.is_active !== false,
   };
 }
@@ -1728,6 +1732,68 @@ const dataService = {
       }).eq('id', a.customerId);
     }
     notify(); return a;
+  },
+  /*
+   * CORRIGIR UMA COBRANÇA JÁ FEITA (23/10/2026, pedido de um founder).
+   *
+   * Enganou-se no método (era MB WAY, pôs Dinheiro), no valor, ou
+   * esqueceu-se de uma coisa. Em vez de apagar e refazer (que perdia o
+   * carimbo, a comissão e a hora), corrige-se por cima: o método, o total
+   * e uma nota. A comissão do barbeiro é recalculada com a mesma
+   * percentagem que ficou gravada; o total gasto do cliente também. Fica
+   * um registo de cada correção dentro do pagamento (`correcoes`).
+   */
+  async corrigirCobranca(apptId, { method, total, motivo }) {
+    const a = state.appointments.find(x => x.id === apptId);
+    if (!a || a.status !== 'completed' || !a.payment) throw new Error('Esta marcação ainda não foi cobrada.');
+    const antes = { method: a.paymentMethod, total: a.payment.total, net: a.payment.net };
+    const novoMetodo = method || a.paymentMethod;
+    const novoTotal = total == null || total === '' ? round2(Number(a.payment.total) || 0) : round2(Number(total) || 0);
+    if (novoTotal < 0) throw new Error('Valor inválido.');
+    if (novoMetodo === 'Dinheiro' && antes.method !== 'Dinheiro' && !state.cashSessions.some(s => s.status === 'open')) {
+      throw new Error('A caixa está fechada. Abre a caixa para passar esta cobrança a dinheiro.');
+    }
+    const tip = round2(Number(a.payment.tip) || 0);
+    const novoNet = round2(Math.max(0, novoTotal - tip));
+    const pct = Number(a.payment.commission?.percentage) || 0;
+    const baseComissao = a.usaPack ? (Number(a.payment.commission?.baseAmount) || 0) : novoNet;
+    const novaComissao = round2(baseComissao * pct / 100);
+    const payment = {
+      ...a.payment, method: novoMetodo, total: novoTotal, net: novoNet, amountPaid: novoTotal,
+      discountAmount: round2(Math.max(0, (Number(a.payment.baseAmount) || 0) - novoNet)),
+      commission: { ...(a.payment.commission || {}), percentage: pct, baseAmount: baseComissao, commissionAmount: novaComissao },
+      correcoes: [...(a.payment.correcoes || []), { at: new Date().toISOString(), de: antes, para: { method: novoMetodo, total: novoTotal }, motivo: (motivo || '').trim() }],
+    };
+    const { error } = await supabase.from('appointments')
+      .update(apptToRow({ ...a, paymentMethod: novoMetodo, payment })).eq('id', apptId);
+    if (error) throw traduzirErro(error);
+    a.paymentMethod = novoMetodo; a.payment = payment;
+    if (a.payment.commissionId) {
+      const { error: ec } = await supabase.from('professional_commissions')
+        .update({ base_amount: baseComissao, amount: novaComissao }).eq('id', a.payment.commissionId);
+      if (!ec) { const c = (state.commissions || []).find(x => x.id === a.payment.commissionId); if (c) { c.baseAmount = baseComissao; c.amount = novaComissao; } }
+    }
+    recomputeCustomer(a.customerId);
+    const cust = state.customers.find(c => c.id === a.customerId);
+    if (cust) { const r = custToRow(cust); await supabase.from('customers').update({ total_spent: r.total_spent, total_visits: r.total_visits }).eq('id', a.customerId); }
+    notify(); return a;
+  },
+  /*
+   * O CLIENTE SEM CADASTRO (23/10/2026, pedido de um founder).
+   *
+   * O turista, o que passa uma vez: a marcação precisa de um cliente, mas
+   * não vale a pena uma ficha. Há UMA ficha por barbearia, «Sem cadastro»,
+   * que recebe todas essas marcações. Não aparece na lista de clientes,
+   * não ganha carimbos, não entra nos aniversários. As contas (receita,
+   * comissões, caixa) ficam exatamente iguais.
+   */
+  async clienteSemCadastro() {
+    let c = state.customers.find(x => x.semCadastro);
+    if (c) return c;
+    const { data: existente } = await supabase.from('customers').select('*').eq('business_id', BUSINESS_ID)
+      .contains('metadata', { semCadastro: true }).limit(1).maybeSingle();
+    if (existente) { c = custFromRow(existente); state.customers.push(c); notify(); return c; }
+    return dataService.createCustomer({ name: 'Sem cadastro', semCadastro: true, isActive: true });
   },
   // Porque é que esta cobrança não pode ser feita — ou null se pode.
   // Usado pelo ecrã de cobrança (para avisar antes) e pela própria cobrança.

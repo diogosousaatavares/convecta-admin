@@ -75,7 +75,11 @@ export const ABERTO_AO_PROFISSIONAL = [
   // que ele pode abrir (gruposPara filtra).
   '/admin/seccao',
 ];
-export function permitidoAoProfissional(caminho) {
+// A receção (23/10/2026): além do que o profissional vê, abre a caixa e
+// as marcações todas. Continua sem financeiro, produtos, serviços, site.
+export const ABERTO_A_RECECAO = ['/admin/caixa', '/admin/marcacoes', '/admin/lista-espera', '/admin/orcamentos'];
+export function permitidoAoProfissional(caminho, permissoes) {
   if (!caminho) return false;
-  return ABERTO_AO_PROFISSIONAL.some(m => caminho === m || caminho.startsWith(m + '/'));
+  const lista = permissoes && permissoes.rececao ? [...ABERTO_AO_PROFISSIONAL, ...ABERTO_A_RECECAO] : ABERTO_AO_PROFISSIONAL;
+  return lista.some(m => caminho === m || caminho.startsWith(m + '/'));
 }

@@ -14,7 +14,7 @@ export default function Seccao() {
   const { id } = useParams();
   const data = useStore();
   const emDemo = data.business?._settings?.demo?.ativo === true;
-  const g = gruposPara(emDemo, data.isProfissional).find(x => x.type === 'group' && x.id === id);
+  const g = gruposPara(emDemo, data.isProfissional, data.permissoes).find(x => x.type === 'group' && x.id === id);
   if (!g) return <Navigate to="/admin/mais" replace />;
   return (
     <AdminPage title={g.label} subtitle={g.d}>

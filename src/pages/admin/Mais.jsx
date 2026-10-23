@@ -42,7 +42,7 @@ export default function Mais() {
   // do lado do cliente (demonstracao.marcacoes.app). No painel, a barbearia da
   // demo comporta-se como qualquer outra — sem tutorial, sem banner, menu normal.
   const emDemo = false;
-  const grupos = gruposPara(emDemo, data.isProfissional);
+  const grupos = gruposPara(emDemo, data.isProfissional, data.permissoes);
 
   /* As secções do menu, em caixas (15/10/2026, à Fresha). As que estão na
      barra de baixo não se repetem aqui. */

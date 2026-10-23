@@ -214,13 +214,13 @@ const PASSOS_BARBEIRO = [
 
 /* Exportada: a pagina «Mais» desenha o menu inteiro e tem de ser o MESMO
    menu. Duas listas escritas a mao divergem sempre. */
-export function gruposPara(demo, profissional) {
+export function gruposPara(demo, profissional, permissoes) {
   let gs = GROUPS;
   if (profissional) {
     // O barbeiro ve so o que pode abrir; a conta dele ganha um nome que diz o que e.
     gs = gs
-      .map(g => g.items ? { ...g, items: g.items.filter(it => permitidoAoProfissional(it.to)).map(it => it.to === '/admin/financeiro/conta-profissional' ? { ...it, label: 'A minha conta' } : it) } : g)
-      .filter(g => g.items ? g.items.length > 0 : permitidoAoProfissional(g.to));
+      .map(g => g.items ? { ...g, items: g.items.filter(it => permitidoAoProfissional(it.to, permissoes)).map(it => it.to === '/admin/financeiro/conta-profissional' ? { ...it, label: 'A minha conta' } : it) } : g)
+      .filter(g => g.items ? g.items.length > 0 : permitidoAoProfissional(g.to, permissoes));
   }
   if (!demo) return gs;
   return gs
@@ -283,8 +283,8 @@ function BarraDeBaixo({ aberto }) {
   const location = useLocation();
   // O profissional só vê na barra o que pode abrir (Vendas e Catálogo são do
   // dono: tocar-lhes devolvia-o à agenda sem explicação).
-  const { isProfissional } = useStore();
-  const itens = isProfissional ? BAIXO.filter(b => permitidoAoProfissional(b.to)) : BAIXO;
+  const { isProfissional, permissoes } = useStore();
+  const itens = isProfissional ? BAIXO.filter(b => permitidoAoProfissional(b.to, permissoes)) : BAIXO;
   /* Activo pelo inicio do endereco: dentro da Agenda ha Marcacoes, Encaixes
      e Bloqueios, e todos continuam a ser «Hoje». */
   const activo = (to) => location.pathname === to || location.pathname.startsWith(to + '/');
@@ -414,7 +414,7 @@ export default function AdminLayout({ children }) {
     })();
     return () => { vivo = false; };
   }, []);
-  const grupos = gruposPara(emDemo, data.isProfissional);
+  const grupos = gruposPara(emDemo, data.isProfissional, data.permissoes);
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   /*
