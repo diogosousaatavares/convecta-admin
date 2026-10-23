@@ -14,9 +14,12 @@ export default function ConfirmDialog({ open, onClose, onConfirm, title = 'Confi
       footer={<><Button variant="ghost" onClick={onClose}>{cancelLabel}</Button><Button variant={danger ? 'danger' : 'primary'} onClick={onConfirm}>{confirmLabel}</Button></>}>
       {details && <div className="ag-detail mb-16">{details}</div>}
       {extra && <div style={{ marginBottom: 14 }}>{extra}</div>}
-      <div className="flex items-start gap-12">
+      {/* Classe própria (23/10/2026): a regra «.modal-body > .flex.gap-12:last-child»
+          transforma a última fila em botões iguais — e partia este aviso em duas
+          colunas, o ícone com metade do ecrã e o texto espremido do outro lado. */}
+      <div className="cd-aviso" style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
         {danger && <span className="alert-ico danger" style={{ flexShrink: 0 }}><AlertTriangle size={16} /></span>}
-        <p className="text-sec" style={{ margin: 0 }}>{message}</p>
+        <p className="text-sec" style={{ margin: 0, flex: 1, minWidth: 0 }}>{message}</p>
       </div>
     </Modal>
   );

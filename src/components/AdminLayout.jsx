@@ -383,7 +383,36 @@ function Trilho({ grupos, isActive, onApoio, onSair }) {
   );
 }
 
+/*
+ * O ECRÃ QUE FICA «SUBIDO» NO IPHONE (23/10/2026).
+ *
+ * Ao escrever num campo, o Safari do iPhone empurra a página para cima para
+ * o teclado caber. Quando o teclado fecha, nem sempre a traz de volta: a
+ * barra de baixo fica a meio do ecrã e o cabeçalho debaixo da hora. Guarda-se
+ * onde a página estava quando o campo ganhou o foco e repõe-se quando o perde.
+ */
+function useRepoeEcraAposTeclado() {
+  useEffect(() => {
+    let guardado = 0;
+    const campo = el => el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
+    const aoFocar = e => { if (campo(e.target)) guardado = window.scrollY; };
+    const aoLargar = e => {
+      if (!campo(e.target)) return;
+      setTimeout(() => {
+        if (document.activeElement && campo(document.activeElement)) return;   // passou para outro campo
+        window.scrollTo(0, guardado);
+        const vv = window.visualViewport;
+        if (vv && (vv.offsetTop > 0 || vv.offsetLeft > 0)) window.scrollTo(0, Math.max(0, guardado));
+      }, 120);
+    };
+    document.addEventListener('focusin', aoFocar);
+    document.addEventListener('focusout', aoLargar);
+    return () => { document.removeEventListener('focusin', aoFocar); document.removeEventListener('focusout', aoLargar); };
+  }, []);
+}
+
 export default function AdminLayout({ children }) {
+  useRepoeEcraAposTeclado();
   const data = useStore();
   const location = useLocation();
   const tipoDeNavegacao = useNavigationType();
