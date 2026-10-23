@@ -2639,6 +2639,14 @@ html:not(.theme-light) .marca-escuro { display: block !important; }
   }
   .bnav-item.activo { color: var(--gold-tinta); }
   .bnav-item.activo svg { stroke-width: 2.4; }
+  /* A Agenda numa bola amarela, levantada acima da barra (23/10/2026). */
+  .bnav-principal svg {
+    width: 26px; height: 26px; padding: 13px; box-sizing: content-box;
+    border-radius: 50%; background: var(--gold); color: #111; stroke-width: 2.2;
+    margin-top: -26px; box-shadow: 0 4px 14px rgba(0, 0, 0, .18), 0 0 0 4px var(--surface);
+  }
+  .bnav-principal.activo svg { box-shadow: 0 4px 14px rgba(0, 0, 0, .22), 0 0 0 4px var(--surface), 0 0 0 6px var(--gold); }
+  .bnav-principal span { font-weight: 800; color: var(--gold-tinta); }
   /* Com a gaveta aberta a barra sai da frente: duas navegacoes ao mesmo
      tempo no mesmo ecra e uma a mais. */
   .bnav-escondida { display: none; }

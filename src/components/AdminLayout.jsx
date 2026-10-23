@@ -295,7 +295,9 @@ function BarraDeBaixo({ aberto }) {
     <nav className={`bnav${aberto ? ' bnav-escondida' : ''}`} aria-label="Principal"
       style={itens.length !== BAIXO.length ? { gridTemplateColumns: `repeat(${itens.length + 1}, 1fr)` } : undefined}>
       {itens.map(b => (
-        <Link key={b.to} to={b.to} className={`bnav-item${activo(b.to) ? ' activo' : ''}`}>
+        /* 23/10/2026: a Agenda é o botão principal — o ícone vive numa bola
+           amarela, levantada, para se ver e tocar sem procurar. */
+        <Link key={b.to} to={b.to} className={`bnav-item${activo(b.to) ? ' activo' : ''}${b.to === '/admin/agenda' ? ' bnav-principal' : ''}`}>
           <b.icon size={21} />
           <span>{b.label}</span>
         </Link>
