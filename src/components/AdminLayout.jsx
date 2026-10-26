@@ -411,6 +411,19 @@ function useRepoeEcraAposTeclado() {
   }, []);
 }
 
+function LinkDaApp({ slug }) {
+  const [copiado, setCopiado] = useState(false);
+  const url = `https://${slug}.marcacoes.app`;
+  const copiar = async () => { try { await navigator.clipboard.writeText(url); setCopiado(true); setTimeout(() => setCopiado(false), 1500); } catch { /* copia à mão */ } };
+  return (
+    <div className="link-da-app" title="O link da tua app — é este que os clientes usam para marcar">
+      <span className="link-da-app-url">{slug}.marcacoes.app</span>
+      <button type="button" className="btn btn-ghost" onClick={copiar}>{copiado ? 'Copiado' : 'Copiar'}</button>
+      <a className="btn btn-ghost" href={url} target="_blank" rel="noreferrer">Abrir</a>
+    </div>
+  );
+}
+
 export default function AdminLayout({ children }) {
   useRepoeEcraAposTeclado();
   const data = useStore();
@@ -798,6 +811,9 @@ export default function AdminLayout({ children }) {
                 ))}
               </div>}
             </div>
+            {/* 26/10/2026: o link público da app, sempre à mão no computador —
+                copiar para mandar a um cliente, ou abrir para ver como está. */}
+            {noComputador && data.business?.slug && <LinkDaApp slug={data.business.slug} />}
           </div>
           <div className="admin-topbar-right">
             {/* O sino abre a lista do que aconteceu (marcações novas, canceladas,

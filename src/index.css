@@ -3231,3 +3231,8 @@ body { font-variant-numeric: lining-nums; }
 .admin-topbar-tel .theme-toggle { background: transparent; border: 0; color: var(--text); }
 .admin-topbar-tel .theme-toggle:hover { transform: none; }
 .admin-topbar-tel .theme-toggle svg { width: 19px; height: 19px; }
+
+/* 26/10/2026: o link da app na barra de cima (computador). */
+.link-da-app { display: inline-flex; align-items: center; gap: 4px; margin-left: 14px; padding: 4px 6px 4px 12px; border-radius: 999px; border: 1px solid var(--border, #E6E2DA); background: var(--card, #fff); white-space: nowrap; }
+.link-da-app-url { font-size: 13.5px; font-weight: 700; color: var(--text, #1E1A12); margin-right: 4px; }
+.link-da-app .btn { padding: 4px 10px; font-size: 12.5px; min-height: 0; height: auto; }
