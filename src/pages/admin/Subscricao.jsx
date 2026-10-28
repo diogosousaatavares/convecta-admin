@@ -259,6 +259,15 @@ export default function Subscricao() {
   // Dois tipos no mesmo espaço: o «misto» antigo ou dois negócios ligados.
   // Nos dois casos o preço mostrado já leva o segundo tipo (+50 %).
   const doisTipos = negocio?.tipoNegocio === 'misto' || grupo.ligado;
+  /* 28/10/2026 (Diogo): o desconto que a Convecta deu a esta barbearia
+     (super admin › Desconto, ligado ao cupão do Stripe) vê-se aqui também —
+     o preço que ele vê é o que paga. */
+  const desconto = negocio?._settings?.descontoConvecta;
+  const temDesconto = !!desconto && Number(desconto.pct) > 0;
+  const comDesconto = centimos => (temDesconto ? Math.round(centimos * (1 - Number(desconto.pct) / 100)) : centimos);
+  const descontoTexto = temDesconto
+    ? `−${desconto.pct} %${desconto.duracao === 'once' ? ' na primeira cobrança' : desconto.duracao === 'repeating' ? ` durante ${desconto.meses} meses` : ''}`
+    : '';
 
   /*
    * O barbeiro volta do Stripe para aqui. Mas o estado quem o escreve é o
@@ -659,7 +668,9 @@ export default function Subscricao() {
             )}
             {precoDaCasa && (
               <div className="sub-plano-linha">
-                Plano {nomeDoPlano} · {euros(comSegundoNicho(precoDaCasa.centimos, doisTipos))}{planoDaCasa?.precos?.[periodo] ? (SUFIXO[periodo] || '/mês') : '/mês'}{doisTipos ? ' · inclui o segundo tipo (+50 %)' : ''} · <button type="button" onClick={() => setVerPlanos(v => !v)}>{verPlanos ? 'fechar' : 'mudar'}</button>
+                Plano {nomeDoPlano} · {temDesconto
+                  ? <><s style={{ opacity: .6 }}>{euros(comSegundoNicho(precoDaCasa.centimos, doisTipos))}</s> <b>{euros(comDesconto(comSegundoNicho(precoDaCasa.centimos, doisTipos)))}</b></>
+                  : euros(comSegundoNicho(precoDaCasa.centimos, doisTipos))}{planoDaCasa?.precos?.[periodo] ? (SUFIXO[periodo] || '/mês') : '/mês'}{temDesconto ? ` · o teu desconto: ${descontoTexto}` : ''}{doisTipos ? ' · inclui o segundo tipo (+50 %)' : ''} · <button type="button" onClick={() => setVerPlanos(v => !v)}>{verPlanos ? 'fechar' : 'mudar'}</button>
               </div>
             )}
             {/* Quem entrega o cartão quer saber a quem o está a entregar. O
@@ -704,8 +715,10 @@ export default function Subscricao() {
                         <div className="fw-600" style={{ fontSize: 17 }}>{plano.nome}</div>
                         {plano.descricao && <div style={{ fontSize: 15, marginTop: 6, lineHeight: 1.5 }}>{plano.descricao}</div>}
                         <div style={{ margin: '14px 0 12px' }}>
-                          <span className="fw-600" style={{ fontSize: 28 }}>{euros(comSegundoNicho(preco.centimos, doisTipos))}</span>
+                          {temDesconto && <span className="text-sec" style={{ fontSize: 15, textDecoration: 'line-through', marginRight: 8 }}>{euros(comSegundoNicho(preco.centimos, doisTipos))}</span>}
+                          <span className="fw-600" style={{ fontSize: 28 }}>{euros(comDesconto(comSegundoNicho(preco.centimos, doisTipos)))}</span>
                           <span className="text-sec" style={{ fontSize: 15 }}> {sufixo}</span>
+                          {temDesconto && <div style={{ fontSize: 13, marginTop: 2, color: 'var(--gold-tinta)', fontWeight: 600 }}>O teu desconto: {descontoTexto}</div>}
                           {doisTipos && <div className="text-sec" style={{ fontSize: 13, marginTop: 2 }}>{euros(preco.centimos)} do plano + metade pelo segundo tipo</div>}
                         </div>
                         {plano.caracteristicas?.length > 0 && (
