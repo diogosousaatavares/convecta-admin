@@ -11,6 +11,7 @@ import AdminLayout from '@/components/AdminLayout';
 import { Card, Avatar, Button, Modal } from '@/components/ui';
 import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
 import { SugestaoSegundoTipo } from '@/components/admin/SegundoTipo';
+import { EmQueCasa } from '@/components/admin/Casas';
 
 // O que cada tipo de pessoa vê no painel. É o espelho das regras da base de
 // dados (ACESSO_PROFISSIONAL.sql) e de modulos.js — mudar num sítio é mudar nos três.
@@ -182,6 +183,8 @@ export default function Equipa() {
                 <span className="nt-txt"><b>{pro.role || 'Profissional'}</b><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pro.email || 'Sem email na ficha'}</span></span>
               </div>
               <AcessoProfissional profissional={pro} acesso={acessos.de(pro.id)} onMudou={acessos.recarregar} />
+              {/* 28/10/2026: em que casa(s) está — ambas, ou uma */}
+              <EmQueCasa pro={pro} />
             </div>
             <div className="botoes-iguais" style={{ marginTop: 18 }}>
               <Link to="/admin/profissionais" className="btn btn-secondary">Editar ficha</Link>

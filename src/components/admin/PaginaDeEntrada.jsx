@@ -16,7 +16,14 @@ import { nomeDoLado } from '@/lib/nicho';
  * (sem ele, usePorta devolve null e isto não se mostra).
  */
 const PERGUNTA = 'O que vens fazer hoje?';
-const nomeDe = n => (n ? nomeDoLado(n.tipo) || n.name : '');
+const PERGUNTA_CASAS = 'Em que casa queres marcar?';
+// 28/10/2026: duas casas do mesmo tipo dizem a localidade (Lisboa · Porto), não «Barbearia» duas vezes.
+const nomeDe = (n, lista) => {
+  if (!n) return '';
+  const mesmoTipo = Array.isArray(lista) && new Set(lista.map(x => x.tipo)).size < lista.length;
+  if (mesmoTipo || n.casa) return n.localidade || n.name;
+  return nomeDoLado(n.tipo) || n.name;
+};
 
 export default function PaginaDeEntrada({ biz }) {
   const grupo = useGrupo();
@@ -32,7 +39,7 @@ export default function PaginaDeEntrada({ biz }) {
         <DoorOpen size={20} />
         <span className="pe-faixa-txt">
           <b>Página de entrada</b>
-          <small>Principal: {nomeDe(principal)} · foto, texto e botões</small>
+          <small>Principal: {nomeDe(principal, grupo.lista)} · foto, texto e botões</small>
         </span>
         <ChevronRight size={18} />
       </button>
@@ -65,10 +72,12 @@ function Editor({ biz, grupo, porta, onGuardado, onFechar }) {
   // O principal fica em primeiro, como na porta a sério.
   const ordem = [...grupo.lista].sort((a, b) => (b.id === principal) - (a.id === principal));
 
+  const [arrasta, setArrasta] = useState(false);
   const enviarFoto = async e => {
-    const original = e.target.files?.[0];
-    e.target.value = '';
+    const original = e?.dataTransfer ? e.dataTransfer.files?.[0] : e.target.files?.[0];
+    if (e?.target && !e?.dataTransfer) e.target.value = '';
     if (!original) return;
+    if (!/^image\//.test(original.type || '')) { setErro('Isso não é uma imagem.'); return; }
     setAEnviar(true); setErro('');
     try {
       const file = await reduzirParaTamanho(original, 4 * 1024 * 1024);
@@ -99,17 +108,23 @@ function Editor({ biz, grupo, porta, onGuardado, onFechar }) {
               <div className="pe-escolha">
                 {grupo.lista.map(n => (
                   <button key={n.id} type="button" className={n.id === principal ? 'on' : ''} onClick={() => setPrincipal(n.id)}>
-                    {nomeDe(n)}
+                    {nomeDe(n, grupo.lista)}
                   </button>
                 ))}
               </div>
               <div className="pe-nota">
-                O link de {nomeDe(doPrincipal)} ({doPrincipal?.slug}.marcacoes.app) é o que abre esta página. A subscrição não muda.
+                O link de {nomeDe(doPrincipal, grupo.lista)} ({doPrincipal?.slug}.marcacoes.app) é o que abre esta página. A subscrição não muda.
               </div>
             </div>
 
             <div>
               <Lbl>Foto</Lbl>
+              {/* 28/10/2026: arrastar e soltar a foto para aqui */}
+              <label onDragOver={ev => { ev.preventDefault(); setArrasta(true); }} onDragLeave={() => setArrasta(false)} onDrop={ev => { ev.preventDefault(); setArrasta(false); enviarFoto(ev); }}
+                style={{ display: 'grid', placeItems: 'center', height: 120, borderRadius: 12, cursor: 'pointer', marginBottom: 8, border: `2px dashed ${arrasta ? 'var(--gold)' : BD}`, background: foto ? `linear-gradient(rgba(0,0,0,.25), rgba(0,0,0,.45)), url('${foto}') center/cover` : W2, color: foto ? '#fff' : T2, fontSize: 14, fontWeight: 600, textAlign: 'center', padding: 12 }}>
+                {aEnviar ? <Spin /> : arrasta ? 'Larga aqui' : foto ? 'Arrasta outra foto para aqui, ou toca para escolher' : 'Arrasta a foto para aqui, ou toca para escolher'}
+                <input type="file" accept="image/*" onChange={enviarFoto} hidden />
+              </label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 <label className="pe-foto-btn">
                   {aEnviar ? <Spin /> : <ImagePlus size={17} />}
@@ -128,7 +143,7 @@ function Editor({ biz, grupo, porta, onGuardado, onFechar }) {
 
             <div>
               <Lbl>Pergunta</Lbl>
-              <Inp value={pergunta} maxLength={120} onChange={e => setPergunta(e.target.value)} placeholder={PERGUNTA} />
+              <Inp value={pergunta} maxLength={120} onChange={e => setPergunta(e.target.value)} placeholder={grupo.lista.every(x => x.principal || x.casa) ? PERGUNTA_CASAS : PERGUNTA} />
             </div>
 
             <div>
@@ -137,7 +152,7 @@ function Editor({ biz, grupo, porta, onGuardado, onFechar }) {
                 {ordem.map(n => (
                   <Inp key={n.id} value={botoes[n.id] || ''} maxLength={40}
                     onChange={e => setBotoes(b => ({ ...b, [n.id]: e.target.value }))}
-                    placeholder={nomeDe(n)} />
+                    placeholder={nomeDe(n, grupo.lista)} />
                 ))}
               </div>
             </div>
@@ -148,8 +163,8 @@ function Editor({ biz, grupo, porta, onGuardado, onFechar }) {
             <div className={`pe-previa${foto ? ' com-foto' : ''}`}
               style={foto ? { backgroundImage: `linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.6)), url('${foto}')` } : undefined}>
               <div className="pe-p-nome">{titulo || doPrincipal?.name}</div>
-              <div className="pe-p-perg">{pergunta || PERGUNTA}</div>
-              {ordem.map(n => <div key={n.id} className="pe-p-btn">{botoes[n.id] || nomeDe(n)}</div>)}
+              <div className="pe-p-perg">{pergunta || (grupo.lista.every(x => x.principal || x.casa) ? PERGUNTA_CASAS : PERGUNTA)}</div>
+              {ordem.map(n => <div key={n.id} className="pe-p-btn">{botoes[n.id] || nomeDe(n, grupo.lista)}</div>)}
             </div>
           </div>
         </div>

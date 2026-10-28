@@ -12,6 +12,7 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { n as nicho } from '@/lib/nicho';
 import { JuntarSegundoTipo } from '@/components/admin/SegundoTipo';
+import { JuntarOutraCasa, NomeDasCasas } from '@/components/admin/Casas';
 import ExtrasSubscricao from '@/components/admin/ExtrasSubscricao';
 import { useGrupo, mudarDeNegocio } from '@/lib/grupo';
 
@@ -585,6 +586,9 @@ export default function Subscricao() {
           lugares={sub.limiteProfissionais} />
       )}
 
+      {/* ── Outra casa da mesma marca (28/10/2026) ───────────────────────── */}
+      {!precisaDeCartao && !sub.cancelaNoFim && <NomeDasCasas />}
+      {!precisaDeCartao && !sub.cancelaNoFim && <JuntarOutraCasa />}
       {/* ── Extras pagos (13/10/2026): pagamentos online, faturas… ──────── */}
       {!precisaDeCartao && !sub.cancelaNoFim && (
         <ExtrasSubscricao periodo={['anual', 'quinzenal'].includes(sub.periodo) ? sub.periodo : 'mensal'} />

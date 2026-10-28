@@ -9,6 +9,7 @@ import { Card, Avatar, Badge, Button, EmptyState, Modal, Stars } from '@/compone
 import dataService, { uploadProfessionalPhoto } from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import FotoPerfil from '@/components/admin/FotoPerfil';
+import FotoDaLista from '@/components/admin/FotoDaLista';
 import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
 import { SugestaoSegundoTipo } from '@/components/admin/SegundoTipo';
 import { n as nicho, eMisto, lados, ladoActual, nomeDoLado } from '@/lib/nicho';
@@ -197,9 +198,8 @@ export default function Professionals() {
             return (
               <Card key={p.id} className="card-pad">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                  {p.photoUrl
-                    ? <img className="professional-photo" src={p.photoUrl} alt={`Fotografia de ${p.name}`} />
-                    : <Avatar name={p.name} />}
+                  {/* 28/10/2026 (Diogo): arrasta a foto para cima do barbeiro e fica logo. */}
+                  <FotoDaLista pro={p} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="fw-600" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
                     <div className="text-sec text-xs" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -249,7 +249,7 @@ export default function Professionals() {
           {data.professionals.map(p => (
             <Card key={p.id} className="card-pad card-hover">
               <div className="flex items-center gap-12">
-                {p.photoUrl ? <img className="professional-photo" src={p.photoUrl} alt={`Fotografia de ${p.name}`} /> : <Avatar name={p.name} size="lg" />}
+                <FotoDaLista pro={p} grande />
                 <div className="flex-1">
                   <h3 style={{ fontSize: 18 }}>{p.name}</h3>
                   <div className="text-gold text-sm">{p.role}</div>
