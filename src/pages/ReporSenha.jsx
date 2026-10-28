@@ -26,14 +26,15 @@ export default function ReporSenha() {
   };
 
   // Convite da barbearia (?convite=…): código nosso, vale 7 dias, sem tokens do Supabase.
-  const [convite] = useState(() => new URLSearchParams(window.location.search).get('convite') || '');
+  const [convite] = useState(() => { const q = new URLSearchParams(window.location.search); return q.get('convite') || q.get('dono') || ''; });
+  const [funcaoConvite] = useState(() => (new URLSearchParams(window.location.search).get('dono') ? 'convidar-dono' : 'convidar-profissional'));
   const [conviteInfo, setConviteInfo] = useState(null);
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
-    if (q.get('convite')) {
+    if (q.get('convite') || q.get('dono')) {
       (async () => {
-        const { data, error: e } = await supabase.functions.invoke('convidar-profissional', { body: { acao: 'aceitar', convite: q.get('convite') } });
+        const { data, error: e } = await supabase.functions.invoke(q.get('dono') ? 'convidar-dono' : 'convidar-profissional', { body: { acao: 'aceitar', convite: q.get('convite') || q.get('dono') } });
         let erro = data?.erro;
         if (e && !erro) { try { erro = (await e.context?.json())?.erro; } catch { erro = ''; } erro = erro || e.message; }
         if (erro) { setMotivo(erro); setStage('error'); return; }
@@ -86,7 +87,7 @@ export default function ReporSenha() {
     setLoading(true);
     if (convite) {
       // A função guarda a palavra-passe na conta e nós entramos logo com ela.
-      const { data, error: e } = await supabase.functions.invoke('convidar-profissional', { body: { acao: 'aceitar', convite, password } });
+      const { data, error: e } = await supabase.functions.invoke(funcaoConvite, { body: { acao: 'aceitar', convite, password } });
       let erro = data?.erro;
       if (e && !erro) { try { erro = (await e.context?.json())?.erro; } catch { erro = ''; } erro = erro || e.message; }
       if (erro) { setLoading(false); setError(erro); return; }
