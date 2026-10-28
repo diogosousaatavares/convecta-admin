@@ -188,9 +188,27 @@ export default function ReporSenha() {
           {/* Formulário nova senha */}
           {stage === 'form' && (
             <>
-              <div style={{ marginBottom: 28 }}>
-                <h1 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 4px' }}>{conviteInfo ? `Olá${conviteInfo.nome ? ' ' + String(conviteInfo.nome).split(' ')[0] : ''}!` : 'Nova palavra-passe'}</h1>
-                <p style={{ fontSize: 15, color: '#666', margin: 0 }}>{conviteInfo ? `Escolhe a tua palavra-passe para entrar na agenda da ${conviteInfo.barbearia || 'barbearia'} com o email ${conviteInfo.email}.` : 'Escolhe uma nova palavra-passe segura'}</p>
+              {/* 28/10/2026 (Diogo): o «Olá Diogo!» estava quase invisível (serifa escura
+                  sobre fundo escuro). Agora: etiqueta dourada, saudação branca e grande, e
+                  a barbearia e o email em destaque — é o momento em que a app passa a ser dele. */}
+              <div style={{ marginBottom: 26 }}>
+                {conviteInfo && <div style={{ fontSize: 11.5, letterSpacing: '.2em', fontWeight: 800, color: 'var(--gold, #C9A227)', textTransform: 'uppercase', marginBottom: 10 }}>{funcaoConvite === 'convidar-dono' ? 'A tua app está pronta' : 'Foste convidado'}</div>}
+                <h1 style={{ fontSize: 30, fontWeight: 800, lineHeight: 1.1, margin: '0 0 10px', color: '#fff', fontFamily: 'var(--font-body, inherit)', letterSpacing: '-.01em' }}>
+                  {conviteInfo ? `Olá${conviteInfo.nome ? ', ' + String(conviteInfo.nome).split(' ')[0] : ''}!` : 'Nova palavra-passe'}
+                </h1>
+                {conviteInfo ? (
+                  <>
+                    <p style={{ fontSize: 15.5, color: 'rgba(255,255,255,.72)', margin: '0 0 12px', lineHeight: 1.55 }}>
+                      {funcaoConvite === 'convidar-dono' ? 'Escolhe a tua palavra-passe e a agenda passa a ser tua.' : 'Escolhe a tua palavra-passe para entrar na agenda.'}
+                    </p>
+                    <div style={{ display: 'grid', gap: 6, padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 14 }}><span style={{ color: 'rgba(255,255,255,.5)' }}>Negócio</span><b style={{ color: '#fff', textAlign: 'right' }}>{conviteInfo.barbearia || 'barbearia'}</b></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 14, minWidth: 0 }}><span style={{ color: 'rgba(255,255,255,.5)', flexShrink: 0 }}>Entras com</span><b style={{ color: '#fff', textAlign: 'right', overflowWrap: 'anywhere' }}>{conviteInfo.email}</b></div>
+                    </div>
+                  </>
+                ) : (
+                  <p style={{ fontSize: 15, color: 'rgba(255,255,255,.6)', margin: 0 }}>Escolhe uma nova palavra-passe segura</p>
+                )}
               </div>
               <form onSubmit={submit}>
                 <div style={{ marginBottom: 16 }}>
@@ -241,7 +259,7 @@ export default function ReporSenha() {
                   style={{ width: '100%', justifyContent: 'center', gap: 8, height: 46, fontSize: 15, fontWeight: 700 }}
                   disabled={loading}
                 >
-                  {loading ? 'A guardar…' : 'Guardar nova senha'}
+                  {loading ? 'A guardar…' : conviteInfo ? 'Entrar na minha agenda' : 'Guardar nova palavra-passe'}
                   {!loading && <ArrowRight size={16} />}
                 </button>
               </form>
