@@ -2571,7 +2571,7 @@ const dataService = {
      * pedir o cartao e a pagina de planos — que e exactamente o que o
      * interruptor do super admin existe para evitar.
      */
-    const EXTRAS = ['isenta', 'is_test', 'cancela_no_fim'];
+    const EXTRAS = ['isenta', 'is_test', 'cancela_no_fim', 'entregue_em'];
     let extras = [...EXTRAS];
     let data, error;
     for (;;) {
@@ -2598,9 +2598,14 @@ const dataService = {
      */
     const DIAS_EXPERIENCIA = 14;
     const semCartao = !data.isenta && !data.is_test && (data.subscricao_estado || 'sem_cartao') === 'sem_cartao';
-    const fimDaExperiencia = semCartao && data.created_at
-      ? new Date(new Date(data.created_at).getTime() + DIAS_EXPERIENCIA * 86400000).toISOString() : null;
-    const emExperiencia = !!fimDaExperiencia && new Date(fimDaExperiencia).getTime() > Date.now();
+    /* 28/10/2026 (Diogo): os 14 dias começam na ENTREGA ao dono (entregue_em),
+       não no registo. Por entregar (null, com a coluna a existir) = a app ainda
+       é a demonstração: nada conta, nada fecha. */
+    const inicioExp = data.entregue_em === undefined ? data.created_at : data.entregue_em;
+    const porEntregar = semCartao && data.entregue_em === null;
+    const fimDaExperiencia = semCartao && inicioExp
+      ? new Date(new Date(inicioExp).getTime() + DIAS_EXPERIENCIA * 86400000).toISOString() : null;
+    const emExperiencia = porEntregar || (!!fimDaExperiencia && new Date(fimDaExperiencia).getTime() > Date.now());
     return {
       plano: data.plan || null,
       periodo: data.billing_period || 'mensal',
