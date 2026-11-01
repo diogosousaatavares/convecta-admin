@@ -1,3 +1,4 @@
+import VideoBoasVindas from '@/components/VideoBoasVindas';
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import PageInfo from '@/components/admin/PageInfo';
@@ -725,6 +726,8 @@ export default function AdminLayout({ children }) {
       </Modal>
       <main className={`admin-content${!noComputador && !BAIXO.some(b => location.pathname === b.to) && location.pathname !== '/admin/mais' ? ' dentro' : ''}${location.pathname === '/admin/o-meu-site' ? ' sem-barra' : ''}${!noComputador && BAIXO.some(b => location.pathname === b.to) ? ' base-tel' : ''}`} ref={zonaConteudo}>
         {emDemo && <TourDemo passos={PASSOS_DEMO} chave="convecta_tour_painel" />}
+        {/* 01/11/2026 (Diogo): na primeira entrada, o vídeo-tutorial dele (public/boas-vindas.mp4). */}
+        {!emDemo && !data.isProfissional && <VideoBoasVindas />}
         {/* Nunca as duas: numa barbearia de demonstracao manda a da demonstracao. */}
         {!emDemo && <TourDemo passos={PASSOS_BARBEIRO} chave="convecta_visita_barbeiro" ativo={visitaBarbeiro}
           aoTerminar={() => { try { window.dispatchEvent(new CustomEvent('convecta-guardar-ecra', { detail: { forcar: true } })); } catch { /* sem eventos */ } }} />}
