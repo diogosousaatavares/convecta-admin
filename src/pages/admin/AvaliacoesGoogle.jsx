@@ -85,7 +85,7 @@ export default function AvaliacoesGoogle() {
   /* ── Sem o suplemento: a apresentação ── */
   if (!temExtra) {
     return (
-      <AdminPage title="Avaliações Google">
+      <AdminPage title="Google Reviews">
         <Confirmacao />
         <div style={{ ...caixa, maxWidth: 640 }}>
           <div style={{ display: 'flex', gap: 4, color: 'var(--gold)' }}>{[0, 1, 2, 3, 4].map(i => <Star key={i} size={22} fill="currentColor" />)}</div>
@@ -106,7 +106,7 @@ export default function AvaliacoesGoogle() {
   }
 
   return (
-    <AdminPage title="Avaliações Google">
+    <AdminPage title="Google Reviews">
       <Confirmacao />
       <div style={{ display: 'grid', gap: 16, maxWidth: 720 }}>
         {/* O resultado */}
@@ -136,7 +136,15 @@ export default function AvaliacoesGoogle() {
             </div>
           ) : (
             <>
-              <p style={sub}>Procura pelo nome e a localidade e escolhe a tua ficha.</p>
+              <p style={sub}>Procura pelo nome e a localidade e escolhe a tua ficha. É a ficha que aparece no Google Maps quando procuram a tua barbearia.</p>
+              <details style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+                <summary style={{ cursor: 'pointer', fontWeight: 700, color: 'var(--text)' }}>Não aparece a tua barbearia?</summary>
+                <ol style={{ margin: '8px 0 0', paddingLeft: 20, display: 'grid', gap: 4, lineHeight: 1.5 }}>
+                  <li>Abre o <a href="https://www.google.com/business/" target="_blank" rel="noreferrer" style={{ fontWeight: 700 }}>Google Business Profile</a> com a conta Google da barbearia e cria a ficha (é grátis): nome, morada, telefone, horário.</li>
+                  <li>O Google confirma que a barbearia é tua — normalmente por chamada, SMS, email ou vídeo; às vezes por carta, que demora uns dias.</li>
+                  <li>Depois de confirmada, volta aqui, procura e escolhe-a.</li>
+                </ol>
+              </details>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <input value={texto} onChange={e => setTexto(e.target.value)} onKeyDown={e => e.key === 'Enter' && procurar()} placeholder="Ex.: Barbearia do Rui, Castelo Branco"
                   style={{ flex: 1, minWidth: 220, padding: '11px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', font: 'inherit', fontSize: 15 }} />

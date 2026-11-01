@@ -11,6 +11,13 @@ import { Bell, ArrowLeft, MoreHorizontal, LayoutDashboard, CalendarDays, Users, 
   Cake, Package, Scissors, Tags, Layers, Repeat, Boxes, ArrowLeftRight, Truck, Megaphone, Globe, Heart, Ticket, Instagram, UserCog, UsersRound,
   CalendarRange, Palmtree, TrendingUp, BarChart3, Settings, Gem } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
+// 01/11/2026: ícone do Google Reviews no menu — um balão com uma estrela (o logótipo do Google é marca deles).
+const IconeReviews = ({ size = 18, ...p }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+    <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12Z" />
+    <path d="m12.9 8 .9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3Z" fill="currentColor" strokeWidth="1" />
+  </svg>
+);
 import { Modal } from '@/components/ui';
 
 import { moduloIndisponivel, permitidoAoProfissional } from '@/lib/modulos';
@@ -94,7 +101,6 @@ const GROUPS_TODOS = [
     { to: '/admin/clientes', label: 'Clientes', exact: true, icon: Users, d: 'Fichas e histórico.' },
     { to: '/admin/clientes/aniversarios', label: 'Aniversários', icon: Cake, d: 'Quem faz anos.' },
     { to: '/admin/avaliacoes', label: 'Avaliações', icon: Star, d: 'O que dizem de ti.' },
-    { to: '/admin/avaliacoes-google', label: 'Avaliações Google', icon: Star, d: 'Mais avaliações no Google, sozinhas.' },
   ]},
 
   { type: 'group', id: 'catalogo', label: 'Catálogo', icon: Package, d: 'O que vendes.', items: [
@@ -114,6 +120,7 @@ const GROUPS_TODOS = [
     { to: '/admin/promocoes', label: 'Promoções e cupões', icon: Ticket, d: 'Descontos com prazo.' },
     { to: '/admin/notificacoes', label: 'Notificações', icon: Bell, d: 'Avisos e promoções no telemóvel.' },
     { to: '/admin/redes-sociais', label: 'Redes sociais', icon: Instagram, d: 'Posts e vídeos prontos.' },
+    { to: '/admin/avaliacoes-google', label: 'Google Reviews', icon: IconeReviews, d: 'Mais avaliações no Google, sozinhas.' },
   ]},
 
   { type: 'group', id: 'equipa', label: 'Equipa', icon: UserCog, d: 'Quem trabalha contigo.', items: [
