@@ -84,10 +84,16 @@ export default function AvaliacoesGoogle() {
     <AdminPage title="Google Reviews">
       <Confirmacao />
       <style>{CSS}</style>
-      <div className="gr">
+      <div className={`gr${temExtra ? '' : ' venda-larga'}`}>
         {/* O CARTÃO DE CIMA: a imagem, a nota e o efeito */}
-        <section className="gr-topo">
-          <ImagemGoogle />
+        <section className={`gr-topo${temExtra ? '' : ' venda'}`}>
+          {temExtra ? <ImagemGoogle /> : (
+            /* 01/11/2026: as imagens do Diogo (public/google-reviews) — larga no computador, alta no telemóvel */
+            <picture>
+              <source media="(max-width: 720px)" srcSet="/google-reviews/alto.webp" />
+              <img className="gr-capa" src="/google-reviews/largo.webp" alt="Ganha mais confiança, atrai novos clientes e melhora o teu posicionamento no Google" />
+            </picture>
+          )}
           {!temExtra ? (
             <>
               <h2 className="gr-titulo">Mais avaliações no Google, sem teres de pedir</h2>
@@ -205,6 +211,10 @@ const CSS = `
 .gr h2, .gr h3 { font-family: inherit; }
 .gr-topo { background: var(--bg-card, #fff); border: 1px solid var(--border); border-radius: 20px; padding: 24px 20px; display: grid; gap: 14px; justify-items: center; text-align: center; }
 .gr-imagem { width: min(260px, 70%); height: auto; display: block; }
+.gr-topo.venda { padding: 0 0 24px; overflow: hidden; }
+.gr-topo.venda > :not(picture) { margin-left: 20px; margin-right: 20px; }
+.gr-capa { display: block; width: 100%; height: auto; }
+.gr.venda-larga { max-width: 860px; }
 .gr-marca { font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
 .gr-titulo { font-size: 22px; font-weight: 800; line-height: 1.25; margin: 0; text-wrap: balance; }
 .gr-texto { font-size: 15px; line-height: 1.55; color: var(--text-secondary); margin: 0; max-width: 46ch; }
