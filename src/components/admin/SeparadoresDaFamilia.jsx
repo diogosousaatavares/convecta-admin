@@ -100,7 +100,10 @@ export default function SeparadoresDaFamilia() {
           to={aba.to}
           role="tab"
           aria-selected={aceso(aba)}
-          className={`fam-tab ${aceso(aba) ? 'active' : ''}`}
+          end
+          /* 01/11/2026: com className em texto o NavLink juntava sozinho «active» ao
+             «Resumo» (/admin/relatorios é prefixo de todas) — ficavam duas acesas. */
+          className={() => `fam-tab ${aceso(aba) ? 'active' : ''}`}
         >
           {aba.label}
         </NavLink>

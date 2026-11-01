@@ -159,10 +159,29 @@ export default function AvaliacoesGoogle() {
                   <span>{ag.total || 0} {ag.total === 1 ? 'avaliação' : 'avaliações'} no Google</span>
                 </div>
               </div>
-              <div className="gr-numeros">
-                <div><b className={ganhou ? 'verde' : ''}>+{ganhou ?? 0}</b><span>desde que ativaste</span></div>
-                <div><b>{resumo?.enviados_30d ?? 0}</b><span>pedidos este mês</span></div>
+              {/* 01/11/2026 (Diogo): o ANTES e o DEPOIS — o efeito que fez. */}
+              <div className="gr-antes-depois">
+                <div className="gr-ad-col">
+                  <span className="gr-ad-rot">Antes{ag.desde ? ` · ${new Date(ag.desde).toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })}` : ''}</span>
+                  <b>{ag.totalInicial ?? 0}</b>
+                  <span>{ag.notaInicial ? `★ ${Number(ag.notaInicial).toFixed(1).replace('.', ',')}` : 'avaliações'}</span>
+                </div>
+                <div className="gr-ad-seta" aria-hidden="true">→</div>
+                <div className="gr-ad-col agora">
+                  <span className="gr-ad-rot">Agora</span>
+                  <b>{ag.total ?? 0}</b>
+                  <span>{nota ? `★ ${nota.toFixed(1).replace('.', ',')}` : 'avaliações'}</span>
+                </div>
+                <div className={`gr-ad-ganho${ganhou ? ' sim' : ''}`}>
+                  <b>+{ganhou ?? 0}</b>
+                  <span>{ganhou && ag.totalInicial ? `+${Math.round((ganhou / ag.totalInicial) * 100)}% avaliações` : 'avaliações novas'}</span>
+                </div>
+                <div className="gr-ad-barra" aria-hidden="true">
+                  <i style={{ width: `${ag.total ? Math.max(4, Math.round(((ag.totalInicial ?? 0) / ag.total) * 100)) : 100}%` }} />
+                  <em style={{ width: `${ag.total ? Math.round(((ganhou ?? 0) / ag.total) * 100) : 0}%` }} />
+                </div>
               </div>
+              <div className="gr-mini">{resumo?.enviados_30d ?? 0} pedidos de avaliação enviados nos últimos 30 dias</div>
             </>
           ) : (
             <>
@@ -277,6 +296,22 @@ const CSS = `
 .gr-nota > b { font-size: 54px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
 .gr-nota > div { display: grid; gap: 4px; text-align: left; font-size: 14px; color: var(--text-secondary); }
 .gr-estrelas { display: inline-flex; gap: 2px; color: #F5B301; }
+.gr-antes-depois { width: 100%; display: grid; grid-template-columns: 1fr auto 1fr 1.1fr; align-items: center; gap: 10px; border-top: 1px solid var(--border); padding-top: 16px; }
+.gr-ad-col { display: grid; gap: 2px; }
+.gr-ad-col b { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.gr-ad-col span { font-size: 13px; color: var(--text-secondary); }
+.gr-ad-col .gr-ad-rot, .gr-ad-rot { font-size: 11.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-secondary); }
+.gr-ad-col.agora b { color: var(--text); }
+.gr-ad-seta { font-size: 22px; color: var(--text-secondary); }
+.gr-ad-ganho { display: grid; gap: 2px; padding: 10px 12px; border-radius: 14px; background: var(--bg, rgba(0,0,0,.04)); }
+.gr-ad-ganho b { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.gr-ad-ganho.sim { background: rgba(34, 197, 94, .12); }
+.gr-ad-ganho.sim b { color: var(--success); }
+.gr-ad-ganho span { font-size: 12.5px; color: var(--text-secondary); }
+.gr-ad-barra { grid-column: 1 / -1; display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--bg, rgba(0,0,0,.06)); }
+.gr-ad-barra i { background: var(--border); }
+.gr-ad-barra em { background: var(--success); transition: width .6s ease; }
+@media (max-width: 520px) { .gr-antes-depois { grid-template-columns: 1fr auto 1fr; } .gr-ad-ganho { grid-column: 1 / -1; } }
 .gr-numeros { display: grid; grid-template-columns: 1fr 1fr; width: 100%; border-top: 1px solid var(--border); padding-top: 14px; }
 .gr-numeros > div { display: grid; gap: 2px; }
 .gr-numeros > div + div { border-left: 1px solid var(--border); }

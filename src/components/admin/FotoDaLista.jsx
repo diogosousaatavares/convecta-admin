@@ -1,6 +1,5 @@
 import React, { useRef, useState } from 'react';
 import { Upload } from 'lucide-react';
-import { Avatar } from '@/components/ui';
 import dataService, { uploadProfessionalPhoto } from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 
@@ -47,7 +46,9 @@ export default function FotoDaLista({ pro, grande = false }) {
           outline: sobre ? '2px dashed var(--gold)' : 'none', outlineOffset: 3, transition: 'outline-color .15s' }}>
         {pro.photoUrl
           ? <img className="professional-photo" src={pro.photoUrl} alt={`Fotografia de ${pro.name}`} style={{ width: tam, height: tam, opacity: aEnviar || sobre ? .45 : 1 }} />
-          : <Avatar name={pro.name} size={grande ? 'lg' : undefined} />}
+          /* 01/11/2026: o Avatar «lg» tem 96 px e a caixa 64 — passava por cima do
+             nome e das estrelas (no PC via-se «iogo / rbeiro»). Agora tem o tamanho da caixa. */
+          : <div className="avatar" style={{ width: tam, height: tam, fontSize: Math.round(tam * 0.36) }}>{(pro.name || '').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?'}</div>}
         {(sobre || aEnviar || !pro.photoUrl) && (
           <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', display: 'grid', placeItems: 'center', pointerEvents: 'none',
             background: sobre ? 'rgba(var(--gold-rgb),0.35)' : !pro.photoUrl ? 'transparent' : 'rgba(0,0,0,.35)', color: '#fff' }}>

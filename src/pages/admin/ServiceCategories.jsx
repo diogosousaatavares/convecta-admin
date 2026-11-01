@@ -88,7 +88,7 @@ export default function ServiceCategories() {
 
   return (
     <AdminPage title="Categorias de serviços" subtitle="Arruma os serviços por categoria. É esta ordem que o cliente vê na marcação.">
-      <Card className="card-pad" style={{ maxWidth: 680 }}>
+      <Card className="card-pad">
         <div className="flex gap-8 mb-24">
           <input className="input" placeholder={nicho().id === 'barbearia' ? 'Ex: Cortes, Barbas, Tratamentos…' : 'Ex: Rosto, Corpo, Unhas…'} value={nova} disabled={ocupado}
             onChange={e => setNova(e.target.value)} onKeyDown={e => e.key === 'Enter' && adicionar()} />
