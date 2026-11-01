@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Star, Search, ExternalLink, MapPin } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
+import { Star, Search, ExternalLink, MapPin, X, Check, TrendingUp } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
+import AdminLayout from '@/components/AdminLayout';
 import Toggle from '@/components/admin/Toggle';
 import { useStore } from '@/hooks/useStore';
 import { useToast } from '@/components/ui/ToastContext';
@@ -38,6 +41,10 @@ export default function AvaliacoesGoogle() {
   const [aProcurar, setAProcurar] = useState(false);
   const [resumo, setResumo] = useState(null);
   const [aJuntar, setAJuntar] = useState(false);
+  const navigate = useNavigate();
+  // A capa de entrada (01/11/2026, como nos Pagamentos online): aparece a quem
+  // ainda não tem o suplemento e, já com ele, até escolher a ficha no Google.
+  const [capaFechada, setCapaFechada] = useState(false);
   const temExtra = !biz || extraAtivo(biz, 'avaliacoes');
 
   useEffect(() => { if (biz) { setAg(biz.avaliacoesGoogle || {}); setTexto(t => t || `${biz.name || ''}${biz.address ? ' ' + biz.address : ''}`); } }, [biz?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -79,6 +86,46 @@ export default function AvaliacoesGoogle() {
   const ganhou = ag.placeId && ag.total != null && ag.totalInicial != null ? Math.max(0, ag.total - ag.totalInicial) : null;
   const nota = Number(ag.nota) || 0;
   const horas = ag.horasDepois || 2;
+
+  /* ── A CAPA: ecrã inteiro, à Pagamentos online ───────────────────── */
+  if (biz && (!temExtra || (!ag.placeId && !capaFechada))) {
+    const sair = () => (window.history.length > 1 ? navigate(-1) : navigate('/admin/dashboard'));
+    return (
+      <AdminLayout>
+        <style>{CSS_CAPA}</style>
+        {createPortal(
+          <section className="grc" role="dialog" aria-label="Google Reviews">
+            <div className="grc-cabeca">
+              <div className="grc-selo"><span><Star size={15} fill="currentColor" /></span>Google Reviews</div>
+              <button type="button" className="grc-fechar" onClick={sair} aria-label="Fechar"><X size={24} /></button>
+            </div>
+            <div className="grc-corpo">
+              <div className="grc-visual" aria-hidden="true">
+                <div className="grc-mancha" />
+                <img className="grc-tel" src="/google-reviews/telemovel.webp" alt="" />
+              </div>
+              <div className="grc-texto">
+                <h2 className="grc-h">Mais avaliações no Google. <em>Sem teres de pedir.</em></h2>
+                <ul className="grc-lista">
+                  <li><span><Star size={18} /></span>Ganha mais confiança</li>
+                  <li><span><TrendingUp size={18} /></span>Atrai novos clientes</li>
+                  <li><span><MapPin size={18} /></span>Sobe no Google Maps</li>
+                </ul>
+                <p className="grc-sub"><Check size={16} /> Depois de cada corte, o cliente recebe o link para te avaliar. Tu não fazes nada.</p>
+                {!temExtra && <div className="grc-preco">{formatPrice(extra.precos[periodo] ?? extra.precos.mensal)}{sufixoPeriodo(periodo)} <small>· desligas quando quiseres</small></div>}
+                <div className="grc-acoes">
+                  {!temExtra
+                    ? <button type="button" className="grc-btn" onClick={juntar} disabled={aJuntar}>{aJuntar ? 'A ativar…' : 'Ativar agora'}</button>
+                    : <button type="button" className="grc-btn" onClick={() => setCapaFechada(true)}>Começar</button>}
+                  <a className="grc-link" href="https://convecta.pt/#google-reviews" target="_blank" rel="noreferrer">Saber mais</a>
+                </div>
+              </div>
+            </div>
+          </section>, document.body)}
+        <Confirmacao />
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminPage title="Google Reviews">
@@ -269,4 +316,42 @@ const CSS = `
 .gr-notif-txt span { color: var(--text-secondary); line-height: 1.45; }
 .gr-notif-txt em { font-style: normal; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; color: #1A73E8; }
 .gr-btn:focus-visible, .gr-seg button:focus-visible, .gr-resultado:focus-visible, .gr-procura button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+`;
+
+/* A capa: cores fixas (creme e amarelo, como as imagens), nos dois temas. */
+const CSS_CAPA = `
+.grc { position: fixed; inset: 0; z-index: 1000; background: #FBF7EF; color: #1a1714; overflow-y: auto; display: flex; flex-direction: column; font-family: inherit; }
+.grc-cabeca { display: flex; align-items: center; justify-content: space-between; padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 6px; }
+.grc-selo { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px 7px 7px; border-radius: 999px; background: #fff; font-weight: 800; font-size: 14px; box-shadow: 0 6px 18px -10px rgba(0,0,0,.3); }
+.grc-selo span { width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; background: #FEE96D; color: #1a1714; }
+.grc-fechar { width: 48px; height: 48px; border-radius: 999px; border: 0; background: #fff; color: #1a1714; display: grid; place-items: center; cursor: pointer; box-shadow: 0 6px 18px -10px rgba(0,0,0,.3); }
+.grc-corpo { flex: 1; display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 32px; max-width: 1100px; width: 100%; margin: 0 auto; padding: 12px 24px 32px; }
+.grc-visual { position: relative; aspect-ratio: 1 / .96; width: 100%; max-width: 560px; justify-self: center; order: 2; }
+.grc-mancha { position: absolute; inset: 6% 2% 4% 8%; background: #FEE96D; border-radius: 58% 42% 46% 54% / 52% 44% 56% 48%; animation: grc-respira 12s ease-in-out infinite; }
+.grc-tel { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 26px 36px rgba(40,30,0,.28)); animation: grc-flutua 6s ease-in-out infinite; }
+.grc-texto { display: grid; gap: 20px; order: 1; }
+.grc-h { font-family: inherit; font-size: clamp(28px, 4vw, 44px); line-height: 1.08; font-weight: 800; letter-spacing: -.02em; margin: 0; max-width: 15ch; text-wrap: balance; }
+.grc-h em { font-style: normal; background: linear-gradient(transparent 62%, #FEE96D 62%); }
+.grc-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.grc-lista li { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 700; }
+.grc-lista li span { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; background: #FEE96D; flex-shrink: 0; }
+.grc-sub { display: flex; gap: 8px; align-items: flex-start; margin: 0; font-size: 15px; line-height: 1.55; color: #4a4540; max-width: 44ch; }
+.grc-sub svg { flex-shrink: 0; margin-top: 3px; color: #1E7F4E; }
+.grc-preco { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.grc-preco small { font-size: 14px; font-weight: 500; color: #4a4540; }
+.grc-acoes { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.grc-btn { padding: 16px 30px; border-radius: 999px; border: 0; background: #1a1714; color: #fff; font: inherit; font-size: 17px; font-weight: 800; cursor: pointer; }
+.grc-btn:disabled { opacity: .6; }
+.grc-btn:focus-visible, .grc-fechar:focus-visible, .grc-link:focus-visible { outline: 3px solid #E6B800; outline-offset: 3px; }
+.grc-link { font-weight: 800; color: #1a1714; text-decoration: none; border-bottom: 2px solid #FEE96D; padding: 3px 0; }
+@keyframes grc-flutua { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes grc-respira { 0%, 100% { border-radius: 58% 42% 46% 54% / 52% 44% 56% 48%; } 50% { border-radius: 44% 56% 54% 46% / 46% 56% 44% 54%; } }
+@media (prefers-reduced-motion: reduce) { .grc-mancha, .grc-tel { animation: none; } }
+@media (max-width: 800px) {
+  .grc-corpo { grid-template-columns: 1fr; gap: 8px; padding: 0 20px calc(28px + env(safe-area-inset-bottom, 0px)); align-content: start; }
+  .grc-visual { order: 1; max-width: 380px; }
+  .grc-texto { order: 2; }
+  .grc-lista li { font-size: 16.5px; }
+  .grc-btn { flex: 1; text-align: center; }
+}
 `;
