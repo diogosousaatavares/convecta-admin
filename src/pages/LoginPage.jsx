@@ -78,7 +78,11 @@ export default function LoginPage() {
   const [demo, setDemo] = useState(null)
   const [loadingDemo, setLoadingDemo] = useState(false)
   useEffect(() => {
-    supabase.from('businesses_public').select('settings').eq('slug', 'demo').maybeSingle()
+    // 01/11/2026: o link que o comercial manda na reunião diz qual é a barbearia
+    // de demonstração (?b=demonstracao-2); sem ?b= é a demo pública de sempre.
+    const b = new URLSearchParams(window.location.search).get('b') || ''
+    const slugDemo = /^[a-z0-9-]{2,60}$/.test(b) ? b : 'demo'
+    supabase.from('businesses_public').select('settings').eq('slug', slugDemo).maybeSingle()
       .then(({ data }) => { const d = data?.settings?.demo; if (d?.ativo && d.adminEmail && d.adminPassword) setDemo(d) })
       .catch(() => {})
   }, [])
