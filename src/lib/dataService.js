@@ -438,6 +438,8 @@ function bizFromRow(row) {
     mbway: s.mbway || {},
     // Pagamentos online: { modo: 'nada' | 'sinal' | 'total', sinal: € }.
     pagamentosOnline: s.pagamentosOnline || {},
+    // Suplemento Avaliações Google (01/11/2026): { ativo, link, placeId, nome, nota, total, totalInicial, horasDepois }.
+    avaliacoesGoogle: s.avaliacoesGoogle || {},
     // As categorias dos servicos, pela ordem que o barbeiro escolheu. Vivem
     // no settings da barbearia (o site do cliente le-as de la); antes eram
     // uma lista em memoria que desaparecia ao recarregar a pagina.

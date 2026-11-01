@@ -19,6 +19,18 @@ export const EXTRAS = [
     rota: '/admin/pagamentos-online',
   },
   {
+    // 01/11/2026 (Diogo): depois de cada corte, o cliente recebe o pedido de
+    // avaliação no Google com o link direto. Nenhum plano o inclui.
+    id: 'avaliacoes',
+    nome: 'Avaliações Google',
+    curto: 'Depois de cada corte, o cliente recebe o pedido para te avaliar no Google.',
+    rotaTexto: 'Configurar avaliações',
+    texto: 'Mais avaliações no Google = mais clientes novos pelo Google Maps. O pedido sai sozinho depois de cada corte, com o link direto.',
+    precos: { mensal: 2.99, quinzenal: 1.49, anual: 30.50 },
+    incluidoEm: [],
+    rota: '/admin/avaliacoes-google',
+  },
+  {
     id: 'faturas',
     nome: 'Faturas',
     curto: 'Emite e gere as tuas faturas.',

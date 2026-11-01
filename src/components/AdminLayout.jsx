@@ -94,6 +94,7 @@ const GROUPS_TODOS = [
     { to: '/admin/clientes', label: 'Clientes', exact: true, icon: Users, d: 'Fichas e histórico.' },
     { to: '/admin/clientes/aniversarios', label: 'Aniversários', icon: Cake, d: 'Quem faz anos.' },
     { to: '/admin/avaliacoes', label: 'Avaliações', icon: Star, d: 'O que dizem de ti.' },
+    { to: '/admin/avaliacoes-google', label: 'Avaliações Google', icon: Star, d: 'Mais avaliações no Google, sozinhas.' },
   ]},
 
   { type: 'group', id: 'catalogo', label: 'Catálogo', icon: Package, d: 'O que vendes.', items: [
