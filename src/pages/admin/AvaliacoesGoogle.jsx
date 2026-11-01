@@ -131,6 +131,10 @@ export default function AvaliacoesGoogle() {
             <section className="gr-caixa">
               <div className="gr-cab"><span className="gr-num">1</span><h3>A tua barbearia no Google</h3></div>
               {ag.placeId && !lugares ? (
+                <>
+                {ag.eNegocio === false && (
+                  <div className="gr-aviso">Isto é uma <b>morada</b>, não a ficha da barbearia — o Google não deixa avaliar moradas. Carrega em <b>Mudar</b> e procura pelo nome da barbearia.</div>
+                )}
                 <div className="gr-ficha">
                   <div className="gr-ficha-ico"><MapPin size={18} /></div>
                   <div className="gr-ficha-txt"><b>{ag.nome}</b><span>{ag.morada}</span></div>
@@ -139,6 +143,7 @@ export default function AvaliacoesGoogle() {
                     <button type="button" onClick={() => setLugares([])}>Mudar</button>
                   </div>
                 </div>
+                </>
               ) : (
                 <>
                   <div className="gr-procura">
@@ -250,6 +255,7 @@ const CSS = `
 .gr-procura { display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg, transparent); color: var(--text-secondary); }
 .gr-procura input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 15px; outline: none; padding: 6px 0; }
 .gr-procura button { padding: 9px 16px; border-radius: 999px; border: 0; background: var(--gold); color: var(--on-gold, #111); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.gr-aviso { padding: 12px 14px; border-radius: 12px; background: rgba(220, 38, 38, .08); border: 1px solid rgba(220, 38, 38, .35); font-size: 14px; line-height: 1.5; }
 .gr-ajuda { font-size: 14px; color: var(--text-secondary); }
 .gr-ajuda summary { cursor: pointer; font-weight: 700; color: var(--text); }
 .gr-ajuda ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; line-height: 1.5; }
