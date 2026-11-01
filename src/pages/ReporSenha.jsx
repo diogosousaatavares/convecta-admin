@@ -149,7 +149,7 @@ export default function ReporSenha() {
 
           {stage === 'confirmar' && (
             <div style={{ textAlign: 'center', padding: '8px 0' }}>
-              <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Escolher a palavra-passe</div>
+              <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#FFFFFF' }}>Escolher a palavra-passe</div>
               <div style={{ fontSize: 15, color: '#666', marginBottom: 24 }}>Carrega para continuar. Este passo só funciona uma vez.</div>
               <button className="btn btn-primary" disabled={loading} style={{ width: '100%', justifyContent: 'center', height: 44 }} onClick={confirmarToken}>{loading ? 'A confirmar…' : 'Continuar'} <ArrowRight size={16} /></button>
             </div>
@@ -159,7 +159,7 @@ export default function ReporSenha() {
           {stage === 'error' && (
             <div style={{ textAlign: 'center', padding: '8px 0' }}>
               <AlertCircle size={40} style={{ color: '#f87171', margin: '0 auto 16px', display: 'block' }} />
-              <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Link inválido ou expirado</div>
+              <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#FFFFFF' }}>Link inválido ou expirado</div>
               <div style={{ fontSize: 15, color: '#666', marginBottom: 20 }}>
                 {motivo || 'Este link já não é válido. Cada link só serve uma vez e tem prazo.'} Pede um novo aqui: chega por email em segundos.
               </div>
@@ -270,7 +270,7 @@ export default function ReporSenha() {
           {stage === 'success' && (
             <div style={{ textAlign: 'center', padding: '8px 0' }}>
               <CheckCircle size={40} style={{ color: '#22c55e', margin: '0 auto 16px', display: 'block' }} />
-              <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Palavra-passe alterada!</div>
+              <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#FFFFFF' }}>Palavra-passe alterada!</div>
               <div style={{ fontSize: 15, color: '#666' }}>A redirecionar para o login…</div>
             </div>
           )}
