@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 
 /*
  * O tutorial da demonstracao.
@@ -69,7 +70,7 @@ export default function TourDemo({ passos = [], chave = 'convecta_tour', ativo =
         return;
       }
       const r = el.getBoundingClientRect();
-      const foraDoEcra = r.top < 70 || r.bottom > window.innerHeight - 220;
+      const foraDoEcra = r.top < 70 || r.bottom > window.innerHeight - 280;
       if (foraDoEcra) {
         el.scrollIntoView({ block: 'center', behavior: 'smooth' });
         t = setTimeout(medirSemMexer, 450);   // espera o scroll acabar e mede uma vez
@@ -95,25 +96,32 @@ export default function TourDemo({ passos = [], chave = 'convecta_tour', ativo =
   const anterior = () => setI(Math.max(0, i - 1));
   const ultimo = i + 1 === passos.length;
 
-  return (
+  /* 01/11/2026 (Diogo: «não consigo clicar em avançar, está escondido»): no
+     telemóvel a barra de baixo (Clientes · Vendas · Agenda…) ficava POR CIMA
+     do cartão e tapava o «Seguinte». O guia passa a viver no fim do <body>
+     (fora de qualquer camada do painel), acima de tudo, e o cartão nunca
+     passa da altura do ecrã — o botão está sempre à vista. */
+  const Z = 2147483000;
+  return createPortal(
     <>
       {/* Enquanto o guia esta aberto, a pagina por baixo nao recebe toques.
           O guia e para ver; a unica coisa que se carrega e Seguinte, Anterior
           ou Saltar. Um toque fora do cartao abria coisas a meio do passo. */}
       <div aria-hidden="true" onClick={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}
-        style={{ position: 'fixed', inset: 0, zIndex: 1099, background: 'transparent', touchAction: 'none' }} />
+        style={{ position: 'fixed', inset: 0, zIndex: Z, background: 'transparent', touchAction: 'none' }} />
 
       {/* O foco: um rectangulo transparente com uma sombra enorme a volta.
           Sem elemento, fica so a sombra a escurecer a pagina. */}
       <div aria-hidden="true" style={{
-        position: 'fixed', zIndex: 1100, pointerEvents: 'none', borderRadius: 12,
+        position: 'fixed', zIndex: Z + 1, pointerEvents: 'none', borderRadius: 12,
         boxShadow: '0 0 0 9999px rgba(0,0,0,.62), 0 0 0 2px var(--gold, #C9A227)',
         transition: 'top .25s ease, left .25s ease, width .25s ease, height .25s ease',
         ...(rect ? rect : { top: '50%', left: '50%', width: 0, height: 0, boxShadow: '0 0 0 9999px rgba(0,0,0,.62)' }),
       }} />
 
       <div role="dialog" aria-live="polite" style={{
-        position: 'fixed', zIndex: 1101, left: 16, right: 16, bottom: 'max(16px, env(safe-area-inset-bottom))',
+        position: 'fixed', zIndex: Z + 2, left: 16, right: 16, bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
+        maxHeight: 'calc(100dvh - 32px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))', overflowY: 'auto',
         margin: '0 auto', maxWidth: 440,
         background: 'var(--surface, #16130F)', border: '1px solid var(--border, #2A2620)',
         borderRadius: 16, padding: '18px 20px', boxShadow: '0 18px 50px rgba(0,0,0,.5)',
@@ -129,7 +137,7 @@ export default function TourDemo({ passos = [], chave = 'convecta_tour', ativo =
         </div>
         <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text, #EDE8DF)', marginBottom: 6, fontFamily: 'var(--font-head, inherit)' }}>{passo.titulo}</div>
         <div style={{ fontSize: 15.5, color: 'var(--text-sec, #8A8272)', lineHeight: 1.55 }}>{passo.texto}</div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end', position: 'sticky', bottom: -18, background: 'var(--surface, #16130F)', padding: '8px 0 2px' }}>
           {i > 0 && (
             <button type="button" onClick={anterior}
               style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border, #2A2620)', background: 'transparent',
@@ -144,6 +152,7 @@ export default function TourDemo({ passos = [], chave = 'convecta_tour', ativo =
           </button>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

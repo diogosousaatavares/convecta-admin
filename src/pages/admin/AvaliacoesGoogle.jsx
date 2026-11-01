@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Star, Search, ExternalLink, Check, Send } from 'lucide-react';
+import { Star, Search, ExternalLink, MapPin } from 'lucide-react';
 import AdminPage from '@/components/admin/AdminPage';
 import Toggle from '@/components/admin/Toggle';
-import { Button } from '@/components/ui';
 import { useStore } from '@/hooks/useStore';
 import { useToast } from '@/components/ui/ToastContext';
 import { useConfirmar } from '@/components/ui/Confirmar';
@@ -77,111 +76,181 @@ export default function AvaliacoesGoogle() {
     catch (e) { toast.error('Não ficou gravado', e.message); }
   };
 
-  const caixa = { background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: 20, display: 'grid', gap: 14 };
-  const titulo = { fontSize: 17, fontWeight: 800, margin: 0 };
-  const sub = { fontSize: 14.5, color: 'var(--text-secondary)', lineHeight: 1.55, margin: 0 };
   const ganhou = ag.placeId && ag.total != null && ag.totalInicial != null ? Math.max(0, ag.total - ag.totalInicial) : null;
-
-  /* ── Sem o suplemento: a apresentação ── */
-  if (!temExtra) {
-    return (
-      <AdminPage title="Google Reviews">
-        <Confirmacao />
-        <div style={{ ...caixa, maxWidth: 640 }}>
-          <div style={{ display: 'flex', gap: 4, color: 'var(--gold)' }}>{[0, 1, 2, 3, 4].map(i => <Star key={i} size={22} fill="currentColor" />)}</div>
-          <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0, lineHeight: 1.2 }}>Mais avaliações no Google, sem teres de pedir</h2>
-          <p style={sub}>Depois de cada corte, o teu cliente recebe uma mensagem da tua barbearia com o link direto para te avaliar no Google. Quem tem mais avaliações aparece primeiro no Google Maps — e é aí que os clientes novos te encontram.</p>
-          <ul style={{ margin: 0, paddingLeft: 20, display: 'grid', gap: 6, fontSize: 15 }}>
-            <li>Sai sozinho, depois de cada marcação</li>
-            <li>Uma vez por cliente a cada 3 meses — os habituais não levam com isto todas as semanas</li>
-            <li>Vês aqui quantas avaliações ganhaste desde que ligaste</li>
-          </ul>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-            <Button onClick={juntar} disabled={aJuntar}>{aJuntar ? 'A juntar…' : `Juntar por ${formatPrice(extra.precos[periodo] ?? extra.precos.mensal)}${sufixoPeriodo(periodo)}`}</Button>
-            <span style={{ fontSize: 13.5, color: 'var(--text-secondary)' }}>Desligas quando quiseres.</span>
-          </div>
-        </div>
-      </AdminPage>
-    );
-  }
+  const nota = Number(ag.nota) || 0;
+  const horas = ag.horasDepois || 2;
 
   return (
     <AdminPage title="Google Reviews">
       <Confirmacao />
-      <div style={{ display: 'grid', gap: 16, maxWidth: 720 }}>
-        {/* O resultado */}
-        {ag.placeId && (
-          <div style={{ ...caixa, gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
-            <div><div style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>No Google</div>
-              <div style={{ fontSize: 26, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>★ {ag.nota != null ? String(ag.nota).replace('.', ',') : '—'}</div>
-              <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{ag.total || 0} avaliações</div></div>
-            <div><div style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Desde que ligaste</div>
-              <div style={{ fontSize: 26, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: ganhou ? 'var(--success)' : undefined }}>+{ganhou ?? 0}</div>
-              <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>avaliações novas</div></div>
-            <div><div style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Pedidos enviados</div>
-              <div style={{ fontSize: 26, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{resumo?.enviados_30d ?? 0}</div>
-              <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>nos últimos 30 dias</div></div>
-          </div>
-        )}
-
-        {/* 1. A ficha no Google */}
-        <div style={caixa}>
-          <h2 style={titulo}>1. A tua barbearia no Google</h2>
-          {ag.placeId && !lugares ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <Check size={18} color="var(--success)" />
-              <div style={{ flex: 1, minWidth: 200 }}><div style={{ fontWeight: 800 }}>{ag.nome}</div><div style={{ fontSize: 13.5, color: 'var(--text-secondary)' }}>{ag.morada}</div></div>
-              {ag.link && <a href={ag.link} target="_blank" rel="noreferrer" style={{ fontSize: 14, fontWeight: 700, display: 'inline-flex', gap: 5, alignItems: 'center' }}>Ver o que o cliente vê <ExternalLink size={14} /></a>}
-              <Button variant="secondary" onClick={() => setLugares([])}>Mudar</Button>
-            </div>
+      <style>{CSS}</style>
+      <div className="gr">
+        {/* O CARTÃO DE CIMA: a imagem, a nota e o efeito */}
+        <section className="gr-topo">
+          <ImagemGoogle />
+          {!temExtra ? (
+            <>
+              <h2 className="gr-titulo">Mais avaliações no Google, sem teres de pedir</h2>
+              <p className="gr-texto">Depois de cada corte, o teu cliente recebe o link para te avaliar no Google. Quem tem mais avaliações aparece primeiro no Google Maps — é aí que os clientes novos te encontram.</p>
+              <button type="button" className="gr-btn" onClick={juntar} disabled={aJuntar}>
+                {aJuntar ? 'A juntar…' : `Ativar por ${formatPrice(extra.precos[periodo] ?? extra.precos.mensal)}${sufixoPeriodo(periodo)}`}
+              </button>
+              <span className="gr-mini">Desligas quando quiseres.</span>
+            </>
+          ) : ag.placeId ? (
+            <>
+              <div className="gr-nota">
+                <b>{nota ? nota.toFixed(1).replace('.', ',') : '—'}</b>
+                <div>
+                  <Estrelas n={nota} />
+                  <span>{ag.total || 0} {ag.total === 1 ? 'avaliação' : 'avaliações'} no Google</span>
+                </div>
+              </div>
+              <div className="gr-numeros">
+                <div><b className={ganhou ? 'verde' : ''}>+{ganhou ?? 0}</b><span>desde que ativaste</span></div>
+                <div><b>{resumo?.enviados_30d ?? 0}</b><span>pedidos este mês</span></div>
+              </div>
+            </>
           ) : (
             <>
-              <p style={sub}>Procura pelo nome e a localidade e escolhe a tua ficha. É a ficha que aparece no Google Maps quando procuram a tua barbearia.</p>
-              <details style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-                <summary style={{ cursor: 'pointer', fontWeight: 700, color: 'var(--text)' }}>Não aparece a tua barbearia?</summary>
-                <ol style={{ margin: '8px 0 0', paddingLeft: 20, display: 'grid', gap: 4, lineHeight: 1.5 }}>
-                  <li>Abre o <a href="https://www.google.com/business/" target="_blank" rel="noreferrer" style={{ fontWeight: 700 }}>Google Business Profile</a> com a conta Google da barbearia e cria a ficha (é grátis): nome, morada, telefone, horário.</li>
-                  <li>O Google confirma que a barbearia é tua — normalmente por chamada, SMS, email ou vídeo; às vezes por carta, que demora uns dias.</li>
-                  <li>Depois de confirmada, volta aqui, procura e escolhe-a.</li>
-                </ol>
-              </details>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <input value={texto} onChange={e => setTexto(e.target.value)} onKeyDown={e => e.key === 'Enter' && procurar()} placeholder="Ex.: Barbearia do Rui, Castelo Branco"
-                  style={{ flex: 1, minWidth: 220, padding: '11px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', font: 'inherit', fontSize: 15 }} />
-                <Button onClick={procurar} disabled={aProcurar} icon={<Search size={16} />}>{aProcurar ? 'A procurar…' : 'Procurar'}</Button>
-              </div>
-              {lugares && lugares.length === 0 && !aProcurar && texto && <p style={sub}>Escreve o nome e carrega em Procurar.</p>}
-              {(lugares || []).map(l => (
-                <button key={l.id} type="button" onClick={() => escolher(l.id)}
-                  style={{ display: 'flex', gap: 12, alignItems: 'center', textAlign: 'left', padding: '12px 14px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', font: 'inherit', cursor: 'pointer' }}>
-                  <div style={{ flex: 1 }}><div style={{ fontWeight: 800 }}>{l.nome}</div><div style={{ fontSize: 13.5, color: 'var(--text-secondary)' }}>{l.morada}</div></div>
-                  <div style={{ fontSize: 14, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{l.nota != null ? `★ ${String(l.nota).replace('.', ',')} · ${l.total}` : 'sem avaliações'}</div>
-                </button>
-              ))}
+              <h2 className="gr-titulo">Falta só escolher a tua barbearia no Google</h2>
+              <p className="gr-texto">Procura aqui em baixo e toca na tua ficha.</p>
             </>
           )}
-        </div>
+        </section>
 
-        {/* 2. Ligar */}
-        <div style={{ ...caixa, opacity: ag.placeId ? 1 : 0.5, pointerEvents: ag.placeId ? 'auto' : 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <h2 style={{ ...titulo, flex: 1 }}>2. Pedir a avaliação depois de cada corte</h2>
-            <Toggle checked={!!ag.ativo} onChange={v => gravar({ ativo: v })} />
-          </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {HORAS.map(([h, l]) => (
-              <button key={h} type="button" onClick={() => gravar({ horasDepois: h })}
-                style={{ padding: '8px 14px', borderRadius: 999, border: `1.5px solid ${(ag.horasDepois || 2) === h ? 'var(--gold)' : 'var(--border)'}`, background: 'transparent', color: 'var(--text)', font: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>{l}</button>
-            ))}
-          </div>
-          <div style={{ border: '1px dashed var(--border)', borderRadius: 12, padding: 14, display: 'grid', gap: 6 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-secondary)', display: 'flex', gap: 6, alignItems: 'center' }}><Send size={13} /> O que o cliente recebe</div>
-            <div style={{ fontWeight: 800 }}>Como correu na {biz?.name || 'tua barbearia'}?</div>
-            <div style={{ fontSize: 14.5, color: 'var(--text-secondary)' }}>Se tiveres 30 segundos, deixa-nos uma avaliação no Google. É assim que outras pessoas nos encontram. <b>[Avaliar no Google]</b></div>
-          </div>
-          <p style={{ ...sub, fontSize: 13.5 }}>Vai por notificação (se o cliente as tem ligadas) ou por email confirmado. Uma vez por cliente a cada 3 meses. Pede-se a todos os clientes — escolher só os contentes é contra as regras do Google.</p>
-        </div>
+        {temExtra && (
+          <>
+            {/* 1. A FICHA */}
+            <section className="gr-caixa">
+              <div className="gr-cab"><span className="gr-num">1</span><h3>A tua barbearia no Google</h3></div>
+              {ag.placeId && !lugares ? (
+                <div className="gr-ficha">
+                  <div className="gr-ficha-ico"><MapPin size={18} /></div>
+                  <div className="gr-ficha-txt"><b>{ag.nome}</b><span>{ag.morada}</span></div>
+                  <div className="gr-ficha-acoes">
+                    {ag.maps && <a href={ag.maps} target="_blank" rel="noreferrer">Ver <ExternalLink size={13} /></a>}
+                    <button type="button" onClick={() => setLugares([])}>Mudar</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="gr-procura">
+                    <Search size={17} />
+                    <input value={texto} onChange={e => setTexto(e.target.value)} onKeyDown={e => e.key === 'Enter' && procurar()} placeholder="Nome da barbearia e localidade" />
+                    <button type="button" onClick={procurar} disabled={aProcurar}>{aProcurar ? '…' : 'Procurar'}</button>
+                  </div>
+                  {(lugares || []).map(l => (
+                    <button key={l.id} type="button" className="gr-resultado" onClick={() => escolher(l.id)}>
+                      <div className="gr-ficha-txt"><b>{l.nome}</b><span>{l.morada}</span></div>
+                      <span className="gr-res-nota">{l.nota != null ? <>★ {String(l.nota).replace('.', ',')} <i>({l.total})</i></> : 'sem avaliações'}</span>
+                    </button>
+                  ))}
+                  {lugares && lugares.length === 0 && !aProcurar && <p className="gr-mini">Escreve o nome e a localidade e carrega em Procurar.</p>}
+                  <details className="gr-ajuda">
+                    <summary>Não aparece a tua barbearia?</summary>
+                    <ol>
+                      <li>Abre o <a href="https://www.google.com/business/" target="_blank" rel="noreferrer">Google Business Profile</a> com a conta Google da barbearia e cria a ficha (é grátis).</li>
+                      <li>O Google confirma que a barbearia é tua — por chamada, SMS, email ou vídeo (às vezes por carta).</li>
+                      <li>Volta aqui e procura outra vez.</li>
+                    </ol>
+                  </details>
+                </>
+              )}
+            </section>
+
+            {/* 2. LIGAR E QUANDO */}
+            <section className={`gr-caixa${ag.placeId ? '' : ' apagado'}`}>
+              <div className="gr-cab">
+                <span className="gr-num">2</span><h3>Pedir avaliação depois do corte</h3>
+                <Toggle checked={!!ag.ativo} onChange={v => gravar({ ativo: v })} />
+              </div>
+              <div className="gr-seg" role="radiogroup" aria-label="Quando sai o pedido">
+                {HORAS.map(([h, l]) => (
+                  <button key={h} type="button" role="radio" aria-checked={horas === h} className={horas === h ? 'on' : ''} onClick={() => gravar({ horasDepois: h })}>{l}</button>
+                ))}
+              </div>
+
+              {/* O que o cliente recebe — como uma notificação no telemóvel */}
+              <div className="gr-notif">
+                <div className="gr-notif-ico">{biz?.logoUrl ? <img src={biz.logoUrl} alt="" /> : (biz?.name || '?').slice(0, 1)}</div>
+                <div className="gr-notif-txt">
+                  <b>Como correu na {biz?.name || 'tua barbearia'}?</b>
+                  <span>Deixa a tua avaliação no Google — demora 30 segundos.</span>
+                  <em><Star size={13} fill="currentColor" /> Avaliar no Google</em>
+                </div>
+              </div>
+              <p className="gr-mini">Sai por notificação ou email, uma vez a cada 3 meses por cliente. Vai para todos os clientes — escolher só os contentes é contra as regras do Google.</p>
+            </section>
+          </>
+        )}
       </div>
     </AdminPage>
   );
 }
+
+/* A imagem do topo: public/google-reviews.png (o Diogo põe a que quiser).
+   Enquanto não existir, fica o título em texto. */
+function ImagemGoogle() {
+  const [ok, setOk] = useState(true);
+  if (!ok) return <div className="gr-marca">Google Reviews</div>;
+  return <img className="gr-imagem" src="/google-reviews.png" alt="Google Reviews" onError={() => setOk(false)} />;
+}
+function Estrelas({ n }) {
+  return <span className="gr-estrelas" aria-label={`${n} de 5`}>{[0, 1, 2, 3, 4].map(i => <Star key={i} size={16} fill={i < Math.round(n) ? 'currentColor' : 'none'} />)}</span>;
+}
+
+const CSS = `
+.gr { display: grid; gap: 14px; max-width: 640px; margin: 0 auto; font-family: inherit; }
+.gr h2, .gr h3 { font-family: inherit; }
+.gr-topo { background: var(--bg-card, #fff); border: 1px solid var(--border); border-radius: 20px; padding: 24px 20px; display: grid; gap: 14px; justify-items: center; text-align: center; }
+.gr-imagem { width: min(260px, 70%); height: auto; display: block; }
+.gr-marca { font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+.gr-titulo { font-size: 22px; font-weight: 800; line-height: 1.25; margin: 0; text-wrap: balance; }
+.gr-texto { font-size: 15px; line-height: 1.55; color: var(--text-secondary); margin: 0; max-width: 46ch; }
+.gr-btn { padding: 14px 24px; border-radius: 999px; border: 0; background: var(--gold); color: var(--on-gold, #111); font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+.gr-btn:disabled { opacity: .6; }
+.gr-mini { font-size: 13px; line-height: 1.5; color: var(--text-secondary); margin: 0; }
+.gr-nota { display: flex; align-items: center; gap: 14px; }
+.gr-nota > b { font-size: 54px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.gr-nota > div { display: grid; gap: 4px; text-align: left; font-size: 14px; color: var(--text-secondary); }
+.gr-estrelas { display: inline-flex; gap: 2px; color: #F5B301; }
+.gr-numeros { display: grid; grid-template-columns: 1fr 1fr; width: 100%; border-top: 1px solid var(--border); padding-top: 14px; }
+.gr-numeros > div { display: grid; gap: 2px; }
+.gr-numeros > div + div { border-left: 1px solid var(--border); }
+.gr-numeros b { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.gr-numeros b.verde { color: var(--success); }
+.gr-numeros span { font-size: 13px; color: var(--text-secondary); }
+.gr-caixa { background: var(--bg-card, #fff); border: 1px solid var(--border); border-radius: 20px; padding: 18px; display: grid; gap: 14px; }
+.gr-caixa.apagado { opacity: .5; pointer-events: none; }
+.gr-cab { display: flex; align-items: center; gap: 10px; }
+.gr-cab h3 { flex: 1; font-size: 16.5px; font-weight: 800; margin: 0; }
+.gr-num { width: 26px; height: 26px; border-radius: 999px; background: var(--gold); color: var(--on-gold, #111); display: grid; place-items: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+.gr-ficha, .gr-resultado { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; background: var(--bg, rgba(0,0,0,.03)); border: 1px solid var(--border); }
+.gr-resultado { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.gr-resultado:hover { border-color: var(--gold); }
+.gr-ficha-ico { width: 36px; height: 36px; border-radius: 10px; background: var(--bg-card, #fff); border: 1px solid var(--border); display: grid; place-items: center; flex-shrink: 0; }
+.gr-ficha-txt { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.gr-ficha-txt b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gr-ficha-txt span { font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gr-ficha-acoes { display: flex; gap: 6px; flex-shrink: 0; }
+.gr-ficha-acoes a, .gr-ficha-acoes button { display: inline-flex; align-items: center; gap: 4px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card, #fff); color: var(--text); font: inherit; font-size: 13.5px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.gr-res-nota { font-size: 13.5px; font-weight: 700; white-space: nowrap; }
+.gr-res-nota i { font-style: normal; color: var(--text-secondary); font-weight: 500; }
+.gr-procura { display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg, transparent); color: var(--text-secondary); }
+.gr-procura input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 15px; outline: none; padding: 6px 0; }
+.gr-procura button { padding: 9px 16px; border-radius: 999px; border: 0; background: var(--gold); color: var(--on-gold, #111); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.gr-ajuda { font-size: 14px; color: var(--text-secondary); }
+.gr-ajuda summary { cursor: pointer; font-weight: 700; color: var(--text); }
+.gr-ajuda ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; line-height: 1.5; }
+.gr-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg, rgba(0,0,0,.04)); border: 1px solid var(--border); }
+.gr-seg button { padding: 10px 6px; border-radius: 10px; border: 0; background: transparent; color: var(--text-secondary); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.gr-seg button.on { background: var(--bg-card, #fff); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.gr-notif { display: flex; gap: 12px; padding: 14px; border-radius: 18px; background: var(--bg, rgba(0,0,0,.04)); border: 1px solid var(--border); }
+.gr-notif-ico { width: 40px; height: 40px; border-radius: 10px; background: var(--gold); color: var(--on-gold, #111); display: grid; place-items: center; font-weight: 800; overflow: hidden; flex-shrink: 0; }
+.gr-notif-ico img { width: 100%; height: 100%; object-fit: cover; }
+.gr-notif-txt { display: grid; gap: 3px; font-size: 14px; }
+.gr-notif-txt span { color: var(--text-secondary); line-height: 1.45; }
+.gr-notif-txt em { font-style: normal; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; color: #1A73E8; }
+.gr-btn:focus-visible, .gr-seg button:focus-visible, .gr-resultado:focus-visible, .gr-procura button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+`;
