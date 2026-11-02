@@ -26,7 +26,8 @@ import { extraAtivo, extraDe, mudarExtra, sufixoPeriodo, textoJuntarExtra } from
  * 90 dias por cliente, e a TODOS os clientes (escolher só os contentes é
  * proibido pelas regras do Google).
  */
-const HORAS = [[2, '2 horas depois'], [5, '5 horas depois'], [24, 'No dia seguinte']];
+// 02/11/2026 (Diogo): 0 = 5 minutos depois de fechar a conta (o que vem marcado).
+const HORAS = [[0, '5 min depois de fechar a conta'], [2, '2 h depois'], [5, '5 h depois'], [24, 'No dia seguinte']];
 const erroDe = async (error, data) => { let m = data?.erro; if (error) { try { m = (await error.context?.json())?.erro || error.message; } catch { m = error.message; } } return m; };
 const invocar = async corpo => { const { data, error } = await supabase.functions.invoke('avaliacoes-google', { body: corpo }); const m = await erroDe(error, data); if (m) throw new Error(m); return data; };
 
@@ -85,7 +86,7 @@ export default function AvaliacoesGoogle() {
 
   const ganhou = ag.placeId && ag.total != null && ag.totalInicial != null ? Math.max(0, ag.total - ag.totalInicial) : null;
   const nota = Number(ag.nota) || 0;
-  const horas = ag.horasDepois || 2;
+  const horas = ag.horasDepois ?? 0;
 
   /* ── A CAPA: ecrã inteiro, à Pagamentos online ───────────────────── */
   if (biz && (!temExtra || (!ag.placeId && !capaFechada))) {
@@ -257,7 +258,7 @@ export default function AvaliacoesGoogle() {
                   <em><Star size={13} fill="currentColor" /> Avaliar no Google</em>
                 </div>
               </div>
-              <p className="gr-mini">Sai por notificação ou email, uma vez a cada 3 meses por cliente. Vai para todos os clientes — escolher só os contentes é contra as regras do Google.</p>
+              <p className="gr-mini">Sai por notificação ou email{horas === 0 ? ' uns 5 minutos depois de fechares a conta (cobrar) da marcação' : ''}, uma vez a cada 3 meses por cliente. Vai para todos os clientes — escolher só os contentes é contra as regras do Google.</p>
             </section>
           </>
         )}
@@ -311,6 +312,7 @@ const CSS = `
 .gr-ad-barra { grid-column: 1 / -1; display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--bg, rgba(0,0,0,.06)); }
 .gr-ad-barra i { background: var(--border); }
 .gr-ad-barra em { background: var(--success); transition: width .6s ease; }
+@media (max-width: 560px) { .gr-seg { grid-template-columns: 1fr 1fr 1fr; } .gr-seg button:first-child { grid-column: 1 / -1; } }
 @media (max-width: 520px) { .gr-antes-depois { grid-template-columns: 1fr auto 1fr; } .gr-ad-ganho { grid-column: 1 / -1; } }
 .gr-numeros { display: grid; grid-template-columns: 1fr 1fr; width: 100%; border-top: 1px solid var(--border); padding-top: 14px; }
 .gr-numeros > div { display: grid; gap: 2px; }
@@ -341,7 +343,7 @@ const CSS = `
 .gr-ajuda { font-size: 14px; color: var(--text-secondary); }
 .gr-ajuda summary { cursor: pointer; font-weight: 700; color: var(--text); }
 .gr-ajuda ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; line-height: 1.5; }
-.gr-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg, rgba(0,0,0,.04)); border: 1px solid var(--border); }
+.gr-seg { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr; gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg, rgba(0,0,0,.04)); border: 1px solid var(--border); }
 .gr-seg button { padding: 10px 6px; border-radius: 10px; border: 0; background: transparent; color: var(--text-secondary); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
 .gr-seg button.on { background: var(--bg-card, #fff); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
 .gr-notif { display: flex; gap: 12px; padding: 14px; border-radius: 18px; background: var(--bg, rgba(0,0,0,.04)); border: 1px solid var(--border); }
