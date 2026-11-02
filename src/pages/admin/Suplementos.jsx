@@ -25,6 +25,13 @@ export default function Suplementos() {
       to: '/admin/pagamentos-online', estado: estadoPagamentos,
     },
     {
+      // 01/11/2026: o suplemento Google Reviews (2,99 €/mês) — com o ícone do Diogo.
+      id: 'avaliacoes', img: '/google-reviews/icone-192.png', nome: 'Google Reviews',
+      desc: 'Depois de cada corte, o cliente recebe o link para te avaliar no Google. Mais avaliações, mais clientes novos.',
+      to: '/admin/avaliacoes-google', estado: extraAtivo(biz, 'avaliacoes') ? 'Ligado' : null,
+      preco: extraAtivo(biz, 'avaliacoes') ? null : '2,99 €/mês',
+    },
+    {
       id: 'novo-espaco', icon: Store, nome: 'Adição de novo espaço',
       desc: 'Junta um segundo tipo no mesmo sítio (ex. unhas + cabelo) ou um segundo negócio ligado.',
       to: '/admin/subscricao#segundo-tipo', estado: null,
@@ -43,9 +50,9 @@ export default function Suplementos() {
         <div className="sup-lista">
           {SUPS.map(s => (
             <Link key={s.id} to={s.to} className="sup-item">
-              <span className="sup-ico"><s.icon size={22} /></span>
+              {s.img ? <img className="sup-img" src={s.img} alt="" /> : <span className="sup-ico"><s.icon size={22} /></span>}
               <span className="sup-txt">
-                <b>{s.nome}{s.estado && <i className="sup-sel"><Check size={12} /> {s.estado}</i>}</b>
+                <b>{s.nome}{s.estado && <i className="sup-sel"><Check size={12} /> {s.estado}</i>}{s.preco && <i className="sup-preco">{s.preco}</i>}</b>
                 <span>{s.desc}</span>
               </span>
               <ChevronRight size={20} className="sup-seta" />
@@ -64,6 +71,8 @@ const CSS = `
 .sup-topo p { margin: 0; flex: 1 1 240px; color: var(--text-sec); font-size: 14.5px; line-height: 1.5; }
 .sup-lista { display: grid; gap: 12px; }
 .sup-item { display: flex; align-items: flex-start; gap: 14px; padding: 18px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface); text-decoration: none; color: var(--text); }
+.sup-img { width: 44px; height: 44px; border-radius: 13px; flex-shrink: 0; display: block; }
+.sup-preco { font-style: normal; font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: var(--gold); color: #15120E; }
 .sup-ico { width: 44px; height: 44px; border-radius: 13px; flex-shrink: 0; display: grid; place-items: center; color: #15120E; background: var(--gold); }
 .sup-txt { flex: 1; min-width: 0; display: grid; gap: 4px; }
 .sup-txt > b { font-size: 16.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

@@ -97,7 +97,7 @@ export default function AvaliacoesGoogle() {
         {createPortal(
           <section className="grc" role="dialog" aria-label="Google Reviews">
             <div className="grc-cabeca">
-              <div className="grc-selo"><span><Star size={15} fill="currentColor" /></span>Google Reviews</div>
+              <div className="grc-selo"><img src="/google-reviews/icone-64.png" alt="" />Google Reviews</div>
               <button type="button" className="grc-fechar" onClick={sair} aria-label="Fechar"><X size={24} /></button>
             </div>
             <div className="grc-corpo">
@@ -360,7 +360,7 @@ const CSS_CAPA = `
 .grc { position: fixed; inset: 0; z-index: 1000; background: #FBF7EF; color: #1a1714; overflow-y: auto; display: flex; flex-direction: column; font-family: inherit; }
 .grc-cabeca { display: flex; align-items: center; justify-content: space-between; padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 6px; }
 .grc-selo { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px 7px 7px; border-radius: 999px; background: #fff; font-weight: 800; font-size: 14px; box-shadow: 0 6px 18px -10px rgba(0,0,0,.3); }
-.grc-selo span { width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; background: #FEE96D; color: #1a1714; }
+.grc-selo img { width: 28px; height: 28px; border-radius: 8px; display: block; }
 .grc-fechar { width: 48px; height: 48px; border-radius: 999px; border: 0; background: #fff; color: #1a1714; display: grid; place-items: center; cursor: pointer; box-shadow: 0 6px 18px -10px rgba(0,0,0,.3); }
 .grc-corpo { flex: 1; display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 32px; max-width: 1100px; width: 100%; margin: 0 auto; padding: 12px 24px 32px; }
 .grc-visual { position: relative; aspect-ratio: 1 / .96; width: 100%; max-width: 560px; justify-self: center; order: 2; }

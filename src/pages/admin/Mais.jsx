@@ -67,7 +67,7 @@ export default function Mais() {
   // A conta do profissional (comissões e gorjetas) não está em nenhuma secção.
   if (data.isProfissional) caixas.push({ to: '/admin/financeiro/conta-profissional', label: 'A minha conta', icon: Wallet, d: 'Comissões e gorjetas.' });
   // Suplementos (19/10/2026): os extras, no lugar vazio ao lado das Definições.
-  if (!data.isProfissional) caixas.push({ to: '/admin/suplementos', label: 'Suplementos', icon: Puzzle, d: 'Pagamentos online e mais.' });
+  if (!data.isProfissional) caixas.push({ to: '/admin/suplementos', label: 'Suplementos', icon: Puzzle, d: 'Pagamentos online, Google Reviews e mais.' });
 
   const nome = data.business?.name || nicho().Casa;
 

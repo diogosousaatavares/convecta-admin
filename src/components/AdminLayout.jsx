@@ -9,14 +9,11 @@ import MbIcon from '@/components/MbIcon';
 import { Bell, ArrowLeft, MoreHorizontal, LayoutDashboard, CalendarDays, Users, Star, Menu, LogOut, ChevronDown, Search, HelpCircle, Phone, Mail, Send,
   ListChecks, FileText, Clock, PlusSquare, Ban, Receipt, Wallet, ClipboardList, CreditCard, ArrowDownCircle, ArrowUpCircle, Percent, PiggyBank,
   Cake, Package, Scissors, Tags, Layers, Repeat, Boxes, ArrowLeftRight, Truck, Megaphone, Globe, Heart, Ticket, Instagram, UserCog, UsersRound,
-  CalendarRange, Palmtree, TrendingUp, BarChart3, Settings, Gem } from 'lucide-react';
+  CalendarRange, Palmtree, TrendingUp, BarChart3, Settings, Gem, Puzzle } from 'lucide-react';
 import { useAuth, useStore } from '@/hooks/useStore';
-// 01/11/2026: ícone do Google Reviews no menu — um balão com uma estrela (o logótipo do Google é marca deles).
-const IconeReviews = ({ size = 18, ...p }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
-    <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 21 12Z" />
-    <path d="m12.9 8 .9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3Z" fill="currentColor" strokeWidth="1" />
-  </svg>
+// 02/11/2026: o ícone do Google Reviews no menu é a imagem do Diogo (public/google-reviews/icone-*.png).
+const IconeReviews = ({ size = 18, className, style }) => (
+  <img src="/google-reviews/icone-64.png" srcSet="/google-reviews/icone-64.png 1x, /google-reviews/icone-192.png 3x" width={size} height={size} alt="" className={className} style={{ borderRadius: Math.round(size * 0.22), ...style }} />
 );
 import { Modal } from '@/components/ui';
 
@@ -138,6 +135,7 @@ const GROUPS_TODOS = [
   { type: 'group', id: 'definicoes', to: '/admin/definicoes', label: 'Definições', icon: Settings, d: 'A conta e o painel.', items: [
     { to: '/admin/definicoes', label: 'Definições', exact: true, icon: Settings, d: 'Dados, agenda, acessos.' },
     { to: '/admin/subscricao', label: 'A minha subscrição', icon: Gem, d: 'Plano, extras e faturas.' },
+    { to: '/admin/suplementos', label: 'Suplementos', icon: Puzzle, d: 'Pagamentos online, Google Reviews e mais.' },
   ]},
 ];
 
