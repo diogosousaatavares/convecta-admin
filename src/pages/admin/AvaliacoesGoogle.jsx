@@ -27,7 +27,7 @@ import { extraAtivo, extraDe, mudarExtra, sufixoPeriodo, textoJuntarExtra } from
  * proibido pelas regras do Google).
  */
 // 02/11/2026 (Diogo): 0 = 5 minutos depois de fechar a conta (o que vem marcado).
-const HORAS = [[0, '5 min depois de fechar a conta'], [2, '2 h depois'], [5, '5 h depois'], [24, 'No dia seguinte']];
+const HORAS = [[0, 'Logo que fechas a conta'], [2, '2 horas depois do corte'], [24, 'No dia seguinte']];
 const erroDe = async (error, data) => { let m = data?.erro; if (error) { try { m = (await error.context?.json())?.erro || error.message; } catch { m = error.message; } } return m; };
 const invocar = async corpo => { const { data, error } = await supabase.functions.invoke('avaliacoes-google', { body: corpo }); const m = await erroDe(error, data); if (m) throw new Error(m); return data; };
 
@@ -86,7 +86,7 @@ export default function AvaliacoesGoogle() {
 
   const ganhou = ag.placeId && ag.total != null && ag.totalInicial != null ? Math.max(0, ag.total - ag.totalInicial) : null;
   const nota = Number(ag.nota) || 0;
-  const horas = ag.horasDepois ?? 0;
+  const horas = [0, 2, 24].includes(ag.horasDepois) ? ag.horasDepois : (ag.horasDepois ? 2 : 0);
 
   /* ── A CAPA: ecrã inteiro, à Pagamentos online ───────────────────── */
   if (biz && (!temExtra || (!ag.placeId && !capaFechada))) {
@@ -237,28 +237,48 @@ export default function AvaliacoesGoogle() {
               )}
             </section>
 
-            {/* 2. LIGAR E QUANDO */}
+            {/* 2. COMO SE PEDE (02/11/2026, Diogo): na app, logo a seguir a marcar — com
+                uma animação; e, se quiser, um lembrete depois do corte. */}
             <section className={`gr-caixa${ag.placeId ? '' : ' apagado'}`}>
               <div className="gr-cab">
-                <span className="gr-num">2</span><h3>Pedir avaliação depois do corte</h3>
+                <span className="gr-num">2</span><h3>Pedir a avaliação</h3>
                 <Toggle checked={!!ag.ativo} onChange={v => gravar({ ativo: v })} />
               </div>
-              <div className="gr-seg" role="radiogroup" aria-label="Quando sai o pedido">
-                {HORAS.map(([h, l]) => (
-                  <button key={h} type="button" role="radio" aria-checked={horas === h} className={horas === h ? 'on' : ''} onClick={() => gravar({ horasDepois: h })}>{l}</button>
-                ))}
+
+              <div className={`gr-opcoes${ag.ativo ? '' : ' apagado'}`}>
+                <div className="gr-opcao">
+                  <div className="gr-opcao-txt">
+                    <b>Na app, logo a seguir a marcar</b>
+                    <span>Sobe um cartão com as estrelas a pedir com jeito. Aparece uma só vez a cada cliente.</span>
+                  </div>
+                  <Toggle checked={ag.naApp !== false} onChange={v => gravar({ naApp: v })} />
+                </div>
+                <div className="gr-opcao">
+                  <div className="gr-opcao-txt">
+                    <b>Lembrete depois do corte</b>
+                    <span>Notificação ou email a quem ainda não avaliou.</span>
+                  </div>
+                  <Toggle checked={ag.depoisDoCorte !== false} onChange={v => gravar({ depoisDoCorte: v })} />
+                </div>
+                {ag.depoisDoCorte !== false && (
+                  <label className="gr-quando">
+                    <span>Quando</span>
+                    <select value={horas} onChange={e => gravar({ horasDepois: Number(e.target.value) })}>
+                      {HORAS.map(([h, l]) => <option key={h} value={h}>{l}</option>)}
+                    </select>
+                  </label>
+                )}
               </div>
 
-              {/* O que o cliente recebe — como uma notificação no telemóvel */}
-              <div className="gr-notif">
-                <div className="gr-notif-ico">{biz?.logoUrl ? <img src={biz.logoUrl} alt="" /> : (biz?.name || '?').slice(0, 1)}</div>
-                <div className="gr-notif-txt">
-                  <b>Como correu na {biz?.name || 'tua barbearia'}?</b>
-                  <span>Deixa a tua avaliação no Google — demora 30 segundos.</span>
-                  <em><Star size={13} fill="currentColor" /> Avaliar no Google</em>
-                </div>
+              {/* O que o cliente vê na app */}
+              <div className="gr-previa" aria-hidden="true">
+                <img src="/google-reviews/icone-192.png" alt="" />
+                <div className="gr-previa-estrelas">{[0, 1, 2, 3, 4].map(i => <Star key={i} size={18} fill="currentColor" strokeWidth={0} />)}</div>
+                <b>Gostas de vir à {biz?.name || 'tua barbearia'}?</b>
+                <span>Uma avaliação tua no Google ajuda-nos imenso. Demora 30 segundos.</span>
+                <em>Avaliar no Google</em>
               </div>
-              <p className="gr-mini">Sai por notificação ou email{horas === 0 ? ' uns 5 minutos depois de fechares a conta (cobrar) da marcação' : ''}, uma vez a cada 3 meses por cliente. Vai para todos os clientes — escolher só os contentes é contra as regras do Google.</p>
+              <p className="gr-mini">Pede-se a todos os clientes, uma vez — escolher só os contentes é contra as regras do Google.</p>
             </section>
           </>
         )}
@@ -346,6 +366,21 @@ const CSS = `
 .gr-seg { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr; gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg, rgba(0,0,0,.04)); border: 1px solid var(--border); }
 .gr-seg button { padding: 10px 6px; border-radius: 10px; border: 0; background: transparent; color: var(--text-secondary); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
 .gr-seg button.on { background: var(--bg-card, #fff); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+.gr-opcoes { display: grid; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.gr-opcoes.apagado { opacity: .5; pointer-events: none; }
+.gr-opcao { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+.gr-opcao + .gr-opcao { border-top: 1px solid var(--border); }
+.gr-opcao-txt { flex: 1; display: grid; gap: 2px; }
+.gr-opcao-txt b { font-size: 15px; }
+.gr-opcao-txt span { font-size: 13px; color: var(--text-secondary); line-height: 1.45; }
+.gr-quando { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 16px 14px; font-size: 14px; color: var(--text-secondary); }
+.gr-quando select { padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-card, #fff); color: var(--text); font: inherit; font-size: 14px; font-weight: 700; }
+.gr-previa { display: grid; justify-items: center; gap: 6px; text-align: center; padding: 20px 16px; border-radius: 20px; background: #fff; color: #1f1f1f; border: 1px solid var(--border); box-shadow: 0 14px 30px -20px rgba(0,0,0,.35); }
+.gr-previa img { width: 52px; height: 52px; border-radius: 14px; }
+.gr-previa-estrelas { display: flex; gap: 3px; color: #F5B301; }
+.gr-previa b { font-size: 16.5px; }
+.gr-previa span { font-size: 13.5px; color: #5f6368; max-width: 32ch; line-height: 1.45; }
+.gr-previa em { font-style: normal; margin-top: 6px; padding: 10px 20px; border-radius: 999px; background: #1a73e8; color: #fff; font-weight: 800; font-size: 14px; }
 .gr-notif { display: flex; gap: 12px; padding: 14px; border-radius: 18px; background: var(--bg, rgba(0,0,0,.04)); border: 1px solid var(--border); }
 .gr-notif-ico { width: 40px; height: 40px; border-radius: 10px; background: var(--gold); color: var(--on-gold, #111); display: grid; place-items: center; font-weight: 800; overflow: hidden; flex-shrink: 0; }
 .gr-notif-ico img { width: 100%; height: 100%; object-fit: cover; }
