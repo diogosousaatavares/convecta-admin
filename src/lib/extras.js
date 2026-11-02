@@ -28,6 +28,10 @@ export const EXTRAS = [
     texto: 'Mais avaliações no Google = mais clientes novos pelo Google Maps. O pedido sai sozinho depois de cada corte, com o link direto.',
     precos: { mensal: 2.99, quinzenal: 1.49, anual: 30.50 },
     incluidoEm: [],
+    // 02/11/2026 (Diogo): «de graça por tempo limitado» — incluído em todos os
+    // planos enquanto isto estiver a true. Para voltar a cobrar: false (e o mesmo
+    // em supabase/functions/_shared/extras.ts e extras-subscricao).
+    gratis: true, promo: 'Grátis por tempo limitado',
     rota: '/admin/avaliacoes-google',
   },
   {
@@ -45,7 +49,7 @@ export const extraDe = id => EXTRAS.find(e => e.id === id) || null;
 
 /** O plano já inclui este extra? */
 export const extraIncluido = (biz, id) =>
-  !!extraDe(id)?.incluidoEm.includes(String(biz?.plan || '').toLowerCase());
+  !!extraDe(id)?.gratis || !!extraDe(id)?.incluidoEm.includes(String(biz?.plan || '').toLowerCase());
 
 /** O negócio pode usar este extra (incluído, ligado, ou não paga). */
 export const extraAtivo = (biz, id) => !!biz && (

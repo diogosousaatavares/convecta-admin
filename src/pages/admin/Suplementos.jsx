@@ -28,8 +28,8 @@ export default function Suplementos() {
       // 01/11/2026: o suplemento Google Reviews (2,99 €/mês) — com o ícone do Diogo.
       id: 'avaliacoes', img: '/google-reviews/icone-192.png', nome: 'Google Reviews',
       desc: 'Depois de cada corte, o cliente recebe o link para te avaliar no Google. Mais avaliações, mais clientes novos.',
-      to: '/admin/avaliacoes-google', estado: extraAtivo(biz, 'avaliacoes') ? 'Ligado' : null,
-      preco: extraAtivo(biz, 'avaliacoes') ? null : '2,99 €/mês',
+      to: '/admin/avaliacoes-google', estado: null,
+      preco: 'Grátis por tempo limitado',
     },
     {
       id: 'novo-espaco', icon: Store, nome: 'Adição de novo espaço',

@@ -113,7 +113,9 @@ export default function AvaliacoesGoogle() {
                   <li><span><MapPin size={18} /></span>Sobe no Google Maps</li>
                 </ul>
                 <p className="grc-sub"><Check size={16} /> Depois de cada corte, o cliente recebe o link para te avaliar. Tu não fazes nada.</p>
-                {!temExtra && <div className="grc-preco">{formatPrice(extra.precos[periodo] ?? extra.precos.mensal)}{sufixoPeriodo(periodo)} <small>· desligas quando quiseres</small></div>}
+                {extra.gratis
+                  ? <div className="grc-preco">Grátis <small>· por tempo limitado, em todos os planos</small></div>
+                  : !temExtra && <div className="grc-preco">{formatPrice(extra.precos[periodo] ?? extra.precos.mensal)}{sufixoPeriodo(periodo)} <small>· desligas quando quiseres</small></div>}
                 <div className="grc-acoes">
                   {!temExtra
                     ? <button type="button" className="grc-btn" onClick={juntar} disabled={aJuntar}>{aJuntar ? 'A ativar…' : 'Ativar agora'}</button>
