@@ -8,10 +8,9 @@ export function useRealtimeNotifications(businessId) {
   useEffect(() => {
     if (!businessId) return;
 
-    // Pedir permissão para notificações do browser
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
+    // 02/11/2026: já não se pede permissão aqui ao abrir — o browser ignora
+    // pedidos sem gesto do utilizador e ficava a pedir em cada sessão. Quem
+    // pede é o ecrã das notificações, quando o dono carrega no botão.
 
     // Subscrever ao Realtime do Supabase
     channelRef.current = supabase
@@ -31,6 +30,8 @@ export function useRealtimeNotifications(businessId) {
           // marcacao nova logo, sem carregar em «Atualizar».
           atualizarAgora();
           if (appt.metadata && appt.metadata.blocked) return;
+          // 02/11/2026: à espera do pagamento online — ainda não é marcação.
+          if (appt.metadata && appt.metadata.aguardaPagamento && !appt.pago_online_em) return;
 
           // Notificação no browser
           if ('Notification' in window && Notification.permission === 'granted') {

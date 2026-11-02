@@ -12,6 +12,7 @@ import { formatDateShortNum, formatPrice, localDateStr } from '@/lib/format';
 import CheckoutModal from '@/components/admin/CheckoutModal';
 import CorrigirCobranca from '@/components/admin/CorrigirCobranca';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { useConfirmar } from '@/components/ui/Confirmar';
 import { n as nicho } from '@/lib/nicho';
 
 // A confirmacao automatica vivia enterrada em Parametros -> Agendamentos, onde
@@ -106,11 +107,21 @@ export default function AdminAppointments() {
     .sort((a, b) => (b.date + b.startTime).localeCompare(a.date + a.startTime));
   const appts = todas.slice(0, limite);
 
-  const confirm = async (id) => {
-    const a = await dataService.confirmAppointment(id);
-    // O cliente e avisado por notificacao push (dataService.confirmAppointment).
-    // Nao ha email de confirmacao — o aviso "Email enviado" era mentira.
-    toast.success('Marcação confirmada');
+  const [pedirConfirmacao, ConfirmacaoHora] = useConfirmar();
+  const confirm = async (id, opts) => {
+    try {
+      const a = await dataService.confirmAppointment(id, opts);
+      // O cliente e avisado por notificacao push (dataService.confirmAppointment).
+      // Nao ha email de confirmacao — o aviso "Email enviado" era mentira.
+      toast.success('Marcação confirmada');
+    } catch (e) {
+      // 02/11/2026: hora à espera do pagamento online — pergunta antes de forçar.
+      if (!opts?.forcar && /ainda não foi paga/.test(e?.message || '')) {
+        pedirConfirmacao({ titulo: 'Confirmar sem pagamento?', texto: e.message + ' Se confirmares agora, a hora fica garantida sem o sinal.', botao: 'Confirmar na mesma', aoConfirmar: () => confirm(id, { forcar: true }) });
+        return;
+      }
+      toast.error('Não ficou gravado', e?.message || 'Verifica a internet e tenta outra vez.');
+    }
   };
   const doCancel = async () => {
     await dataService.cancelAppointment(cancelTarget.id);
@@ -299,6 +310,7 @@ export default function AdminAppointments() {
         <p className="text-sec">Eliminar permanentemente a marcação <span className="text-gold fw-600">{deleteTarget?.bookingRef}</span>?</p>
       </Modal>
 
+      <ConfirmacaoHora />
       <ConfirmDialog
         open={!!cancelTarget}
         onClose={() => setCancelTarget(null)}

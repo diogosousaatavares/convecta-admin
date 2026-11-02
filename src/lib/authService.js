@@ -2,6 +2,7 @@
 import { supabase } from '@/lib/supabase';
 import dataService from './dataService';
 import { n as nicho } from '@/lib/nicho';
+import { limpar as limparGrupo } from '@/lib/grupo';
 
 const listeners = new Set();
 function notify() { listeners.forEach(fn => fn()); }
@@ -152,6 +153,7 @@ const authService = {
   async logout() {
     if (_session?.type !== 'customer') await supabase.auth.signOut();
     _session = null;
+    limparGrupo();   // 02/11/2026
     notify();
   },
 

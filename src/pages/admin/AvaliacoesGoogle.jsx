@@ -78,9 +78,16 @@ export default function AvaliacoesGoogle() {
     catch (e) { toast.error('Não ficou guardado', e.message); }
   };
   const gravar = async mud => {
-    const novo = { ...ag, ...mud };
-    setAg(novo);
-    try { await dataService.updateBusiness({ avaliacoesGoogle: novo }); toast.success('Guardado'); }
+    setAg(a => ({ ...a, ...mud }));
+    try {
+      // 02/11/2026: só as chaves mudadas, por cima do que está AGORA na base
+      // de dados — a função avaliacoes-google escreve nota/total aqui e a
+      // cópia deste ecrã apagava-os.
+      const fresco = (await dataService.recarregarNegocio())?.avaliacoesGoogle || {};
+      const b = await dataService.updateBusiness({ avaliacoesGoogle: { ...fresco, ...mud } });
+      setAg(b?.avaliacoesGoogle || { ...fresco, ...mud });
+      toast.success('Guardado');
+    }
     catch (e) { toast.error('Não ficou gravado', e.message); }
   };
 
@@ -124,8 +131,9 @@ export default function AvaliacoesGoogle() {
                 </div>
               </div>
             </div>
+            {/* 02/11/2026: dentro do portal, senão a capa tapava a pergunta. */}
+            <Confirmacao />
           </section>, document.body)}
-        <Confirmacao />
       </AdminLayout>
     );
   }
@@ -394,7 +402,7 @@ const CSS = `
 
 /* A capa: cores fixas (creme e amarelo, como as imagens), nos dois temas. */
 const CSS_CAPA = `
-.grc { position: fixed; inset: 0; z-index: 1000; background: #FBF7EF; color: #1a1714; overflow-y: auto; display: flex; flex-direction: column; font-family: inherit; }
+.grc { position: fixed; inset: 0; z-index: 150; /* 02/11/2026: abaixo do modal (200) e dos toasts (300) */ background: #FBF7EF; color: #1a1714; overflow-y: auto; display: flex; flex-direction: column; font-family: inherit; }
 .grc-cabeca { display: flex; align-items: center; justify-content: space-between; padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 6px; }
 .grc-selo { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px 7px 7px; border-radius: 999px; background: #fff; font-weight: 800; font-size: 14px; box-shadow: 0 6px 18px -10px rgba(0,0,0,.3); }
 .grc-selo img { width: 28px; height: 28px; border-radius: 8px; display: block; }

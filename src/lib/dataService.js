@@ -573,10 +573,13 @@ function custFromRow(row) {
     passwordHash: m.passwordHash || null,
     semCadastro: m.semCadastro === true,   // a ficha «Sem cadastro» (23/10/2026)
     isActive: row.is_active !== false,
+    // 02/11/2026: o metadata inteiro, como no servico — o que a whitelist nao
+    // le (pendingPack, appInstalada) deixava de existir na gravacao seguinte.
+    _meta: m,
   };
 }
 function custToRow(c) {
-  const { id, businessId, name, email, phone, birthDate, totalAppointments, totalSpent, isActive, ...meta } = c;
+  const { id, businessId, name, email, phone, birthDate, totalAppointments, totalSpent, isActive, _meta, ...meta } = c;
   return {
     business_id: BUSINESS_ID, name,
     email: email || null, phone: phone || null,
@@ -585,6 +588,7 @@ function custToRow(c) {
     loyalty_points: meta.loyalty?.points || 0,
     is_active: isActive !== false,
     metadata: {
+      ...(_meta || {}),
       lastVisit: meta.lastVisit, loyalty: meta.loyalty,
       pendingStamp: meta.pendingStamp, pendingReview: meta.pendingReview,
       balance: meta.balance, passwordHash: meta.passwordHash,
@@ -651,6 +655,10 @@ function apptFromRow(row) {
      */
     proposta: m.proposta || null,
     rescheduleHistory: m.rescheduleHistory,
+    cancelReason: m.cancelReason || null,
+    // 02/11/2026: o metadata inteiro (ver svcFromRow). aguardaPagamento fica
+    // de fora na gravacao, de proposito: o balcao a mexer limpa a espera.
+    _meta: m,
   };
 }
 function apptToRow(a) {
@@ -667,6 +675,8 @@ function apptToRow(a) {
     booking_ref: a.bookingRef || null,
     payment_data: { payment: a.payment || null, paymentMethod: a.paymentMethod || null },
     metadata: {
+      ...(a._meta || {}),
+      aguardaPagamento: undefined,
       serviceNameSnapshot: a.serviceNameSnapshot,
       professionalNameSnapshot: a.professionalNameSnapshot,
       durationSnapshot: a.durationSnapshot,
@@ -695,6 +705,7 @@ function apptToRow(a) {
       confirmedAt: a.confirmedAt, completedAt: a.completedAt,
       cancelledAt: a.cancelledAt, attendedAt: a.attendedAt,
       cancelledBy: a.cancelledBy || null,
+      cancelReason: a.cancelReason || undefined,   // 02/11/2026: era escrito e nunca gravado
       rescheduleHistory: a.rescheduleHistory,
       proposta: a.proposta || undefined,
       // Um encaixe e, por definicao, uma marcacao fora da grelha normal. A
@@ -1439,7 +1450,9 @@ const dataService = {
       : (() => {
           const snap = buildSnapshot(state, data.serviceId, data.professionalId);
           const a = { businessId: BUSINESS_ID, status: 'pending', notes: '', createdAt: new Date().toISOString(), bookingRef: genBookingRef(), ...snap, loyaltyStamped: false, ...data };
-          assertNoConflict(state, a);
+          // 02/11/2026: um encaixe e, por definicao, fora da grelha — a base
+          // de dados ja o deixa passar; aqui tambem.
+          if (!a.encaixe) assertNoConflict(state, a);
           return a;
         })();
     const row = apptToRow(base);
@@ -1459,10 +1472,17 @@ const dataService = {
     if (error) throw traduzirErro(error);
     notify(); return state.appointments[i];
   },
-  async confirmAppointment(id) {
+  async confirmAppointment(id, opts = {}) {
     const a = state.appointments.find(x => x.id === id);
     if (!a || a.status !== 'pending' || !canTransition(a.status, 'confirmed')) return a;
+    // 02/11/2026: confirmar uma hora à espera do pagamento online limpava a
+    // espera e a base de dados deixava de a cancelar aos 30 min. Avisa-se;
+    // o balcão pode forçar.
+    if (a.aguardaPagamento && !opts.forcar) {
+      throw new Error('Esta hora ainda não foi paga pelo cliente. Espera pelo pagamento ou cancela a marcação.');
+    }
     a.status = 'confirmed'; a.confirmedAt = new Date().toISOString();
+    if (opts.forcar) a.aguardaPagamento = false;
     const { error } = await supabase.from('appointments').update(apptToRow(a)).eq('id', id);
     if (error) throw traduzirErro(error);
 
@@ -1603,6 +1623,16 @@ const dataService = {
         }
       }
       recomputeCustomer(a.customerId);
+      // 02/11/2026: o carimbo e as visitas só mudavam na memória deste
+      // browser; a app do cliente continuava a ver o carimbo.
+      const cust = state.customers.find(c => c.id === a.customerId);
+      if (cust) {
+        const r = custToRow(cust);
+        const { error: erroCliente } = await supabase.from('customers')
+          .update({ loyalty_points: r.loyalty_points, metadata: r.metadata, total_visits: r.total_visits, total_spent: r.total_spent })
+          .eq('id', cust.id);
+        if (erroCliente) console.error('ficha do cliente nao gravada:', erroCliente.message);
+      }
     }
     a.status = 'cancelled'; a.cancelledAt = new Date().toISOString(); a.cancelledBy = 'barbearia';
     if (opts.motivo) a.cancelReason = opts.motivo;
@@ -1642,6 +1672,13 @@ const dataService = {
    */
   async cobrarMarcacao(apptId, payData) {
     const a = state.appointments.find(x => x.id === apptId);
+    // 02/11/2026: validar ANTES de vender os produtos — senão a venda ficava
+    // feita e a marcação por cobrar.
+    if (!a) throw new Error('Marcação não encontrada.');
+    if (a.status === 'completed' && a.payment) throw new Error('Esta marcação já foi cobrada.');
+    if (a.status !== 'confirmed' && a.status !== 'completed') throw new Error('Só se cobra uma marcação confirmada.');
+    const erroCobranca = dataService.porqueNaoSePodeCobrar(a, payData?.method);
+    if (erroCobranca) throw new Error(erroCobranca);
     if (payData?.produtos?.length) {
       await this.createSale({
         items: payData.produtos, total: payData.totalProdutos, method: payData.method,
@@ -1655,7 +1692,8 @@ const dataService = {
   async checkoutAppointment(apptId, payData) {
     const a = state.appointments.find(x => x.id === apptId);
     if (!a || (a.status === 'completed' && a.payment)) return a;
-    if (a.status !== 'confirmed' && a.status !== 'completed') return a;
+    // 02/11/2026: devolvia a marcação em silêncio e o ecrã dizia «cobrada».
+    if (a.status !== 'confirmed' && a.status !== 'completed') throw new Error('Só se cobra uma marcação confirmada.');
     // Duas regras que o teste real apanhou a falhar:
     // 1. Uma marcação de amanhã não se cobra hoje. Contava como receita de
     //    hoje e punha a «última visita» do cliente no futuro.
@@ -1726,6 +1764,14 @@ const dataService = {
       // proprio e o corte gratis dava direito ao seguinte, para sempre.
     } else {
       await addLoyaltyStamp(a, a.payment.at);
+      // 02/11/2026: o carimbo era dado DEPOIS de gravar a marcação, e o
+      // loyaltyStamped:true nunca chegava à base de dados — ao recarregar, o
+      // cancelamento já não sabia que havia carimbo a tirar.
+      if (a.loyaltyStamped) {
+        const { error: erroCarimbo } = await supabase.from('appointments')
+          .update({ metadata: apptToRow(a).metadata }).eq('id', apptId);
+        if (erroCarimbo) console.error('carimbo da marcacao nao gravado:', erroCarimbo.message);
+      }
     }
     const updCust = state.customers.find(c => c.id === a.customerId);
     if (updCust) {
@@ -2135,7 +2181,9 @@ const dataService = {
   // ── WAITLIST ──
   listWaitlist() { return Promise.resolve([...state.waitlist].sort((a,b) => (b.createdAt||'').localeCompare(a.createdAt||''))); },
   async addWaitlist(data) {
-    const row = { business_id: BUSINESS_ID, customer_id: data.customerId || null, service_id: data.serviceId || null, preferred_date: data.preferredDate || null, status: 'waiting', metadata: { priority: data.priority || 'normal', notes: (data.notes || '').trim() } };
+    const row = { business_id: BUSINESS_ID, customer_id: data.customerId || null, service_id: data.serviceId || null, preferred_date: data.preferredDate || null, status: 'waiting', metadata: { priority: data.priority || 'normal', notes: (data.notes || '').trim() },
+      // 02/11/2026: o barbeiro pedido ficava pelo caminho.
+      ...(data.professionalId ? { professional_id: data.professionalId } : {}) };
     const { data: created, error } = await supabase.from('waitlist').insert(row).select().single();
     if (error) throw traduzirErro(error);
     const w = wlFromRow(created); state.waitlist.push(w); notify(); return w;
@@ -2143,7 +2191,8 @@ const dataService = {
   async updateWaitlist(id, updates) {
     const existing = state.waitlist.find(w => w.id === id);
     const merged = { ...existing, ...updates };
-    const { data, error } = await supabase.from('waitlist').update({ status: merged.status, preferred_date: merged.preferredDate || null, metadata: { priority: merged.priority } }).eq('id', id).select().single();
+    // 02/11/2026: cada gravação apagava as notas e o barbeiro pedido.
+    const { data, error } = await supabase.from('waitlist').update({ status: merged.status, preferred_date: merged.preferredDate || null, professional_id: merged.professionalId || null, metadata: { priority: merged.priority, notes: (merged.notes || '').trim() } }).eq('id', id).select().single();
     if (error) throw traduzirErro(error);
     const w = wlFromRow(data);
     const i = state.waitlist.findIndex(x => x.id === id);

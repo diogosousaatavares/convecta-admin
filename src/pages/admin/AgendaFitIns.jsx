@@ -44,7 +44,12 @@ export default function AgendaFitIns() {
     if (jaPassou(form.startTime) && !avisoPassado) { setAvisoPassado(true); return; }
     const svc = data.services.find(s => s.id === form.serviceId);
     let profId = form.professionalId;
-    if (profId === 'any') { const a = await dataService.assignProfessionalForSlot(date, form.startTime, svc.durationMinutes); profId = a.id; }
+    if (profId === 'any') {
+      const a = await dataService.assignProfessionalForSlot(date, form.startTime, svc.durationMinutes);
+      // 02/11/2026: sem ninguem livre vinha null e rebentava em a.id.
+      if (!a) { toast.error('Ninguém livre a essa hora', 'Escolhe o profissional à mão ou outra hora.'); return; }
+      profId = a.id;
+    }
     await dataService.createAppointment({ customerId: form.customerId, serviceId: form.serviceId, professionalId: profId, date, startTime: form.startTime, endTime: toTime(toMin(form.startTime) + svc.durationMinutes), status: 'confirmed', encaixe: true });
     toast.success('Encaixe criado', `${form.startTime} · ${formatDate(date)}`);
     setModal(null);

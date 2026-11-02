@@ -27,6 +27,11 @@ self.addEventListener("notificationclick", (e) => {
   const destino = (e.notification.data && e.notification.data.url) || "/";
   e.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((janelas) => {
+      // 02/11/2026: um link de fora (outro dominio) nao se navega na janela
+      // do painel — j.navigate falhava e a notificacao nao abria nada.
+      if (/^https?:/i.test(destino)) {
+        try { if (new URL(destino).origin !== self.location.origin) return self.clients.openWindow(destino); } catch (_) {}
+      }
       // Ja esta aberto algures? Traz-se para a frente em vez de abrir outro.
       for (const j of janelas) {
         if (j.url.includes(self.location.origin)) {

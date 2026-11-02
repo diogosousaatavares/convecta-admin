@@ -121,6 +121,14 @@ export function totalOfPayment(a) {
   return round2(Number(a.payment.total) || 0);
 }
 
+// 02/11/2026: o que entrou mesmo no balcão. payment.total é o serviço todo
+// (os relatórios contam com isso); a parte paga online ao marcar (Stripe)
+// nunca passou pela gaveta nem pelo terminal.
+export function cobradoAoBalcao(a) {
+  if (!a || !a.payment) return 0;
+  return round2(Math.max(0, totalOfPayment(a) - (Number(a.payment.pagoOnline) || 0)));
+}
+
 // --- Comissões -------------------------------------------------------------
 // A comissão é persistida no checkout (snapshot da %). Esta função lê o
 // registo persistido; para vendas legadas sem registo, estima com a % atual
@@ -295,7 +303,7 @@ export function getExpectedCash(state, session) {
 
   const servicosDinheiro = pagamentosDaSessao(state, session)
     .filter(a => isCashMethod(a.payment.method))
-    .reduce((s, a) => s + totalOfPayment(a), 0);
+    .reduce((s, a) => s + cobradoAoBalcao(a), 0);
   const produtosDinheiro = vendasDaSessao(state, session)
     .filter(v => isCashMethod(v.method))
     .reduce((s, v) => s + Number(v.total || 0), 0);
@@ -389,7 +397,7 @@ export function resumoCliente(state, customerId) {
 // diferenca < 0 → falta dinheiro; > 0 → sobra.
 export function resumoSessao(state, session) {
   if (!session) return null;
-  const servicos = pagamentosDaSessao(state, session).reduce((s, a) => s + totalOfPayment(a), 0);
+  const servicos = pagamentosDaSessao(state, session).reduce((s, a) => s + cobradoAoBalcao(a), 0);
   const produtos = vendasDaSessao(state, session).reduce((s, v) => s + (Number(v.total) || 0), 0);
   const packs = packsDaSessao(state, session).reduce((s, v) => s + (Number(v.total) || 0), 0);
   const despesas = (state.expenses || []).filter(e => e.sessionId === session.id && expenseImpactsCash(e))

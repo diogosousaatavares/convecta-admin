@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import { Modal, Button } from '@/components/ui';
 
 /*
@@ -31,7 +31,14 @@ export function useConfirmar() {
 
   const pedir = useCallback((p) => setPedido(p), []);
 
-  const Confirmacao = useCallback(() => {
+  // 02/11/2026: o componente tinha identidade nova a cada mudanca de estado
+  // e o Modal desmontava e montava outra vez (perdia o foco, piscava). Fica
+  // um componente estavel que le o estado por uma ref; como e filho de quem
+  // chama o hook, volta a desenhar sempre que o estado muda.
+  const ref = useRef(null);
+  ref.current = { pedido, aCorrer, setPedido, setACorrer };
+  const Confirmacao = useMemo(() => function Confirmacao() {
+    const { pedido, aCorrer, setPedido, setACorrer } = ref.current;
     if (!pedido) return null;
     const fechar = () => { if (!aCorrer) setPedido(null); };
     return (
@@ -50,7 +57,7 @@ export function useConfirmar() {
         <p style={{ margin: 0 }}>{pedido.texto}</p>
       </Modal>
     );
-  }, [pedido, aCorrer]);
+  }, []);
 
   return [pedir, Confirmacao];
 }

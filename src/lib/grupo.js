@@ -73,6 +73,12 @@ export function usePorta() {
   const mudar = p => { _portaValor = p; _porta = Promise.resolve(p); setPorta(p); };
   return [porta, mudar];
 }
+/* 02/11/2026: ao sair, esquecer o que se leu — a conta seguinte via os
+ * negócios e a porta de quem saiu até recarregar a página. */
+export function limpar() {
+  _promessa = null; _lista = null;
+  _porta = null; _portaValor = undefined;
+}
 export async function guardarPorta(p) {
   const { data, error } = await supabase.rpc('guardar_porta', { p });
   if (error) throw new Error(error.message);

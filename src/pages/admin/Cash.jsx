@@ -9,7 +9,7 @@ import dataService from '@/lib/dataService';
 import { useToast } from '@/components/ui/ToastContext';
 import { formatPrice, formatDate, todayStr, localDateStr } from '@/lib/format';
 import { Link } from 'react-router-dom';
-import { getExpectedCash, pagamentosDaSessao, vendasDaSessao, packsDaSessao, textoDiferenca } from '@/lib/domain/finance';
+import { getExpectedCash, cobradoAoBalcao, pagamentosDaSessao, vendasDaSessao, packsDaSessao, textoDiferenca } from '@/lib/domain/finance';
 import { TabelaFechos } from '@/components/financeiro/HistoricoCaixa';
 import CheckoutModal from '@/components/admin/CheckoutModal';
 import { n as nicho } from '@/lib/nicho';
@@ -68,13 +68,14 @@ export default function Cash() {
 
   const salesByMethod = useMemo(() => {
     const m = {}; METHODS.forEach(x => m[x] = 0);
-    sales.forEach(a => { if (m[a.payment.method] != null) m[a.payment.method] += a.payment.total; });
+    // 02/11/2026: só o que foi cobrado ao balcão; o sinal online está à parte.
+    sales.forEach(a => { if (m[a.payment.method] != null) m[a.payment.method] += cobradoAoBalcao(a); });
     vendasProdutos.forEach(v => { if (m[v.method] != null) m[v.method] += v.total; });
     vendasPacks.forEach(v => { if (m[v.method] != null) m[v.method] += v.total; });
     return m;
   }, [sales, vendasProdutos, vendasPacks]);
 
-  const totalServicos = sales.reduce((s, a) => s + a.payment.total, 0);
+  const totalServicos = sales.reduce((s, a) => s + cobradoAoBalcao(a), 0);
   const totalProdutos = vendasProdutos.reduce((s, v) => s + Number(v.total || 0), 0);
   const totalPacks = vendasPacks.reduce((s, v) => s + Number(v.total || 0), 0);
   const totalSales = totalServicos + totalProdutos + totalPacks;

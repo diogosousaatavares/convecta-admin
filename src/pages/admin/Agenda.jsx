@@ -28,6 +28,7 @@ import { pedidosPendentes } from '@/lib/orcamentosService';
 import { proporNovaHora } from '@/lib/propostasService';
 import { n as nicho } from '@/lib/nicho';
 import JuntarExtras from '@/components/admin/JuntarExtras';
+import { useConfirmar } from '@/components/ui/Confirmar';
 import { fazOServico } from '@/lib/quemFaz';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
@@ -213,13 +214,21 @@ export default function Agenda() {
     return map;
   }, [data.appointments]);
 
-  const confirm = async (id) => { try {
-    const a = await dataService.confirmAppointment(id);
+  const [pedirConfirmacao, ConfirmacaoHora] = useConfirmar();
+  const confirm = async (id, opts) => { try {
+    const a = await dataService.confirmAppointment(id, opts);
     // O cliente e avisado por notificacao push (dataService.confirmAppointment).
     // Nao ha email de confirmacao — o aviso "Email enviado" era mentira.
     toast.success('Marcação confirmada');
     setSelected(null);
-    } catch (e) { falhou(e); }
+    } catch (e) {
+      // 02/11/2026: hora à espera do pagamento online — pergunta antes de forçar.
+      if (!opts?.forcar && /ainda não foi paga/.test(e?.message || '')) {
+        pedirConfirmacao({ titulo: 'Confirmar sem pagamento?', texto: e.message + ' Se confirmares agora, a hora fica garantida sem o sinal.', botao: 'Confirmar na mesma', aoConfirmar: () => confirm(id, { forcar: true }) });
+        return;
+      }
+      falhou(e);
+    }
   };
   const [checkout, setCheckout] = useState(null);
   const [corrigir, setCorrigir] = useState(null);
@@ -852,6 +861,7 @@ export default function Agenda() {
         )}
       </Modal>
 
+      <ConfirmacaoHora />
       <ConfirmDialog
         open={!!cancelTarget}
         onClose={() => setCancelTarget(null)}

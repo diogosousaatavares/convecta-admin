@@ -2,21 +2,9 @@
 <html lang="pt">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      /* 01/11/2026: vindo do registo dentro do Instagram, a sessão chega em
-         ?sessao= (base64 do «#access_token=…»), porque o # perde-se ao passar
-         para o Chrome. Volta a pôr-se no #, antes de a app arrancar, e o
-         Supabase entra sozinho como sempre. */
-      (function () {
-        try {
-          var q = new URLSearchParams(location.search), s = q.get('sessao');
-          if (!s) return;
-          q.delete('sessao');
-          var resto = q.toString();
-          history.replaceState(null, '', location.pathname + (resto ? '?' + resto : '') + '#' + atob(s));
-        } catch (e) {}
-      })();
-    </script>
+    <!-- 02/11/2026: saiu o script que convertia ?sessao= (tokens em base64 no
+         endereço) no # do Supabase. O registo no Instagram passou a chegar com
+         ?token_hash=…&type=magiclink, que src/lib/supabase.js troca por sessão. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
     <!-- Favicon -->
