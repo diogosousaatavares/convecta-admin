@@ -37,6 +37,13 @@ export const SERVICOS_SUGERIDOS = {
     { name: 'Aplicação de prótese capilar', durationMinutes: 120, price: 390 },
     { name: 'Manutenção de prótese', durationMinutes: 60, price: 30 },
   ],
+  tatuagem: [
+    { name: 'Piercing de lóbulo', durationMinutes: 20, price: 25 },
+    { name: 'Piercing de cartilagem', durationMinutes: 30, price: 35 },
+    { name: 'Piercing de nariz', durationMinutes: 30, price: 35 },
+    { name: 'Troca de joia', durationMinutes: 15, price: 10 },
+    { name: 'Avaliação gratuita', durationMinutes: 15, price: 0 },
+  ],
   estetica: [
     { name: 'Limpeza de pele', durationMinutes: 60, price: 35 },
     { name: 'Tratamento facial', durationMinutes: 60, price: 45 },
@@ -58,6 +65,8 @@ export const CORES_SUGERIDAS = {
     text: '#2B1E23', textSec: '#75636A', border: '#EED9DF' },
   clinica: { bg: '#F6F8FA', surface: '#FFFFFF', elevated: '#EBF0F4', gold: '#2F6F8F',
     text: '#1B2530', textSec: '#5B6875', border: '#DCE3EA' },
+  tatuagem: { bg: '#F7F7F8', surface: '#FFFFFF', elevated: '#ECEBF0', gold: '#4B3F72',
+    text: '#1E1D24', textSec: '#615F6B', border: '#DEDDE3' },
   estetica: { bg: '#F7F8F6', surface: '#FFFFFF', elevated: '#ECEFEA', gold: '#5E7D66',
     text: '#1F2621', textSec: '#5E6A61', border: '#DDE3DC' },
 }
