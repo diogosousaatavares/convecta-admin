@@ -3106,6 +3106,9 @@ body { font-variant-numeric: lining-nums; }
 .st-unhas .st-foto { background: linear-gradient(135deg, #8E4A6B, #D98CB3); }
 .st-estetica .st-foto { background: linear-gradient(135deg, #3C6E5A, #8FC1A9); }
 .st-clinica .st-foto { background: linear-gradient(135deg, #2F6F8F, #7FB3CC); }
+.st-laser .st-foto { background: linear-gradient(135deg, #6B4E9B, #B39DDB); }
+.st-maquilhagem .st-foto { background: linear-gradient(135deg, #9B3D4E, #E39AA6); }
+.st-massagem .st-foto { background: linear-gradient(135deg, #6E5A3C, #C9A77C); }
 .st-check { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: #fff; color: #111; display: grid; place-items: center; }
 @media (max-width: 767px) { .st-tiles { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); } }
 

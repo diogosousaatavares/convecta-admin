@@ -112,6 +112,29 @@ export const TIPOS = {
     oPro: 'o estúdio', OPro: 'O estúdio', doPro: 'do estúdio', aoPro: 'ao estúdio',
     ...SESSAO,
   },
+  // Laser, maquilhagem e massagem (06/11/2026): o primeiro espaço é o da
+  // Dulce, com as três áreas como três apps ligadas (grupo_id).
+  laser: {
+    id: 'laser', nome: 'Depilação a laser', curto: 'Laser',
+    ...masc('espaço', 'Espaço'),
+    pro: 'técnica', pros: 'técnicas', Pro: 'Técnica', Pros: 'Técnicas',
+    oPro: 'o espaço', OPro: 'O espaço', doPro: 'do espaço', aoPro: 'ao espaço',
+    ...SESSAO,
+  },
+  maquilhagem: {
+    id: 'maquilhagem', nome: 'Maquilhagem', curto: 'Maquilhagem',
+    ...masc('estúdio', 'Estúdio'),
+    pro: 'maquilhadora', pros: 'maquilhadoras', Pro: 'Maquilhadora', Pros: 'Maquilhadoras',
+    oPro: 'o estúdio', OPro: 'O estúdio', doPro: 'do estúdio', aoPro: 'ao estúdio',
+    ...SESSAO,
+  },
+  massagem: {
+    id: 'massagem', nome: 'Massagem', curto: 'Massagem',
+    ...masc('espaço', 'Espaço'),
+    pro: 'massagista', pros: 'massagistas', Pro: 'Massagista', Pros: 'Massagistas',
+    oPro: 'o espaço', OPro: 'O espaço', doPro: 'do espaço', aoPro: 'ao espaço',
+    ...SESSAO,
+  },
   // Dois tipos no mesmo espaço. As palavras neutras, para quando ainda não
   // se escolheu um lado (o resumo, as definições, a subscrição).
   misto: {
@@ -124,7 +147,7 @@ export const TIPOS = {
 }
 
 /** Os tipos puros — os que podem ser um lado de um espaço misto. */
-export const LISTA_TIPOS = ['barbearia', 'cabeleireiro', 'unhas', 'estetica']
+export const LISTA_TIPOS = ['barbearia', 'cabeleireiro', 'unhas', 'estetica', 'laser', 'maquilhagem', 'massagem']
 /** Os tipos todos, para escolher (super admin, /comecar, definições). */
 export const LISTA_TIPOS_TODOS = [...LISTA_TIPOS, 'clinica', 'tatuagem', 'misto']
 

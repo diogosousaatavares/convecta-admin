@@ -9,8 +9,13 @@
  *     que leva ao cartão. Fecha-se com o × e não volta neste browser.
  *
  * Num espaço que já é misto nenhum dos dois aparece.
+ *
+ * 06/11/2026 (Diogo): pode haver mais de dois tipos (a Dulce: laser,
+ * maquilhagem e massagem). O cartão aparece na principal enquanto houver
+ * tipos por juntar, e cada negócio novo nasce com o design da principal.
+ * Com settings.tipos_gratis os tipos a mais não pagam.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, X, Check, Store, Scissors, Brush, Flower2, ChevronRight, Info, Plus } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
@@ -20,11 +25,12 @@ import { TIPOS, LISTA_TIPOS, tipoActual } from '@/lib/nicho';
 import { useGrupo } from '@/lib/grupo';
 import Ajuda from '@/components/admin/Ajuda';
 import { useConfirmar } from '@/components/ui/Confirmar';
+import { supabase } from '@/lib/supabase';
 
 const euros = c => (Number(c || 0) / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
 
 const TILE = { width: 52, height: 52, borderRadius: 14, flexShrink: 0, display: 'grid', placeItems: 'center', background: 'rgba(var(--gold-rgb),0.16)', color: 'var(--gold-tinta, var(--gold))' };
-const ICONE_TIPO = { barbearia: Scissors, cabeleireiro: Scissors, unhas: Brush, estetica: Flower2 };
+const ICONE_TIPO = { barbearia: Scissors, cabeleireiro: Scissors, unhas: Brush, estetica: Flower2, laser: Sparkles, maquilhagem: Brush, massagem: Flower2 };
 
 // O que faz sentido sugerir a quem já é de um tipo.
 const SUGESTAO = {
@@ -40,7 +46,7 @@ const SUGESTAO = {
  * @param gratis     conta sem mensalidade (parceiro)
  * @param lugares    lugares do plano (cada negócio tem os seus)
  */
-export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false, lugares }) {
+export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis: gratisConta = false, lugares }) {
   const toast = useToast();
   const atual = tipoActual();
   const grupo = useGrupo();
@@ -48,20 +54,36 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
   const [nome, setNome] = useState('');   // é outra app: nome (e endereço) próprios
   const [pedir, Confirmacao] = useConfirmar();
   const [aGravar, setAGravar] = useState(false);
+  // Os tipos a mais sem custo (settings.tipos_gratis, ligado no super admin).
+  const [tiposGratis, setTiposGratis] = useState(false);
+  const idPrincipal = grupo.principal?.id || grupo.actual?.id || null;
+  useEffect(() => {
+    if (!idPrincipal) return;
+    let vivo = true;
+    supabase.from('businesses').select('settings').eq('id', idPrincipal).maybeSingle()
+      .then(({ data }) => { if (vivo) setTiposGratis(data?.settings?.tipos_gratis === true); })
+      .catch(() => {});
+    return () => { vivo = false; };
+  }, [idPrincipal]);
+  const gratis = gratisConta || tiposGratis;
 
-  if (!atual || atual === 'misto' || grupo.ligado) return null;
-  const opcoes = LISTA_TIPOS.filter(t => t !== atual);
+  // Só na principal; e só os tipos que o espaço ainda não tem.
+  const naoEPrincipal = grupo.ligado && grupo.actual && !grupo.actual.principal;
+  if (!atual || atual === 'misto' || naoEPrincipal) return null;
+  const jaTem = new Set((grupo.lista || []).filter(g => !g.casa).map(g => g.tipo));
+  const opcoes = LISTA_TIPOS.filter(t => t !== atual && !jaTem.has(t));
+  if (!opcoes.length) return null;
   const extra = centimos ? Math.round(Number(centimos) / 2) : null;
   const porPeriodo = periodo === 'anual' ? '/ano' : periodo === 'quinzenal' ? '/15 dias' : '/mês';
   const precoTexto = gratis
-    ? 'Sem custo: a tua conta não paga mensalidade.'
+    ? (gratisConta ? 'Sem custo: a tua conta não paga mensalidade.' : 'Sem custo para o teu espaço.')
     : extra ? `+${euros(extra)}${porPeriodo}, metade do teu plano.` : 'Metade do teu plano.';
 
   const juntar = async () => {
     setAGravar(true);
     try {
       await dataService.adicionarSegundoTipo(tipo, nome.trim());
-      toast.success('Feito', `${TIPOS[tipo].curto} já está criado. Trocas entre os dois no topo do painel.`);
+      toast.success('Feito', `${TIPOS[tipo].curto} já está criado, com o mesmo design. Trocas de app no topo do painel.`);
       // Recarrega o painel: o seletor dos dois negócios aparece no topo.
       setTimeout(() => { window.location.href = '/admin'; }, 1200);
     } catch (e) {
@@ -77,7 +99,7 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
   const confirmarEJuntar = () => pedir({
     titulo: `Juntar ${TIPOS[tipo].curto}?`,
     texto: gratis
-      ? `Fica já criado, sem custo. Trocas entre ${TIPOS[atual].curto} e ${TIPOS[tipo].curto} no topo do painel.`
+      ? `Fica já criado, sem custo e com o mesmo design. Trocas entre ${TIPOS[atual].curto} e ${TIPOS[tipo].curto} no topo do painel.`
       : `Passas a pagar mais ${euros(extra)}${porPeriodo} — metade do teu plano, cerca de ${euros(Math.round(porSemana))} por semana. Agora só pagas os dias que faltam; em experiência, nada até ao fim dela.`,
     botao: 'Sim, juntar',
     perigoso: false,
@@ -92,10 +114,10 @@ export function JuntarSegundoTipo({ centimos, periodo = 'mensal', gratis = false
   return (
     <div id="segundo-tipo" style={{ maxWidth: 720, marginBottom: 16, scrollMarginTop: 80 }}><Card className="card-pad">
       <div className="prod-sec" style={{ marginTop: 0 }}>Outro tipo de negócio <Ajuda titulo="Outro tipo de negócio" texto={<>
-        <p>Se o teu espaço faz mais do que uma coisa — barbearia e unhas, por exemplo — cada tipo tem a sua app, com o seu nome, o seu link e os seus serviços. Entras com o mesmo login e trocas entre os dois no topo do painel.</p>
-        <p>Custa metade do teu plano{lugares ? `, e cada um tem os ${lugares} ${lugares === 1 ? 'lugar' : 'lugares'} do plano para a sua equipa` : ''}. A primeira cobrança é só dos dias que faltam até à próxima fatura.</p>
+        <p>Se o teu espaço faz mais do que uma coisa — laser, maquilhagem e massagem, por exemplo — cada tipo tem a sua app, com o seu nome, o seu link e os seus serviços, e o mesmo design. Entras com o mesmo login e trocas de app no topo do painel. O link principal abre uma página de entrada com um botão por app.</p>
+        <p>Cada um custa metade do teu plano{lugares ? `, e cada um tem os ${lugares} ${lugares === 1 ? 'lugar' : 'lugares'} do plano para a sua equipa` : ''}. A primeira cobrança é só dos dias que faltam até à próxima fatura.</p>
       </>} /></div>
-      <div className="fw-600" style={{ fontSize: 18 }}>Tens outro tipo de negócio?</div>
+      <div className="fw-600" style={{ fontSize: 18 }}>{jaTem.size > 1 ? 'Tens mais algum tipo de negócio?' : 'Tens outro tipo de negócio?'}</div>
 
       <div className="st-tiles" style={{ '--st-n': opcoes.length }}>
         {opcoes.map(t => {

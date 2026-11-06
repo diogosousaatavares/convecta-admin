@@ -51,6 +51,25 @@ export const SERVICOS_SUGERIDOS = {
     { name: 'Depilação pernas inteiras', durationMinutes: 45, price: 20 },
     { name: 'Depilação axilas', durationMinutes: 15, price: 7 },
   ],
+  laser: [
+    { name: 'Avaliação gratuita', durationMinutes: 15, price: 0 },
+    { name: 'Laser axilas', durationMinutes: 15, price: 25 },
+    { name: 'Laser buço', durationMinutes: 10, price: 15 },
+    { name: 'Laser virilha', durationMinutes: 20, price: 30 },
+    { name: 'Laser pernas inteiras', durationMinutes: 45, price: 60 },
+  ],
+  maquilhagem: [
+    { name: 'Maquilhagem social', durationMinutes: 60, price: 35 },
+    { name: 'Maquilhagem de evento', durationMinutes: 45, price: 30 },
+    { name: 'Prova de maquilhagem', durationMinutes: 60, price: 40 },
+    { name: 'Maquilhagem de noiva', durationMinutes: 90, price: 80 },
+  ],
+  massagem: [
+    { name: 'Massagem de relaxamento', durationMinutes: 60, price: 40 },
+    { name: 'Massagem terapêutica', durationMinutes: 60, price: 45 },
+    { name: 'Drenagem linfática', durationMinutes: 60, price: 45 },
+    { name: 'Massagem com pedras quentes', durationMinutes: 75, price: 50 },
+  ],
 }
 
 /*
