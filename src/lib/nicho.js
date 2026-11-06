@@ -138,7 +138,7 @@ export const TIPOS = {
   // Dois tipos no mesmo espaço. As palavras neutras, para quando ainda não
   // se escolheu um lado (o resumo, as definições, a subscrição).
   misto: {
-    id: 'misto', nome: 'Dois tipos no mesmo espaço', curto: 'Misto',
+    id: 'misto', nome: 'Vários tipos no mesmo espaço', curto: 'Misto',
     ...masc('espaço', 'Espaço'),
     pro: 'profissional', pros: 'profissionais', Pro: 'Profissional', Pros: 'Profissionais',
     oPro: 'o espaço', OPro: 'O espaço', doPro: 'do espaço', aoPro: 'ao espaço',
