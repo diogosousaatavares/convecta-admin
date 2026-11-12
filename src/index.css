@@ -3267,3 +3267,26 @@ body { font-variant-numeric: lining-nums; }
 .casa-menu-lista small { font-size: 12px; color: var(--text-sec); }
 .casa-menu-ok { color: var(--gold); font-weight: 900; }
 @media (min-width: 900px) { .casa-menu { width: 320px; } }
+
+/* Todas as casas (12/11/2026) */
+.gv-periodos { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.gv-periodos button { padding: 8px 14px; border-radius: var(--radius-pill); border: 1px solid var(--border); background: transparent; color: var(--text); font-size: 14px; cursor: pointer; }
+.gv-periodos button.on { background: var(--gold); border-color: var(--gold); color: #111; font-weight: 600; }
+.gv-erro { padding: 12px 14px; border-radius: 10px; margin-bottom: 14px; background: rgba(220,60,60,.08); border: 1px solid rgba(220,60,60,.3); }
+.gv-totais { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 22px; }
+.gv-totais > div { padding: 14px; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.gv-totais span { font-size: 13px; color: var(--text-sec, var(--text)); opacity: .75; }
+.gv-totais b { font-size: 22px; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .gv-totais { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.gv-h2 { font-size: 17px; margin: 6px 0 10px; }
+.gv-casas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-bottom: 24px; }
+.gv-casa { padding: 14px; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; gap: 10px; }
+.gv-casa-topo { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.gv-casa-topo b { display: block; }
+.gv-casa-topo span { font-size: 13px; opacity: .7; }
+.gv-casa-topo strong { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gv-barra { height: 6px; border-radius: 3px; background: rgba(var(--gold-rgb), .14); overflow: hidden; }
+.gv-barra i { display: block; height: 100%; background: var(--gold); border-radius: 3px; }
+.gv-casa-nums { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; opacity: .8; font-variant-numeric: tabular-nums; }
+.gv-abrir { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; }
+.gv-equipa-casa { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; opacity: .65; margin-bottom: 6px; }

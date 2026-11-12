@@ -305,6 +305,9 @@ export default function Professionals() {
         </div>
       )}
 
+      {/* A dona, na casa principal, ve a equipa de todas as casas (12/11/2026). */}
+      {grupo.ligado && grupo.actual?.principal && <NasOutrasCasas atual={grupo.actual.id} />}
+
       <Modal open={!!editing} onClose={close} title={editing === 'new' ? 'Novo profissional' : 'Editar profissional'}
         footer={<><Button variant="ghost" onClick={close}>Cancelar</Button><Button variant="primary" onClick={save}>Guardar</Button></>}>
         <div className="field">
@@ -398,5 +401,48 @@ export default function Professionals() {
         )}
       </Modal>
     </AdminLayout>
+  );
+}
+
+/* A equipa das outras casas do grupo, so para leitura. Editar faz-se na casa
+   de cada um («Abrir esta casa»). Vem de equipa_do_grupo (GRUPO_VISAO). */
+function NasOutrasCasas({ atual }) {
+  const [lista, setLista] = useState(null);
+  useEffect(() => {
+    let vivo = true;
+    const h = new Date();
+    const de = new Date(h.getFullYear(), h.getMonth(), 1).toISOString();
+    const ate = new Date(h.getFullYear(), h.getMonth() + 1, 1).toISOString();
+    supabase.rpc('equipa_do_grupo', { p_de: de, p_ate: ate })
+      .then(({ data, error }) => { if (vivo) setLista(error ? [] : (data || []).filter(p => p.casa !== atual && p.ativo)); });
+    return () => { vivo = false; };
+  }, [atual]);
+  if (!lista || lista.length === 0) return null;
+  const casas = [];
+  for (const p of lista) {
+    let c = casas.find(x => x.id === p.casa);
+    if (!c) { c = { id: p.casa, nome: p.casa_nome, pros: [] }; casas.push(c); }
+    c.pros.push(p);
+  }
+  return (
+    <div style={{ marginTop: 28 }}>
+      <div className="flex justify-between items-center" style={{ gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
+        <h2 style={{ fontSize: 17, margin: 0 }}>Nas outras casas</h2>
+        <Link to="/admin/grupo" className="btn btn-ghost btn-sm">Ver números de todas <ChevronRight size={14} /></Link>
+      </div>
+      {casas.map(c => (
+        <div key={c.id} style={{ marginBottom: 14 }}>
+          <div className="gv-equipa-casa">{c.nome}</div>
+          <div className="lin-lista">
+            {c.pros.map(p => (
+              <div key={p.id} className="lin" style={{ cursor: 'default' }}>
+                <Avatar name={p.nome} />
+                <span className="lin-txt"><b>{p.nome}</b><span>{p.concluidas} {p.concluidas === 1 ? 'serviço' : 'serviços'} este mês{p.email ? ` · ${p.email}` : ''}</span></span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

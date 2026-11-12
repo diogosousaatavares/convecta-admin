@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, LogOut, Wallet, Rocket, CreditCard, Bell, LifeBuoy, PlaySquare, Check, MessageCircle, Phone, Gift, Puzzle } from 'lucide-react';
+import { ChevronRight, LogOut, Wallet, Rocket, CreditCard, Bell, LifeBuoy, PlaySquare, Check, MessageCircle, Phone, Gift, Puzzle, Building2 } from 'lucide-react';
 import AdminLayout, { gruposPara, caminhoDaSeccao } from '@/components/AdminLayout';
 import Caixas, { CSS_CAIXAS } from '@/components/admin/Caixas';
 import { useStore, useAuth } from '@/hooks/useStore';
@@ -10,6 +10,7 @@ import { listConvectaNotifs } from '@/lib/convectaNotifs';
 import { IDIOMAS, lerIdioma, mudarIdioma } from '@/lib/idioma';
 import LinkDaBarbearia from '@/components/LinkDaBarbearia';
 import { n as nicho } from '@/lib/nicho';
+import { useGrupo } from '@/lib/grupo';
 
 /*
  * «MAIS» — o ecrã onde está tudo.
@@ -42,7 +43,12 @@ export default function Mais() {
   // do lado do cliente (demonstracao.marcacoes.app). No painel, a barbearia da
   // demo comporta-se como qualquer outra — sem tutorial, sem banner, menu normal.
   const emDemo = false;
-  const grupos = gruposPara(emDemo, data.isProfissional, data.permissoes);
+  const grupo = useGrupo();
+  const gruposBase = gruposPara(emDemo, data.isProfissional, data.permissoes);
+  // A dona do grupo, na casa principal: «Todas as casas» (12/11/2026).
+  const grupos = grupo.ligado && grupo.actual?.principal && !data.isProfissional
+    ? [gruposBase[0], { type: 'item', to: '/admin/grupo', label: 'Todas as casas', icon: Building2, d: 'Números e equipa de cada casa.' }, ...gruposBase.slice(1)]
+    : gruposBase;
 
   /* As secções do menu, em caixas (15/10/2026, à Fresha). As que estão na
      barra de baixo não se repetem aqui. */

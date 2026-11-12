@@ -31,6 +31,7 @@ const Subscricao       = lazy(() => import('@/pages/admin/Subscricao'));
 const Settings         = lazy(() => import('@/pages/admin/Settings'));
 const Notifications    = lazy(() => import('@/pages/admin/Notifications'));
 const Reports          = lazy(() => import('@/pages/admin/Reports'));
+const GrupoVisao       = lazy(() => import('@/pages/admin/GrupoVisao'));
 const Cash             = lazy(() => import('@/pages/admin/Cash'));
 const Inventory        = lazy(() => import('@/pages/admin/Inventory'));
 const Marketing        = lazy(() => import('@/pages/admin/Marketing'));
@@ -216,6 +217,7 @@ function AppRoutes() {
         <Route path="/admin/financeiro/fluxo" element={<AdminRoute><FinCashFlow /></AdminRoute>} />
         <Route path="/admin/comandas" element={<AdminRoute><Comandas /></AdminRoute>} />
         <Route path="/admin/comandas/:tab" element={<AdminRoute><Comandas /></AdminRoute>} />
+        <Route path="/admin/grupo" element={<AdminRoute><GrupoVisao /></AdminRoute>} />
         <Route path="/admin/relatorios" element={<AdminRoute><Reports /></AdminRoute>} />
         <Route path="/admin/relatorios/marcacoes" element={<AdminRoute><RepAppointments /></AdminRoute>} />
         <Route path="/admin/relatorios/clientes" element={<AdminRoute><RepClients /></AdminRoute>} />
