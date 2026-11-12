@@ -128,7 +128,8 @@ export function EmQueCasa({ pro }) {
   const [aMudar, setAMudar] = useState('');
   const ler = () => supabase.rpc('casas_dos_profissionais').then(({ data }) => setMapa(data || [])).catch(() => setMapa([]));
   useEffect(() => { ler(); }, [pro?.id]);
-  if (!grupo.ligado || !grupo.lista.every(n => n.principal || n.casa) || !pro || mapa === null) return null;
+  // 12/11/2026: também com tipos ligados (barbearia + laser + …), não só com casas da mesma marca
+  if (!grupo.ligado || !pro || mapa === null) return null;
   const k = String(pro.name || '').trim().toLowerCase();
   const esta = c => mapa.some(m => m.nome === k && m.casa === c.id && m.ativo);
   const alternar = async c => {
@@ -157,7 +158,7 @@ export function EmQueCasa({ pro }) {
             <button key={c.id} type="button" disabled={aMudar === c.id} onClick={() => alternar(c)}
               style={{ padding: '7px 12px', borderRadius: 999, cursor: 'pointer', font: 'inherit', fontSize: 13.5, fontWeight: on ? 700 : 500, display: 'inline-flex', alignItems: 'center', gap: 5,
                 background: on ? 'rgba(var(--gold-rgb),0.18)' : 'var(--surface)', color: 'var(--text)', border: `1px solid ${on ? 'var(--gold)' : 'var(--border)'}` }}>
-              {on && <Check size={14} />}{nomeDaCasa(c)}
+              {on && <Check size={14} />}{c.localidade || c.name}
             </button>
           );
         })}

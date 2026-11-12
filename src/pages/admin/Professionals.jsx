@@ -13,6 +13,9 @@ import FotoDaLista from '@/components/admin/FotoDaLista';
 import AcessoProfissional, { useAcessos } from '@/components/admin/AcessoProfissional';
 import { SugestaoSegundoTipo } from '@/components/admin/SegundoTipo';
 import { n as nicho, eMisto, lados, ladoActual, nomeDoLado } from '@/lib/nicho';
+import { useGrupo } from '@/lib/grupo';
+import { EmQueCasa } from '@/components/admin/Casas';
+import { supabase } from '@/lib/supabase';
 
 const empty = { name: '', get role() { return nicho().Pro; }, email: '', phone: '', bio: '', specialties: [], commission: 30 };
 
@@ -79,6 +82,10 @@ export default function Professionals() {
 
   // Depois de criar: o convite para o painel, já com o email da ficha.
   const [convidar, setConvidar] = useState(null);
+  // 12/11/2026 (Diogo): com várias casas, escolhe-se logo em que casa(s) trabalha.
+  const grupo = useGrupo();
+  const [casas, setCasas] = useState([]);
+  useEffect(() => { if (editing === 'new') setCasas(grupo.actual ? [grupo.actual.id] : []); }, [editing, grupo.actual?.id]);
   const save = async () => {
     if (!form.name.trim()) { toast.error('Nome obrigatório'); return; }
     if (!form.role || !form.role.trim()) { toast.error('Função obrigatória', `${nicho().Pro}, gerente, rececionista…`); return; }
@@ -87,7 +94,21 @@ export default function Professionals() {
     if (aEnviarFoto) { toast.error('A fotografia ainda está a subir', 'Espera um instante e grava outra vez.'); return; }
     const payload = { ...form, specialties: specs.split(',').map(s => s.trim()).filter(Boolean) };
     try {
-      if (editing === 'new') { const novo = await dataService.createProfessional(payload); toast.success('Profissional criado'); setConvidar(novo); }
+      if (editing === 'new') {
+        if (grupo.ligado && !casas.length) { toast.error('Escolhe a casa', 'Diz em que casa (ou casas) ele trabalha.'); return; }
+        const novo = await dataService.createProfessional(payload);
+        if (grupo.ligado) {
+          const outras = casas.filter(id => id !== grupo.actual?.id);
+          for (const id of outras) {
+            const { error } = await supabase.rpc('copiar_profissional_para_casa', { p_pro: novo.id, p_casa: id });
+            if (error) toast.error('Não ficou numa das casas', error.message);
+          }
+          // só noutra casa: a ficha daqui fica desativada (serviu de molde)
+          if (grupo.actual && !casas.includes(grupo.actual.id)) await dataService.updateProfessional(novo.id, { isActive: false });
+          toast.success('Profissional criado', casas.length > 1 ? `Está em ${casas.length} casas. O horário de cada casa define-se nessa casa.` : undefined);
+        } else toast.success('Profissional criado');
+        if (!grupo.ligado || casas.includes(grupo.actual?.id)) setConvidar(novo);
+      }
       else { await dataService.updateProfessional(editing, payload); toast.success('Profissional atualizado'); }
     } catch (err) {
       // Sem isto, o limite do plano rebentava em silêncio e a janela fechava
@@ -291,6 +312,29 @@ export default function Professionals() {
           <FotoPerfil valor={form.photoUrl} nome={form.name} aEnviar={aEnviarFoto} onEscolher={handlePhotoChange} />
         </div>
         <div className="field"><label className="label">Nome</label><input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+        {/* 12/11/2026: em que casa(s) trabalha — só com várias casas */}
+        {grupo.ligado && editing === 'new' && (
+          <div className="field">
+            <label className="label">Em que casa trabalha *</label>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {grupo.lista.map(c => {
+                const on = casas.includes(c.id);
+                return (
+                  <button key={c.id} type="button" aria-pressed={on} onClick={() => setCasas(l => (on ? l.filter(x => x !== c.id) : [...l, c.id]))}
+                    style={{ padding: '8px 12px', borderRadius: 999, cursor: 'pointer', font: 'inherit', fontSize: 13.5, fontWeight: on ? 700 : 500,
+                      background: on ? 'rgba(var(--gold-rgb),0.18)' : 'var(--surface)', color: 'var(--text)', border: `1px solid ${on ? 'var(--gold)' : 'var(--border)'}` }}>
+                    {on ? '✓ ' : ''}{c.name}
+                  </button>
+                );
+              })}
+            </div>
+            <span style={{ fontSize: 12.5, color: 'var(--text-sec)' }}>Podes escolher várias. A receção costuma estar em todas.</span>
+          </div>
+        )}
+        {grupo.ligado && editing && editing !== 'new' && (
+          <div className="field"><label className="label">Em que casa trabalha</label>
+            <EmQueCasa pro={data.professionals.find(p => p.id === editing)} /></div>
+        )}
         {/* Espaço misto: de que lado trabalha. «Dos dois» para quem faz tudo. */}
         {eMisto() && (
           <div className="field">
