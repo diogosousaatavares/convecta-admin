@@ -2812,10 +2812,6 @@ body { font-variant-numeric: lining-nums; }
 .lado-faixa { display: flex; margin: -6px 0 16px; }
 .lado-faixa .lado-seletor { width: 100%; }
 .lado-faixa .lado-seletor button { flex: 1; padding: 8px 10px; font-size: 14px; }
-/* 12/11/2026: 3 ou mais casas — grelha de 2 colunas (todas numa linha no ecrã largo), o nome cortado com «…» */
-.lado-seletor.muitos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; border-radius: 16px; width: 100%; }
-.lado-seletor.muitos button { border-radius: 12px; padding: 8px 10px; overflow: hidden; text-overflow: ellipsis; text-align: center; }
-@media (min-width: 900px) { .lado-seletor.muitos { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); width: auto; min-width: 420px; } }
 .admin-topbar-nome { min-width: 0; flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* O lado de um serviço ou profissional, no formulário. */
 .lado-opcoes { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -3253,3 +3249,21 @@ body { font-variant-numeric: lining-nums; }
   .card > .table, .card > div > .table { display: table; width: 100%; background: none; }
   .card:has(> .table), .card:has(> div > .table) { overflow-x: auto; }
 }
+
+/* 12/11/2026: o seletor de casas com 3 ou mais — um botão e uma lista */
+.casa-menu { position: relative; width: 100%; }
+.casa-menu-btn { width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; cursor: pointer; text-align: left; }
+.casa-menu-btn b { flex: 1; min-width: 0; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.casa-menu-rot { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-ter, var(--text-sec)); }
+.casa-menu-n { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--elevated); color: var(--text-sec); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.casa-menu-seta { color: var(--text-sec); transition: transform .15s; }
+.casa-menu-seta.on { transform: rotate(180deg); }
+.casa-menu-fundo { position: fixed; inset: 0; z-index: 40; }
+.casa-menu-lista { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 41; display: grid; gap: 2px; padding: 6px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 18px 40px rgba(0,0,0,.18); max-height: 60vh; overflow-y: auto; }
+.casa-menu-lista button { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 11px; border: 0; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.casa-menu-lista button:hover, .casa-menu-lista button.on { background: var(--elevated); }
+.casa-menu-lista button > span:first-child { flex: 1; min-width: 0; display: grid; }
+.casa-menu-lista b { font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.casa-menu-lista small { font-size: 12px; color: var(--text-sec); }
+.casa-menu-ok { color: var(--gold); font-weight: 900; }
+@media (min-width: 900px) { .casa-menu { width: 320px; } }

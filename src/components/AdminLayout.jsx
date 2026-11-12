@@ -480,6 +480,7 @@ export default function AdminLayout({ children }) {
    */
   const grupo = useGrupo();
   const [aTrocar, setATrocar] = useState(false);
+  const [casasAbertas, setCasasAbertas] = useState(false);
   const [noComputador, setNoComputador] = useState(
     () => typeof window === 'undefined' || window.innerWidth >= 768,
   );
@@ -679,16 +680,41 @@ export default function AdminLayout({ children }) {
      quando os tipos se repetem; e com 3 ou mais casas passa a grelha. */
   const tiposRepetem = new Set(grupo.lista.map(g => g.tipo)).size < grupo.lista.length;
   const rotuloCasa = g => (tiposRepetem ? (g.name || g.localidade) : (nomeDoLado(g.tipo) || g.name));
-  const seletorDeLado = grupo.ligado ? (
-    <div className={`lado-seletor${grupo.lista.length > 2 ? ' muitos' : ''}`} role="tablist" aria-label="Negócio aberto">
+  const trocarPara = async g => {
+    if (g.actual) { setCasasAbertas(false); return; }
+    setATrocar(true);
+    try { await mudarDeNegocio(g.id); } catch (e) { setATrocar(false); alert('Não foi possível trocar: ' + e.message); }
+  };
+  /* 12/11/2026 (Diogo): com 3 ou mais casas, em vez de uma grelha de botões,
+     um só botão com a casa aberta — toca-se e escolhe-se noutra lista. */
+  const seletorDeLado = grupo.ligado && grupo.lista.length > 2 ? (
+    <div className="casa-menu">
+      <button type="button" className="casa-menu-btn" onClick={() => setCasasAbertas(v => !v)} aria-expanded={casasAbertas} disabled={aTrocar}>
+        <span className="casa-menu-rot">Casa</span>
+        <b>{aTrocar ? 'A trocar…' : (grupo.actual?.name || 'Escolher')}</b>
+        <span className="casa-menu-n">{grupo.lista.length}</span>
+        <span className={`casa-menu-seta${casasAbertas ? ' on' : ''}`} aria-hidden="true">▾</span>
+      </button>
+      {casasAbertas && (
+        <>
+          <div className="casa-menu-fundo" onClick={() => setCasasAbertas(false)} />
+          <div className="casa-menu-lista" role="listbox" aria-label="Escolher a casa">
+            {grupo.lista.map(g => (
+              <button key={g.id} type="button" role="option" aria-selected={g.actual} className={g.actual ? 'on' : ''} onClick={() => trocarPara(g)}>
+                <span><b>{g.name}</b>{nomeDoLado(g.tipo) && <small>{nomeDoLado(g.tipo)}{g.principal ? ' · principal' : ''}</small>}</span>
+                {g.actual && <span className="casa-menu-ok" aria-hidden="true">✓</span>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  ) : grupo.ligado ? (
+    <div className="lado-seletor" role="tablist" aria-label="Negócio aberto">
       {grupo.lista.map(g => (
         <button key={g.id} type="button" role="tab" aria-selected={g.actual}
           className={g.actual ? 'on' : ''} disabled={aTrocar}
-          onClick={async () => {
-            if (g.actual) return;
-            setATrocar(true);
-            try { await mudarDeNegocio(g.id); } catch (e) { setATrocar(false); alert('Não foi possível trocar: ' + e.message); }
-          }} title={g.name}>{rotuloCasa(g)}</button>
+          onClick={() => trocarPara(g)} title={g.name}>{rotuloCasa(g)}</button>
       ))}
     </div>
   ) : eMisto() ? (
