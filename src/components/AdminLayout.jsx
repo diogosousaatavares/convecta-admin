@@ -674,8 +674,13 @@ export default function AdminLayout({ children }) {
   // o seletor troca de negócio (o painel recarrega já no outro, com o site,
   // os clientes e os serviços dele). O «misto» antigo, de um negócio com
   // dois lados, continua a funcionar para quem o tem.
+  /* 12/11/2026: com várias casas do mesmo tipo (ou mais de duas), o nome do
+     tipo dava «Barbearia · Barbearia · Barbearia…». O rótulo é o NOME da casa
+     quando os tipos se repetem; e com 3 ou mais casas passa a grelha. */
+  const tiposRepetem = new Set(grupo.lista.map(g => g.tipo)).size < grupo.lista.length;
+  const rotuloCasa = g => (tiposRepetem ? (g.name || g.localidade) : (nomeDoLado(g.tipo) || g.name));
   const seletorDeLado = grupo.ligado ? (
-    <div className="lado-seletor" role="tablist" aria-label="Negócio aberto">
+    <div className={`lado-seletor${grupo.lista.length > 2 ? ' muitos' : ''}`} role="tablist" aria-label="Negócio aberto">
       {grupo.lista.map(g => (
         <button key={g.id} type="button" role="tab" aria-selected={g.actual}
           className={g.actual ? 'on' : ''} disabled={aTrocar}
@@ -683,7 +688,7 @@ export default function AdminLayout({ children }) {
             if (g.actual) return;
             setATrocar(true);
             try { await mudarDeNegocio(g.id); } catch (e) { setATrocar(false); alert('Não foi possível trocar: ' + e.message); }
-          }}>{nomeDoLado(g.tipo) || g.name}</button>
+          }} title={g.name}>{rotuloCasa(g)}</button>
       ))}
     </div>
   ) : eMisto() ? (
