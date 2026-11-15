@@ -1238,7 +1238,20 @@ function generateSlotsForDay(dateStr, professionalId, durationMinutes, existingA
       for (let x = a; x + durationMinutes <= b; x += durationMinutes) inicios.push(x);
     });
   } else {
-    for (let t = open; t + durationMinutes <= close; t += passo) inicios.push(t);
+    // 15/11/2026 (o caso do Rasta): a grelha recomeca no fim de cada pausa.
+    // Antes contava-se sempre a partir da abertura — abrindo as 10:00 de 45
+    // em 45, a seguir ao almoco das 13:00-14:00 a primeira vaga era 14:30 e
+    // nao 14:00. Igual a app do cliente (convecta-client, dataService.js).
+    const arranques = [open, ...pausas.map(b => b.end).filter(e => e > open && e < close)]
+      .sort((x, y) => x - y);
+    const vistos = new Set();
+    arranques.forEach((a, i) => {
+      const ate = i + 1 < arranques.length ? arranques[i + 1] : close;
+      for (let t = a; t < ate && t + durationMinutes <= close; t += passo) {
+        if (!vistos.has(t)) { vistos.add(t); inicios.push(t); }
+      }
+    });
+    inicios.sort((x, y) => x - y);
   }
 
   return inicios.map(t => {
