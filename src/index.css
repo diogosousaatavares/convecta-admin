@@ -3290,3 +3290,23 @@ body { font-variant-numeric: lining-nums; }
 .gv-casa-nums { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; opacity: .8; font-variant-numeric: tabular-nums; }
 .gv-abrir { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; }
 .gv-equipa-casa { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; opacity: .65; margin-bottom: 6px; }
+
+/* Clientes a voltar (18/11/2026) */
+.cv-wrap { display: flex; flex-direction: column; gap: 14px; max-width: 860px; }
+.cv-topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; }
+.cv-topo > span { display: flex; flex-direction: column; gap: 3px; }
+.cv-topo input, .cv-liga input { width: 20px; height: 20px; }
+.cv-regra { display: flex; flex-direction: column; gap: 12px; }
+.cv-regra-topo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cv-dias { display: flex; align-items: center; gap: 8px; font-weight: 600; flex: 1 1 auto; }
+.cv-dias .input { width: 84px; text-align: center; }
+.cv-liga { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; }
+.cv-grelha { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 18px; }
+@media (max-width: 720px) { .cv-grelha { grid-template-columns: minmax(0, 1fr); } }
+.cv-push { display: flex; gap: 10px; padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface, rgba(127,127,127,.06)); }
+.cv-push-ic { width: 30px; height: 30px; border-radius: 8px; background: var(--gold); color: #111; display: grid; place-items: center; flex-shrink: 0; }
+.cv-push b { display: block; font-size: 14px; }
+.cv-push span { font-size: 13.5px; opacity: .85; line-height: 1.4; overflow-wrap: anywhere; }
+.cv-nota { font-size: 13.5px; padding: 9px 12px; border-radius: 10px; background: rgba(var(--gold-rgb), .08); }
+.cv-erro { font-size: 13.5px; color: var(--error); }
+.cv-acoes { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }

@@ -32,6 +32,7 @@ const Settings         = lazy(() => import('@/pages/admin/Settings'));
 const Notifications    = lazy(() => import('@/pages/admin/Notifications'));
 const Reports          = lazy(() => import('@/pages/admin/Reports'));
 const GrupoVisao       = lazy(() => import('@/pages/admin/GrupoVisao'));
+const ClientesAVoltar  = lazy(() => import('@/pages/admin/ClientesAVoltar'));
 const Cash             = lazy(() => import('@/pages/admin/Cash'));
 const Inventory        = lazy(() => import('@/pages/admin/Inventory'));
 const Marketing        = lazy(() => import('@/pages/admin/Marketing'));
@@ -228,6 +229,7 @@ function AppRoutes() {
         <Route path="/admin/relatorios/fidelizacao" element={<AdminRoute><RepLoyalty /></AdminRoute>} />
         <Route path="/admin/relatorios/subscricoes" element={<AdminRoute><RepSubscriptions /></AdminRoute>} />
         <Route path="/admin/fidelizacao" element={<AdminRoute><FidelizacaoPrograma /></AdminRoute>} />
+        <Route path="/admin/fidelizacao/voltar" element={<AdminRoute><ClientesAVoltar /></AdminRoute>} />
         <Route path="/admin/fidelizacao/programa" element={<AdminRoute><FidelizacaoPrograma /></AdminRoute>} />
         {/* Pontos, Recompensas e Cartao de Visitas: viviam na memoria do browser
             ou duplicavam o Programa. Uma pagina so — o que ficar no historico

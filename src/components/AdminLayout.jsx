@@ -26,7 +26,7 @@ import AvisoSubscricao from '@/components/AvisoSubscricao';
 import BemVindo from '@/components/BemVindo';
 import GuardarNoEcra from '@/components/GuardarNoEcra';
 import SinoAvisos from '@/components/SinoAvisos';
-import { Sun, Moon, Building2 } from 'lucide-react';
+import { Sun, Moon, Building2, BellRing } from 'lucide-react';
 import { applyTheme, lerModo } from '@/lib/temaPainel';
 import dataServiceTema from '@/lib/dataService';
 
@@ -96,7 +96,6 @@ const GROUPS_TODOS = [
 
   { type: 'group', id: 'clientes', to: '/admin/clientes', label: 'Clientes', icon: Users, d: 'Quem vem cá.', items: [
     { to: '/admin/clientes', label: 'Clientes', exact: true, icon: Users, d: 'Fichas e histórico.' },
-    { to: '/admin/clientes/aniversarios', label: 'Aniversários', icon: Cake, d: 'Quem faz anos.' },
     { to: '/admin/avaliacoes', label: 'Avaliações', icon: Star, d: 'O que dizem de ti.' },
   ]},
 
@@ -111,9 +110,17 @@ const GROUPS_TODOS = [
     { to: '/admin/produtos/fornecedores', label: 'Fornecedores', icon: Truck, d: 'A quem compras.' },
   ]},
 
+  /* 18/11/2026: a fidelização tem casa própria — tudo o que faz o cliente
+     voltar, num sítio só. */
+  { type: 'group', id: 'fidelizacao', label: 'Fidelização', icon: Heart, d: 'Fazer o cliente voltar.', items: [
+    { to: '/admin/fidelizacao', label: 'Cartão de fidelidade', exact: true, icon: Heart, d: 'Carimbos e prémio.' },
+    { to: '/admin/fidelizacao/voltar', label: 'Clientes a voltar', icon: BellRing, d: 'Notificação a quem não vem há X dias.' },
+    { to: '/admin/clientes/aniversarios', label: 'Aniversários', icon: Cake, d: 'Quem faz anos.' },
+    { to: '/admin/relatorios/fidelizacao', label: 'Relatório', icon: BarChart3, d: 'Carimbos e prémios dados.' },
+  ]},
+
   { type: 'group', id: 'marketing', label: 'Marketing', icon: Megaphone, d: 'Trazer e manter clientes.', items: [
     { to: '/admin/o-meu-site', label: 'O meu site', icon: Globe, d: 'Logo, cores e fotos da tua app.' },
-    { to: '/admin/fidelizacao', label: 'Cartão de fidelidade', icon: Heart, d: 'Carimbos e prémio.' },
     { to: '/admin/promocoes', label: 'Promoções e cupões', icon: Ticket, d: 'Descontos com prazo.' },
     { to: '/admin/notificacoes', label: 'Notificações', icon: Bell, d: 'Avisos e promoções no telemóvel.' },
     { to: '/admin/redes-sociais', label: 'Redes sociais', icon: Instagram, d: 'Posts e vídeos prontos.' },

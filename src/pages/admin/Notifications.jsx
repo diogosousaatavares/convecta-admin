@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Plus, Trash2, Send, Info, Tag, Megaphone, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import AdminPage from '@/components/admin/AdminPage';
 import Toggle from '@/components/admin/Toggle';
 import { useStore } from '@/hooks/useStore';
@@ -30,6 +31,9 @@ export default function Notifications() {
   const [form, setForm] = useState({ title: '', message: '', type: 'info' });
   const [saving, setSaving] = useState(false);
 
+  const saudades = data.business?._settings?.saudades;
+  const saudadesLigadas = saudades?.ativo === true && (saudades.regras || []).some(r => r.ativo !== false);
+  const saudadesTexto = (saudades?.regras || []).filter(r => r.ativo !== false).map(r => `${r.dias} dias`).join(', ');
   const notifications = [...(data.notifications || [])].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   const activeCount = notifications.filter(n => n.active).length;
 
@@ -141,6 +145,13 @@ export default function Notifications() {
             <input type="number" className="input" min="1" max="72" value={horasAntes} style={{ width: 90, textAlign: 'right' }}
               onChange={e => setHorasAntes(e.target.value)} onBlur={e => mudarLembrete(true, e.target.value)} />
           </div>
+        )}
+        {/* 18/11/2026: as automáticas — quem não vem há X dias. */}
+        {dono && (
+          <Link to="/admin/fidelizacao/voltar" className="nt-row" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <span className="nt-txt"><b>Clientes a voltar</b><span>{saudadesLigadas ? `Ligado · ${saudadesTexto}` : 'Notificação automática a quem não vem há X dias'}</span></span>
+            <ArrowRight size={16} />
+          </Link>
         )}
       </div>
 
