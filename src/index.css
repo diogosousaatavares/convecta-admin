@@ -3310,3 +3310,10 @@ body { font-variant-numeric: lining-nums; }
 .cv-nota { font-size: 13.5px; padding: 9px 12px; border-radius: 10px; background: rgba(var(--gold-rgb), .08); }
 .cv-erro { font-size: 13.5px; color: var(--error); }
 .cv-acoes { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* Mais servicos na mesma marcacao (19/11/2026) */
+.ms-wrap { display: flex; flex-direction: column; gap: 10px; }
+.ms-linha { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; }
+.ms-cab { display: flex; align-items: center; justify-content: space-between; }
+.ms-dois { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 8px; }
+.ms-juntar { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; }

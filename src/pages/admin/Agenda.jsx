@@ -30,6 +30,9 @@ import { n as nicho } from '@/lib/nicho';
 import JuntarExtras from '@/components/admin/JuntarExtras';
 import { useConfirmar } from '@/components/ui/Confirmar';
 import { fazOServico } from '@/lib/quemFaz';
+import MaisServicos from '@/components/admin/MaisServicos';
+import { useGrupo } from '@/lib/grupo';
+import { supabase } from '@/lib/supabase';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
 function toTime(mins) { const h = Math.floor(mins / 60), m = mins % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); }
@@ -143,6 +146,12 @@ export default function Agenda() {
    * marcar, e quem está a olhar para o saldo dele tem de poder marcar dali
    * sem voltar atrás para o procurar outra vez na lista.
    */
+  // 19/11/2026: mais serviços na mesma marcação, desta ou de outra casa do grupo.
+  const [maisLinhas, setMaisLinhas] = useState([]);
+  const grupo = useGrupo();
+  const casaActual = data.business?.id;
+  const casasDoGrupo = (!data.isProfissional && grupo.ligado && grupo.lista.length > 1)
+    ? grupo.lista : [{ id: casaActual, name: data.business?.name || '' }];
   const [quick, setQuick] = useState(() => {
     let c = '';
     try { c = new URLSearchParams(window.location.search).get('cliente') || ''; } catch { /* sem endereço */ }
@@ -327,6 +336,7 @@ export default function Agenda() {
   const abrirMarcacao = (professionalId, startTime, dia) => {
     setQuickError('');
     setQuick(f => ({ customerId: f.customerId || '', serviceId: '', professionalId: so || professionalId, data: dia || date, startTime, usaPack: false }));
+    setMaisLinhas([]);
     setAvisoPassado(false);
     setQuickOpen(true);
   };
@@ -357,6 +367,8 @@ export default function Agenda() {
      * trava o browser todo, e foi por isso que o prompt do bloqueio saiu
      * daqui a 28/09. O botao muda de nome e o segundo toque e a confirmacao.
      */
+    const incompleta = maisLinhas.find(l => !l.serviceId || !l.professionalId || !l.startTime);
+    if (incompleta) { toast.error('Falta um serviço por acabar', `Em cada serviço a mais escolhe o serviço, o ${nicho().pro} e a hora — ou tira-o.`); return; }
     if (jaPassou(dia, quick.startTime) && !avisoPassado) { setAvisoPassado(true); return; }
     await dataService.createAppointment({
       customerId: quick.customerId,
@@ -371,8 +383,34 @@ export default function Agenda() {
       // dados (zzz_marcacao_com_extras), como na app do cliente.
       extras: Object.keys(quick.extras || {}).map(id => ({ id, qtd: 1 })),
     });
+    // Os serviços a mais: os desta casa como os outros; os de outra casa pela
+    // base de dados, que copia a ficha da cliente para lá.
+    const falhas = [];
+    for (const l of maisLinhas) {
+      try {
+        if (l.casa === casaActual) {
+          const s2 = data.services.find(x => x.id === l.serviceId);
+          await dataService.createAppointment({
+            customerId: quick.customerId, serviceId: l.serviceId, professionalId: l.professionalId,
+            date: dia, startTime: l.startTime, endTime: toTime(toMin(l.startTime) + (Number(s2?.durationMinutes) || 30)),
+            status: 'confirmed',
+          });
+        } else {
+          const { error } = await supabase.rpc('marcar_noutra_casa', {
+            p_casa: l.casa, p_cliente: quick.customerId, p_servico: l.serviceId, p_pro: l.professionalId,
+            p_inicio: new Date(`${dia}T${l.startTime}:00`).toISOString(), p_nota: null,
+          });
+          if (error) throw new Error(error.message);
+        }
+      } catch (e) {
+        const casa = casasDoGrupo.find(c => c.id === l.casa);
+        falhas.push(`${l.startTime}${casa && l.casa !== casaActual ? ` (${casa.name})` : ''}: ${e.message}`);
+      }
+    }
+    if (falhas.length) toast.error(falhas.length === 1 ? 'Um serviço ficou por marcar' : `${falhas.length} serviços ficaram por marcar`, falhas.join(' · '));
+    setMaisLinhas([]);
     if (dia !== date) setDate(dia);
-    toast.success('Marcação criada', quick.usaPack && saldoPackEncaixe > 0
+    toast.success(maisLinhas.length ? `Marcação criada · ${maisLinhas.length + 1 - falhas.length} serviços` : 'Marcação criada', quick.usaPack && saldoPackEncaixe > 0
       ? 'Marcação confirmada — paga com o pack do cliente.'
       : 'Marcação confirmada na agenda.');
     setQuickOpen(false);
@@ -763,6 +801,17 @@ export default function Agenda() {
             <label className="label">Hora de início</label>
             <input type="time" className="input" value={quick.startTime} onChange={e => { setQuick(f => ({ ...f, startTime: e.target.value })); setAvisoPassado(false); }} />
           </div>
+          {quick.serviceId && quick.professionalId && quick.startTime && (
+            <MaisServicos
+              linhas={maisLinhas} setLinhas={setMaisLinhas}
+              casaActual={casaActual} casas={casasDoGrupo}
+              servicosAqui={data.services.filter(s => s.isActive && !s.extra)}
+              prosAqui={data.professionals.filter(p => !so || p.id === so)}
+              fimPrincipal={(() => { const sv = data.services.find(s => s.id === quick.serviceId); return sv ? toTime(toMin(quick.startTime) + (Number(sv.durationMinutes) || 30)) : ''; })()}
+              proPrincipal={quick.professionalId}
+              rotuloCasa={c => c.name || c.localidade || 'Casa'}
+            />
+          )}
           {(() => {
             /* Os extras também ao marcar no painel (10/10/2026): os
                serviços «Extra» e os produtos «Vender na app». Tocar junta,
