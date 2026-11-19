@@ -17,7 +17,11 @@ const _catalogos = new Map();
 export function lerCatalogo(casa) {
   if (!_catalogos.has(casa)) {
     _catalogos.set(casa, supabase.rpc('catalogo_da_casa', { p_casa: casa })
-      .then(({ data, error }) => (error ? { servicos: [], profissionais: [], erro: error.message } : data || { servicos: [], profissionais: [] })));
+      .then(({ data, error }) => {
+        // Um erro não fica guardado: tentar outra vez tem de ler outra vez.
+        if (error) { _catalogos.delete(casa); return { servicos: [], profissionais: [], erro: /schema cache|could not find/i.test(error.message) ? 'falta correr o SQL MARCAR_NOUTRA_CASA no Supabase.' : error.message }; }
+        return data || { servicos: [], profissionais: [] };
+      }));
   }
   return _catalogos.get(casa);
 }
