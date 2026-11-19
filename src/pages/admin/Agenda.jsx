@@ -801,7 +801,7 @@ export default function Agenda() {
             <label className="label">Hora de início</label>
             <input type="time" className="input" value={quick.startTime} onChange={e => { setQuick(f => ({ ...f, startTime: e.target.value })); setAvisoPassado(false); }} />
           </div>
-          {quick.serviceId && quick.professionalId && quick.startTime && (
+          {(
             <MaisServicos
               linhas={maisLinhas} setLinhas={setMaisLinhas}
               casaActual={casaActual} casas={casasDoGrupo}
@@ -809,6 +809,7 @@ export default function Agenda() {
               prosAqui={data.professionals.filter(p => !so || p.id === so)}
               fimPrincipal={(() => { const sv = data.services.find(s => s.id === quick.serviceId); return sv ? toTime(toMin(quick.startTime) + (Number(sv.durationMinutes) || 30)) : ''; })()}
               proPrincipal={quick.professionalId}
+              pronto={!!(quick.serviceId && quick.professionalId && quick.startTime)}
               rotuloCasa={c => c.name || c.localidade || 'Casa'}
             />
           )}

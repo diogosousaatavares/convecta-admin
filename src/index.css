@@ -3317,3 +3317,22 @@ body { font-variant-numeric: lining-nums; }
 .ms-cab { display: flex; align-items: center; justify-content: space-between; }
 .ms-dois { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 8px; }
 .ms-juntar { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; }
+
+
+/* Mais servicos — v2 (19/11/2026) */
+.ms-linha { background: rgba(var(--gold-rgb), .04); }
+.ms-cab { gap: 8px; }
+.ms-num { font-weight: 700; font-size: 14px; }
+.ms-casa-pill { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: rgba(var(--gold-rgb), .14); color: var(--gold-tinta); font-weight: 600; }
+.ms-casa-pill.fora { background: var(--gold); color: #111; }
+.ms-tirar { margin-left: auto; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text); display: grid; place-items: center; cursor: pointer; }
+.ms-casas { display: flex; flex-wrap: wrap; gap: 6px; }
+.ms-casas::-webkit-scrollbar { display: none; }
+.ms-casa { flex-shrink: 0; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--text); font: inherit; font-size: 13.5px; cursor: pointer; }
+.ms-casa.on { border-color: var(--gold); background: rgba(var(--gold-rgb), .16); font-weight: 600; }
+.ms-juntar { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px dashed rgba(var(--gold-rgb), .7); background: rgba(var(--gold-rgb), .05); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.ms-juntar:disabled { opacity: .55; cursor: not-allowed; border-color: var(--border); }
+.ms-juntar-ic { width: 34px; height: 34px; border-radius: 10px; background: var(--gold); color: #111; display: grid; place-items: center; flex-shrink: 0; }
+.ms-juntar-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ms-juntar-txt b { font-size: 15px; }
+.ms-juntar-txt span { font-size: 13px; opacity: .75; }

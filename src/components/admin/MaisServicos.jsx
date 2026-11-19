@@ -36,7 +36,7 @@ export function duracaoDa(linha, casaActual, servicosAqui, catalogos) {
   return Number((catalogos[linha.casa]?.servicos || []).find(s => s.id === linha.serviceId)?.duracao) || 0;
 }
 
-export default function MaisServicos({ linhas, setLinhas, casaActual, casas, servicosAqui, prosAqui, fimPrincipal, proPrincipal, rotuloCasa }) {
+export default function MaisServicos({ linhas, setLinhas, casaActual, casas, servicosAqui, prosAqui, fimPrincipal, proPrincipal, rotuloCasa, pronto = true }) {
   const [catalogos, setCatalogos] = useState({});
 
   useEffect(() => {
@@ -74,13 +74,20 @@ export default function MaisServicos({ linhas, setLinhas, casaActual, casas, ser
         return (
           <div key={l.k} className="ms-linha">
             <div className="ms-cab">
-              <b>Serviço {i + 2}</b>
-              <button type="button" className="btn btn-ghost btn-sm" aria-label="Tirar este serviço" onClick={() => setLinhas(ls => ls.filter(x => x.k !== l.k))}><X size={15} /></button>
+              <span className="ms-num">{i + 2}.º serviço</span>
+              {casas.length > 1 && <span className={`ms-casa-pill${aqui ? '' : ' fora'}`}>{rotuloCasa(casas.find(c => c.id === l.casa) || {})}</span>}
+              <button type="button" className="ms-tirar" aria-label="Tirar este serviço" onClick={() => setLinhas(ls => ls.filter(x => x.k !== l.k))}><X size={16} /></button>
             </div>
             {casas.length > 1 && (
-              <select className="select" value={l.casa} onChange={e => mudar(l.k, { casa: e.target.value, serviceId: '', professionalId: '' })}>
-                {casas.map(c => <option key={c.id} value={c.id}>{rotuloCasa(c)}{c.id === casaActual ? ' (esta)' : ''}</option>)}
-              </select>
+              <div className="ms-casas" role="radiogroup" aria-label="Em que casa">
+                {casas.map(c => (
+                  <button key={c.id} type="button" role="radio" aria-checked={l.casa === c.id}
+                    className={`ms-casa${l.casa === c.id ? ' on' : ''}`}
+                    onClick={() => mudar(l.k, { casa: c.id, serviceId: '', professionalId: '' })}>
+                    {rotuloCasa(c)}
+                  </button>
+                ))}
+              </div>
             )}
             {!aqui && cat?.erro && <div className="text-sm" style={{ color: 'var(--error)' }}>Não deu para ler essa casa: {cat.erro}</div>}
             <select className="select" value={l.serviceId} onChange={e => mudar(l.k, { serviceId: e.target.value, professionalId: '' })}>
@@ -97,8 +104,16 @@ export default function MaisServicos({ linhas, setLinhas, casaActual, casas, ser
           </div>
         );
       })}
-      <button type="button" className="btn btn-ghost btn-sm ms-juntar" onClick={juntar}>
-        <Plus size={15} /> Juntar outro serviço{casas.length > 1 ? ' (desta ou de outra casa)' : ''}
+      <button type="button" className="ms-juntar" onClick={juntar} disabled={!pronto}>
+        <span className="ms-juntar-ic"><Plus size={18} /></span>
+        <span className="ms-juntar-txt">
+          <b>Juntar outro serviço</b>
+          <span>{!pronto
+            ? 'Escolhe primeiro o serviço, o profissional e a hora.'
+            : casas.length > 1
+              ? `Desta casa ou de outra das ${casas.length} casas — para a mesma cliente.`
+              : 'Para a mesma cliente, a seguir ou ao mesmo tempo.'}</span>
+        </span>
       </button>
     </div>
   );
