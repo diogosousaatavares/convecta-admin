@@ -31,7 +31,7 @@ import JuntarExtras from '@/components/admin/JuntarExtras';
 import { useConfirmar } from '@/components/ui/Confirmar';
 import { fazOServico } from '@/lib/quemFaz';
 import MaisServicos from '@/components/admin/MaisServicos';
-import { useGrupo, mudarDeNegocio } from '@/lib/grupo';
+import { useGrupo, mudarDeNegocio, useCoresDasCasas } from '@/lib/grupo';
 import { supabase } from '@/lib/supabase';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
@@ -211,6 +211,7 @@ export default function Agenda() {
    * mexe-se na casa onde está (agenda_noutras_casas, MESMA_PESSOA_NAS_CASAS).
    */
   const [outras, setOutras] = useState([]);
+  const [coresCasas] = useCoresDasCasas();
   const [outraSel, setOutraSel] = useState(null);
   const [recarregarOutras, setRecarregarOutras] = useState(0);
   const [aMexerOutra, setAMexerOutra] = useState(false);
@@ -230,12 +231,13 @@ export default function Agenda() {
           id: `nc-${l.id}`, outraCasa: true, blocked: true, status: 'confirmed',
           professionalId: l.professional_id, date: dateToStr(i), startTime: hm(i), endTime: hm(f),
           label: [l.casa, l.bloqueio ? 'Bloqueado' : l.servico, l.cliente].filter(Boolean).join(' · '),
+          cor: coresCasas[l.casa_id] || null,
           origem: { id: l.id, casaId: l.casa_id, casa: l.casa, bloqueio: !!l.bloqueio, servico: l.servico, cliente: l.cliente },
         };
       }));
     });
     return () => { vivo = false; };
-  }, [grupoLigado, diasDaVista, vista, date, recarregarOutras]);
+  }, [grupoLigado, diasDaVista, vista, date, recarregarOutras, coresCasas]);
   const abrirBloco = a => {
     if (a.outraCasa) { setOutraSel({ ...a, novoInicio: a.startTime, novoFim: a.endTime }); return; }
     setSelected(a.id);

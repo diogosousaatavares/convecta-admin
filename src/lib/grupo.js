@@ -76,7 +76,7 @@ export function usePorta() {
 /* 02/11/2026: ao sair, esquecer o que se leu — a conta seguinte via os
  * negócios e a porta de quem saiu até recarregar a página. */
 export function limpar() {
-  _promessa = null; _lista = null;
+  _promessa = null; _lista = null; _cores = null; _coresValor = null;
   _porta = null; _portaValor = undefined;
 }
 export async function guardarPorta(p) {
@@ -87,3 +87,51 @@ export async function guardarPorta(p) {
 
 /** O endereço público de um negócio do grupo. */
 export const enderecoDe = n => (n?.slug ? `${n.slug}.${DOMINIO_BASE}` : '');
+
+/*
+ * CADA CASA COM A SUA COR (23/11/2026). Uma por omissão para cada tipo; a
+ * dona escolhe outra em «Todas as casas» (guardar_cor_da_casa). Lê-se de
+ * cores_do_grupo (CORES_DAS_CASAS_2026-11-23.sql); sem o SQL, ficam as do tipo.
+ */
+export const CORES_POR_TIPO = {
+  barbearia: '#2563EB', cabeleireiro: '#DB2777', estetica: '#7C3AED', unhas: '#E11D48',
+  massagem: '#059669', maquilhagem: '#EA580C', laser: '#0891B2', clinica: '#0F766E',
+  tatuagem: '#334155', misto: '#9333EA',
+};
+const RESERVA = ['#2563EB', '#DB2777', '#7C3AED', '#059669', '#EA580C', '#0891B2', '#CA8A04', '#4F46E5'];
+export const PALETA_CASAS = ['#2563EB', '#4F46E5', '#7C3AED', '#9333EA', '#DB2777', '#E11D48', '#EA580C', '#CA8A04', '#16A34A', '#059669', '#0891B2', '#334155'];
+
+let _cores = null;
+let _coresValor = null;
+function lerCores() {
+  if (!_cores) {
+    _cores = supabase.rpc('cores_do_grupo').then(({ data, error }) => {
+      _coresValor = error ? {} : Object.fromEntries((data || []).filter(x => x.cor).map(x => [x.id, x.cor]));
+      return _coresValor;
+    }).catch(() => { _coresValor = {}; return _coresValor; });
+  }
+  return _cores;
+}
+/** A cor de cada casa do grupo: { [id]: '#RRGGBB' }, com as do tipo por omissão. */
+export function useCoresDasCasas() {
+  const { lista } = useGrupo();
+  const [escolhidas, setEscolhidas] = useState(_coresValor || {});
+  useEffect(() => {
+    let vivo = true;
+    lerCores().then(c => { if (vivo) setEscolhidas(c); });
+    return () => { vivo = false; };
+  }, []);
+  const usadas = new Set();
+  const cores = {};
+  for (const n of lista) {
+    let c = escolhidas[n.id] || CORES_POR_TIPO[n.tipo];
+    if (!escolhidas[n.id] && usadas.has(c)) c = RESERVA.find(x => !usadas.has(x)) || c;
+    usadas.add(c); cores[n.id] = c;
+  }
+  const mudar = (id, cor) => { _coresValor = { ...(_coresValor || {}), [id]: cor }; _cores = Promise.resolve(_coresValor); setEscolhidas(_coresValor); };
+  return [cores, mudar];
+}
+export async function guardarCorDaCasa(id, cor) {
+  const { error } = await supabase.rpc('guardar_cor_da_casa', { p_casa: id, p_cor: cor });
+  if (error) throw new Error(error.message);
+}

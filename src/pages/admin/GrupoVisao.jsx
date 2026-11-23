@@ -5,7 +5,7 @@ import AdminLayout from '@/components/AdminLayout';
 import { useStore } from '@/hooks/useStore';
 import { supabase } from '@/lib/supabase';
 import { formatPrice } from '@/lib/format';
-import { useGrupo, mudarDeNegocio } from '@/lib/grupo';
+import { useGrupo, mudarDeNegocio, useCoresDasCasas, guardarCorDaCasa, PALETA_CASAS } from '@/lib/grupo';
 
 /*
  * TODAS AS CASAS (12/11/2026) — o caso da Dulce.
@@ -49,6 +49,13 @@ export default function GrupoVisao() {
   const [equipa, setEquipa] = useState([]);
   const [erro, setErro] = useState('');
   const [aAbrir, setAAbrir] = useState(null);
+  const [cores, mudarCor] = useCoresDasCasas();
+  const [aPintar, setAPintar] = useState(null);
+  const escolherCor = async (id, cor) => {
+    const antes = cores[id];
+    mudarCor(id, cor); setAPintar(null);
+    try { await guardarCorDaCasa(id, cor); } catch (e) { mudarCor(id, antes); setErro(e.message); }
+  };
 
   useEffect(() => {
     let vivo = true;
@@ -120,13 +127,25 @@ export default function GrupoVisao() {
           {casas.map(c => (
             <div key={c.id} className="gv-casa">
               <div className="gv-casa-topo">
-                <div style={{ minWidth: 0 }}>
+                <div style={{ minWidth: 0, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <button type="button" className="gv-cor" style={{ background: cores[c.id] || '#999' }}
+                    aria-label={`Mudar a cor de ${c.nome}`} title="Mudar a cor" onClick={() => setAPintar(p => (p === c.id ? null : c.id))} />
+                  <div style={{ minWidth: 0 }}>
                   <b>{nomeCasa(c)}</b>
                   <span>{c.principal ? 'Principal · ' : ''}{ROTULO_TIPO[c.tipo] || c.tipo} · {c.profissionais} {c.profissionais === 1 ? 'profissional' : 'profissionais'}</span>
+                  </div>
                 </div>
                 <strong>{formatPrice(c.faturacao)}</strong>
               </div>
-              <div className="gv-barra"><i style={{ width: `${(Number(c.faturacao || 0) / maior) * 100}%` }} /></div>
+              {aPintar === c.id && (
+                <div className="gv-paleta" role="radiogroup" aria-label={`Cor de ${c.nome}`}>
+                  {PALETA_CASAS.map(cor => (
+                    <button key={cor} type="button" role="radio" aria-checked={cores[c.id] === cor} aria-label={cor}
+                      className={cores[c.id] === cor ? 'on' : ''} style={{ background: cor }} onClick={() => escolherCor(c.id, cor)} />
+                  ))}
+                </div>
+              )}
+              <div className="gv-barra"><i style={{ width: `${(Number(c.faturacao || 0) / maior) * 100}%`, background: cores[c.id] || undefined }} /></div>
               <div className="gv-casa-nums">
                 <span>{c.marcacoes} marcações</span>
                 <span>{c.concluidas} concluídas</span>

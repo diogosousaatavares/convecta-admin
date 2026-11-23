@@ -58,7 +58,7 @@ import LancarAApp from '@/components/admin/LancarAApp';
 import { vigiarTabelas } from '@/lib/tabelaMobile';
 import PrimeirosPassos from '@/components/PrimeirosPassos';
 import { n as nicho, eMisto, lados, ladoActual, nomeDoLado } from '@/lib/nicho';
-import { useGrupo, mudarDeNegocio } from '@/lib/grupo';
+import { useGrupo, mudarDeNegocio, useCoresDasCasas } from '@/lib/grupo';
 
 const GROUPS_TODOS = [
   /*
@@ -693,6 +693,8 @@ export default function AdminLayout({ children }) {
      tipo dava «Barbearia · Barbearia · Barbearia…». O rótulo é o NOME da casa
      quando os tipos se repetem; e com 3 ou mais casas passa a grelha. */
   const tiposRepetem = new Set(grupo.lista.map(g => g.tipo)).size < grupo.lista.length;
+  const [coresCasas] = useCoresDasCasas();
+  const ponto = id => (coresCasas[id] ? <span className="casa-ponto" style={{ background: coresCasas[id] }} aria-hidden="true" /> : null);
   const rotuloCasa = g => (tiposRepetem ? (g.name || g.localidade) : (nomeDoLado(g.tipo) || g.name));
   const trocarPara = async g => {
     if (g.actual) { setCasasAbertas(false); return; }
@@ -705,6 +707,7 @@ export default function AdminLayout({ children }) {
     <div className="casa-menu">
       <button type="button" className="casa-menu-btn" onClick={() => setCasasAbertas(v => !v)} aria-expanded={casasAbertas} disabled={aTrocar}>
         <span className="casa-menu-rot">Casa</span>
+        {grupo.actual && ponto(grupo.actual.id)}
         <b>{aTrocar ? 'A trocar…' : (grupo.actual?.name || 'Escolher')}</b>
         <span className="casa-menu-n">{grupo.lista.length}</span>
         <span className={`casa-menu-seta${casasAbertas ? ' on' : ''}`} aria-hidden="true">▾</span>
@@ -715,6 +718,7 @@ export default function AdminLayout({ children }) {
           <div className="casa-menu-lista" role="listbox" aria-label="Escolher a casa">
             {grupo.lista.map(g => (
               <button key={g.id} type="button" role="option" aria-selected={g.actual} className={g.actual ? 'on' : ''} onClick={() => trocarPara(g)}>
+                {ponto(g.id)}
                 <span><b>{g.name}</b>{nomeDoLado(g.tipo) && <small>{nomeDoLado(g.tipo)}{g.principal ? ' · principal' : ''}</small>}</span>
                 {g.actual && <span className="casa-menu-ok" aria-hidden="true">✓</span>}
               </button>
@@ -728,7 +732,7 @@ export default function AdminLayout({ children }) {
       {grupo.lista.map(g => (
         <button key={g.id} type="button" role="tab" aria-selected={g.actual}
           className={g.actual ? 'on' : ''} disabled={aTrocar}
-          onClick={() => trocarPara(g)} title={g.name}>{rotuloCasa(g)}</button>
+          onClick={() => trocarPara(g)} title={g.name}>{ponto(g.id)}{rotuloCasa(g)}</button>
       ))}
     </div>
   ) : eMisto() ? (

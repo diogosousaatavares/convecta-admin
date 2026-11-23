@@ -3,6 +3,7 @@ import { Plus, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { fazOServico } from '@/lib/quemFaz';
 import { n as nicho } from '@/lib/nicho';
+import { useCoresDasCasas } from '@/lib/grupo';
 
 /*
  * MAIS SERVIÇOS NA MESMA MARCAÇÃO (19/11/2026, pedido da Dulce).
@@ -42,6 +43,7 @@ export function duracaoDa(linha, casaActual, servicosAqui, catalogos) {
 
 export default function MaisServicos({ linhas, setLinhas, casaActual, casas, servicosAqui, prosAqui, fimPrincipal, proPrincipal, rotuloCasa, pronto = true }) {
   const [catalogos, setCatalogos] = useState({});
+  const [cores] = useCoresDasCasas();
 
   useEffect(() => {
     const precisas = [...new Set(linhas.map(l => l.casa).filter(c => c && c !== casaActual && !catalogos[c]))];
@@ -79,7 +81,7 @@ export default function MaisServicos({ linhas, setLinhas, casaActual, casas, ser
           <div key={l.k} className="ms-linha">
             <div className="ms-cab">
               <span className="ms-num">{i + 2}.º serviço</span>
-              {casas.length > 1 && <span className={`ms-casa-pill${aqui ? '' : ' fora'}`}>{rotuloCasa(casas.find(c => c.id === l.casa) || {})}</span>}
+              {casas.length > 1 && <span className="ms-casa-pill" style={cores[l.casa] ? { background: cores[l.casa], color: '#fff' } : undefined}>{rotuloCasa(casas.find(c => c.id === l.casa) || {})}</span>}
               <button type="button" className="ms-tirar" aria-label="Tirar este serviço" onClick={() => setLinhas(ls => ls.filter(x => x.k !== l.k))}><X size={16} /></button>
             </div>
             {casas.length > 1 && (
@@ -88,7 +90,7 @@ export default function MaisServicos({ linhas, setLinhas, casaActual, casas, ser
                   <button key={c.id} type="button" role="radio" aria-checked={l.casa === c.id}
                     className={`ms-casa${l.casa === c.id ? ' on' : ''}`}
                     onClick={() => mudar(l.k, { casa: c.id, serviceId: '', professionalId: '' })}>
-                    {rotuloCasa(c)}
+                    <span className="casa-ponto" style={{ background: cores[c.id] }} aria-hidden="true" />{rotuloCasa(c)}
                   </button>
                 ))}
               </div>

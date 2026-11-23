@@ -198,7 +198,9 @@ export default function AgendaCalendar({ date, appts, professionals, services, c
                       className={`ag-block ${cls}${curto ? ' curto' : ''}`}
                       // Marcação do pack mensal: um friso dourado e a etiqueta
                       // PACK — o barbeiro sabe à primeira que não se cobra.
-                      style={{ top, height, ...(a.usaPack && !a.blocked ? { boxShadow: 'inset 4px 0 0 #C9A227' } : null) }}
+                      style={{ top, height, ...(a.usaPack && !a.blocked ? { boxShadow: 'inset 4px 0 0 #C9A227' } : null),
+                        // 23/11/2026: o que está noutra casa, na cor dessa casa
+                        ...(a.cor ? { background: `color-mix(in srgb, ${a.cor} 18%, var(--surface, #fff))`, borderColor: a.cor, boxShadow: `inset 4px 0 0 ${a.cor}`, color: 'var(--text)' } : null) }}
                       title={a.usaPack ? 'Pack mensal — já pago' : undefined}
                       onClick={() => onSelect(a)}
                     >

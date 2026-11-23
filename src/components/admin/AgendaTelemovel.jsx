@@ -341,10 +341,11 @@ export default function AgendaTelemovel({
                         type="button"
                         key={a.id}
                         className={`agm-bloco ${est.cor}${curto ? ' curto' : ''}`}
-                        style={{ top: topo, height: alt, ...(a.usaPack && !a.blocked ? { boxShadow: 'inset 4px 0 0 var(--gold)' } : null) }}
+                        style={{ top: topo, height: alt, ...(a.usaPack && !a.blocked ? { boxShadow: 'inset 4px 0 0 var(--gold)' } : null),
+                          ...(a.cor ? { background: `color-mix(in srgb, ${a.cor} 18%, var(--surface, #fff))`, borderColor: a.cor } : null) }}
                         onClick={() => onSelect(a)}
                       >
-                        <span className="agm-bloco-barra" />
+                        <span className="agm-bloco-barra" style={a.cor ? { background: a.cor } : undefined} />
                         <span className="agm-bloco-ico"><Icone size={18} /></span>
                         <span className="agm-bloco-hora">{a.startTime} – {a.endTime}</span>
                         <span className="agm-bloco-svc">
