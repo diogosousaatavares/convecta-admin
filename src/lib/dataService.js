@@ -342,10 +342,7 @@ async function guardarFidelidade(customer) {
 function recomputeCustomer(customerId) {
   const c = state.customers.find(x => x.id === customerId);
   if (!c) return;
-  const r = resumoCliente(state, customerId);
-  c.totalAppointments = r.visitas;
-  c.totalSpent = r.totalGasto;
-  c.lastVisit = r.ultimaVisita;
+  Object.assign(c, comHistorico(c, resumoCliente(state, customerId)));
   state.customers = [...state.customers];
 }
 
@@ -1128,10 +1125,18 @@ async function init() {
 // sem gorjeta + produtos + packs. O que estava gravado na ficha incluía
 // gorjetas, esquecia produtos e aceitava visitas no futuro.
 function recalcularClientes() {
-  state.customers = (state.customers || []).map(c => {
-    const r = resumoCliente(state, c.id);
-    return { ...c, totalAppointments: r.visitas, totalSpent: r.totalGasto, lastVisit: r.ultimaVisita };
-  });
+  state.customers = (state.customers || []).map(c => ({ ...c, ...comHistorico(c, resumoCliente(state, c.id)) }));
+}
+/* 23/11/2026: o que o cliente fez no programa antigo (metadata.historico,
+   trazido pela importação) soma-se ao que já fez aqui. */
+function comHistorico(c, r) {
+  const h = c?._meta?.historico || null;
+  const ultimas = [r.ultimaVisita, h?.ultima].filter(Boolean).sort();
+  return {
+    totalAppointments: (r.visitas || 0) + (Number(h?.visitas) || 0),
+    totalSpent: Math.round(((r.totalGasto || 0) + (Number(h?.gasto) || 0)) * 100) / 100,
+    lastVisit: ultimas.length ? ultimas[ultimas.length - 1] : null,
+  };
 }
 
 // ─── SLOT GENERATION ──────────────────────────────────────────────────────────
