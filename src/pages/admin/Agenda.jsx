@@ -204,12 +204,45 @@ export default function Agenda() {
   // As canceladas continuam na lista de baixo, com a etiqueta a dizer quem
   // desmarcou, mas saem da grelha das horas: o lugar esta livre e tem de se
   // ver que esta livre.
+  /*
+   * A MESMA PESSOA NOUTRAS CASAS (23/11/2026, a Dulce).
+   * Quem trabalha em várias casas do grupo vê aqui, a cinzento, o que tem
+   * marcado nas outras — a agenda dela toda, sem trocar de casa. Só para ver:
+   * mexe-se na casa onde está (agenda_noutras_casas, MESMA_PESSOA_NAS_CASAS).
+   */
+  const [outras, setOutras] = useState([]);
+  const grupoLigado = grupo.ligado;
+  useEffect(() => {
+    if (!grupoLigado || !diasDaVista.length) { setOutras([]); return undefined; }
+    let vivo = true;
+    const de = diasDaVista[0], ate = diasDaVista[diasDaVista.length - 1];
+    const mes = vista === 'mes';
+    const p = mes ? { p_de: `${date.slice(0, 7)}-01`, p_ate: `${date.slice(0, 7)}-31` } : { p_de: de, p_ate: ate };
+    const hm = d => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    supabase.rpc('agenda_noutras_casas', p).then(({ data: linhas, error }) => {
+      if (!vivo || error) return;
+      setOutras((linhas || []).map(l => {
+        const i = new Date(l.start_at), f = new Date(l.end_at);
+        return {
+          id: `nc-${l.id}`, outraCasa: true, blocked: true, status: 'confirmed',
+          professionalId: l.professional_id, date: dateToStr(i), startTime: hm(i), endTime: hm(f),
+          label: [l.casa, l.bloqueio ? 'Bloqueado' : l.servico, l.cliente].filter(Boolean).join(' · '),
+        };
+      }));
+    });
+    return () => { vivo = false; };
+  }, [grupoLigado, diasDaVista, vista, date]);
+  const abrirBloco = a => {
+    if (a.outraCasa) { toast.info('Noutra casa', `${a.startTime}–${a.endTime} · ${a.label}. Para mexer, abre essa casa.`); return; }
+    setSelected(a.id);
+  };
+
   const dayAppts = data.appointments.filter(a => a.date === date);
-  const dayAppstNaGrelha = dayAppts.filter(a => a.status !== 'cancelled' && (!so || !data.permissoes || data.permissoes.agenda_toda !== false || a.professionalId === so));
+  const dayAppstNaGrelha = [...dayAppts, ...outras.filter(a => a.date === date)].filter(a => a.status !== 'cancelled' && (!so || !data.permissoes || data.permissoes.agenda_toda !== false || a.professionalId === so));
   const apptsDaVista = useMemo(() => {
     const set = new Set(diasDaVista);
-    return data.appointments.filter(a => set.has(a.date) && a.status !== 'cancelled' && (!so || !data.permissoes || data.permissoes.agenda_toda !== false || a.professionalId === so));
-  }, [data.appointments, diasDaVista, so, data.permissoes]);
+    return [...data.appointments, ...outras].filter(a => set.has(a.date) && a.status !== 'cancelled' && (!so || !data.permissoes || data.permissoes.agenda_toda !== false || a.professionalId === so));
+  }, [data.appointments, outras, diasDaVista, so, data.permissoes]);
   const mesDaVista = date.slice(0, 7);
   const apptsDoMes = useMemo(() => data.appointments.filter(a => (a.date || '').startsWith(mesDaVista)), [data.appointments, mesDaVista]);
   const vendasDoDia = useMemo(
@@ -487,7 +520,7 @@ export default function Agenda() {
           blockMode={blockMode}
           setBlockMode={setBlockMode}
           onBlock={handleBlock}
-          onSelect={(a) => setSelected(a.id)}
+          onSelect={abrirBloco}
           onNovaNaHora={novaNaHora}
           proInicial={so}
           mode={mode}
@@ -604,7 +637,7 @@ export default function Agenda() {
               customers={data.customers}
               blockMode={blockMode}
               onBlock={handleBlock}
-              onSelect={(a) => setSelected(a.id)}
+              onSelect={abrirBloco}
               onNovaNaHora={novaNaHora}
             />
           )}
