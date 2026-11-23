@@ -524,6 +524,8 @@ function svcFromRow(row) {
     profissionais: Array.isArray(m.profissionais) ? m.profissionais : [],
     // De que lado do espaço misto é: 'barbearia', 'estetica' ou '' = dos dois.
     lado: m.lado || '',
+    // 23/11/2026 (a Dulce, balayage): a hora a partir da qual ja nao se marca.
+    ultimaHora: m.ultimaHora || '',
     /*
      * O METADATA COMO ESTA NA BASE DE DADOS.
      *

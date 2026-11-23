@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, Link, Navigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag, Lock, Settings } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Printer, RefreshCw, X, Clock, ShoppingBag, Lock, Settings, Phone } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import TutorialAgenda, { jaViuTutorialAgenda } from '@/components/admin/TutorialAgenda';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -703,6 +703,23 @@ export default function Agenda() {
             ) : (
               <>
                 <div className="ag-detail-row"><span className="l">Cliente</span><span className="v">{selCust?.name || '—'}</span></div>
+                {/* 23/11/2026 (a Dulce): o contacto à mão, para ligar sem ir à ficha. */}
+                {(() => {
+                  const tel = String(selCust?.phone || '').replace(/[^\d+]/g, '');
+                  const email = selCust?.email || '';
+                  if (!tel && !email) return <div className="ag-detail-row"><span className="l">Contacto</span><span className="v text-sec">Sem telemóvel nem email na ficha</span></div>;
+                  const wa = tel ? `https://wa.me/${tel.replace(/^\+/, '').replace(/^(9\d{8})$/, '351$1')}` : '';
+                  return (
+                    <div className="ag-detail-row ag-contacto">
+                      <span className="l">Contacto</span>
+                      <span className="v" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        {tel && <a className="btn btn-primary btn-sm" href={`tel:${tel}`}><Phone size={14} /> {selCust.phone}</a>}
+                        {tel && <a className="btn btn-secondary btn-sm" href={wa} target="_blank" rel="noopener noreferrer">WhatsApp</a>}
+                        {!tel && email && <a className="btn btn-secondary btn-sm" href={`mailto:${email}`}>{email}</a>}
+                      </span>
+                    </div>
+                  );
+                })()}
                 <div className="ag-detail-row"><span className="l">Serviço</span><span className="v">{selSvc?.name}</span></div>
                 <div className="ag-detail-row"><span className="l">{nicho().Pro}</span><span className="v">{selPro?.name}</span></div>
                 <div className="ag-detail-row"><span className="l">Horário</span><span className="v">{selAppt.startTime} – {selAppt.endTime}</span></div>

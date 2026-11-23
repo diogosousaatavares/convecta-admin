@@ -272,6 +272,15 @@ export default function Services() {
             <div className="field"><label className="label">Preço (€)</label><input className="input" type="number" value={form.price} onChange={e => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} /></div>
           </>)}
         </div>
+        {!form.extra && !form.orcamento && (
+          <div className="field">
+            <label className="label">Último início do dia <span className="text-sec" style={{ fontWeight: 400 }}>(opcional)</span></label>
+            <input className="input" type="time" value={form.ultimaHora || ''} onChange={e => setForm({ ...form, ultimaHora: e.target.value })} style={{ maxWidth: 160 }} />
+            <div className="text-sm text-sec" style={{ marginTop: 4 }}>
+              Para serviços longos, como um balayage: depois desta hora o cliente já não o consegue marcar. Vazio = até ao fecho.
+            </div>
+          </div>
+        )}
         {!form.extra && <div className="field">
           <label className="label">Categoria</label>
           {categorias.length === 0 ? (
