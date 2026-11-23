@@ -31,7 +31,7 @@ import JuntarExtras from '@/components/admin/JuntarExtras';
 import { useConfirmar } from '@/components/ui/Confirmar';
 import { fazOServico } from '@/lib/quemFaz';
 import MaisServicos from '@/components/admin/MaisServicos';
-import { useGrupo } from '@/lib/grupo';
+import { useGrupo, mudarDeNegocio } from '@/lib/grupo';
 import { supabase } from '@/lib/supabase';
 
 function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
@@ -211,6 +211,9 @@ export default function Agenda() {
    * mexe-se na casa onde está (agenda_noutras_casas, MESMA_PESSOA_NAS_CASAS).
    */
   const [outras, setOutras] = useState([]);
+  const [outraSel, setOutraSel] = useState(null);
+  const [recarregarOutras, setRecarregarOutras] = useState(0);
+  const [aMexerOutra, setAMexerOutra] = useState(false);
   const grupoLigado = grupo.ligado;
   useEffect(() => {
     if (!grupoLigado || !diasDaVista.length) { setOutras([]); return undefined; }
@@ -227,13 +230,14 @@ export default function Agenda() {
           id: `nc-${l.id}`, outraCasa: true, blocked: true, status: 'confirmed',
           professionalId: l.professional_id, date: dateToStr(i), startTime: hm(i), endTime: hm(f),
           label: [l.casa, l.bloqueio ? 'Bloqueado' : l.servico, l.cliente].filter(Boolean).join(' · '),
+          origem: { id: l.id, casaId: l.casa_id, casa: l.casa, bloqueio: !!l.bloqueio, servico: l.servico, cliente: l.cliente },
         };
       }));
     });
     return () => { vivo = false; };
-  }, [grupoLigado, diasDaVista, vista, date]);
+  }, [grupoLigado, diasDaVista, vista, date, recarregarOutras]);
   const abrirBloco = a => {
-    if (a.outraCasa) { toast.info('Noutra casa', `${a.startTime}–${a.endTime} · ${a.label}. Para mexer, abre essa casa.`); return; }
+    if (a.outraCasa) { setOutraSel({ ...a, novoInicio: a.startTime, novoFim: a.endTime }); return; }
     setSelected(a.id);
   };
 
@@ -686,6 +690,56 @@ export default function Agenda() {
           as horas, até quando se pode marcar, dias diferentes. Cada bloco
           tem o seu (i). A mesma coisa que está em Definições › Agenda. */}
       <DefinicoesDaAgenda aberta={defsAbertas} fechar={() => setDefsAbertas(false)} />
+
+      {/* 23/11/2026: o que está noutra casa — tirar ou mudar um bloqueio daqui mesmo. */}
+      <Modal open={!!outraSel} onClose={() => setOutraSel(null)} title={outraSel?.origem?.bloqueio ? 'Bloqueio noutra casa' : 'Marcação noutra casa'}>
+        {outraSel && (() => {
+          const o = outraSel.origem || {};
+          const correr = async (fn, ok) => {
+            setAMexerOutra(true);
+            try {
+              const { error } = await fn();
+              if (error) throw new Error(error.message);
+              toast.success(ok);
+              setOutraSel(null); setRecarregarOutras(x => x + 1);
+            } catch (e) { toast.error('Não deu', e.message); } finally { setAMexerOutra(false); }
+          };
+          const ts = h => new Date(`${outraSel.date}T${h}:00`).toISOString();
+          return (
+            <div className="ag-detail">
+              <div className="ag-detail-row"><span className="l">Casa</span><span className="v">{o.casa || '—'}</span></div>
+              {!o.bloqueio && <div className="ag-detail-row"><span className="l">Serviço</span><span className="v">{o.servico || '—'}</span></div>}
+              {!o.bloqueio && o.cliente && <div className="ag-detail-row"><span className="l">Cliente</span><span className="v">{o.cliente}</span></div>}
+              {o.bloqueio ? (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, margin: '6px 0 12px' }}>
+                    <div className="field" style={{ margin: 0 }}><label className="label">Das</label>
+                      <input className="input" type="time" value={outraSel.novoInicio} onChange={e => setOutraSel(x => ({ ...x, novoInicio: e.target.value }))} /></div>
+                    <div className="field" style={{ margin: 0 }}><label className="label">Às</label>
+                      <input className="input" type="time" value={outraSel.novoFim} onChange={e => setOutraSel(x => ({ ...x, novoFim: e.target.value }))} /></div>
+                  </div>
+                  <div className="ag-detail-actions" style={{ justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                    <Button size="sm" variant="danger" disabled={aMexerOutra}
+                      onClick={() => correr(() => supabase.rpc('tirar_bloqueio_noutra_casa', { p_id: o.id }), `Bloqueio tirado em ${o.casa}`)}>Tirar bloqueio</Button>
+                    <Button size="sm" variant="primary" disabled={aMexerOutra || (outraSel.novoInicio === outraSel.startTime && outraSel.novoFim === outraSel.endTime)}
+                      onClick={() => correr(() => supabase.rpc('mudar_bloqueio_noutra_casa', { p_id: o.id, p_inicio: ts(outraSel.novoInicio), p_fim: ts(outraSel.novoFim) }), `Bloqueio mudado em ${o.casa}`)}>Guardar horas</Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="ag-detail-row"><span className="l">Horário</span><span className="v">{outraSel.startTime} – {outraSel.endTime}</span></div>
+                  <div className="text-sm text-sec" style={{ margin: '8px 0 12px' }}>Para mudar ou cancelar uma marcação de cliente abre essa casa — assim a cliente é avisada.</div>
+                  {!data.isProfissional && o.casaId && (
+                    <div className="ag-detail-actions" style={{ justifyContent: 'flex-end' }}>
+                      <Button size="sm" variant="primary" onClick={() => mudarDeNegocio(o.casaId).catch(e => toast.error('Não deu', e.message))}>Abrir {o.casa}</Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })()}
+      </Modal>
 
       {/* Detail modal */}
       <Modal open={!!selAppt} onClose={() => setSelected(null)} title={selAppt?.blocked ? 'Horário bloqueado' : 'Detalhe da marcação'}>
