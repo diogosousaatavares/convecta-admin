@@ -719,7 +719,7 @@ export default function AdminLayout({ children }) {
             {grupo.lista.map(g => (
               <button key={g.id} type="button" role="option" aria-selected={g.actual} className={g.actual ? 'on' : ''} onClick={() => trocarPara(g)}>
                 {ponto(g.id)}
-                <span><b>{g.name}</b>{nomeDoLado(g.tipo) && <small>{nomeDoLado(g.tipo)}{g.principal ? ' · principal' : ''}</small>}</span>
+                <span className="casa-menu-txt"><b>{g.name}</b>{nomeDoLado(g.tipo) && <small>{nomeDoLado(g.tipo)}{g.principal ? ' · principal' : ''}</small>}</span>
                 {g.actual && <span className="casa-menu-ok" aria-hidden="true">✓</span>}
               </button>
             ))}
