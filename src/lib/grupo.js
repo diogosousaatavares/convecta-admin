@@ -9,7 +9,7 @@
  * Sem o SQL DOIS_NEGOCIOS_2026-10-12.sql corrido, a lista vem vazia e nada
  * aparece: o painel fica exactamente como estava.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { DOMINIO_BASE } from '@/lib/designService';
 
@@ -121,13 +121,18 @@ export function useCoresDasCasas() {
     lerCores().then(c => { if (vivo) setEscolhidas(c); });
     return () => { vivo = false; };
   }, []);
-  const usadas = new Set();
-  const cores = {};
-  for (const n of lista) {
-    let c = escolhidas[n.id] || CORES_POR_TIPO[n.tipo];
-    if (!escolhidas[n.id] && usadas.has(c)) c = RESERVA.find(x => !usadas.has(x)) || c;
-    usadas.add(c); cores[n.id] = c;
-  }
+  // Memo: o mesmo objecto enquanto nada muda. Um objecto novo a cada
+  // desenho fazia a agenda voltar a pedir as outras casas sem parar (27/11).
+  const cores = useMemo(() => {
+    const usadas = new Set();
+    const r = {};
+    for (const n of lista) {
+      let c = escolhidas[n.id] || CORES_POR_TIPO[n.tipo];
+      if (!escolhidas[n.id] && usadas.has(c)) c = RESERVA.find(x => !usadas.has(x)) || c;
+      usadas.add(c); r[n.id] = c;
+    }
+    return r;
+  }, [lista, escolhidas]);
   const mudar = (id, cor) => { _coresValor = { ...(_coresValor || {}), [id]: cor }; _cores = Promise.resolve(_coresValor); setEscolhidas(_coresValor); };
   return [cores, mudar];
 }

@@ -217,7 +217,7 @@ export default function Agenda() {
   const [aMexerOutra, setAMexerOutra] = useState(false);
   const grupoLigado = grupo.ligado;
   useEffect(() => {
-    if (!grupoLigado || !diasDaVista.length) { setOutras([]); return undefined; }
+    if (!grupoLigado || !diasDaVista.length) { setOutras(o => (o.length ? [] : o)); return undefined; }
     let vivo = true;
     const de = diasDaVista[0], ate = diasDaVista[diasDaVista.length - 1];
     const mes = vista === 'mes';
