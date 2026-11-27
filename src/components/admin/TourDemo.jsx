@@ -41,7 +41,22 @@ export default function TourDemo({ passos = [], chave = 'convecta_tour', ativo =
   // Ir para a pagina do passo, se nao estivermos la.
   useEffect(() => {
     if (!ativo || !passo) return;
-    if (passo.rota && location.pathname !== passo.rota) navigate(passo.rota);
+    if (!passo.rota || location.pathname === passo.rota) {
+      try { sessionStorage.removeItem(chave + ':fui'); } catch { /* nada */ }
+      return;
+    }
+    /* Travão (27/11/2026): se já mandámos para esta página e voltámos a estar
+       fora dela, alguém nos tirou de lá (sem acesso). Insistir era um ciclo
+       de idas e voltas; o guia fecha-se, sem o dar por feito. */
+    let fui = null;
+    try { fui = sessionStorage.getItem(chave + ':fui'); } catch { /* nada */ }
+    if (fui === String(i)) {
+      try { sessionStorage.removeItem(chave + ':fui'); } catch { /* nada */ }
+      setI(-1);
+      return;
+    }
+    try { sessionStorage.setItem(chave + ':fui', String(i)); } catch { /* nada */ }
+    navigate(passo.rota);
   }, [ativo, passo, location.pathname, navigate]);
 
   // Medir o elemento apontado. O scroll ate ele faz-se UMA vez, ao entrar no

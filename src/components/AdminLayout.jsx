@@ -787,7 +787,9 @@ export default function AdminLayout({ children }) {
         {/* 01/11/2026 (Diogo): na primeira entrada, o vídeo-tutorial dele (public/boas-vindas.mp4). */}
         {!emDemo && !data.isProfissional && soDona && <VideoBoasVindas />}
         {/* Nunca as duas: numa barbearia de demonstracao manda a da demonstracao. */}
-        {!emDemo && <TourDemo passos={PASSOS_BARBEIRO} chave="convecta_visita_barbeiro" ativo={visitaBarbeiro}
+        {/* 27/11/2026: só a dona. Na equipa o guia ia para Serviços, a guarda mandava
+            de volta para a Agenda, e o guia voltava a ir: o painel piscava sem parar (Diana). */}
+        {!emDemo && soDona && <TourDemo passos={PASSOS_BARBEIRO} chave="convecta_visita_barbeiro" ativo={visitaBarbeiro && soDona}
           aoTerminar={() => { try { window.dispatchEvent(new CustomEvent('convecta-guardar-ecra', { detail: { forcar: true } })); } catch { /* sem eventos */ } }} />}
         {emDemo && (
           <div style={{
