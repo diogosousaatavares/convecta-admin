@@ -477,6 +477,9 @@ export default function AdminLayout({ children }) {
      ao Início (12/11/2026). Os profissionais e as outras casas nao. */
   const donaDoGrupo = grupo.ligado && !!grupo.actual?.principal && !data.isProfissional && !emDemo;
   const casaLigada = grupo.ligado && !!grupo.actual && !grupo.actual.principal;
+  // 27/11/2026: os avisos de conta (RGPD, boas-vindas, primeiros passos, experiência,
+  // subscrição) são da dona — quem é da equipa nunca os vê.
+  const soDona = !casaLigada && !data.isProfissional;
   const gruposBase = gruposPara(emDemo, data.isProfissional, data.permissoes);
   const grupos = donaDoGrupo
     ? [gruposBase[0], { type: 'item', to: '/admin/grupo', label: 'Todas as casas', icon: Building2, d: 'Números e equipa de cada casa.' }, ...gruposBase.slice(1)]
@@ -633,8 +636,8 @@ export default function AdminLayout({ children }) {
       </div>
       {/* Os dias que faltam da experiencia, no topo do menu: e o sitio por
           onde ele passa varias vezes por dia. */}
-      {!casaLigada && <DiasDeTeste />}
-      {!casaLigada && <LancarAApp onIr={() => setOpen(false)} />}
+      {soDona && <DiasDeTeste />}
+      {soDona && <LancarAApp onIr={() => setOpen(false)} />}
       <nav className="admin-nav">
         {grupos.map((g, i) => {
           if (g.type === 'item') {
@@ -782,7 +785,7 @@ export default function AdminLayout({ children }) {
       <main className={`admin-content${!noComputador && !BAIXO.some(b => location.pathname === b.to) && location.pathname !== '/admin/mais' ? ' dentro' : ''}${location.pathname === '/admin/o-meu-site' ? ' sem-barra' : ''}${!noComputador && BAIXO.some(b => location.pathname === b.to) ? ' base-tel' : ''}`} ref={zonaConteudo}>
         {emDemo && <TourDemo passos={PASSOS_DEMO} chave="convecta_tour_painel" />}
         {/* 01/11/2026 (Diogo): na primeira entrada, o vídeo-tutorial dele (public/boas-vindas.mp4). */}
-        {!emDemo && !data.isProfissional && !casaLigada && <VideoBoasVindas />}
+        {!emDemo && !data.isProfissional && soDona && <VideoBoasVindas />}
         {/* Nunca as duas: numa barbearia de demonstracao manda a da demonstracao. */}
         {!emDemo && <TourDemo passos={PASSOS_BARBEIRO} chave="convecta_visita_barbeiro" ativo={visitaBarbeiro}
           aoTerminar={() => { try { window.dispatchEvent(new CustomEvent('convecta-guardar-ecra', { detail: { forcar: true } })); } catch { /* sem eventos */ } }} />}
@@ -849,7 +852,7 @@ export default function AdminLayout({ children }) {
             {/* No telemovel não cabe ao lado do nome (espremia-o letra a
                 letra): vai para uma faixa própria, por baixo da barra. */}
             {noComputador && seletorDeLado}
-            {noComputador && !casaLigada && <div className="dias-teste-topo"><DiasDeTeste /></div>}
+            {noComputador && soDona && <div className="dias-teste-topo"><DiasDeTeste /></div>}
             <div className="admin-search-wrap" ref={searchRef}>
               <Search className="admin-search-icon" size={16} />
               {/* Escape fecha a lista, e uma segunda vez limpa o que esta
@@ -910,14 +913,14 @@ export default function AdminLayout({ children }) {
             o faz durar. Por esta ordem, e nao ao contrario. Na propria pagina
             da subscricao a faixa nao aparece — seria dizer-lhe para ir onde
             ja esta. */}
-        {location.pathname !== '/admin/subscricao' && !casaLigada && <AvisoSubscricao />}
+        {location.pathname !== '/admin/subscricao' && soDona && <AvisoSubscricao />}
         {/* O acordo RGPD (art. 28.º): uma vez por barbearia, até ser aceite. */}
         {/* Numa casa ligada a dona ja aceitou tudo na principal: nada de
             «Li e aceito» nem de boas-vindas como se fosse conta nova. */}
-        {!casaLigada && <AcordoRgpd />}
+        {soDona && <AcordoRgpd />}
         {/* A primeira entrada: tres ecras a ocupar o ecra inteiro, uma vez
             por barbearia. Depois disso e a faixa de cima que lembra. */}
-        {!casaLigada && <BemVindo />}
+        {soDona && <BemVindo />}
         {/* Depois do Bem-vindo: no telemóvel, ensina a guardar o painel no
             ecrã principal — sem isso, no iPhone não há notificações. */}
         <GuardarNoEcra />
@@ -925,7 +928,7 @@ export default function AdminLayout({ children }) {
             Agenda passou a ser a porta de entrada, quem entra deixava de a
             ver — e era precisamente a quem acabou de chegar que ela servia.
             Fica nos dois sitios, escrita num lado so. */}
-        {(location.pathname === '/admin/agenda' || location.pathname === '/admin/dashboard') && !casaLigada && <PrimeirosPassos />}
+        {(location.pathname === '/admin/agenda' || location.pathname === '/admin/dashboard') && soDona && <PrimeirosPassos />}
         {/* A página entra a deslizar (18/10/2026): para a frente vem da
             direita, ao voltar vem da esquerda — como numa app. A barra de
             cima não se mexe; só o conteúdo. */}
